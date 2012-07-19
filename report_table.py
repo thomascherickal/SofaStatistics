@@ -119,6 +119,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        #self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
                                "output", "getdata"]
@@ -154,13 +155,12 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         # title details
         lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
-        lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_titles.SetFont(mg.LABEL_FONT)
         self.txt_titles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                      style=wx.TE_MULTILINE)
         self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
         lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
-        lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
-                                           wx.BOLD))
+        lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
                                         style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
@@ -189,9 +189,9 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.chk_show_perc_symbol.SetValue(True) # True is default
         #text labels
         lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
-        lbl_rows.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_rows.SetFont(mg.LABEL_FONT)
         lbl_cols = wx.StaticText(self.panel, -1, _("Columns:"))
-        lbl_cols.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_cols.SetFont(mg.LABEL_FONT)
         #buttons
         #rows
         self.btn_row_add = wx.Button(self.panel, -1, _("Add"))

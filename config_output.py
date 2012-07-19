@@ -254,10 +254,9 @@ class ConfigUI(object):
         Assumes self has quite a few properties already set.
         """
         bx_data = wx.StaticBox(panel, -1, _("Data Source"))
-        self.LABEL_FONT = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # 1) Databases
         lbl_databases = wx.StaticText(panel, -1, _("Database:"))
-        lbl_databases.SetFont(self.LABEL_FONT)
+        lbl_databases.SetFont(mg.LABEL_FONT)
         # get various db settings
         # set up self.drop_dbs and self.drop_tbls
         dd = mg.DATADETS_OBJ
@@ -269,7 +268,7 @@ class ConfigUI(object):
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
-        lbl_tables.SetFont(self.LABEL_FONT)
+        lbl_tables.SetFont(mg.LABEL_FONT)
         # 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
@@ -318,6 +317,7 @@ class ConfigUI(object):
                          if x.endswith(u".css")]
         style_choices.sort()
         self.drop_style = wx.Choice(panel, -1, choices=style_choices)
+        self.drop_style.SetFont(mg.GEN_FONT)
         style = (path2style(css_file) if css_file 
                  else path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
@@ -400,14 +400,19 @@ class ConfigUI(object):
         return titles, subtitles
     
     def get_rows_n(self):
+        debug = False
         dd = mg.DATADETS_OBJ
         # count records in table
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
         tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
         s = u"SELECT COUNT(*) FROM %s %s" % (tblname, where_tbl_filt)
-        dd.cur.execute(s)
-        rows_n = dd.cur.fetchone()[0]
+        try:
+            dd.cur.execute(s)
+            rows_n = dd.cur.fetchone()[0]
+        except Exception, e:
+            if debug: print(u"Unable to count rows. Orig error: %s" % lib.ue(e))
+            rows_n = 0
         return rows_n
     
     def too_long(self):
@@ -472,12 +477,16 @@ class ConfigUI(object):
         Copes if have to back out of selection because cannot access required
             details e.g. MS SQL Server model database.
         """
+        debug = False
+        if debug: print(u"on_database_sel called")
         getdata.refresh_db_dets(self)
         getdata.readonly_enablement(self.chk_readonly)
         self.rows_n = self.get_rows_n()
         
     def on_table_sel(self, event):
-        "Reset key data details after table selection."       
+        "Reset key data details after table selection."  
+        debug = False
+        if debug: print(u"on_table_sel called")     
         getdata.refresh_tbl_dets(self)
         getdata.readonly_enablement(self.chk_readonly)
         self.rows_n = self.get_rows_n()

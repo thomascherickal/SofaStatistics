@@ -51,10 +51,9 @@ class GdataDownloadDlg(wx.Dialog):
         szr_download = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_bottom_btns.AddGrowableCol(0,2) # idx, propn
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         # sign in details
         self.lbl_email = wx.StaticText(self.panel, -1, _("Email login:"))
-        self.lbl_email.SetFont(lblfont)
+        self.lbl_email.SetFont(mg.LABEL_FONT)
         # for screencasting, hide email too - , style=wx.TE_PASSWORD
         self.txt_email = wx.TextCtrl(self.panel, -1, u"", size=(320,-1)) 
         self.txt_email.Bind(wx.EVT_CHAR, self.on_email_char)
@@ -65,7 +64,7 @@ class GdataDownloadDlg(wx.Dialog):
         img_ctrl_gdata.SetBitmap(bmp_gdata)
         
         self.lbl_pwd = wx.StaticText(self.panel, -1, _("Password:"))
-        self.lbl_pwd.SetFont(lblfont)
+        self.lbl_pwd.SetFont(mg.LABEL_FONT)
         self.txt_pwd = wx.TextCtrl(self.panel, -1, u"", style=wx.TE_PASSWORD, 
                                    size=(320,-1))
         self.txt_pwd.Bind(wx.EVT_CHAR, self.on_pwd_char)

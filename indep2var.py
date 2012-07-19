@@ -58,6 +58,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self,autoupdate=True)
+        #self.SetFont(mg.GEN_FONT)
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
                                "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -81,11 +82,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+        self.btn_help.SetFont(mg.BTN_FONT)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
+        lbl_desc1.SetFont(mg.GEN_FONT)
         lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
+        lbl_desc2.SetFont(mg.GEN_FONT)
         lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+        lbl_desc3.SetFont(mg.GEN_FONT)
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
@@ -101,7 +106,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_vars_top_right_bottom = wx.BoxSizer(wx.HORIZONTAL)
         # var averaged
         self.lbl_avg = wx.StaticText(self.panel, -1, u"%s:" % self.averaged)
-        self.lbl_avg.SetFont(self.LABEL_FONT)
+        self.lbl_avg.SetFont(mg.LABEL_FONT)
         # only want the fields which are numeric
         self.drop_avg = wx.Choice(self.panel, -1, choices=[], size=(220,-1))
         self.drop_avg.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
@@ -110,12 +115,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.sorted_var_names_avg = []
         self.setup_var_dropdown(self.drop_avg, mg.VAR_AVG_DEFAULT, 
                                 self.sorted_var_names_avg)
+        #self.drop_avg.SetFont(mg.GEN_FONT)
         szr_vars_top_left_top.Add(self.lbl_avg, 0, wx.TOP|wx.RIGHT, 5)
         szr_vars_top_left_top.Add(self.drop_avg, 0, wx.RIGHT|wx.TOP, 5)
         self.szr_vars_top_left.Add(szr_vars_top_left_top, 0)
         # group by
         self.lbl_group_by = wx.StaticText(self.panel, -1, _("Group By:"))
-        self.lbl_group_by.SetFont(self.LABEL_FONT)
+        self.lbl_group_by.SetFont(mg.LABEL_FONT)
         self.drop_group_by = wx.Choice(self.panel, -1, choices=[], 
                                        size=(220,-1))
         self.drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
@@ -127,6 +133,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
             # dropdown.  Refreshed as needed so always usable.
         self.setup_group_by()
+        #self.drop_group_by.SetFont(mg.GEN_FONT)
         self.lbl_chop_warning = wx.StaticText(self.panel, -1, u"")
         self.lbl_chop_warning.SetFont(wx.Font(9, wx.SWISS, wx.NORMAL, 
                                               wx.NORMAL))
@@ -380,6 +387,30 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by.SetSelection(idx_gp)
 
+    def get_items_and_sel_idx(self, default, sorted_var_names, var_name=None, 
+                              inc_drop_select=False, 
+                              override_min_data_type=None):
+        debug = False
+        min_data_type = (override_min_data_type if override_min_data_type
+                         else self.min_data_type)
+        if debug: print(var_name, self.min_data_type, override_min_data_type)
+        var_names = projects.get_approp_var_names(self.var_types,
+                                                  min_data_type)
+        (var_choice_items, 
+         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
+                                                vals=var_names,
+                                                inc_drop_select=inc_drop_select)
+        while True:
+            try:
+                del sorted_var_names[0]
+            except IndexError:
+                break
+        sorted_var_names.extend(sorted_vals)
+        # set selection
+        idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
+                                             self.var_labels, default)
+        return var_choice_items, idx_var
+
     def setup_var_dropdown(self, drop_var, default, sorted_var_names, 
                            var_name=None, inc_drop_select=False, 
                            override_min_data_type=None):
@@ -399,28 +430,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             numeric. Always used by charts dlg because it changes depending on 
             chart and whether average or not.
         """
-        debug = False
-        min_data_type = (override_min_data_type if override_min_data_type
-                         else self.min_data_type)
-        if debug: print(var_name, self.min_data_type, override_min_data_type)
-        var_names = projects.get_approp_var_names(self.var_types,
-                                                  min_data_type)
         (var_choice_items, 
-         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
-                                                vals=var_names,
-                                                inc_drop_select=inc_drop_select)
-        while True:
-            try:
-                del sorted_var_names[0]
-            except IndexError:
-                break
-        sorted_var_names.extend(sorted_vals)
+         idx_var) = self.get_items_and_sel_idx(default, sorted_var_names, 
+                                               var_name, inc_drop_select, 
+                                               override_min_data_type)
         drop_var.SetItems(var_choice_items)
-        # set selection
-        idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
-                                             self.var_labels, default)
         drop_var.SetSelection(idx_var)
-
+        
     def setup_group_val_items(self, var_gp, val_a, val_b, where_filt, and_filt):
         """
         If under 250,000 records in source table (when filtered, if applicable), 

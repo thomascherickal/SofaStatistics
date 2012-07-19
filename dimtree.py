@@ -5,7 +5,6 @@ import wx
 
 import my_globals as mg
 import lib
-import my_exceptions
 import projects
 
 MEASURES = u"measures"
@@ -336,7 +335,7 @@ class DimTree(object):
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]
         return text in dim_labels
                 
-    def on_item_delete(self, dim=mg.ROWDIM):
+    def on_item_delete(self, dim):
         """
         Delete item and all its children.
         Set selection to previous sibling (if any); or failing that the next 
@@ -386,13 +385,14 @@ class DimTree(object):
         btn_setup_func()
         live_demo = self.update_demo_display()
         self.setup_action_btns(live_demo)
-    
+
     def on_row_delete(self, event):
         self.on_item_delete(dim=mg.ROWDIM)
-            
-    def on_col_delete(self, event):        self.on_item_delete(dim=mg.COLDIM)
 
-    def config_dim(self, dim=mg.ROWDIM):
+    def on_col_delete(self, event):
+        self.on_item_delete(dim=mg.COLDIM)
+
+    def config_dim(self, dim):
         """
         Configure selected dim item e.g. measures, total.
         Either with columns variables or without. If without, total doesn't 

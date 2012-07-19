@@ -693,10 +693,9 @@ class HasHeaderDlg(wx.Dialog):
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
         lbl_explan = wx.StaticText(self.panel, -1, _("Does your %s file have a "
                                                      "header row?") % ext)
-        bold = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         lbl_with_header = wx.StaticText(self.panel, -1, 
                                         _("Example with header"))
-        lbl_with_header.SetFont(font=bold)
+        lbl_with_header.SetFont(mg.LABEL_FONT)
         img_ctrl_with_header = wx.StaticBitmap(self.panel)
         img_with_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                 u"%s_with_header.xpm" % ext), 
@@ -704,7 +703,7 @@ class HasHeaderDlg(wx.Dialog):
         bmp_with_header = wx.BitmapFromImage(img_with_header)
         img_ctrl_with_header.SetBitmap(bmp_with_header)
         lbl_without_header = wx.StaticText(self.panel, -1, _("Example without"))
-        lbl_without_header.SetFont(font=bold)
+        lbl_without_header.SetFont(mg.LABEL_FONT)
         img_ctrl_without_header = wx.StaticBitmap(self.panel)
         img_without_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
                                                u"%s_without_header.xpm" % ext), 
@@ -852,11 +851,10 @@ class ImportFileSelectDlg(wx.Dialog):
                                             # running script can check on it.
         self.file_type = FILE_UNKNOWN
         config_output.add_icon(frame=self)
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # file path
         lbl_file_path = wx.StaticText(self.panel, -1, _("Source File:"))
-        lbl_file_path.SetFont(lblfont)
+        lbl_file_path.SetFont(mg.LABEL_FONT)
         self.txt_file = wx.TextCtrl(self.panel, -1, u"", size=(400,-1))
         self.txt_file.Bind(wx.EVT_CHAR, self.on_file_char)
         self.txt_file.SetFocus()
@@ -873,7 +871,7 @@ class ImportFileSelectDlg(wx.Dialog):
               "Name entered below:"))
         # internal SOFA name
         lbl_int_name = wx.StaticText(self.panel, -1, _("SOFA Table Name:"))
-        lbl_int_name.SetFont(lblfont)
+        lbl_int_name.SetFont(mg.LABEL_FONT)
         self.txt_int_name = wx.TextCtrl(self.panel, -1, "", size=(280,-1))
         self.txt_int_name.Bind(wx.EVT_CHAR, self.on_int_name_char)
         # feedback

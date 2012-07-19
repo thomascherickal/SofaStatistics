@@ -237,7 +237,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.panel = wx.Panel(self)
         # New controls
         lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
-        lbl_from.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_from.SetFont(mg.LABEL_FONT)
         self.settings_data = fld_settings
         # [('string', 'fname', 'fname (string)'), ...]
         # field type is used for validation and constructing recode SQL string
@@ -258,7 +258,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
         self.drop_from.SetToolTipString(_("Right click to view variable "
                                           "details"))
         lbl_to = wx.StaticText(self.panel, -1, u"To:")
-        lbl_to.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_to.SetFont(mg.LABEL_FONT)
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
         self.txt_to.Bind(wx.EVT_CHAR, self.on_txt_to_char)
         init_recode_clauses_data = []

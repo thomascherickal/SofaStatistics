@@ -479,7 +479,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         self.panel = wx.Panel(self)
         # New controls
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
-        lbl_tbl_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_tbl_label.SetFont(mg.LABEL_FONT)
         self.tblname = tblname_lst[0] if tblname_lst else _("table") + u"001"
         self.txt_tblname = wx.TextCtrl(self.panel, -1, self.tblname, 
                                         size=(450,-1))
@@ -498,15 +498,14 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
         szr_design_right = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label.Add(lbl_tbl_label, 0, wx.RIGHT, 5)
         self.szr_tbl_label.Add(self.txt_tblname, 0)
-        bold = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         design_here_lbl = _("Design Here:") if not self.readonly \
             else _("Design:")
         lbl_design_here = wx.StaticText(self.panel, -1, design_here_lbl)
-        lbl_design_here.SetFont(font=bold)
+        lbl_design_here.SetFont(mg.LABEL_FONT)
         see_result_lbl = _("See Demonstration Result Here:") \
                             if not self.readonly else _("Demonstration Result:")
         lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
-        lbl_see_result.SetFont(font=bold)
+        lbl_see_result.SetFont(mg.LABEL_FONT)
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(500,200))
         if mg.PLATFORM == mg.MAC:

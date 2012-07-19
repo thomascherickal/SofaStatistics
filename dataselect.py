@@ -24,7 +24,6 @@ class DataSelectDlg(wx.Dialog):
         bx_existing = wx.StaticBox(self.panel, -1, _("Existing data tables"))
         bx_new = wx.StaticBox(self.panel, -1, "")
         wx.BeginBusyCursor()
-        lblfont = wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         lbl_choose = wx.StaticText(self.panel, -1, 
                                   _("Choose an existing data table ..."), 
@@ -47,11 +46,11 @@ class DataSelectDlg(wx.Dialog):
         szr_data = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)  
         szr_data.AddGrowableCol(1, 1)      
         lbl_dbs = wx.StaticText(self.panel, -1, _("Databases:"))
-        lbl_dbs.SetFont(lblfont)        
+        lbl_dbs.SetFont(mg.LABEL_FONT)        
         szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
         szr_data.Add(self.drop_dbs, 1, wx.GROW)     
         lbl_tbls = wx.StaticText(self.panel, -1, _("Data tables:"))
-        lbl_tbls.SetFont(lblfont)
+        lbl_tbls.SetFont(mg.LABEL_FONT)
         szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
         szr_data.Add(self.drop_tbls, 1, wx.GROW)        
         szr_existing_bottom = wx.FlexGridSizer(rows=1, cols=4, hgap=5, vgap=50)

@@ -6,7 +6,6 @@ import wx
 
 import my_globals as mg
 import lib
-import my_exceptions
 import config_output
 import full_html
 import indep2var
@@ -47,6 +46,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
                    wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        self.SetFont(mg.GEN_FONT)
         cc = config_output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 
                                "charting_output", "output", "getdata"]
@@ -54,139 +54,40 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         SHOW_AVG = False
         global CUR_DATA_OPT
         CUR_DATA_OPT = mg.SHOW_FREQ
-        self.min_data_type = None # not used here - need fine-grained control of 
-        # up to 3 drop downs
+        self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
+        # up to 4 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        variables_rc_msg = _("Right click variables to view/edit details")
+        self.variables_rc_msg = _("Right click variables to view/edit details")
         config_output.add_icon(frame=self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         # top panel
-        self.panel_top = wx.Panel(self)        
-        bx_vars = wx.StaticBox(self.panel_top, -1, _("Variables"))
-        self.szr_top = wx.BoxSizer(wx.VERTICAL)
-        szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_data = self.get_szr_data(self.panel_top) # mixin
-        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
-            bx_vars.SetToolTipString(variables_rc_msg)
-        self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
-        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
+        self.panel_help_data = wx.Panel(self)
+        self.szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_data = self.get_szr_data(self.panel_help_data) # mixin
+        self.panel_vars = wx.Panel(self)
+        bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
         self.szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
-        self.szr_vars_top_left = wx.BoxSizer(wx.VERTICAL)
+        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
+            bx_vars.SetToolTipString(self.variables_rc_msg)
+        self.btn_help = wx.Button(self.panel_help_data, wx.ID_HELP)
+        #self.btn_help.SetFont(mg.BTN_FONT)
+        self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         self.chart_type = mg.SIMPLE_BARCHART
-        init_chart_config = mg.CHART_CONFIG[self.chart_type][mg.NON_AVG_KEY]
-        dropdown_width = self.get_dropdown_width(init_chart_config)
-        # var 1
-        lbl1 = init_chart_config[0][mg.LBL_KEY]
-        min_data_type1 = init_chart_config[0][mg.MIN_DATA_TYPE_KEY]
-        self.lbl_var1 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl1)
-        self.lbl_var1.SetFont(self.LABEL_FONT)
-        self.drop_var1 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(dropdown_width,-1))
-        self.drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
-        self.drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var1)
-        self.drop_var1.SetToolTipString(variables_rc_msg)
-        self.sorted_var_names1 = []
-        self.setup_var_dropdown(self.drop_var1, mg.VAR_1_DEFAULT, 
-                                self.sorted_var_names1, var_name=None,
-                                override_min_data_type=min_data_type1)
-        # var 2
-        lbl2 = init_chart_config[1][mg.LBL_KEY]
-        min_data_type2 = init_chart_config[1][mg.MIN_DATA_TYPE_KEY]
-        self.lbl_var2 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl2)
-        self.lbl_var2.SetFont(self.LABEL_FONT)
-        self.drop_var2 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(dropdown_width,-1))
-        self.drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
-        self.drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var2)
-        self.drop_var2.SetToolTipString(variables_rc_msg)
-        self.sorted_var_names2 = []
-        self.setup_var_dropdown(self.drop_var2, mg.VAR_2_DEFAULT, 
-                                self.sorted_var_names2, var_name=None, 
-                                inc_drop_select=True,
-                                override_min_data_type=min_data_type2)
-        # var 3
-        lbl3 = mg.CHARTS_CHART_BY
-        min_data_type3 = mg.VAR_TYPE_CAT
-        try:
-            lbl3 = init_chart_config[2][mg.LBL_KEY]
-            min_data_type3 = init_chart_config[2][mg.MIN_DATA_TYPE_KEY]
-        except Exception:
-            # OK if not a third drop down for chart
-            pass
-        self.lbl_var3 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl3)
-        self.lbl_var3.SetFont(self.LABEL_FONT)
-        self.drop_var3 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(dropdown_width,-1))
-        self.drop_var3.Bind(wx.EVT_CHOICE, self.on_var3_sel)
-        self.drop_var3.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var3)
-        self.drop_var3.SetToolTipString(variables_rc_msg)
-        self.sorted_var_names3 = []
-        self.setup_var_dropdown(self.drop_var3, mg.VAR_3_DEFAULT, 
-                                self.sorted_var_names3, var_name=None, 
-                                inc_drop_select=True, 
-                                override_min_data_type=min_data_type3)
-        # var 3 visibility
-        try:
-            init_chart_config[2]
-        except Exception:
-            self.lbl_var3.Hide()
-            self.drop_var3.Hide()
-        # var 4
-        lbl4 = mg.CHARTS_CHART_BY
-        min_data_type4 = mg.VAR_TYPE_CAT
-        try:
-            lbl4 = init_chart_config[3][mg.LBL_KEY]
-            min_data_type4 = init_chart_config[3][mg.MIN_DATA_TYPE_KEY]
-        except Exception:
-            # OK if not a third drop down for chart
-            pass
-        self.lbl_var4 = wx.StaticText(self.panel_top, -1, u"%s:" % lbl4)
-        self.lbl_var4.SetFont(self.LABEL_FONT)
-        self.drop_var4 = wx.Choice(self.panel_top, -1, choices=[], 
-                                   size=(dropdown_width,-1))
-        self.drop_var4.Bind(wx.EVT_CHOICE, self.on_var4_sel)
-        self.drop_var4.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var4)
-        self.drop_var4.SetToolTipString(variables_rc_msg)
-        self.sorted_var_names4 = []
-        self.setup_var_dropdown(self.drop_var4, mg.VAR_4_DEFAULT, 
-                                self.sorted_var_names4, var_name=None, 
-                                inc_drop_select=True, 
-                                override_min_data_type=min_data_type4)
-        # var 4 visibility
-        try:
-            init_chart_config[3]
-        except Exception:
-            self.lbl_var4.Hide()
-            self.drop_var4.Hide()
+        self.setup_var_dropdowns()
+        self.panel_vars.SetSizer(self.szr_vars)
+        self.szr_vars.SetSizeHints(self.panel_vars)
         # layout
         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
-        szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
-        szr_help_data.Add(self.szr_data, 1, wx.LEFT, 5)
-        self.szr_vars.Add(self.lbl_var1, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var1, 0, wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var2, 0, wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var3, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var3, 0, wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var4, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var4, 0, wx.RIGHT|wx.TOP, 5)
-        # assemble sizer for top panel
-        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
-        if static_box_gap:
-            self.szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
-                             static_box_gap)
-        self.szr_top.Add(szr_help_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        if static_box_gap:
-            self.szr_top.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
-                             static_box_gap)
-        self.szr_top.Add(self.szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        self.panel_top.SetSizer(self.szr_top)
-        self.szr_top.SetSizeHints(self.panel_top)
+        self.szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
+        self.szr_help_data.Add(self.szr_data, 1, wx.LEFT, 5)
+        # assemble sizer for help_data panel
+        self.panel_help_data.SetSizer(self.szr_help_data)
+        self.szr_help_data.SetSizeHints(self.panel_help_data)
         # Charts
         # chart buttons
         self.panel_mid = wx.Panel(self)
@@ -350,16 +251,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_lower = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         # titles, subtitles
-        szr_bottom = wx.BoxSizer(wx.VERTICAL)
+        self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
-        lbl_titles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
         self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, 
                                       size=(250,title_height), 
                                       style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
-        lbl_subtitles.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, 
-                                          wx.BOLD))
+        lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, 
                                          size=(250,title_height), 
                                          style=wx.TE_MULTILINE)
@@ -380,13 +280,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         szr_lower.Add(szr_bottom_left, 1, wx.GROW)
         szr_lower.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
-        szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT, 10)
-        szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
+        self.szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT, 10)
+        self.szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
         self.add_other_var_opts()
-        self.panel_bottom.SetSizer(szr_bottom)
-        szr_bottom.SetSizeHints(self.panel_bottom)
+        self.panel_bottom.SetSizer(self.szr_bottom)
+        self.szr_bottom.SetSizeHints(self.panel_bottom)
         # assemble entire frame
-        self.szr_main.Add(self.panel_top, 0, wx.GROW)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
+        if static_box_gap:
+            self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
+                              static_box_gap)
+        self.szr_main.Add(self.panel_help_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        if static_box_gap:
+            self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
+                              static_box_gap)
+        self.szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
                               static_box_gap)
@@ -394,12 +302,218 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr_main)
-        szr_lst = [self.panel_top, self.panel_mid, self.panel_bottom]
+        szr_lst = [self.szr_help_data, self.szr_vars, self.szr_mid, 
+                   self.szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
     
+    def get_fresh_drop_var1(self, items, idx_sel):
+        """
+        Must make fresh to get performant display even with lots of items in a 
+            non-system font on Linux.
+        """
+        try:
+            self.drop_var1.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_var1 = wx.Choice(self.panel_vars, -1, choices=items, 
+                              size=(self.dropdown_width,-1))
+        drop_var1.SetFont(mg.GEN_FONT)
+        drop_var1.SetSelection(idx_sel)
+        drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
+        drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var1)
+        drop_var1.SetToolTipString(self.variables_rc_msg)
+        return drop_var1
+    
+    def get_fresh_drop_var2(self, items, idx_sel):
+        """
+        Must make fresh to get performant display even with lots of items in a 
+            non-system font on Linux.
+        """
+        try:
+            self.drop_var2.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_var2 = wx.Choice(self.panel_vars, -1, choices=items, 
+                              size=(self.dropdown_width,-1))
+        drop_var2.SetFont(mg.GEN_FONT)
+        drop_var2.SetSelection(idx_sel)
+        drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
+        drop_var2.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var2)
+        drop_var2.SetToolTipString(self.variables_rc_msg)
+        return drop_var2
+    
+    def get_fresh_drop_var3(self, items, idx_sel):
+        """
+        Must make fresh to get performant display even with lots of items in a 
+            non-system font on Linux.
+        """
+        try:
+            self.drop_var3.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_var3 = wx.Choice(self.panel_vars, -1, choices=items, 
+                              size=(self.dropdown_width,-1))
+        drop_var3.SetFont(mg.GEN_FONT)
+        drop_var3.SetSelection(idx_sel)
+        drop_var3.Bind(wx.EVT_CHOICE, self.on_var3_sel)
+        drop_var3.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var3)
+        drop_var3.SetToolTipString(self.variables_rc_msg)
+        return drop_var3
+    
+    def get_fresh_drop_var4(self, items, idx_sel):
+        """
+        Must make fresh to get performant display even with lots of items in a 
+            non-system font on Linux.
+        """
+        try:
+            self.drop_var4.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_var4 = wx.Choice(self.panel_vars, -1, choices=items, 
+                              size=(self.dropdown_width,-1))
+        drop_var4.SetFont(mg.GEN_FONT)
+        drop_var4.SetSelection(idx_sel)
+        drop_var4.Bind(wx.EVT_CHOICE, self.on_var4_sel)
+        drop_var4.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var4)
+        drop_var4.SetToolTipString(self.variables_rc_msg)
+        return drop_var4
+
+    def setup_var_dropdowns(self):
+        """
+        Makes fresh objects each time (and rebinds etc) because that is the only 
+            way (in Linux at least) to have a non-standard font-size for items
+            in a performant way e.g. if more than 10-20 items in a list. Very
+            slow if having to add items to dropdown if having to set font e.g.
+            using SetItems().
+        """
+        varname1, varname2, varname3, varname4 = self.get_vars()
+        chart_subtype_key = self.get_chart_subtype_key()
+        chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
+        self.dropdown_width = self.get_dropdown_width(chart_config)
+        # var 1
+        chart_config1 = chart_config[0]
+        min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
+        inc_drop_select1 = chart_config1[mg.INC_SELECT_KEY]
+        lbl1 = u"%s:" % chart_config1[mg.LBL_KEY]
+        try:
+            self.lbl_var1.SetLabel(lbl1) # if not already made, make it (this also means we only make it if not already made)
+        except Exception:
+            self.lbl_var1 = wx.StaticText(self.panel_vars, -1, lbl1)
+            self.lbl_var1.SetFont(mg.LABEL_FONT)
+        self.sorted_var_names1 = []
+        (items1, 
+         idx_sel1) = self.get_items_and_sel_idx(mg.VAR_1_DEFAULT, 
+                            sorted_var_names=self.sorted_var_names1, 
+                            var_name=varname1, inc_drop_select=inc_drop_select1, 
+                            override_min_data_type=min_data_type1)
+        self.drop_var1 = self.get_fresh_drop_var1(items1, idx_sel1)
+        # var 2
+        chart_config2 = chart_config[1]
+        min_data_type2 = chart_config2[mg.MIN_DATA_TYPE_KEY]
+        inc_drop_select2 = chart_config2[mg.INC_SELECT_KEY]
+        lbl2 = u"%s:" % chart_config2[mg.LBL_KEY]
+        try:
+            self.lbl_var2.SetLabel(lbl2)
+        except Exception:
+            self.lbl_var2 = wx.StaticText(self.panel_vars, -1, lbl2)
+            self.lbl_var2.SetFont(mg.LABEL_FONT)
+        self.sorted_var_names2 = []
+        (items2, 
+         idx_sel2) = self.get_items_and_sel_idx(mg.VAR_2_DEFAULT, 
+                           sorted_var_names=self.sorted_var_names2, 
+                           var_name=varname2, inc_drop_select=inc_drop_select2, 
+                           override_min_data_type=min_data_type2)
+        self.drop_var2 = self.get_fresh_drop_var2(items2, idx_sel2)
+        # var 3
+        try:
+            chart_config3 = chart_config[2]
+            lbl3 = u"%s:" % chart_config3[mg.LBL_KEY]
+            min_data_type3 = chart_config3[mg.MIN_DATA_TYPE_KEY]
+            inc_drop_select3 = chart_config3[mg.INC_SELECT_KEY]
+        except Exception:
+            # OK if not a third drop down for chart
+            lbl3 = u"%s:" % mg.CHARTS_CHART_BY
+            min_data_type3 = mg.VAR_TYPE_CAT
+            inc_drop_select3 = True
+        try:
+            self.lbl_var3.SetLabel(lbl3)
+        except Exception:
+            self.lbl_var3 = wx.StaticText(self.panel_vars, -1, lbl3)
+            self.lbl_var3.SetFont(mg.LABEL_FONT)
+        self.sorted_var_names3 = []
+        (items3, 
+         idx_sel3) = self.get_items_and_sel_idx(mg.VAR_3_DEFAULT, 
+                           sorted_var_names=self.sorted_var_names3, 
+                           var_name=varname3, inc_drop_select=inc_drop_select3, 
+                           override_min_data_type=min_data_type3)
+        self.drop_var3 = self.get_fresh_drop_var3(items3, idx_sel3)
+        # var 3 visibility
+        try:
+            chart_config[2]
+            show3 = True
+        except Exception:
+            self.lbl_var3.Hide()
+            self.drop_var3.Hide()
+            show3 = False
+        # var 4
+        try:
+            chart_config4 = chart_config[3]
+            lbl4 = u"%s:" % chart_config4[mg.LBL_KEY]
+            min_data_type4 = chart_config4[mg.MIN_DATA_TYPE_KEY]
+            inc_drop_select4 = chart_config4[mg.INC_SELECT_KEY]
+        except Exception:
+            # OK if not a third drop down for chart
+            lbl4 = u"%s:" % mg.CHARTS_CHART_BY
+            min_data_type4 = mg.VAR_TYPE_CAT
+            inc_drop_select4 = True
+        try:
+            self.lbl_var4.SetLabel(lbl4)
+        except Exception:
+            self.lbl_var4 = wx.StaticText(self.panel_vars, -1, lbl4)
+            self.lbl_var4.SetFont(mg.LABEL_FONT)
+        self.sorted_var_names4 = []
+        (items4, 
+         idx_sel4) = self.get_items_and_sel_idx(mg.VAR_4_DEFAULT, 
+                           sorted_var_names=self.sorted_var_names4, 
+                           var_name=varname4, inc_drop_select=inc_drop_select4, 
+                           override_min_data_type=min_data_type4)
+        self.drop_var4 = self.get_fresh_drop_var4(items4, idx_sel4)
+        # var 4 visibility
+        try:
+            chart_config[3]
+            show4 = True
+        except Exception:
+            self.lbl_var4.Hide()
+            self.drop_var4.Hide()
+            show4 = False
+        self.panel_vars.Layout()
+        self.drop_var1.Show(True)
+        self.drop_var2.Show(True)
+        self.lbl_var3.Show(show3)
+        self.drop_var3.Show(show3)
+        self.lbl_var4.Show(show4)
+        self.drop_var4.Show(show4)
+        try:
+            self.szr_vars.Clear()
+        except Exception:
+            pass
+        self.szr_vars.Add(self.lbl_var1, 0,wx.TOP|wx.RIGHT, 5)
+        self.szr_vars.Add(self.drop_var1, 0, 
+                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_vars.Add(self.drop_var2, 0, 
+                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(self.lbl_var3, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_vars.Add(self.drop_var3, 0, 
+                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(self.lbl_var4, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_vars.Add(self.drop_var4, 0, 
+                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.panel_vars.Layout()
+    
     def get_dropdown_width(self, chart_config):
-        dropdown_width = 210 if len(chart_config) < 4 else 175 # 4, 175
+        dropdown_width = mg.STD_DROP_WIDTH if len(chart_config) < 4 else 160
         return dropdown_width
     
     def get_rad_perc(self, panel):
@@ -432,7 +546,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.SetToolTipString(_(u"Show averages not frequencies?"))
         chk.Bind(wx.EVT_CHECKBOX, on_event)
         return chk
-    
+
     def on_show(self, event):
         try:
             self.html.pizza_magic() # must happen after Show
@@ -582,98 +696,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def refresh_vars(self):
         self.setup_var_dropdowns()
         self.update_defaults()
-
-    def setup_var_dropdowns(self):
-        debug = False
-        if debug: print(u"Chart type is: %s" % self.chart_type)
-        varname1, varname2, varname3, varname4 = self.get_vars()
-        chart_subtype_key = self.get_chart_subtype_key()
-        chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
-        dropdown_width = self.get_dropdown_width(chart_config)
-        if debug: print(u"Dropdown width: %s" % dropdown_width)
-        # var 1
-        lbl1 = chart_config[0][mg.LBL_KEY]
-        min_data_type1 = chart_config[0][mg.MIN_DATA_TYPE_KEY]
-        inc_drop_select1 = chart_config[0][mg.INC_SELECT_KEY]
-        self.setup_var_dropdown(self.drop_var1, mg.VAR_1_DEFAULT, 
-                                self.sorted_var_names1, var_name=varname1,
-                                inc_drop_select=inc_drop_select1, 
-                                override_min_data_type=min_data_type1)
-        self.lbl_var1.SetLabel(u"%s:" % lbl1)
-        self.drop_var1.SetMaxSize(wx.Size(dropdown_width,-1))
-        self.drop_var1.SetMinSize(wx.Size(dropdown_width,-1))
-        # var 2
-        lbl2 = chart_config[1][mg.LBL_KEY]
-        min_data_type2 = chart_config[1][mg.MIN_DATA_TYPE_KEY]
-        inc_drop_select2 = chart_config[1][mg.INC_SELECT_KEY]
-        self.setup_var_dropdown(self.drop_var2, mg.VAR_2_DEFAULT, 
-                                self.sorted_var_names2, var_name=varname2, 
-                                inc_drop_select=inc_drop_select2, 
-                                override_min_data_type=min_data_type2)
-        self.drop_var2.Enable(True)
-        self.lbl_var2.Enable(True)
-        self.lbl_var2.SetLabel(u"%s:" % lbl2)
-        self.drop_var2.SetMaxSize(wx.Size(dropdown_width,-1))
-        self.drop_var2.SetMinSize(wx.Size(dropdown_width,-1))
-        # var 3
-        show3 = True
-        try:
-            chart_config[2]
-            lbl3 = chart_config[2][mg.LBL_KEY]
-            min_data_type3 = chart_config[2][mg.MIN_DATA_TYPE_KEY]
-            inc_drop_select3 = chart_config[2][mg.INC_SELECT_KEY]
-            self.setup_var_dropdown(self.drop_var3, mg.VAR_3_DEFAULT, 
-                                    self.sorted_var_names3, var_name=varname3, 
-                                    inc_drop_select=inc_drop_select3, 
-                                    override_min_data_type=min_data_type3)
-            self.lbl_var3.SetLabel(u"%s:" % lbl3)
-            self.drop_var3.SetMaxSize(wx.Size(dropdown_width,-1))
-            self.drop_var3.SetMinSize(wx.Size(dropdown_width,-1))
-        except Exception:
-            show3 = False
-        # var 4
-        show4 = True
-        try:
-            chart_config[3]
-            lbl4 = chart_config[3][mg.LBL_KEY]
-            min_data_type4 = chart_config[3][mg.MIN_DATA_TYPE_KEY]
-            inc_drop_select4 = chart_config[3][mg.INC_SELECT_KEY]
-            self.setup_var_dropdown(self.drop_var4, mg.VAR_4_DEFAULT, 
-                                    self.sorted_var_names4, var_name=varname4, 
-                                    inc_drop_select=inc_drop_select4, 
-                                    override_min_data_type=min_data_type4)
-            self.lbl_var4.SetLabel(u"%s:" % lbl4)
-            self.drop_var4.SetMaxSize(wx.Size(dropdown_width,-1))
-            self.drop_var4.SetMinSize(wx.Size(dropdown_width,-1))
-        except Exception:
-            show4 = False
-        self.panel_top.Layout()
-        self.freshen_var_dropdowns_layout(show3, show4)
     
-    def freshen_var_dropdowns_layout(self, show3, show4):
-        """
-        Make fresh layout (don't want to end up with the drop downs narrower but 
-            still as far apart as when wide).
-        """
-        self.szr_vars.Clear()
-        self.szr_vars.Add(self.lbl_var1, 0,wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var1, 0, 
-                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var2, 0, 
-                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var3, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var3, 0, 
-                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
-        self.szr_vars.Add(self.lbl_var4, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var4, 0, 
-                          wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
-        self.lbl_var3.Show(show3)
-        self.drop_var3.Show(show3)
-        self.lbl_var4.Show(show4)
-        self.drop_var4.Show(show4)
-        self.panel_top.Layout()
-        
     def on_rad_perc(self, event):
         debug = False
         global CUR_DATA_OPT
@@ -720,7 +743,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except IndexError:
             pass
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
-        
+
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
         btn.SetDefault()
@@ -738,13 +761,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
         self.setup_var_dropdowns()
-        chart_subtype_key = self.get_chart_subtype_key()
-        chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
-        show3 = len(chart_config)>=3
-        show4 = len(chart_config)>=4
-        if show3: # need to freshen it up twice otherwise 4th dropdown can be too far right initially - no idea why 
-            self.freshen_var_dropdowns_layout(show3, show4)
-           
+        
     def on_btn_bar_chart(self, event):
         self.chart_type = mg.SIMPLE_BARCHART
         btn = self.btn_bar_chart
@@ -752,7 +769,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
         self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
-        self.rad_simple_bar_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        self.rad_simple_bar_perc.SetSelection(perc_sel)
         self.chk_simple_bar_rotate.SetValue(ROTATE)
         self.chk_simple_bar_avg.SetValue(SHOW_AVG)
         self.rad_simple_bar_perc.Enable(not SHOW_AVG)
@@ -764,7 +782,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_clust_bar_chart
         btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
         panel = self.panel_clust_bar_chart
-        self.rad_clust_bar_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        self.rad_clust_bar_perc.SetSelection(perc_sel)
         self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.chk_clust_bar_avg.SetValue(SHOW_AVG)
         self.rad_clust_bar_perc.Enable(not SHOW_AVG)
@@ -776,7 +795,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_pie_chart
         btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
-        self.rad_pie_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
+        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        self.rad_pie_sort_opts.SetSelection(perc_sel)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_line_chart(self, event):
@@ -785,7 +805,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        self.rad_line_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        self.rad_line_perc.SetSelection(perc_sel)
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_avg.SetValue(SHOW_AVG)
         self.rad_line_perc.Enable(not SHOW_AVG)
@@ -798,7 +819,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        self.rad_area_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        self.rad_area_perc.SetSelection(perc_sel)
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_avg.SetValue(SHOW_AVG)
         self.rad_area_perc.Enable(not SHOW_AVG)
@@ -936,15 +958,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         self.sorted_var_names_by and self.sorted_var_names1, 2, and 3 are set 
             when dropdowns are set (and only changed when reset).
+        May be called when var dropdowns not even created in which case it 
+            should return Nones.
         """
-        varname1, unused = self.get_var_dets(self.drop_var1, 
-                                             self.sorted_var_names1)
-        varname2, unused = self.get_var_dets(self.drop_var2, 
-                                             self.sorted_var_names2)
-        varname3, unused = self.get_var_dets(self.drop_var3, 
-                                             self.sorted_var_names3)
-        varname4, unused = self.get_var_dets(self.drop_var4, 
-                                             self.sorted_var_names4)
+        try:
+            varname1, unused = self.get_var_dets(self.drop_var1, 
+                                                 self.sorted_var_names1)
+        except Exception:
+            varname1 = None
+        try:
+            varname2, unused = self.get_var_dets(self.drop_var2, 
+                                                 self.sorted_var_names2)
+        except Exception:
+            varname2 = None
+        try:
+            varname3, unused = self.get_var_dets(self.drop_var3, 
+                                                 self.sorted_var_names3)
+        except Exception:
+            varname3 = None
+        try:
+            varname4, unused = self.get_var_dets(self.drop_var4, 
+                                                 self.sorted_var_names4)
+        except Exception:
+            varname4 = None
         return varname1, varname2, varname3, varname4
     
     def update_defaults(self):

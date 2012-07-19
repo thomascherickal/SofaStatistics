@@ -130,6 +130,7 @@ class SofaApp(wx.App):
             internationalised.
         """
         try:
+            config_globals.set_fonts()
             try:
                 self.setup_i18n()
             except Exception, e:
@@ -522,10 +523,10 @@ class StartFrame(wx.Frame):
                 u" either of these tables if present - \"%s\" and \"%s\"") 
                 % (mg.TMP_TBLNAME, mg.TMP_TBLNAME2))
         if show_more_steps: print(u"Passed check for having to delete database")
-        try:
-            wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
-        except Exception:
-            pass
+        #try:
+        #    wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
+        #except Exception:
+        #    pass
         # any warnings to display once screen visible?
         warning_div = u"\n\n" + u"-"*20 + u"\n\n"
         deferred_warning_msg = warning_div.join(mg.DEFERRED_WARNING_MSGS)
@@ -1098,22 +1099,16 @@ class StartFrame(wx.Frame):
                             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt_get_started = _(u"Step-by-step examples with screen-shots "
-                            u"to get you started.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_get_started, 
-                                                self.max_help_text_width), 
-                    wx.Rect(self.main_left, self.help_text_top, 
-                            self.help_text_width, 260))
+        txt_get_started = _(u"Step-by-step examples with screen-shots to get "
+                            u"you started.")
+        text2draw = lib.get_text_to_draw(txt_get_started, 
+                                         self.max_help_text_width)
+        myrect = wx.Rect(self.main_left, self.help_text_top, 
+                         self.help_text_width, 260)
+        panel_dc.DrawLabel(text2draw, myrect)
         event.Skip()
 
     def on_help_click(self, event):
-        
-        
-        # to shake out some bugs
-        #import proext2
-        #proext2.my_key_function()
-        
-        
         import webbrowser
         url = u"http://www.sofastatistics.com/help.php"
         webbrowser.open_new_tab(url)

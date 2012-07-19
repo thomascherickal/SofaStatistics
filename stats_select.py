@@ -252,7 +252,7 @@ class StatsSelectDlg(wx.Dialog):
         self.lbl_tips = wx.StaticText(self.panel, -1,
                                       pos=(self.lst_left, 
                                            self.lst_top+self.lst_height+40))
-        self.lbl_tips.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
+        self.lbl_tips.SetFont(mg.LABEL_FONT)
         self.lbl_tips.SetForegroundColour(self.text_brown)
         # run test button
         self.btn_config = wx.Button(self.panel, -1, _("CONFIGURE TEST"),

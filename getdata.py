@@ -653,15 +653,17 @@ def get_data_dropdowns(parent, panel, default_dbs):
                                 {"oth_dbe": oth_dbe, "e": lib.ue(e)})
     parent.db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     parent.drop_dbs = wx.Choice(panel, -1, choices=parent.db_choice_items,
-                                size=(200,-1))
+                                size=(mg.STD_DROP_WIDTH,-1))
+    #parent.drop_dbs.SetFont(mg.GEN_FONT)
     parent.drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
-    
     dbs_lc = [x.lower() for x in dd.dbs]
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
     parent.drop_dbs.SetSelection(selected_dbe_db_idx)
     parent.selected_dbe_db_idx = selected_dbe_db_idx
-    parent.drop_tbls = wx.Choice(panel, -1, choices=[], size=(200,-1))
+    parent.drop_tbls = wx.Choice(panel, -1, choices=[], 
+                                 size=(mg.STD_DROP_WIDTH,-1))
     setup_drop_tbls(parent.drop_tbls)
+    #parent.drop_tbls.SetFont(mg.GEN_FONT)
     parent.drop_tbls.Bind(wx.EVT_CHOICE, parent.on_table_sel)
     return parent.drop_dbs, parent.drop_tbls
 
@@ -691,6 +693,7 @@ def set_parent_db_dets(parent, dbe, db):
     """
     Set all parent database details including drop down.
     """
+    debug = False
     dd = mg.DATADETS_OBJ
     dd.set_dbe(dbe, db)
     parent.dbe = dd.dbe
@@ -702,7 +705,9 @@ def set_parent_db_dets(parent, dbe, db):
     parent.flds = dd.flds
     parent.idxs = dd.idxs
     parent.has_unique = dd.has_unique
+    if debug: print("About to set %s drop_tbls items" % len(dd.tbls))
     parent.drop_tbls.SetItems(dd.tbls)
+    if debug: print("Finished setting drop_tbls items")
     tbls_lc = [x.lower() for x in dd.tbls]
     parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
     

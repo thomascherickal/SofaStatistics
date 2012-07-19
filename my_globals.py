@@ -778,6 +778,7 @@ CHART_FREQS = "chart_freqs"
 CHART_AVGS = "chart_avgs"
 # remember defaults //////////
 # stats tests
+STD_DROP_WIDTH = 190
 GROUP_BY_DEFAULT = None
 VAR_AVG_DEFAULT = None
 VAR_1_DEFAULT = None
@@ -823,3 +824,6 @@ config_globals.set_ok_date_formats()
 config_globals.set_DEFAULT_LEVEL()
 config_globals.import_dbe_plugins() # as late as possible because uses local 
     # modules e.g. lib, my_exceptions
+LABEL_FONT = None # will be set after wx.App started
+BTN_FONT = None
+GEN_FONT = None

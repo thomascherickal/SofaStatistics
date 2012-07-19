@@ -80,7 +80,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         self.lbl_desc = wx.StaticText(self.panel, -1, self.desc_label_unpaired)
         self.szr_desc.Add(self.lbl_desc, 0, wx.ALL, 10)
         self.lbl_vars = wx.StaticText(self.panel, -1, self.var_label_unpaired)
-        self.lbl_vars.SetFont(self.LABEL_FONT)
+        self.lbl_vars.SetFont(mg.LABEL_FONT)
         self.rad_paired = wx.RadioBox(self.panel, -1, 
                                       _("Single or Paired variables"), 
                                       choices=paired_choices, size=(-1,45),

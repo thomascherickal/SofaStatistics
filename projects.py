@@ -159,6 +159,9 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
             print(dd.flds)
         var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
                      var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
+    else:
+        raise Exception(u"get_approp_var_names received a faulty min_data_"
+                        u"type: %s" % min_data_type)
     return var_names
 
 def get_idx_to_select(choice_items, drop_var, var_labels, default):
@@ -290,9 +293,9 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.var_desc = var_desc
         # New controls
         lbl_var_label = wx.StaticText(self.panel, -1, _("Variable Label:"))
-        lbl_var_label.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_var_label.SetFont(mg.LABEL_FONT)
         lbl_var_notes = wx.StaticText(self.panel, -1, "Notes:")
-        lbl_var_notes.SetFont(font=wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
+        lbl_var_notes.SetFont(mg.LABEL_FONT)
         self.txt_var_label = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
                                          size=(250,-1))
         self.txt_var_notes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],

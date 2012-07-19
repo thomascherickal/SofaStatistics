@@ -2104,16 +2104,13 @@ def use_mpl_scatterplots(scatterplot_dets):
         enormous and unwieldy for a start.
     And want one style of scatterplots for all plots in a chart series.
     """
-    use_mpl = False
     chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
+    chart_data_tups = []
     for chart_det in chart_dets:
-        chart_data_tups = []
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         for series_det in series_dets:
             chart_data_tups.extend(series_det[mg.DATA_TUPS])
-        if len(chart_data_tups) > mg.MAX_POINTS_DOJO_SCATTERPLOT:
-            use_mpl = True
-            break
+    use_mpl = len(chart_data_tups) > mg.MAX_POINTS_DOJO_SCATTERPLOT
     return use_mpl
             
 def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders, 
