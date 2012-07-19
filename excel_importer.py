@@ -107,13 +107,16 @@ class ExcelImporter(importer.FileImporter):
     
     def getval2use(self, wkbook, coltype, rawval):
         if coltype == xlrd.XL_CELL_DATE:
-            datetup = xlrd.xldate_as_tuple(rawval, wkbook.datemode)
-            # Handle times (NB if they are trying to record duration, they 
-            # should use an integer e.g. seconds
-            if datetup[0] == 0:
-                cellval = datetime.time(datetup[3], datetup[4], datetup[5])
-            else:
-                cellval = datetime.datetime(*datetup).isoformat(" ")
+            try:
+                datetup = xlrd.xldate_as_tuple(rawval, wkbook.datemode)
+                # Handle times (NB if they are trying to record duration, they 
+                # should use an integer e.g. seconds
+                if datetup[0] == 0:
+                    cellval = datetime.time(datetup[3], datetup[4], datetup[5])
+                else:
+                    cellval = datetime.datetime(*datetup).isoformat(" ")
+            except Exception:
+                raise Exception(u"Invalid date - unable to import.")
         else:
             cellval = rawval
         val2use = (cellval if isinstance(cellval, basestring) 
@@ -126,7 +129,12 @@ class ExcelImporter(importer.FileImporter):
         rawrowvals = wksheet.row_values(rowx) # more efficient to grab once
         for colx in range(wksheet.ncols):
             rawval = rawrowvals[colx]
-            val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
+            try:
+                val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
+            except Exception, e:
+                raise Exception(u"Problem with value in field \"%s\", row %s. "
+                                u"Orig error: %s" % (fldnames[colx], rowx+1, 
+                                                     lib.ue(e)))
             rowvals.append(val2use)
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
