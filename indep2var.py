@@ -68,35 +68,39 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.variables_rc_msg = _("Right click variables to view/edit details")
-        # set up panel for frame
-        self.panel = wx.Panel(self)
-        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
+        # set up panels for frame
+        self.panel_top = wx.Panel(self)
+        self.panel_data = wx.Panel(self)
+        self.panel_vars = wx.Panel(self)
+        self.panel_bottom = wx.Panel(self)
+        bx_desc = wx.StaticBox(self.panel_top, -1, _("Purpose"))
+        bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
         # key settings
-        self.drop_tbls_panel = self.panel
+        self.drop_tbls_panel = self.panel_data
         self.drop_tbls_system_font_size = False
         self.drop_tbls_idx_in_szr = 3
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        (self.szr_data, 
-         self.szr_config) = self.get_gen_config_szrs(self.panel) # mixin
+        self.szr_data = self.get_szr_data(self.panel_data) # mixin
+        self.panel_data.SetSizer(self.szr_data)
+        self.szr_config = self.get_config_szr(self.panel_bottom) 
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        self.szr_output_btns = self.get_szr_output_btns(self.panel, 
+        self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
                                                         inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
-        self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+        self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
         self.btn_help.SetFont(mg.BTN_FONT)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         eg1, eg2, eg3 = self.get_examples()
-        lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
-        lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
-        lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+        lbl_desc1 = wx.StaticText(self.panel_top, -1, eg1)
+        lbl_desc2 = wx.StaticText(self.panel_top, -1, eg2)
+        lbl_desc3 = wx.StaticText(self.panel_top, -1, eg3)
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
@@ -111,7 +115,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.szr_group_by_vars = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_vars_a_and_b = wx.BoxSizer(wx.HORIZONTAL)
         # var averaged
-        self.lbl_avg = wx.StaticText(self.panel, -1, u"%s:" % self.averaged)
+        self.lbl_avg = wx.StaticText(self.panel_vars, -1, u"%s:" % 
+                                     self.averaged)
         self.lbl_avg.SetFont(mg.LABEL_FONT)
         self.setup_avg_dropdown()
         self.szr_vars_top_left.Add(self.szr_avg_vars, 0)
@@ -121,9 +126,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             # order of labels, not raw values
         self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
             # dropdown.  Refreshed as needed so always usable.
-        self.lbl_group_by = wx.StaticText(self.panel, -1, _("Group By:"))
+        self.lbl_group_by = wx.StaticText(self.panel_vars, -1, _("Group By:"))
         self.lbl_group_by.SetFont(mg.LABEL_FONT)
-        self.lbl_chop_warning = wx.StaticText(self.panel, -1, u"")
+        self.lbl_chop_warning = wx.StaticText(self.panel_vars, -1, u"")
         self.setup_group_dropdown()
         if self.range_gps:
             group_a_lbl = _("From Group")
@@ -132,18 +137,18 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             group_a_lbl = _("Group A:")
             group_b_lbl = _("Group B:")
         # Gets unique values for selected variable. Sets choices for drop_group_a and B accordingly.
-        self.lbl_group_a = wx.StaticText(self.panel, -1, group_a_lbl)
-        self.lbl_group_b = wx.StaticText(self.panel, -1, group_b_lbl)
+        self.lbl_group_a = wx.StaticText(self.panel_vars, -1, group_a_lbl)
+        self.lbl_group_b = wx.StaticText(self.panel_vars, -1, group_b_lbl)
         self.setup_a_and_b_dropdowns()
         szr_vars_top_right.Add(self.szr_group_by_vars, 1, wx.GROW)
         szr_vars_top_right.Add(self.szr_vars_a_and_b, 0, wx.GROW|wx.TOP, 5)
         szr_vars_top.Add(self.szr_vars_top_left, 0)
         self.add_other_var_opts(szr=self.szr_vars_top_left)
-        ln_vert = wx.StaticLine(self.panel, style=wx.LI_VERTICAL) 
+        ln_vert = wx.StaticLine(self.panel_top, style=wx.LI_VERTICAL) 
         szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
         szr_vars_top.Add(szr_vars_top_right, 0)
         # comment
-        self.lbl_phrase = wx.StaticText(self.panel, -1, 
+        self.lbl_phrase = wx.StaticText(self.panel_bottom, -1, 
                                         _("Start making your selections"))
         style = wx.GROW|wx.BOTTOM
         if mg.PLATFORM != mg.MAC:
@@ -151,6 +156,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_vars_bottom.Add(self.lbl_phrase, 0, style, 5)
         szr_vars.Add(szr_vars_top, 0)      
         szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
+        self.panel_vars.SetSizer(szr_vars)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
         if mg.MAX_HEIGHT <= 620:
@@ -161,7 +167,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             myheight = 350
         if mg.PLATFORM == mg.MAC:
             myheight = myheight*0.3
-        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+        self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
                                        size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
@@ -173,23 +179,26 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
+        self.panel_bottom.SetSizer(szr_bottom)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
         szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
         szr_top.Add(szr_desc, 1, wx.LEFT, 5)
-        szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.panel_top.SetSizer(szr_top)
+        szr_main.Add(self.panel_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(self.panel_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(szr_bottom, 1, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
-        self.panel.SetSizer(szr_main)
+        szr_main.Add(self.panel_bottom, 1, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 
+                     10)
+        self.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
 
@@ -202,7 +211,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.drop_avg.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_avg = wx.Choice(self.panel, -1, choices=items, size=(220, -1))
+        drop_avg = wx.Choice(self.panel_vars, -1, choices=items, size=(220, -1))
         drop_avg.SetFont(mg.GEN_FONT)
         drop_avg.SetSelection(idx_avg)
         drop_avg.Bind(wx.EVT_CHOICE, self.on_averaged_sel)
@@ -215,7 +224,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.drop_group_by.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_group_by = wx.Choice(self.panel, -1, choices=items, size=(220, -1))
+        drop_group_by = wx.Choice(self.panel_vars, -1, choices=items, 
+                                  size=(220, -1))
         drop_group_by.SetFont(mg.GEN_FONT)
         drop_group_by.SetSelection(idx_gp_by)
         drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
@@ -228,7 +238,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.drop_group_a.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_group_a = wx.Choice(self.panel, -1, choices=items, size=(200, -1))
+        drop_group_a = wx.Choice(self.panel_vars, -1, choices=items, 
+                                 size=(200, -1))
         drop_group_a.SetFont(mg.GEN_FONT)
         drop_group_a.SetSelection(idx_a)
         drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
@@ -240,7 +251,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.drop_group_b.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_group_b = wx.Choice(self.panel, -1, choices=items, size=(200, -1))
+        drop_group_b = wx.Choice(self.panel_vars, -1, choices=items, 
+                                 size=(200, -1))
         drop_group_b.SetFont(mg.GEN_FONT)
         drop_group_b.SetSelection(idx_b)
         drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
@@ -255,14 +267,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                                                   self.sorted_var_names_avg, 
                                                   var_avg)
         self.drop_avg = self.get_fresh_drop_avg(var_avg_choice_items, idx_avg)
-        self.panel.Layout()
+        self.panel_vars.Layout()
         try:
             self.szr_avg_vars.Clear()
         except Exception:
             pass
         self.szr_avg_vars.Add(self.lbl_avg, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_avg_vars.Add(self.drop_avg, 0, wx.RIGHT|wx.TOP, 5)
-        self.panel.Layout()
+        self.panel_vars.Layout()
 
     def setup_group_dropdown(self):
         var_gp, unused = self.get_vars()
@@ -276,7 +288,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by = self.get_fresh_drop_group_by(var_gp_by_items, 
                                                           idx_gp_by)
-        self.panel.Layout()
+        self.panel_vars.Layout()
         try:
             self.szr_group_by_vars.Clear()
         except Exception:
@@ -284,7 +296,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.szr_group_by_vars.Add(self.lbl_group_by, 0, wx.RIGHT|wx.TOP, 5)
         self.szr_group_by_vars.Add(self.drop_group_by, 0, wx.GROW|wx.RIGHT, 5)
         self.szr_group_by_vars.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
-        self.panel.Layout()
+        self.panel_vars.Layout()
 
     def setup_a_and_b_dropdowns(self, val_a=None, val_b=None):
         """
@@ -314,7 +326,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_group_a.Enable(enable)
         self.lbl_group_b.Enable(enable)
         self.drop_group_b.Enable(enable)
-        self.panel.Layout()
+        self.panel_vars.Layout()
         try:
             self.szr_vars_a_and_b.Clear()
         except Exception:
@@ -323,7 +335,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.szr_vars_a_and_b.Add(self.drop_group_a, 0, wx.RIGHT, 5)
         self.szr_vars_a_and_b.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
         self.szr_vars_a_and_b.Add(self.drop_group_b, 0)
-        self.panel.Layout()
+        self.panel_vars.Layout()
 
     def on_show(self, event):
         try:

@@ -12,8 +12,6 @@ import getdata
 import indep2var
 import projects
 
-LIMITS_MSG = (u"This chart type is not currently available in this release. "
-              u"More chart types coming soon!")
 CUR_SORT_OPT = mg.SORT_NONE
 CUR_DATA_OPT = mg.SHOW_FREQ
 SHOW_AVG = False
@@ -884,22 +882,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_boxplot_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
-    def on_btn_chart(self, event):
-        wx.MessageBox(LIMITS_MSG)
-    
     def on_btn_run(self, event):
         # get settings
         cc = config_output.get_cc()
-        if self.chart_type not in []:
-            run_ok = self.test_config_ok()
-            add_to_report = self.chk_add_to_report.IsChecked()
-            if run_ok:
-                get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
-                                 cc[mg.CURRENT_REPORT_PATH]]
-                config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
-                                                  new_has_dojo=True)
-        else:
-            wx.MessageBox(LIMITS_MSG)
+        run_ok = self.test_config_ok()
+        add_to_report = self.chk_add_to_report.IsChecked()
+        if run_ok:
+            get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
+                             cc[mg.CURRENT_REPORT_PATH]]
+            config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
+                                              new_has_dojo=True)
 
     def on_btn_script(self, event):
         # TODO NB will have new_has_dojo=True

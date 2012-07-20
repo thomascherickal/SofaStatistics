@@ -751,12 +751,13 @@ def refresh_db_dets(parent):
         details. If ok to accept change, reset the selected idx to what has just 
         been selected.
     """
-    debug = False
+    debug = True
     # only go through step if a change made
     orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
     if parent.drop_dbs.GetSelection() == orig_selected_dbe_db_idx:
         if debug: print("No change so nothing to do")
         return
+    if debug: print("Was change - so plenty of work ahead")
     wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extract_db_dets(db_choice_item)
