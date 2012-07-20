@@ -520,6 +520,30 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_vars.Add(self.drop_var4, 0, 
                           wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
         self.panel_vars.Layout()
+
+    def get_items_and_sel_idx(self, default, sorted_var_names, var_name=None, 
+                              inc_drop_select=False, 
+                              override_min_data_type=None):
+        debug = False
+        min_data_type = (override_min_data_type if override_min_data_type
+                         else self.min_data_type)
+        if debug: print(var_name, self.min_data_type, override_min_data_type)
+        var_names = projects.get_approp_var_names(self.var_types,
+                                                  min_data_type)
+        (var_choice_items, 
+         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
+                                                vals=var_names,
+                                                inc_drop_select=inc_drop_select)
+        while True:
+            try:
+                del sorted_var_names[0]
+            except IndexError:
+                break
+        sorted_var_names.extend(sorted_vals)
+        # set selection
+        idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
+                                             self.var_labels, default)
+        return var_choice_items, idx_var
     
     def get_dropdown_width(self, chart_config):
         dropdown_width = mg.STD_DROP_WIDTH if len(chart_config) < 4 else 160

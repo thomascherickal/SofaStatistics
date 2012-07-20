@@ -36,7 +36,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.html_msg = u""
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        variables_rc_msg = _("Right click variables to view/edit details")
+        self.variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
         bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
@@ -70,32 +70,19 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.btn_help.SetFont(mg.BTN_FONT)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
-            bx_vars.SetToolTipString(variables_rc_msg)
+            bx_vars.SetToolTipString(self.variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
         #szr_vars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
-        szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        szr_vars.Add(szr_vars_top, 1, wx.LEFT, 5)
+        szr_vars.Add(self.szr_vars_top, 1, wx.LEFT, 5)
         szr_vars.Add(szr_vars_bottom, 0, wx.LEFT, 5)
-        # group A
+        # groups
         self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
         self.lbl_group_a.SetFont(mg.LABEL_FONT)
-        self.drop_group_a = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.drop_group_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_a)
-        self.drop_group_a.SetToolTipString(variables_rc_msg)
-        szr_vars_top.Add(self.lbl_group_a, 0, wx.RIGHT, 5)
-        szr_vars_top.Add(self.drop_group_a, 0, wx.GROW)
-        # group B
         self.lbl_group_b = wx.StaticText(self.panel, -1, _("Group B:"))
         self.lbl_group_b.SetFont(mg.LABEL_FONT)
-        self.drop_group_b = wx.Choice(self.panel, -1, choices=[], size=(300, -1))
-        self.drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
-        self.drop_group_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
-        self.drop_group_b.SetToolTipString(variables_rc_msg)
-        #self.setup_groups()
-        szr_vars_top.Add(self.lbl_group_b, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_vars_top.Add(self.drop_group_b, 0, wx.GROW)
+        self.setup_var_dropdowns()
         # phrase
         self.lbl_phrase = wx.StaticText(self.panel, -1, 
                                        _("Start making your selections"))
@@ -141,9 +128,64 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
-        self.setup_groups()
-        #self.drop_group_a.SetFont(mg.GEN_FONT)
-        #self.drop_group_b.SetFont(mg.GEN_FONT)
+
+    def get_fresh_drop_a(self, items, idx_a):
+        """
+        Must make fresh to get performant display even with lots of items in a 
+            non-system font on Linux.
+        """
+        try:
+            self.drop_group_a.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_group_a = wx.Choice(self.panel, -1, choices=items, size=(300, -1))
+        drop_group_a.SetFont(mg.GEN_FONT)
+        drop_group_a.SetSelection(idx_a)
+        drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        drop_group_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_a)
+        drop_group_a.SetToolTipString(self.variables_rc_msg)
+        return drop_group_a
+
+    def get_fresh_drop_b(self, items, idx_b):
+        try:
+            self.drop_group_b.Destroy() # don't want more than one
+        except Exception:
+            pass
+        drop_group_b = wx.Choice(self.panel, -1, choices=items, size=(300, -1))
+        drop_group_b.SetFont(mg.GEN_FONT)
+        drop_group_b.SetSelection(idx_b)
+        drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
+        drop_group_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_b)
+        drop_group_b.SetToolTipString(self.variables_rc_msg)
+        return drop_group_b
+
+    def setup_var_dropdowns(self):
+        """
+        Makes fresh objects each time (and rebinds etc) because that is the only 
+            way (in Linux at least) to have a non-standard font-size for items
+            in a performant way e.g. if more than 10-20 items in a list. Very
+            slow if having to add items to dropdown if having to set font e.g.
+            using SetItems().
+        """
+        var_a, var_b = self.get_vars()
+        fld_choice_items = self.get_group_choices()
+        idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
+                                           self.var_labels, mg.GROUP_A_DEFAULT)
+        self.drop_group_a = self.get_fresh_drop_a(fld_choice_items, idx_a)
+        idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
+                                           self.var_labels, mg.GROUP_B_DEFAULT)
+        self.drop_group_b = self.get_fresh_drop_b(fld_choice_items, idx_b)
+        
+        self.panel.Layout()
+        try:
+            self.szr_vars_top.Clear()
+        except Exception:
+            pass
+        self.szr_vars_top.Add(self.lbl_group_a, 0, wx.RIGHT, 5)
+        self.szr_vars_top.Add(self.drop_group_a, 0, wx.GROW)
+        self.szr_vars_top.Add(self.lbl_group_b, 0, wx.LEFT|wx.RIGHT, 5)
+        self.szr_vars_top.Add(self.drop_group_b, 0, wx.GROW)
+        self.panel.Layout()
 
     def on_show(self, event):
         try:
@@ -211,23 +253,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                                 dic_labels=self.var_labels, vals=var_names)
         return fld_choice_items
        
-    def setup_group_a(self, fld_choice_items, var_a=None):        
-        self.drop_group_a.SetItems(fld_choice_items)
-        idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
-                                           self.var_labels, mg.GROUP_A_DEFAULT)
-        self.drop_group_a.SetSelection(idx_a)            
-
-    def setup_group_b(self, fld_choice_items, var_b=None):        
-        self.drop_group_b.SetItems(fld_choice_items)
-        idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
-                                           self.var_labels, mg.GROUP_B_DEFAULT)
-        self.drop_group_b.SetSelection(idx_b)
-        
-    def setup_groups(self, var_a=None, var_b=None):
-        fld_choice_items = self.get_group_choices()
-        self.setup_group_a(fld_choice_items, var_a)
-        self.setup_group_b(fld_choice_items, var_b)
-    
     def on_database_sel(self, event):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown, 
@@ -235,13 +260,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         config_output.ConfigUI.on_database_sel(self, event)
         config_output.update_var_dets(dlg=self)
-        self.setup_groups()
+        self.setup_var_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_output.ConfigUI.on_table_sel(self, event)
         config_output.update_var_dets(dlg=self)
-        self.setup_groups()
+        self.setup_var_dropdowns()
 
     def get_var_a(self):
         idx_a = self.drop_group_a.GetSelection()
@@ -260,8 +285,14 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.sorted_var_names is set when dropdowns are set 
             (and only changed when reset).
         """
-        var_a, unused = self.get_var_a()
-        var_b, unused = self.get_var_b()
+        try:
+            var_a, unused = self.get_var_a()
+        except Exception:
+            var_a = None
+        try:
+            var_b, unused = self.get_var_b()
+        except Exception:
+            var_b = None
         return var_a, var_b
         
     def on_btn_config(self, event):

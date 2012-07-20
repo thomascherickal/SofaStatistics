@@ -778,7 +778,7 @@ CHART_FREQS = "chart_freqs"
 CHART_AVGS = "chart_avgs"
 # remember defaults //////////
 # stats tests
-STD_DROP_WIDTH = 190
+STD_DROP_WIDTH = 180
 GROUP_BY_DEFAULT = None
 VAR_AVG_DEFAULT = None
 VAR_1_DEFAULT = None

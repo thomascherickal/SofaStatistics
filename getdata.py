@@ -742,9 +742,6 @@ def set_parent_db_dets(parent, dbe, db):
     parent.has_unique = dd.has_unique
     parent.drop_tbls = get_fresh_drop_tbls(parent, parent.drop_tbls_szr, 
                                            parent.drop_tbls_panel)
-    #parent.drop_tbls.SetItems(dd.tbls)
-    #tbls_lc = [x.lower() for x in dd.tbls]
-    #parent.drop_tbls.SetSelection(tbls_lc.index(dd.tbl.lower()))
     
 def refresh_db_dets(parent):
     """
@@ -754,6 +751,12 @@ def refresh_db_dets(parent):
         details. If ok to accept change, reset the selected idx to what has just 
         been selected.
     """
+    debug = False
+    # only go through step if a change made
+    orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
+    if parent.drop_dbs.GetSelection() == orig_selected_dbe_db_idx:
+        if debug: print("No change so nothing to do")
+        return
     wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
     db, dbe = extract_db_dets(db_choice_item)
@@ -765,7 +768,6 @@ def refresh_db_dets(parent):
         wx.MessageBox(_("Experienced problem refreshing database details.") +
                       u"\nCaused by error %s" % lib.ue(e))
         # roll back
-        orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
         orig_db_choice_item = parent.db_choice_items[orig_selected_dbe_db_idx]
         orig_db, orig_dbe = extract_db_dets(orig_db_choice_item)
         set_parent_db_dets(parent, orig_dbe, orig_db)
