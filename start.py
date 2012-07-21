@@ -396,8 +396,8 @@ class FeedbackDlg(wx.Dialog):
               u"\n\nYou can answer later by clicking on the \"%s\" link"
               u"\ndown the bottom of the main form"
               u"\n\nAnd you are always welcome to email "
-              u"grant@sofastatistics.com - "
-              u"\nespecially to solve any problems.") % mg.FEEDBACK_LINK)
+              u"%s - \nespecially to solve any problems.") % (mg.FEEDBACK_LINK, 
+                                                              mg.CONTACT))
         self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
@@ -988,8 +988,7 @@ class StartFrame(wx.Frame):
     def on_paint_err_msg(self, e):
         wx.MessageBox(u"Problem displaying start form. "
                       u"Please email the lead developer for help - "
-                      u"grant@sofastatistics.com\n\nCaused by error: %s" % 
-                      lib.ue(e))
+                      u"%s\n\nCaused by error: %s" % (mg.CONTACT, lib.ue(e)))
     
     def on_paint(self, event):
         """

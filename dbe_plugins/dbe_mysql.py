@@ -11,9 +11,9 @@ if mg.PLATFORM == mg.MAC:
     try:
         import pymysql as mysql # easier to get working on a Mac
     except Exception, e:
-        raise Exception(u"Contact the developer (grant@sofastatistics.com) for "
+        raise Exception(u"Contact the developer (%s) for "
                         u"specific advice on how to use SOFA with MySQL on a "
-                        u"Mac.")
+                        u"Mac." % mg.CONTACT)
 else:
     import MySQLdb as mysql
 import my_exceptions

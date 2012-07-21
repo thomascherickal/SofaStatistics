@@ -274,8 +274,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_subtitles, 1)
-        self.szr_config = self.get_config_szr(self.panel_bottom) # mixin                         
-        self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
+        self.szr_output_config = self.get_szr_output_config(self.panel_bottom) # mixin
+        self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
                                                         inc_clear=False) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
                                        size=(200, 150))
@@ -283,12 +283,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
-        szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
+        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW|wx.BOTTOM, 2)
+        szr_bottom_left.Add(self.html, 1, wx.GROW)
         szr_lower.Add(szr_bottom_left, 1, wx.GROW)
-        szr_lower.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
-        self.szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT, 10)
-        self.szr_bottom.Add(szr_lower, 2, wx.GROW|wx.ALL, 10)
+        szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
+        self.szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|
+                            wx.BOTTOM, 10)
+        self.szr_bottom.Add(szr_lower, 2, wx.GROW|wx.LEFT|wx.RIGHT|
+                            wx.BOTTOM, 10)
         self.add_other_var_opts()
         self.panel_bottom.SetSizer(self.szr_bottom)
         self.szr_bottom.SetSizeHints(self.panel_bottom)

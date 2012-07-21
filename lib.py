@@ -1799,8 +1799,8 @@ def is_control_due(extension):
 def give_std_control_msg(extension):
     wx.MessageBox(u"This extension has not been successfully recorded as "
         u"purchased. If you have purchased it, however, please contact "
-        u"grant@sofastatistics.com for assistance. Otherwise, you can purchase "
-        u"this extension from sofastatistics.com")    
+        u"%s for assistance. Otherwise, you can purchase "
+        u"this extension from sofastatistics.com" % mg.CONTACT)    
 
 def wipe_ext_control(extension):
     """
@@ -1974,7 +1974,7 @@ def recorded_as_registered(extension):
                             "registered this SOFA extension."))
         else:
             wx.MessageBox(_("If you're having trouble registering please "
-                            "contact Grant at grant@sofastatistics.com"))
+                            "contact Grant at %s") % mg.CONTACT)
     return registered
 
 def mk_local_ext_list(extension, path, varname, label):

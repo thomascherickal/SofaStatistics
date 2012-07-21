@@ -476,16 +476,16 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         # CONFIG
-        # mixin supplying self.szr_config
-        self.szr_config = self.get_config_szr(self.panel_config, 
+        # mixin supplying self.szr_output_config
+        self.szr_output_config = self.get_szr_output_config(self.panel_config, 
                                               readonly=self.readonly, 
                                               report_file=self.fil_report)
         btn_var_config = self.get_btn_var_config(self.panel_config)
-        self.list_style = self.get_list_style(self.panel_config, 
-                                              css_file=self.fil_css)
-        self.szr_config.Add(btn_var_config) # normally part of data but we need it here so
-        self.szr_config.Add(self.list_style) # normally part of output szr but need it here
-        self.szr_config_outer.Add(self.szr_config, 0, wx.GROW|wx.ALL, 10)
+        self.style_selector = self.get_style_selector(self.panel_config, 
+                                           as_list=False, css_file=self.fil_css)
+        self.szr_output_config.Add(btn_var_config, 0, wx.LEFT|wx.RIGHT, 5) # normally part of data but we need it here so
+        self.szr_output_config.Add(self.style_selector, 0, wx.LEFT|wx.RIGHT, 5) # normally part of output szr but need it here
+        self.szr_config_outer.Add(self.szr_output_config, 0, wx.GROW|wx.ALL, 10)
         self.panel_config.SetSizer(self.szr_config_outer)
         self.szr_config_outer.SetSizeHints(self.panel_config)
         # BOTTOM
@@ -713,7 +713,7 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""
-            style = self.list_style.GetStringSelection()
+            style = self.style_selector.GetStringSelection()
             fil_css = config_output.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]

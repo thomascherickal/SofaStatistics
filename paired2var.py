@@ -51,11 +51,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
         (self.szr_data, 
-         self.szr_config) = self.get_gen_config_szrs(self.panel) # mixin
+         self.szr_output_config) = self.get_gen_config_szrs(self.panel) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        self.szr_output_btns = self.get_szr_output_btns(self.panel,
-                                                        inc_clear=False)
+        self.szr_output_display = self.get_szr_output_display(self.panel,
+                                                              inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
@@ -103,12 +103,12 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
+        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.LEFT|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         #self.szr_level = self.get_szr_level(self.panel) # mixin
         #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)

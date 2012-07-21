@@ -119,13 +119,14 @@ class ErrMsgFrame(wx.Frame):
                 u"version %(version)s.\n\nHelp is available at "
                 u"http://www.sofastatistics.com/userguide.php under "
                 u"\"SOFA won't start - solutions\". You can also email "
-                u"lead developer grant@sofastatistics.com for help (usually "
+                u"lead developer %(contact)s for help (usually "
                 u"reasonably prompt).\n\nSOFA is about to make an error file "
                 u"on your desktop. Please include that file "
                 u"(\"%(err_msg_fname)s\") in your email."
                 u"\n%(mybreak)s\nCaused by error: %(error_msg)s""" % 
                 {"version": mg.VERSION, "err_msg_fname": err_msg_fname, 
-                 "error_msg": error_msg, "mybreak": mybreak})
+                 "error_msg": error_msg, "mybreak": mybreak, 
+                 u"contact": mg.CONTACT})
         wx.MessageBox(error_msg)
         f = codecs.open(os.path.join(mg.USER_PATH, u"Desktop", err_msg_fname), 
                         "w", "utf-8")
@@ -219,7 +220,7 @@ E.g. /usr/bin/python2.6 instead of python.
             os_msg = mac_msg
         else:
             os_msg = oth_msg
-        msg_dic = {u"div": div, u"os_msg": os_msg}
+        msg_dic = {u"div": div, u"os_msg": os_msg, u"contact": mg.CONTACT}
         msg = (u"""
 %(div)s
 HOW TO GET SOFA STATISTICS WORKING AGAIN 
@@ -227,7 +228,7 @@ HOW TO GET SOFA STATISTICS WORKING AGAIN
 
 It looks like an incorrect version of Python is being used to run SOFA Statistics.
 %(os_msg)s
-For help, please contact grant@sofastatistics.com""") % msg_dic
+For help, please contact %(contact)s""") % msg_dic
         f.write(msg)
         f.close()    
         msgapp = ErrMsgApp(msg + u"\n\n" + div + u"\n\nThis message has been "

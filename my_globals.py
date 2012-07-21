@@ -16,6 +16,7 @@ debug = False
 
 VERSION = u"1.2.0"
 ATTRIBUTION = u"sofastatistics.com"
+CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 # LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH

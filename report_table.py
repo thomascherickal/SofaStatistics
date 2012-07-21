@@ -144,10 +144,9 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
         (self.szr_data, 
-         self.szr_config) = self.get_gen_config_szrs(self.panel) # mixin
+         self.szr_output_config) = self.get_gen_config_szrs(self.panel) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        szr_mid = wx.BoxSizer(wx.VERTICAL)
         szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
         szr_opts = wx.BoxSizer(wx.HORIZONTAL)
         szr_raw_display_opts = wx.BoxSizer(wx.VERTICAL)
@@ -159,19 +158,20 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_html = wx.BoxSizer(wx.VERTICAL)
         szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
-        self.szr_output_btns = self.get_szr_output_btns(self.panel) # mixin
+        self.szr_output_display = self.get_szr_output_display(self.panel) # mixin
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         # title details
         lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
         lbl_titles.SetFont(mg.LABEL_FONT)
-        self.txt_titles = wx.TextCtrl(self.panel, -1, size=(50,40), 
-                                     style=wx.TE_MULTILINE)
+        title_height = 40 if mg.PLATFORM == mg.MAC else 20
+        self.txt_titles = wx.TextCtrl(self.panel, -1, size=(250,title_height), 
+                                      style=wx.TE_MULTILINE)
         self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
         lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
-        self.txt_subtitles = wx.TextCtrl(self.panel, -1, size=(50,40), 
-                                        style=wx.TE_MULTILINE)
+        self.txt_subtitles = wx.TextCtrl(self.panel, -1,size=(250,title_height), 
+                                         style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         # table type. NB max indiv width sets width for all items in Win or OSX
         tab_type_choices = (_("Frequencies"), _("Crosstabs"), _("Row Stats"),
@@ -277,19 +277,14 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_top.Add(self.szr_data, 1, wx.LEFT, 5)
         szr_tab_type.Add(self.rad_tab_type, 0, wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
-        szr_titles.Add(self.txt_titles, 1, wx.GROW|wx.RIGHT, 10)
+        szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
-        szr_titles.Add(self.txt_subtitles, 1, wx.GROW)
+        szr_titles.Add(self.txt_subtitles, 1)
         szr_raw_display_opts.Add(self.chk_totals_row, 0)        
         szr_raw_display_opts.Add(self.chk_first_as_label, 0)
         szr_opts.Add(szr_raw_display_opts, 0) 
         szr_opts.Add(self.chk_show_perc_symbol, 0)
         szr_tab_type.Add(szr_opts, 0)
-        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
-        if static_box_gap:
-            szr_mid.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_mid.Add(szr_tab_type, 0, wx.BOTTOM, 5)
-        szr_mid.Add(szr_titles, 1, wx.GROW|wx.TOP, 5)
         szr_rows.Add(lbl_rows, 0)
         szr_row_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_row_btns.Add(self.btn_row_add, 0, wx.RIGHT, 2)
@@ -308,21 +303,24 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_trees.Add(szr_rows, 1, wx.GROW|wx.RIGHT, 2)
         szr_trees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
         szr_html.Add(self.html, 1, wx.GROW)
-        szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_bottom_left.Add(self.szr_config, 0, 
+        szr_bottom_left.Add(self.szr_output_config, 0, 
                             wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
+        szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.BOTTOM|wx.RIGHT, 10)
+        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.RIGHT, 10)
+        static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szr_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(szr_bottom, 2, wx.GROW)
+        szr_main.Add(szr_tab_type, 0, wx.BOTTOM, 5)
+        szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|
+                     wx.BOTTOM, 10)
+        szr_main.Add(szr_bottom, 2, wx.GROW|wx.BOTTOM, 10)
         self.panel.SetSizer(szr_main)
-        szr_lst = [szr_top, szr_mid, szr_trees, szr_bottom]
+        szr_lst = [szr_top, szr_tab_type, szr_trees, szr_titles, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def on_show(self, event):

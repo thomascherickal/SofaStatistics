@@ -214,15 +214,15 @@ class ConfigUI(object):
 
     def get_gen_config_szrs(self, panel, readonly=False):
         """
-        Returns self.szr_data, self.szr_config (reports and css) complete with 
-            widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
+        Returns self.szr_data, self.szr_output_config (reports and css) complete 
+            with widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
         Widgets include dropdowns for database and tables, and textboxes plus 
             Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         """
         self.szr_data = self.get_szr_data(panel, readonly)
-        self.szr_config = self.get_config_szr(panel, readonly)
-        return self.szr_data, self.szr_config
+        self.szr_output_config = self.get_szr_output_config(panel, readonly)
+        return self.szr_data, self.szr_output_config
         
     def get_szr_data(self, panel, readonly=False):
         """
@@ -279,9 +279,9 @@ class ConfigUI(object):
         self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
         
-    def get_config_szr(self, panel, readonly=False, report_file=None):
+    def get_szr_output_config(self, panel, readonly=False, report_file=None):
         """
-        Returns self.szr_config (reports and css) complete with widgets.
+        Returns self.szr_output_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         Sets defaults to current stored values in global cc.
@@ -289,13 +289,16 @@ class ConfigUI(object):
             project dialog need to have option of taking from proj file.
         """
         cc = get_cc()
+        self.btn_run = wx.Button(panel, -1, RUN_LBL)
+        self.btn_run.SetFont(mg.BTN_FONT)
+        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
+        self.btn_run.SetToolTipString(_("Run report and show results"))
+        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
+        self.chk_add_to_report.SetFont(mg.GEN_FONT)
+        self.chk_add_to_report.SetValue(True)
         self.readonly = readonly
         browse = _("Browse")
-        bx_report_config = wx.StaticBox(panel, -1, 
-                                        _("Send output to report ... "))
-        self.szr_config = wx.BoxSizer(wx.HORIZONTAL)
-        # Output details
-        # report
+        bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
@@ -304,35 +307,36 @@ class ConfigUI(object):
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                   self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not self.readonly)
-        self.btn_report_path = wx.Button(panel, -1, browse)
+        self.btn_report_path = wx.Button(panel, -1, browse, size=(60,-1))
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
                                                 "output file"))
-        self.btn_view = wx.Button(panel, -1, _("View"))
+        self.btn_view = wx.Button(panel, -1, _("View"), size=(60,-1))
         self.btn_view.SetFont(mg.BTN_FONT)
         self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
         self.btn_view.Enable(not self.readonly)
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
-        # Report
-        szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
-        szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
-        szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_config.Add(szr_report_config, 3, wx.RIGHT, 5)
-        return self.szr_config
+        self.btn_export_imgs = wx.Button(panel, -1, _("Export as Images"))
+        self.btn_export_imgs.SetFont(mg.BTN_FONT)
+        self.btn_export_imgs.Bind(wx.EVT_BUTTON, self.on_btn_export_imgs)
+        self.btn_export_imgs.Enable(not self.readonly)
+        self.btn_export_imgs.SetToolTipString(_(u"Export as images ready for "
+                                             u"use in reports, slideshows etc"))
+        szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
+        szr_output_config.Add(self.btn_run, 0)
+        szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
+        szr_output_config.Add(self.txt_report_file, 1)
+        szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_output_config.Add(self.btn_export_imgs, 0, wx.LEFT|wx.RIGHT, 5)
+        return szr_output_config
 
-    def get_szr_output_btns(self, panel, inc_clear=True):
+    def get_szr_output_display(self, panel, inc_clear=True):
         # main
-        self.btn_run = wx.Button(panel, -1, RUN_LBL)
-        self.btn_run.SetFont(mg.BTN_FONT)
-        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
-        self.btn_run.SetToolTipString(_("Run report and show results"))
-        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
-        self.chk_add_to_report.SetFont(mg.GEN_FONT)
-        self.chk_add_to_report.SetValue(True)
+        self.style_selector = self.get_style_selector(panel)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.SetFont(mg.BTN_FONT)
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
@@ -347,27 +351,22 @@ class ConfigUI(object):
         self.btn_close.SetFont(mg.BTN_FONT)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
-        self.szr_output_btns = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
-        self.szr_output_btns.AddGrowableRow(3,2) # idx, propn
-        self.szr_output_btns.AddGrowableCol(0,1) # idx, propn
+        szr_output_display = wx.FlexGridSizer(rows=5, cols=1, hgap=5, vgap=5)
+        szr_output_display.AddGrowableRow(1,2) # idx, propn
+        szr_output_display.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
-        self.szr_output_btns.Add(self.btn_run, 1, wx.ALIGN_RIGHT)
-        self.szr_output_btns.Add(self.chk_add_to_report, 1, wx.ALIGN_RIGHT)
-        self.list_style = self.get_list_style(panel)
-        self.szr_output_btns.Add(self.list_style, 0, wx.GROW|wx.BOTTOM, 10)
-        self.szr_output_btns.Add(self.btn_expand, 1, 
-                                 wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+        szr_output_display.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 5)
+        szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 10)
+        szr_output_display.Add(self.btn_expand, 1, wx.ALIGN_RIGHT|wx.ALIGN_TOP)
         if inc_clear:
-            self.szr_output_btns.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
+            szr_output_display.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
         # close
         close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
-        self.szr_output_btns.Add(self.btn_close, 1, 
-                                 wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.BOTTOM, 
-                                 close_up_by)
-        return self.szr_output_btns
+        szr_output_display.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
+        return szr_output_display
     
-    def get_list_style(self, panel, css_file=None):
+    def get_style_selector(self, panel, as_list=True, css_file=None):
         debug = False
         cc = get_cc()
         # style config details
@@ -375,16 +374,21 @@ class ConfigUI(object):
         style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
                          if x.endswith(u".css")]
         style_choices.sort()
-        list_style = wx.ListBox(panel, -1, choices=style_choices, size=(100,-1))
-        list_style.SetFont(mg.GEN_FONT)
+        if as_list:
+            style_selector = wx.ListBox(panel, -1, choices=style_choices, 
+                                        size=(100,-1))
+            style_selector.Bind(wx.EVT_LISTBOX, self.on_style_sel)
+        else:
+            style_selector = wx.Choice(panel, -1, choices=style_choices)
+            style_selector.Bind(wx.EVT_CHOICE, self.on_style_sel)
+        style_selector.SetFont(mg.GEN_FONT)
         style = (path2style(css_file) if css_file 
                  else path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
-        list_style.SetSelection(idx_fil_css)
-        list_style.Bind(wx.EVT_LISTBOX, self.on_style_sel)
-        list_style.Enable(not self.readonly)
-        list_style.SetToolTipString(_("Select an existing css style file"))
-        return list_style
+        style_selector.SetSelection(idx_fil_css)
+        style_selector.Enable(not self.readonly)
+        style_selector.SetToolTipString(_("Select an existing css style file"))
+        return style_selector
     
     def get_btn_var_config(self, panel):
         btn_var_config = wx.Button(panel, -1, _("Config Vars"))
@@ -527,6 +531,9 @@ class ConfigUI(object):
                  u"new_rpt": new_rpt})
         dlg_get_file.Destroy()
     
+    def on_btn_export_imgs(self, event):
+        wx.MessageBox(u"Available as extension for SOFA from %s" % mg.CONTACT)
+    
     def get_script_output(self, add_to_report, get_script_args, new_has_dojo):
         debug = False
         cc = get_cc()
@@ -606,10 +613,12 @@ class ConfigUI(object):
     # table style
     def on_style_sel(self, event):
         """
-        Change style. Note - fires on exit from form too - but no 
-            GetStringSelection possible at that point (returns empty string).
+        Change style. Note - when a listbox, fires on exit from form too - but 
+            no GetStringSelection possible at that point (returns empty string)
+            even if there was a selection previously before the close was 
+            initiated.
         """
-        if self.list_style.GetSelection() != wx.NOT_FOUND:
+        if self.style_selector.GetSelection() != wx.NOT_FOUND:
             self.update_css()
     
     def update_css(self):
@@ -617,7 +626,7 @@ class ConfigUI(object):
         debug = False
         if self.autoupdate:
             cc = get_cc()
-            style = self.list_style.GetStringSelection()
+            style = self.style_selector.GetStringSelection()
             if style == u"":
                 return
             if debug: print(u"Selected style is: %s" % style)

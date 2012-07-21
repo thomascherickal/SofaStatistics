@@ -87,11 +87,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_can_grow = False
         self.szr_data = self.get_szr_data(self.panel_data) # mixin
         self.panel_data.SetSizer(self.szr_data)
-        self.szr_config = self.get_config_szr(self.panel_bottom) 
+        self.szr_output_config = self.get_szr_output_config(self.panel_bottom) 
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        self.szr_output_btns = self.get_szr_output_btns(self.panel_bottom, 
-                                                        inc_clear=False)
+        self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
+                                                              inc_clear=False)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
@@ -152,7 +152,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
         szr_vars_top.Add(szr_vars_top_right, 0)
         # comment
-        self.lbl_phrase = wx.StaticText(self.panel_bottom, -1, 
+        self.lbl_phrase = wx.StaticText(self.panel_vars, -1, 
                                         _("Start making your selections"))
         style = wx.GROW|wx.BOTTOM
         if mg.PLATFORM != mg.MAC:
@@ -177,12 +177,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
+        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW)
         szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        szr_bottom_left.Add(self.szr_config, 0, wx.GROW)
         #self.szr_level = self.get_szr_level(self.panel) # mixin
         #szr_bottom_left.Add(self.szr_level, 0)
         szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szr_output_btns, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         self.panel_bottom.SetSizer(szr_bottom)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
