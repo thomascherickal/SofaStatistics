@@ -843,7 +843,7 @@ class StatsSelectDlg(wx.Dialog):
                 raise Exception(u"Unknown test")
         except Exception:
             wx.MessageBox(_("Unable to connect to data as defined in "
-                   "project %s.  Please check your settings.") % self.proj_name)
+                    "project %s. Please check your settings.") % self.proj_name)
             raise
         event.Skip()
     

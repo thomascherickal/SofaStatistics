@@ -295,9 +295,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             var_b = None
         return var_a, var_b
         
-    def on_btn_config(self, event):
+    def on_btn_var_config(self, event):
         var_a, var_b = self.get_vars()
-        config_output.ConfigUI.on_btn_config(self, event)
+        config_output.ConfigUI.on_btn_var_config(self, event)
         self.setup_groups(var_a, var_b)
         self.update_phrase()
         

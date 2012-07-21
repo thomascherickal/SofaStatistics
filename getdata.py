@@ -668,6 +668,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     drop_dbs = wx.Choice(panel, -1, choices=db_choice_items,
                                 size=(mg.STD_DROP_WIDTH,-1))
+    drop_dbs.SetFont(mg.GEN_FONT)
     drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
     dbs_lc = [x.lower() for x in dd.dbs]
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
@@ -751,7 +752,7 @@ def refresh_db_dets(parent):
         details. If ok to accept change, reset the selected idx to what has just 
         been selected.
     """
-    debug = True
+    debug = False
     # only go through step if a change made
     orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
     if parent.drop_dbs.GetSelection() == orig_selected_dbe_db_idx:

@@ -99,8 +99,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel_top, -1, eg1)
+        lbl_desc1.SetFont(mg.GEN_FONT)
         lbl_desc2 = wx.StaticText(self.panel_top, -1, eg2)
+        lbl_desc2.SetFont(mg.GEN_FONT)
         lbl_desc3 = wx.StaticText(self.panel_top, -1, eg3)
+        lbl_desc3.SetFont(mg.GEN_FONT)
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
@@ -129,6 +132,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.lbl_group_by = wx.StaticText(self.panel_vars, -1, _("Group By:"))
         self.lbl_group_by.SetFont(mg.LABEL_FONT)
         self.lbl_chop_warning = wx.StaticText(self.panel_vars, -1, u"")
+        self.lbl_chop_warning.SetFont(mg.GEN_FONT)
         self.setup_group_dropdown()
         if self.range_gps:
             group_a_lbl = _("From Group")
@@ -144,7 +148,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_vars_top_right.Add(self.szr_vars_a_and_b, 0, wx.GROW|wx.TOP, 5)
         szr_vars_top.Add(self.szr_vars_top_left, 0)
         self.add_other_var_opts(szr=self.szr_vars_top_left)
-        ln_vert = wx.StaticLine(self.panel_top, style=wx.LI_VERTICAL) 
+        ln_vert = wx.StaticLine(self.panel_vars, style=wx.LI_VERTICAL) 
         szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
         szr_vars_top.Add(szr_vars_top_right, 0)
         # comment
@@ -412,13 +416,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.setup_avg_dropdown()
         self.setup_a_and_b_dropdowns()
         
-    def on_btn_config(self, event):
+    def on_btn_var_config(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
         val_a, val_b = self.get_vals()
-        config_output.ConfigUI.on_btn_config(self, event)
+        config_output.ConfigUI.on_btn_var_config(self, event)
         self.setup_group_dropdown()
         self.setup_avg_dropdown()
         self.setup_a_and_b_dropdowns(val_a, val_b)

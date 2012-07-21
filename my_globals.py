@@ -15,7 +15,6 @@ import wx
 debug = False
 
 VERSION = u"1.2.0"
-ADVANCED = False
 ATTRIBUTION = u"sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
 # LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW

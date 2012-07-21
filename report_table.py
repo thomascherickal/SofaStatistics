@@ -914,13 +914,11 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
         self.chk_add_to_report.Show(show_chk_add_to_report)
-        if mg.ADVANCED:
-            self.btn_script.Enable(ready2run)
         
-    def on_btn_config(self, event):
+    def on_btn_var_config(self, event):
         """
         Variable details may have changed e.g. variable and value labels.
         """
-        ret = config_output.ConfigUI.on_btn_config(self, event)
+        ret = config_output.ConfigUI.on_btn_var_config(self, event)
         update_display = (ret != wx.ID_CANCEL)
         self.update_var_dets(update_display)

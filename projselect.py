@@ -167,8 +167,6 @@ class ProjSelectDlg(wx.Dialog):
             cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
             cc[mg.CURRENT_CSS_PATH] = proj_dic[mg.PROJ_FIL_CSS]
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
-            if mg.ADVANCED:
-                cc[mg.CURRENT_SCRIPT_PATH] = proj_dic[mg.PROJ_FIL_SCRIPT]
             proj_name = fil_proj[:-5] # might not be a sensible ...proj file
             self.parent.set_proj_lbl(proj_name)
         except Exception, e:

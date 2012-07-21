@@ -211,9 +211,10 @@ def get_settings_dic(subfolder, fil_name):
     return settings_dic
 
 def set_fonts():
-    mg.LABEL_FONT = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
-    mg.BTN_FONT = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL)
-    mg.GEN_FONT = wx.Font(9, wx.SWISS, wx.NORMAL, wx.NORMAL)
+    font_size = 11 if mg.PLATFORM == mg.MAC else 9
+    mg.LABEL_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.BOLD)
+    mg.BTN_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.NORMAL)
+    mg.GEN_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
 def set_DEFAULT_LEVEL(ignore_prefs=False):
     """

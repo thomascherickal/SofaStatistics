@@ -970,12 +970,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         config_output.update_var_dets(dlg=self)
         self.setup_var_dropdowns()
        
-    def on_btn_config(self, event):
+    def on_btn_var_config(self, event):
         """
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        config_output.ConfigUI.on_btn_config(self, event)
+        config_output.ConfigUI.on_btn_var_config(self, event)
         self.setup_var_dropdowns()
         self.update_defaults()
 

@@ -479,8 +479,12 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         # mixin supplying self.szr_config
         self.szr_config = self.get_config_szr(self.panel_config, 
                                               readonly=self.readonly, 
-                                              report_file=self.fil_report,
+                                              report_file=self.fil_report)
+        btn_var_config = self.get_btn_var_config(self.panel_config)
+        self.list_style = self.get_list_style(self.panel_config, 
                                               css_file=self.fil_css)
+        self.szr_config.Add(btn_var_config) # normally part of data but we need it here so
+        self.szr_config.Add(self.list_style) # normally part of output szr but need it here
         self.szr_config_outer.Add(self.szr_config, 0, wx.GROW|wx.ALL, 10)
         self.panel_config.SetSizer(self.szr_config_outer)
         self.szr_config_outer.SetSizeHints(self.panel_config)
@@ -643,11 +647,9 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
         if not self.readonly and not self.new:
             self.szr_btns.Insert(0, btn_delete, 0)
 
-    def on_btn_config(self, event):
-        ret_dic = config_output.ConfigUI.on_btn_config(self, event)
+    def on_btn_var_config(self, event):
+        ret_dic = config_output.ConfigUI.on_btn_var_config(self, event)
         self.vdt_file = ret_dic[mg.VDT_RET]
-        if mg.ADVANCED:
-            self.script_file = ret_dic[mg.SCRIPT_RET]
         self.set_extra_dets(vdt_file=self.vdt_file, 
                             script_file=self.script_file) # so opens proj 
             # settings with these same settings even if not saved yet.
@@ -711,7 +713,7 @@ class ProjectDlg(wx.Dialog, config_output.ConfigUI):
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""
-            style = self.drop_style.GetStringSelection()
+            style = self.list_style.GetStringSelection()
             fil_css = config_output.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]

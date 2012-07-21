@@ -61,22 +61,24 @@ def style2path(style):
 
 def path2style(path):
     "Strip style out of full css path"
+    debug = False
+    if debug: print(u"path: %s" % path)
     style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
     if style == u"":
         raise Exception("Problem stripping style out of path (%s)" % path)
     return style
      
 
-class ExtraOutputConfigDlg(wx.Dialog):
+class VarConfigDlg(wx.Dialog):
     """
     Shouldn't set variable details globally - it may not be appropriate to 
         autoupdate. Leave that for the parent dialog this returns to.
     """
-    def __init__(self, parent, readonly, ret_dic, vdt_file=None, 
-                 script_file=None):
+    def __init__(self, parent, readonly, ret_dic, vdt_file=None):
         cc = get_cc()
         wx.Dialog.__init__(self, parent=parent, 
-                           title=_("Extra output settings"), 
+                           title=_(u"Select variable details file with labels "
+                                   u"etc appropriate to your data"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
                            pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
@@ -95,35 +97,13 @@ class ExtraOutputConfigDlg(wx.Dialog):
         self.btn_var_dets_path.Enable(not readonly)
         self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
                                                   "config file"))
-        if mg.ADVANCED: # add bx before controls in it
-            bx_script_config = wx.StaticBox(self.panel, -1, 
-                                            _("Export script here to reuse "))
-            # script
-            script2use = (script_file if script_file 
-                          else cc[mg.CURRENT_SCRIPT_PATH])
-            self.txt_script_file = wx.TextCtrl(self.panel, -1, script2use, 
-                                               size=(500,-1))
-            self.txt_script_file.Enable(False)
-            self.btn_script_path = wx.Button(self.panel, -1, browse)
-            self.btn_script_path.Bind(wx.EVT_BUTTON, self.on_btn_script_path)
-            self.btn_script_path.Enable(False)   
-            self.btn_script_path.SetToolTipString(_("Select or create a Python "
-                                                    "script file"))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # Variables
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
         szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
         szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
-        if mg.ADVANCED:
-            # Script
-            szr_script_config = wx.StaticBoxSizer(bx_script_config, 
-                                                  wx.HORIZONTAL)
-            szr_script_config.Add(self.txt_script_file, 1, wx.GROW)
-            szr_script_config.Add(self.btn_script_path, 0, wx.LEFT|wx.RIGHT, 5)
         self.setup_btns()
         szr_main.Add(szr_var_config, 0, wx.GROW|wx.ALL, 10)
-        if mg.ADVANCED:
-            szr_main.Add(szr_script_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_btns_wrapper = wx.BoxSizer(wx.HORIZONTAL)
         szr_btns_wrapper.Add(self.szr_btns, 1, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_btns_wrapper, 0, wx.GROW|wx.RIGHT, 10)
@@ -176,8 +156,6 @@ class ExtraOutputConfigDlg(wx.Dialog):
                             u"Orig error: %s") % (entered_vdt_path, 
                                                   invalid_msg))
             self.ret_dic[mg.VDT_RET] = self.initial_vdt
-        if mg.ADVANCED:
-            self.ret_dic[mg.SCRIPT_RET] = self.txt_script_file.GetValue()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
@@ -242,17 +220,18 @@ class ConfigUI(object):
             Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         """
-        self.szr_data = self.get_szr_data(panel)
+        self.szr_data = self.get_szr_data(panel, readonly)
         self.szr_config = self.get_config_szr(panel, readonly)
         return self.szr_data, self.szr_config
         
-    def get_szr_data(self, panel, system_font_size=False):
+    def get_szr_data(self, panel, readonly=False):
         """
         Returns self.szr_data complete with widgets. dd is updated.
         Widgets include dropdowns for database and tables.
         Each widget has a set of events ready to go as well.
         Assumes self has quite a few properties already set.
         """
+        self.readonly = readonly
         try:
             self.drop_tbls_sel_evt
         except AttributeError:
@@ -276,14 +255,19 @@ class ConfigUI(object):
         lbl_tables.SetFont(mg.LABEL_FONT)
         # 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
+        self.chk_readonly.SetFont(mg.GEN_FONT)
         self.chk_readonly.SetValue(True)
         getdata.readonly_enablement(self.chk_readonly)
         # 4) Open
-        self.btn_open = wx.Button(panel, wx.ID_OPEN)
+        btn_size = (70,-1)
+        self.btn_open = wx.Button(panel, wx.ID_OPEN, size=btn_size)
+        self.btn_open.SetFont(mg.BTN_FONT)
         self.btn_open.Bind(wx.EVT_BUTTON, self.on_open)
         # 5) Filtering
-        btn_filter = wx.Button(panel, -1, _("Filter"))
+        btn_filter = wx.Button(panel, -1, _("Filter"), size=btn_size)
+        btn_filter.SetFont(mg.BTN_FONT)
         btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
+        btn_var_config = self.get_btn_var_config(panel) # also needed by projects but not as part of bundle
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
         self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
@@ -291,15 +275,11 @@ class ConfigUI(object):
         self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.chk_readonly, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.btn_open, 0, wx.RIGHT, 10)
-        self.szr_data.Add(btn_filter, 0)
+        self.szr_data.Add(btn_filter, 0, wx.RIGHT, 10)
+        self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
-    
-    def set_extra_dets(self, vdt_file, script_file):          
-        self.vdt_file = vdt_file
-        self.script_file = script_file
         
-    def get_config_szr(self, panel, readonly=False, report_file=None, 
-                       css_file=None):
+    def get_config_szr(self, panel, readonly=False, report_file=None):
         """
         Returns self.szr_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
@@ -308,80 +288,127 @@ class ConfigUI(object):
         report_file -- usually just want what is stored to global but when in 
             project dialog need to have option of taking from proj file.
         """
-        debug = False
         cc = get_cc()
         self.readonly = readonly
         browse = _("Browse")
         bx_report_config = wx.StaticBox(panel, -1, 
                                         _("Send output to report ... "))
-        bx_css_config = wx.StaticBox(panel, -1, _("Style output using ... "))
         self.szr_config = wx.BoxSizer(wx.HORIZONTAL)
-        # Style config details
-        if debug: print(os.listdir(mg.CSS_PATH))
-        style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
-                         if x.endswith(u".css")]
-        style_choices.sort()
-        self.drop_style = wx.Choice(panel, -1, choices=style_choices)
-        self.drop_style.SetFont(mg.GEN_FONT)
-        style = (path2style(css_file) if css_file 
-                 else path2style(cc[mg.CURRENT_CSS_PATH]))
-        idx_fil_css = style_choices.index(style)
-        self.drop_style.SetSelection(idx_fil_css)
-        self.drop_style.Bind(wx.EVT_CHOICE, self.on_drop_style)
-        self.drop_style.Enable(not self.readonly)
-        self.drop_style.SetToolTipString(_("Select an existing css style file"))
         # Output details
         # report
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
                                            size=(300,-1))
+        self.txt_report_file.SetFont(mg.GEN_FONT)
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                                   self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not self.readonly)
         self.btn_report_path = wx.Button(panel, -1, browse)
+        self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
                                                 "output file"))
         self.btn_view = wx.Button(panel, -1, _("View"))
+        self.btn_view.SetFont(mg.BTN_FONT)
         self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
         self.btn_view.Enable(not self.readonly)
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
-        btn_config = wx.Button(panel, -1, _("Config"))
-        btn_config.Bind(wx.EVT_BUTTON, self.on_btn_config)
-        btn_config.Enable(not self.readonly)
-        btn_config.SetToolTipString(_("Configure variable details file and "
-                                      "script file"))
         # Report
         szr_report_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_report_config.Add(self.txt_report_file, 1, wx.GROW)
         szr_report_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_report_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_config.Add(szr_report_config, 3, wx.RIGHT, 5)
-        # Style
-        szr_style_config = wx.StaticBoxSizer(bx_css_config, wx.HORIZONTAL)
-        szr_style_config.Add(self.drop_style, 1, wx.GROW)
-        self.szr_config.Add(szr_style_config, 1, wx.RIGHT, 5)
-        config_down_by = 27 if mg.PLATFORM == mg.MAC else 17
-        self.szr_config.Add(btn_config, 0, wx.TOP, config_down_by)
         return self.szr_config
+
+    def get_szr_output_btns(self, panel, inc_clear=True):
+        # main
+        self.btn_run = wx.Button(panel, -1, RUN_LBL)
+        self.btn_run.SetFont(mg.BTN_FONT)
+        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
+        self.btn_run.SetToolTipString(_("Run report and show results"))
+        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
+        self.chk_add_to_report.SetFont(mg.GEN_FONT)
+        self.chk_add_to_report.SetValue(True)
+        self.btn_expand = wx.Button(panel, -1, _("Expand"))
+        self.btn_expand.SetFont(mg.BTN_FONT)
+        self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
+        self.btn_expand.SetToolTipString(_("Open report in own window"))
+        self.btn_expand.Enable(False)
+        if inc_clear:
+            self.btn_clear = wx.Button(panel, -1, _("Clear"))
+            self.btn_clear.SetFont(mg.BTN_FONT)
+            self.btn_clear.SetToolTipString(_("Clear settings"))
+            self.btn_clear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
+        self.btn_close = wx.Button(panel, wx.ID_CLOSE)
+        self.btn_close.SetFont(mg.BTN_FONT)
+        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        # add to sizer
+        self.szr_output_btns = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
+        self.szr_output_btns.AddGrowableRow(3,2) # idx, propn
+        self.szr_output_btns.AddGrowableCol(0,1) # idx, propn
+        # only relevant if surrounding sizer stretched vertically enough by its 
+        # content.
+        self.szr_output_btns.Add(self.btn_run, 1, wx.ALIGN_RIGHT)
+        self.szr_output_btns.Add(self.chk_add_to_report, 1, wx.ALIGN_RIGHT)
+        self.list_style = self.get_list_style(panel)
+        self.szr_output_btns.Add(self.list_style, 0, wx.GROW|wx.BOTTOM, 10)
+        self.szr_output_btns.Add(self.btn_expand, 1, 
+                                 wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+        if inc_clear:
+            self.szr_output_btns.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
+        # close
+        close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
+        self.szr_output_btns.Add(self.btn_close, 1, 
+                                 wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.BOTTOM, 
+                                 close_up_by)
+        return self.szr_output_btns
+    
+    def get_list_style(self, panel, css_file=None):
+        debug = False
+        cc = get_cc()
+        # style config details
+        if debug: print(os.listdir(mg.CSS_PATH))
+        style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
+                         if x.endswith(u".css")]
+        style_choices.sort()
+        list_style = wx.ListBox(panel, -1, choices=style_choices, size=(100,-1))
+        list_style.SetFont(mg.GEN_FONT)
+        style = (path2style(css_file) if css_file 
+                 else path2style(cc[mg.CURRENT_CSS_PATH]))
+        idx_fil_css = style_choices.index(style)
+        list_style.SetSelection(idx_fil_css)
+        list_style.Bind(wx.EVT_LISTBOX, self.on_style_sel)
+        list_style.Enable(not self.readonly)
+        list_style.SetToolTipString(_("Select an existing css style file"))
+        return list_style
+    
+    def get_btn_var_config(self, panel):
+        btn_var_config = wx.Button(panel, -1, _("Config Vars"))
+        btn_var_config.SetFont(mg.BTN_FONT)
+        btn_var_config.Bind(wx.EVT_BUTTON, self.on_btn_var_config)
+        btn_var_config.Enable(not self.readonly)
+        btn_var_config.SetToolTipString(_(u"Configure variable details e.g. "
+                                          u"labels"))
+        return btn_var_config
+    
+    def set_extra_dets(self, vdt_file, script_file):          
+        self.vdt_file = vdt_file
+        self.script_file = script_file
         
-    def on_btn_config(self, event):
+    def on_btn_var_config(self, event):
         """
         Return the settings selected
         """
         cc = get_cc()
         ret_dic = {}
-        dlg = ExtraOutputConfigDlg(parent=self, readonly=self.readonly, 
-                                   ret_dic=ret_dic, vdt_file=self.vdt_file, 
-                                   script_file=self.script_file)
+        dlg = VarConfigDlg(self, self.readonly, ret_dic, self.vdt_file)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
-            if mg.ADVANCED:
-                cc[mg.CURRENT_SCRIPT_PATH] = ret_dic[mg.SCRIPT_RET]
             update_var_dets(dlg=self)
         dlg.Destroy()
         return ret_dic
@@ -432,49 +459,6 @@ class ConfigUI(object):
                                style=wx.YES_NO) == wx.NO:
                 too_long = True
         return too_long
-
-    def get_szr_output_btns(self, panel, inc_clear=True):
-        # main
-        self.btn_run = wx.Button(panel, -1, RUN_LBL)
-        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
-        self.btn_run.SetToolTipString(_("Run report and show results"))
-        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
-        self.chk_add_to_report.SetValue(True)
-        if mg.ADVANCED:
-            self.btn_script = wx.Button(panel, -1, _("To Script"))
-            self.btn_script.Bind(wx.EVT_BUTTON, self.on_btn_script)
-            self.btn_script.SetToolTipString(_("Export to script for reuse"))
-            self.btn_script.Enable(False)
-        self.btn_expand = wx.Button(panel, -1, _("Expand"))
-        self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
-        self.btn_expand.SetToolTipString(_("Open report in own window"))
-        self.btn_expand.Enable(False)
-        if inc_clear:
-            self.btn_clear = wx.Button(panel, -1, _("Clear"))
-            self.btn_clear.SetToolTipString(_("Clear settings"))
-            self.btn_clear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
-        self.btn_close = wx.Button(panel, wx.ID_CLOSE)
-        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
-        # add to sizer
-        self.szr_output_btns = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
-        self.szr_output_btns.AddGrowableRow(3,2) # idx, propn
-        self.szr_output_btns.AddGrowableCol(0,1) # idx, propn
-        # only relevant if surrounding sizer stretched vertically enough by its 
-        # content.
-        self.szr_output_btns.Add(self.btn_run, 1, wx.ALIGN_RIGHT)
-        self.szr_output_btns.Add(self.chk_add_to_report, 1, wx.ALIGN_RIGHT)
-        self.szr_output_btns.Add(self.btn_expand, 1, 
-                                 wx.ALIGN_RIGHT|wx.ALIGN_TOP)
-        if mg.ADVANCED:
-            self.szr_output_btns.Add(self.btn_script, 1, 
-                                     wx.ALIGN_RIGHT|wx.TOP, 8)
-        if inc_clear:
-            self.szr_output_btns.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
-        close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
-        self.szr_output_btns.Add(self.btn_close, 1, 
-                                 wx.ALIGN_RIGHT|wx.ALIGN_BOTTOM|wx.BOTTOM, 
-                                 close_up_by)
-        return self.szr_output_btns
 
     # database/ tables (and views)
     def on_database_sel(self, event):
@@ -620,15 +604,23 @@ class ConfigUI(object):
         event.Skip()
     
     # table style
-    def on_drop_style(self, event):
-        "Change style"
-        self.update_css()
+    def on_style_sel(self, event):
+        """
+        Change style. Note - fires on exit from form too - but no 
+            GetStringSelection possible at that point (returns empty string).
+        """
+        if self.list_style.GetSelection() != wx.NOT_FOUND:
+            self.update_css()
     
     def update_css(self):
         "Update css, including for demo table"
+        debug = False
         if self.autoupdate:
             cc = get_cc()
-            style = self.drop_style.GetStringSelection()
+            style = self.list_style.GetStringSelection()
+            if style == u"":
+                return
+            if debug: print(u"Selected style is: %s" % style)
             cc[mg.CURRENT_CSS_PATH] = style2path(style)
         
     # explanation level

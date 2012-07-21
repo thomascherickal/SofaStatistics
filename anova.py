@@ -36,9 +36,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def add_other_var_opts(self, szr):
         self.lbl_algorithm = wx.StaticText(self.panel_vars, -1, 
                                            _("Algorithm: "))
+        self.lbl_algorithm.SetFont(mg.LABEL_FONT)
         self.rad_precision = wx.RadioButton(self.panel_vars, -1, _("Precision"), 
                                             style=wx.RB_GROUP)
+        self.rad_precision.SetFont(mg.GEN_FONT)
         self.rad_speed = wx.RadioButton(self.panel_vars, -1, _("Speed"))
+        self.rad_speed.SetFont(mg.GEN_FONT)
         self.rad_speed.SetToolTipString(_("Precision is the best choice unless "
                                          "too slow"))
         self.rad_speed.SetValue(True)
@@ -112,7 +115,6 @@ anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn,
 
     def on_btn_help(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:anova"
+        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:anova"
         webbrowser.open_new_tab(url)
         event.Skip()
