@@ -51,7 +51,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         szr_algorithm.Add(self.rad_speed, 0, wx.LEFT, 10)
         szr.Add(szr_algorithm, 0, wx.TOP, 5)
     
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         (var_gp_numeric, var_gp, unused, val_a, label_a, 
@@ -94,7 +94,7 @@ if len(samples) < 2:
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
+        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))

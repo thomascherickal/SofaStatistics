@@ -221,8 +221,8 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets, 
                        label_x, label_y, x_vs_y, line_lst, line_lbl, ymin, ymax, 
                        dot_colour, series_colours_by_lbl)
-    img_src = save_report_img(add_to_report, report_name, 
-                              save_func=pylab.savefig, dpi=100)
+    save_func = pylab.savefig
+    img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)
     html.append(u"\n<img src='%s'>" % img_src)
     if debug: print("Just linked to %s" % img_src)

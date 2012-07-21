@@ -26,12 +26,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         self.lbl_phrase.SetLabel(_("Is there a relationship between "
             "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
     
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
         var_a, label_a, var_b, label_b = self.get_drop_vals()
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
+        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))

@@ -30,7 +30,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                   {"gp": label_gp, "a": label_a, 
                                    "avg": label_avg, "b": label_b})
 
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -55,7 +55,7 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_avg = u\"%s\"" % label_avg)
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
+        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
@@ -72,7 +72,6 @@ ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
 
     def on_btn_help(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:indep_ttest"
+        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:indep_ttest"
         webbrowser.open_new_tab(url)
         event.Skip()

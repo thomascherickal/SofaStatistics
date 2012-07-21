@@ -179,18 +179,22 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.rad_tab_type = wx.RadioBox(self.panel, -1, _("Table Type"), 
                                         choices=tab_type_choices,
                                         style=wx.RA_SPECIFY_COLS)
+        self.rad_tab_type.SetFont(mg.GEN_FONT)
         self.rad_tab_type.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
         self.tab_type = self.rad_tab_type.GetSelection()
         # option checkboxs
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
+        self.chk_totals_row.SetFont(mg.GEN_FONT)
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
         self.chk_first_as_label = wx.CheckBox(self.panel, -1, 
                                               _("First col as label?"))
+        self.chk_first_as_label.SetFont(mg.GEN_FONT)
         self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, 
                                      self.on_chk_first_as_label)
         self.enable_raw_display_opts(enable=False)
         self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1, 
                                                 _("Show % symbol?"))
+        self.chk_show_perc_symbol.SetFont(mg.GEN_FONT)
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
                                        self.on_chk_show_perc_symbol)
         has_perc = not mg.RPT_CONFIG[self.tab_type][mg.VAR_SUMMARISED_KEY]
@@ -204,21 +208,29 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         #buttons
         #rows
         self.btn_row_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_row_add.SetFont(mg.BTN_FONT)
         self.btn_row_add.Bind(wx.EVT_BUTTON, self.on_row_add)
         self.btn_row_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_row_add_under.SetFont(mg.BTN_FONT)
         self.btn_row_add_under.Bind(wx.EVT_BUTTON, self.on_row_add_under)
         self.btn_row_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_row_del.SetFont(mg.BTN_FONT)
         self.btn_row_del.Bind(wx.EVT_BUTTON, self.on_row_delete)
         self.btn_row_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_row_conf.SetFont(mg.BTN_FONT)
         self.btn_row_conf.Bind(wx.EVT_BUTTON, self.on_row_config)
         #cols
         self.btn_col_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_col_add.SetFont(mg.BTN_FONT)
         self.btn_col_add.Bind(wx.EVT_BUTTON, self.on_col_add)
         self.btn_col_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_col_add_under.SetFont(mg.BTN_FONT)
         self.btn_col_add_under.Bind(wx.EVT_BUTTON, self.on_col_add_under)
         self.btn_col_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_col_del.SetFont(mg.BTN_FONT)
         self.btn_col_del.Bind(wx.EVT_BUTTON, self.on_col_delete)
         self.btn_col_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_col_conf.SetFont(mg.BTN_FONT)
         self.btn_col_conf.Bind(wx.EVT_BUTTON, self.on_col_config)
         #trees
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
@@ -779,12 +791,11 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         run_ok, has_cols = self.table_config_ok(silent=True)
         if not run_ok:
             return False, u""
-        add_to_report = False
         new_has_dojo = False
         get_script_args = [has_cols,]
         (bolran_report, 
          str_content) = config_output.ConfigUI.get_script_output(self, 
-                                   add_to_report, get_script_args, new_has_dojo)
+                                                  get_script_args, new_has_dojo)
         return bolran_report, str_content
     
     def update_demo_display(self, titles_only=False):

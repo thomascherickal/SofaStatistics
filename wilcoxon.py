@@ -17,7 +17,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _("Or have house values changed since the recession began?")
         return eg1, eg2, eg3
     
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -45,7 +45,6 @@ wilcoxon_output = stats_output.wilcoxon_output(t, p, dic_a, dic_b,
 
     def on_btn_help(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:wilcoxon"
+        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:wilcoxon"
         webbrowser.open_new_tab(url)
         event.Skip()

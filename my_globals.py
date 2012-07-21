@@ -24,6 +24,7 @@ TEST_LANGID = wx.LANGUAGE_SPANISH_ARGENTINA
 FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
+ADD2RPT = False
 PYTHON_ENCODING_DECLARATION = u"#! /usr/bin/env python" + os.linesep + \
     u"# -*- coding: utf-8 -*-" + os.linesep
 DROP_SELECT = _("Nothing selected")

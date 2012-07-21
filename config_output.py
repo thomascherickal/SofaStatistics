@@ -50,7 +50,7 @@ def get_szr_level(parent, panel, horiz=True):
     return parent.szr_level
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-add_to_report = _("Add to%sreport") % label_divider
+ADD2_RPT_LBL = _("Add to%sreport") % label_divider
 RUN_LBL = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
 ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
                else _("Add to\nReport"))
@@ -289,13 +289,14 @@ class ConfigUI(object):
             project dialog need to have option of taking from proj file.
         """
         cc = get_cc()
-        self.btn_run = wx.Button(panel, -1, RUN_LBL)
+        self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))
         self.btn_run.SetFont(mg.BTN_FONT)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
         self.btn_run.SetToolTipString(_("Run report and show results"))
-        self.chk_add_to_report = wx.CheckBox(panel, -1, add_to_report)
+        self.chk_add_to_report = wx.CheckBox(panel, -1, ADD2_RPT_LBL)
         self.chk_add_to_report.SetFont(mg.GEN_FONT)
-        self.chk_add_to_report.SetValue(True)
+        self.chk_add_to_report.SetValue(mg.ADD2RPT)
+        self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, self.on_chk_add_to_report)
         self.readonly = readonly
         browse = _("Browse")
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
@@ -417,6 +418,9 @@ class ConfigUI(object):
         dlg.Destroy()
         return ret_dic
 
+    def on_chk_add_to_report(self, event):
+        mg.ADD2RPT = self.chk_add_to_report.IsChecked()
+
     def get_titles(self):
         """
         Get titles list and subtitles list from GUI.
@@ -492,8 +496,7 @@ class ConfigUI(object):
         dlg.ShowModal()
         self.refresh_vars()
         parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
-                                                       parent.drop_tbls_szr, 
-                                                       parent.drop_tbls_panel)
+                                   parent.drop_tbls_szr, parent.drop_tbls_panel)
         lib.safe_end_cursor()
 
     def on_rclick_tables(self, event):
@@ -534,7 +537,7 @@ class ConfigUI(object):
     def on_btn_export_imgs(self, event):
         wx.MessageBox(u"Available as extension for SOFA from %s" % mg.CONTACT)
     
-    def get_script_output(self, add_to_report, get_script_args, new_has_dojo):
+    def get_script_output(self, get_script_args, new_has_dojo):
         debug = False
         cc = get_cc()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -545,7 +548,7 @@ class ConfigUI(object):
             raise Exception("Problem getting script. Orig error: %s" % 
                             lib.ue(e))
         (bolran_report, 
-         str_content) = output.run_report(self.output_modules, add_to_report, 
+         str_content) = output.run_report(self.output_modules, mg.ADD2RPT, 
                                           css_fils, new_has_dojo, script)
         if debug: print(str_content)
         return bolran_report, str_content
@@ -553,11 +556,9 @@ class ConfigUI(object):
     def run_report(self, get_script_args, new_has_dojo=False):
         if self.too_long():
             return
-        add_to_report = self.chk_add_to_report.IsChecked()
         wx.BeginBusyCursor()
         (bolran_report, 
-         str_content) = self.get_script_output(add_to_report, get_script_args, 
-                                               new_has_dojo)
+         str_content) = self.get_script_output(get_script_args, new_has_dojo)
         lib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.btn_expand.Enable(bolran_report)
@@ -587,9 +588,9 @@ class ConfigUI(object):
                 self.can_run_report = True
             if self.can_run_report:
                 msg = _("No output yet. Click \"%(run)s\" (with "
-                        "\"%(add_to_report)s\" ticked) to add output to this "
+                        "\"%(add2rpt_lbl)s\" ticked) to add output to this "
                         "report.") % {u"run": RUN_LBL, 
-                                      u"add_to_report": add_to_report}
+                                      u"add2rpt_lbl": ADD2_RPT_LBL}
             else:
                 msg = _("The output file has not been created yet.  Nothing to "
                         "view")

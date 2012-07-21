@@ -27,7 +27,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                                "do they change together in a linear fashion?") %
                                {"a": label_a, "b": label_b})
     
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -38,7 +38,7 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(
     dbe=u"%(dbe)s", cur=cur, tbl=u"%(tbl)s",
     tbl_filt=tbl_filt, fld_a=u"%(var_a)s", fld_b=u"%(var_b)s")""" %
             {u"dbe": dd.dbe, u"tbl": dd.tbl, u"var_a": var_a, u"var_b": var_b})
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report \
+        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
@@ -58,7 +58,6 @@ spearmansr_output = stats_output.spearmansr_output(sample_a, sample_b, r, p, df,
     
     def on_btn_help(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/wiki/doku.php" + \
-              u"?id=help:spearmansr"
+        url = u"http://www.sofastatistics.com/wiki/doku.php?id=help:spearmansr"
         webbrowser.open_new_tab(url)
         event.Skip()

@@ -161,11 +161,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show trend line?"))
+        self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetValue(False)
         self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
         self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show smoothed data line?"))
         self.chk_line_smooth.SetValue(False)
+        self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
         self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
                                              self.on_chk_line_avg)
@@ -204,6 +206,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_histogram = wx.Panel(self.panel_mid)
         self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
                                            _("Show normal curve?"))
+        self.chk_show_normal.SetFont(mg.GEN_FONT)
         self.chk_show_normal.SetValue(False)
         self.chk_show_normal.SetToolTipString(_(u"Show normal curve?"))
         self.szr_histogram.Add(self.chk_show_normal, 0, 
@@ -215,6 +218,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_scatterplot = wx.Panel(self.panel_mid)
         self.chk_borders = wx.CheckBox(self.panel_scatterplot, -1, 
                                        _("Dot borders?"))
+        self.chk_borders.SetFont(mg.GEN_FONT)
         self.chk_borders.SetValue(True)
         self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
         self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
@@ -552,6 +556,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def get_rad_perc(self, panel):
         rad = wx.RadioBox(panel, -1, _(u"Data reported"), 
                           choices=mg.DATA_SHOW_OPTS, size=(-1,50))
+        rad.SetFont(mg.GEN_FONT)
         idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
         rad.SetSelection(idx_data_opt)
         rad.SetToolTipString(_(u"Report frequency or percentage?"))
@@ -560,6 +565,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def get_chk_rotate(self, panel):
         chk = wx.CheckBox(panel, -1, _("Rotate labels?"))
+        chk.SetFont(mg.GEN_FONT)
         chk.SetValue(ROTATE)
         chk.SetToolTipString(_(u"Rotate x-axis labels?"))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
@@ -568,6 +574,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def get_rad_sort(self, panel, sort_item=u"bars"):
         rad = wx.RadioBox(panel, -1, _(u"Sort order of %s" % sort_item), 
                           choices=mg.SORT_OPTS, size=(-1,50))
+        rad.SetFont(mg.GEN_FONT)
         idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
         rad.SetSelection(idx_current_sort_opt)
         rad.Bind(wx.EVT_RADIOBOX, self.on_rad_sort_opt)
@@ -575,6 +582,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     
     def get_chk_avg(self, panel, on_event):
         chk = wx.CheckBox(panel, -1, _("Show averages?"))
+        chk.SetFont(mg.GEN_FONT)
         chk.SetValue(SHOW_AVG)
         chk.SetToolTipString(_(u"Show averages not frequencies?"))
         chk.Bind(wx.EVT_CHECKBOX, on_event)
@@ -888,9 +896,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # get settings
         cc = config_output.get_cc()
         run_ok = self.test_config_ok()
-        add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
-            get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
+            get_script_args=[cc[mg.CURRENT_CSS_PATH], 
                              cc[mg.CURRENT_REPORT_PATH]]
             config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
                                               new_has_dojo=True)
@@ -1096,7 +1103,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 return False
         return True
 
-    def get_script(self, css_idx, css_fil, add_to_report, report_name):
+    def get_script(self, css_idx, css_fil, report_name):
         """
         Build script from inputs.
         For each dropdown identify the variable role (according to CHART_CONFIG, 
@@ -1119,7 +1126,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         myvars = self.get_vars()
         if debug: print(myvars)
         # other variables to set up
-        script_lst.append(u"add_to_report = %s" % ("True" if add_to_report
+        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                                                     else "False"))
         rptname = lib.escape_pre_write(report_name)
         script_lst.append(u"report_name = u\"%s\"" % rptname)

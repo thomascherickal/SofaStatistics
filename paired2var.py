@@ -61,8 +61,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         eg1, eg2, eg3 = self.get_examples()
         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
+        lbl_desc1.SetFont(mg.GEN_FONT)
         lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
+        lbl_desc2.SetFont(mg.GEN_FONT)
         lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+        lbl_desc3.SetFont(mg.GEN_FONT)
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
@@ -338,9 +341,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         cc = config_output.get_cc()
         run_ok = self.test_config_ok()
-        add_to_report = self.chk_add_to_report.IsChecked()
         if run_ok:
-            get_script_args=[cc[mg.CURRENT_CSS_PATH], add_to_report,
+            get_script_args=[cc[mg.CURRENT_CSS_PATH],
                              cc[mg.CURRENT_REPORT_PATH]]
             config_output.ConfigUI.on_btn_run(self, event, get_script_args)
     
@@ -355,34 +357,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             return False
         return True
     
-    # export script
-    def on_btn_script(self, event):
-        """
-        Export script for table to file currently displayed (if enough data).
-        If the file doesn't exist, make one and add the preliminary code.
-        If a file exists, but is empty, put the preliminary code in then
-            the new exported script.
-        If the file exists and is not empty, append the script on the end.
-        """
-        cc = config_output.get_cc()
-        export_ok = self.test_config_ok()
-        if export_ok:
-            add_to_report = self.chk_add_to_report.IsChecked()
-            try:
-                css_fils, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCss, e:
-                lib.update_local_display(self.html, _("Please check the CSS "
-                                        "file exists or set another. "
-                                        "Caused by error: %s") % lib.ue(e), 
-                                        wrap_text=True)
-                lib.safe_end_cursor()
-                event.Skip()
-                return
-            script = self.get_script(css_idx, add_to_report,
-                                     cc[mg.CURRENT_REPORT_PATH])
-            output.export_script(script, css_fils)
-        event.Skip()
-
     def on_btn_help(self, event):
         wx.MessageBox("Under construction")
         event.Skip()
