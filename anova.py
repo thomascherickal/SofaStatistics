@@ -27,8 +27,10 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
-        unused, unused, unused, unused, label_a, unused, label_b, unused, \
-            label_avg = self.get_drop_vals()
+        (unused, unused, unused, unused, 
+         label_a, unused, 
+         label_b, unused, 
+         label_avg) = self.get_drop_vals()
         self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the groups "
             "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
                                                    "a": label_a, "b": label_b})
@@ -54,8 +56,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
-        (var_gp_numeric, var_gp, unused, val_a, label_a, 
-                    val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
+        (var_gp_numeric, var_gp, unused, val_a, 
+         label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         lst_samples = []

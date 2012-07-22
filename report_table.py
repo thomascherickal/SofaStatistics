@@ -102,6 +102,73 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     return u"\n".join(html)
 
 
+class RptTypeOpts(object):
+    
+    def __init__(self, parent):
+        group_lbl = _("Table Type")
+        FREQS_LBL = _("Frequencies")
+        CROSS_LBL = _("Crosstabs")
+        ROW_STATS_LBL = _("Row Stats")
+        DATA_LIST_LBL = _("Data List")
+        tab_type_choices = (FREQS_LBL, CROSS_LBL, ROW_STATS_LBL, DATA_LIST_LBL)
+        if mg.PLATFORM != mg.MAC: # != mg.MAC
+            self.rad_tab_type = wx.RadioBox(parent.panel, -1, group_lbl, 
+                                            choices=tab_type_choices,
+                                            style=wx.RA_SPECIFY_COLS)
+            self.rad_tab_type.SetFont(mg.GEN_FONT)
+            self.rad_tab_type.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
+        else:
+            bx_rpt_type = wx.StaticBox(parent.panel, -1, group_lbl)
+            szr_rad_rpt_type = wx.StaticBoxSizer(bx_rpt_type, wx.HORIZONTAL)
+            self.rad_freq = wx.RadioButton(parent.panel, -1, FREQS_LBL, 
+                                           style=wx.RB_GROUP)
+            self.rad_freq.SetFont(mg.GEN_FONT)
+            self.rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
+            self.rad_freq.SetValue(True) # init (required by Mac)
+            szr_rad_rpt_type.Add(self.rad_freq)
+            self.rad_cross = wx.RadioButton(parent.panel, -1, CROSS_LBL)
+            self.rad_cross.SetFont(mg.GEN_FONT)
+            self.rad_cross.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
+            szr_rad_rpt_type.Add(self.rad_cross, 0, wx.LEFT, 5)
+            self.rad_row_stats = wx.RadioButton(parent.panel, -1, ROW_STATS_LBL)
+            self.rad_row_stats.SetFont(mg.GEN_FONT)
+            self.rad_row_stats.Bind(wx.EVT_RADIOBUTTON, 
+                                    parent.on_tab_type_change)
+            szr_rad_rpt_type.Add(self.rad_row_stats, 0, wx.LEFT, 5)
+            self.rad_data_list = wx.RadioButton(parent.panel, -1, DATA_LIST_LBL)
+            self.rad_data_list.SetFont(mg.GEN_FONT)
+            self.rad_data_list.Bind(wx.EVT_RADIOBUTTON, 
+                                    parent.on_tab_type_change)
+            szr_rad_rpt_type.Add(self.rad_data_list, 0, wx.LEFT, 5)
+            self.rad_tab_type = szr_rad_rpt_type
+
+    def GetSelection(self):
+        debug = True
+        try:
+            return self.rad_tab_type.GetSelection()
+        except AttributeError:
+            for idx, szr_item in enumerate(self.rad_tab_type.GetChildren()):
+                rad = szr_item.GetWindow()
+                if debug: print(u"Item %s with value of %s" % (idx, 
+                                                               rad.GetValue()))
+                if rad.GetValue():
+                    return idx
+            return None
+        
+    def SetSelection(self, idx):
+        try:
+            return self.rad_tab_type.SetSelection(idx)
+        except AttributeError:
+            self.rad_tab_type.GetChildren()[idx].GetWindow().SetValue(True)
+            
+    def get_szr(self):
+        """
+        Use this when inserting into a sizer (expects a sizer or widget not this 
+            object.
+        """
+        return self.rad_tab_type
+
+
 class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     """
     ConfigUI -- provides reusable interface for data selection, setting labels 
@@ -174,13 +241,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                                          style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         # table type. NB max indiv width sets width for all items in Win or OSX
-        tab_type_choices = (_("Frequencies"), _("Crosstabs"), _("Row Stats"),
-                            _("Data List"))
-        self.rad_tab_type = wx.RadioBox(self.panel, -1, _("Table Type"), 
-                                        choices=tab_type_choices,
-                                        style=wx.RA_SPECIFY_COLS)
-        self.rad_tab_type.SetFont(mg.GEN_FONT)
-        self.rad_tab_type.Bind(wx.EVT_RADIOBOX, self.on_tab_type_change)
+        self.rad_tab_type = RptTypeOpts(parent=self)
         self.tab_type = self.rad_tab_type.GetSelection()
         # option checkboxs
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
@@ -287,7 +348,11 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
         szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
         szr_top.Add(self.szr_data, 1, wx.LEFT, 5)
-        szr_tab_type.Add(self.rad_tab_type, 0, wx.RIGHT, 10)
+        try:
+            szr_tab_type.Add(self.rad_tab_type, 0, wx.LEFT|wx.RIGHT, 10)
+        except TypeError:
+            szr_tab_type.Add(self.rad_tab_type.get_szr(), 0, 
+                             wx.LEFT|wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)

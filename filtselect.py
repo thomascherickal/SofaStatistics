@@ -71,7 +71,7 @@ class FiltSelectDlg(wx.Dialog):
         szr_flex_across = wx.BoxSizer(wx.HORIZONTAL)
         # assemble
         self.rad_quick = wx.RadioButton(self.panel, -1, _("Quick"), 
-                                       style=wx.RB_GROUP)
+                                        style=wx.RB_GROUP)
         rad_flex = wx.RadioButton(self.panel, -1, _("Flexible"))
         self.rad_quick.Bind(wx.EVT_RADIOBUTTON, self.on_rad_quick_sel)
         rad_flex.Bind(wx.EVT_RADIOBUTTON, self.on_rad_flex_sel)

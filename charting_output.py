@@ -948,10 +948,10 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster, max_lbl_width):
         xfontsize = 9
     elif n_clusters > 10:
         xfontsize = 8
-    left_axis_lbl_shift = 30 if width > 1200 else 20 # else gets squeezed out
+    init_lbl_shift = 30 if width > 1200 else 20 # else gets squeezed out
     minor_ticks = u"true" if n_clusters > 8 else u"false"
-    if debug: print(width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift)
-    return width, xgap, xfontsize, minor_ticks, left_axis_lbl_shift
+    if debug: print(width, xgap, xfontsize, minor_ticks, init_lbl_shift)
+    return width, xgap, xfontsize, minor_ticks, init_lbl_shift
 
 def get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     debug = False
@@ -1046,13 +1046,13 @@ def get_lbl_dets(xaxis_dets):
         lbl_dets.append(u"{value: %s, text: %s}" % (i, val_lbl))
     return lbl_dets
 
-def get_left_axis_shift(xaxis_dets):
+def adjust_left_axis_lbl_shift(xaxis_dets, init_left_axis_lbl_shift):
     """
     Need to shift margin left if wide labels to keep y-axis title close enough 
         to y_axis labels.
     """
     debug = False
-    left_axis_lbl_shift = 0
+    left_axis_lbl_shift = init_left_axis_lbl_shift
     try:
         label1_len = len(xaxis_dets[0][1])
         if label1_len > 5:
@@ -1144,9 +1144,15 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
                      [mg.CHARTS_SERIES_DETS][0][mg.CHARTS_XAXIS_DETS])
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xgap, xfontsize, 
-     minor_ticks, 
-     left_axis_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
+     minor_ticks, init_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
                                                n_bars_in_cluster, max_lbl_width)
+    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
+    # following details are same across all charts so look at first
+    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
+    # only one series per chart by design
+    series_det = chart0_series_dets[0]
+    xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.9
@@ -1154,7 +1160,6 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
         xfontsize = xfontsize*0.75
         left_axis_lbl_shift += 20
     # loop through charts
-    chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     for chart_idx, chart_det in enumerate(chart_dets):
         if multichart:
             indiv_chart_title = ("<p><b>%s</b></p>" % 
@@ -1318,9 +1323,11 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     n_clusters = len(chart0_series_dets[0][mg.CHARTS_XAXIS_DETS])
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xgap, xfontsize, 
-     minor_ticks, 
-     left_axis_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
+     minor_ticks, init_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
                                                n_bars_in_cluster, max_lbl_width)
+    series_det = chart0_series_dets[0]
+    xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
@@ -1660,8 +1667,13 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      minor_ticks, micro_ticks) = get_linechart_sizings(x_title, xaxis_dets,
                                                        max_lbl_width, 
                                                        chart0_series_dets)
-    left_axis_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
+    init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
+    if multichart:
+        width = width*0.8
+        xfontsize = xfontsize*0.8
+        left_axis_lbl_shift += 20
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1848,7 +1860,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
     axis_lbl_drop = get_axis_lbl_drop(multichart, rotate, max_lbl_lines)
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
-    height = 250 if multichart else 300
+    height = 310
     if rotate:
         height += AVG_CHAR_WIDTH_PXLS*max_lbl_len   
     # following details are same across all charts so look at first
@@ -1858,7 +1870,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     (width, xfontsize, minor_ticks, 
      micro_ticks) = get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, 
                                           chart0_series_dets)
-    left_axis_lbl_shift = 20 if width > 1200 else 0 # gets squeezed 
+    init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8

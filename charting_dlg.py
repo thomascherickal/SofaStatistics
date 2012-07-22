@@ -16,6 +16,9 @@ CUR_SORT_OPT = mg.SORT_NONE
 CUR_DATA_OPT = mg.SHOW_FREQ
 SHOW_AVG = False
 ROTATE = False
+# double as labels
+BARS_SORTED = u"bars"
+SLICES_SORTED = u"slices"
 
 """
 If sorting of x-axis not explicit, will be sort_opt=mg.SORT_NONE and will thus 
@@ -108,8 +111,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # bar chart
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        self.rad_bar_sort_opts = self.get_rad_sort(self.panel_bar_chart)
-        self.rad_simple_bar_perc = self.get_rad_perc(self.panel_bar_chart)
+        self.bar_sort_opts = self.get_rad_sort(self.panel_bar_chart, 
+                                               sort_item=BARS_SORTED)
+        self.bar_perc_opts = self.get_rad_perc(self.panel_bar_chart, 
+                                               mg.SIMPLE_BARCHART)
         self.chk_simple_bar_avg = self.get_chk_avg(self.panel_bar_chart, 
                                                    self.on_chk_simple_bar_avg)
         self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
@@ -119,8 +124,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             tickbox_down_by = 22
         else:
             tickbox_down_by = 27
-        self.szr_bar_chart.Add(self.rad_bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.rad_simple_bar_perc, 0, wx.TOP, 5)
+        self.szr_bar_chart.Add(self.bar_sort_opts, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_bar_chart.Add(self.bar_perc_opts, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
         self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
                                tickbox_down_by)
@@ -132,11 +137,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # clustered bar chart
         self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_clust_bar_chart = wx.Panel(self.panel_mid)
-        self.rad_clust_bar_perc = self.get_rad_perc(self.panel_clust_bar_chart)
+        self.clust_perc_opts = self.get_rad_perc(self.panel_clust_bar_chart, 
+                                                 mg.CLUSTERED_BARCHART)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar_chart)
         self.chk_clust_bar_avg = self.get_chk_avg(self.panel_clust_bar_chart, 
                                                   self.on_chk_clust_bar_avg)
-        self.szr_clust_bar_chart.Add(self.rad_clust_bar_perc, 0, wx.TOP, 5)
+        self.szr_clust_bar_chart.Add(self.clust_perc_opts, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
         self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
                                          tickbox_down_by)
@@ -149,15 +155,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         self.rad_pie_sort_opts = self.get_rad_sort(self.panel_pie_chart, 
-                                                   u"slices")
+                                                   sort_item=SLICES_SORTED)
         self.szr_pie_chart.Add(self.rad_pie_sort_opts, 0, wx.TOP, 5)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
         # line chart
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        self.rad_line_perc = self.get_rad_perc(self.panel_line_chart)
-        self.szr_line_chart.Add(self.rad_line_perc, 0, wx.TOP, 5)
+        self.line_perc_opts = self.get_rad_perc(self.panel_line_chart,
+                                                mg.LINE_CHART)
+        self.szr_line_chart.Add(self.line_perc_opts, 0, wx.TOP, 5)
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show trend line?"))
@@ -188,11 +195,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # area chart
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        self.rad_area_perc = self.get_rad_perc(self.panel_area_chart)
+        self.area_perc_opts = self.get_rad_perc(self.panel_area_chart, 
+                                                mg.AREA_CHART)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
         self.chk_area_avg = self.get_chk_avg(self.panel_area_chart, 
                                              self.on_chk_area_avg)
-        self.szr_area_chart.Add(self.rad_area_perc, 0, wx.TOP, 5)
+        self.szr_area_chart.Add(self.area_perc_opts, 0, wx.TOP, 5)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
                                 tickbox_down_by)
@@ -553,16 +561,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         dropdown_width = mg.STD_DROP_WIDTH if len(chart_config) < 4 else 160
         return dropdown_width
     
-    def get_rad_perc(self, panel):
-        rad = wx.RadioBox(panel, -1, _(u"Data reported"), 
-                          choices=mg.DATA_SHOW_OPTS, size=(-1,50))
-        rad.SetFont(mg.GEN_FONT)
-        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        rad.SetSelection(idx_data_opt)
-        rad.SetToolTipString(_(u"Report frequency or percentage?"))
-        rad.Bind(wx.EVT_RADIOBOX, self.on_rad_perc)
-        return rad
-    
     def get_chk_rotate(self, panel):
         chk = wx.CheckBox(panel, -1, _("Rotate labels?"))
         chk.SetFont(mg.GEN_FONT)
@@ -571,15 +569,179 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
         return chk
     
-    def get_rad_sort(self, panel, sort_item=u"bars"):
-        rad = wx.RadioBox(panel, -1, _(u"Sort order of %s" % sort_item), 
-                          choices=mg.SORT_OPTS, size=(-1,50))
-        rad.SetFont(mg.GEN_FONT)
+    def get_rad_sort(self, panel, sort_item=BARS_SORTED):
         idx_current_sort_opt = mg.SORT_OPTS.index(CUR_SORT_OPT)
-        rad.SetSelection(idx_current_sort_opt)
-        rad.Bind(wx.EVT_RADIOBOX, self.on_rad_sort_opt)
-        return rad
+        sort_order_group_lbl = _(u"Sort order of %s" % sort_item)
+        if mg.PLATFORM != mg.MAC:
+            rad = wx.RadioBox(panel, -1, sort_order_group_lbl, 
+                              choices=mg.SORT_OPTS, size=(-1,50))
+            rad.SetFont(mg.GEN_FONT)
+            rad.SetSelection(idx_current_sort_opt)
+            rad.Bind(wx.EVT_RADIOBOX, self.on_rad_sort_opt)
+            rad2add2szr = rad
+        else: # have to do all the wiring myself given I can't use the radiobutton group - grrr to Mac
+            bx_sort = wx.StaticBox(panel, -1, sort_order_group_lbl)
+            szr_rad_sort = wx.StaticBoxSizer(bx_sort, wx.HORIZONTAL)
+            for i, choice in enumerate(mg.SORT_OPTS):
+                if choice == mg.SORT_NONE:
+                    rad_sort_none = wx.RadioButton(panel, -1, choice, 
+                                                   style=wx.RB_GROUP)
+                    current_rad = rad_sort_none
+                    rad_sort_none.SetFont(mg.GEN_FONT)
+                    rad_sort_none.Bind(wx.EVT_RADIOBUTTON, 
+                                       self.on_rad_sort_none)
+                    if sort_item == BARS_SORTED:
+                        self.rad_bar_sort_none = rad_sort_none
+                    elif sort_item == SLICES_SORTED:
+                        self.rad_pie_sort_none = rad_sort_none
+                    else:
+                        raise Exception(u"Unexpected sort_item: %s" % sort_item)
+                elif choice == mg.SORT_LBL:
+                    rad_sort_lbl = wx.RadioButton(panel, -1, choice)
+                    current_rad = rad_sort_lbl
+                    rad_sort_lbl.SetFont(mg.GEN_FONT)
+                    rad_sort_lbl.Bind(wx.EVT_RADIOBUTTON, self.on_rad_sort_lbl)
+                    if sort_item == BARS_SORTED:
+                        self.rad_bar_sort_lbl = rad_sort_lbl
+                    elif sort_item == SLICES_SORTED:
+                        self.rad_pie_sort_lbl = rad_sort_lbl
+                    else:
+                        raise Exception(u"Unexpected sort_item: %s" % sort_item)
+                elif choice == mg.SORT_INCREASING:
+                    rad_sort_inc = wx.RadioButton(panel, -1, choice)
+                    current_rad = rad_sort_inc
+                    rad_sort_inc.SetFont(mg.GEN_FONT)
+                    rad_sort_inc.Bind(wx.EVT_RADIOBUTTON, self.on_rad_sort_inc)
+                    if sort_item == BARS_SORTED:
+                        self.rad_bar_sort_inc = rad_sort_inc
+                    elif sort_item == SLICES_SORTED:
+                        self.rad_pie_sort_inc = rad_sort_inc
+                    else:
+                        raise Exception(u"Unexpected sort_item: %s" % sort_item)
+                elif choice == mg.SORT_DECREASING:
+                    rad_sort_dec = wx.RadioButton(panel, -1, choice)
+                    current_rad = rad_sort_dec
+                    rad_sort_dec.SetFont(mg.GEN_FONT)
+                    rad_sort_dec.Bind(wx.EVT_RADIOBUTTON, self.on_rad_sort_dec) 
+                    if sort_item == BARS_SORTED:
+                        self.rad_bar_sort_dec = rad_sort_dec
+                    elif sort_item == SLICES_SORTED:
+                        self.rad_pie_sort_dec = rad_sort_dec
+                    else:
+                        raise Exception(u"Unexpected sort_item: %s" % sort_item)
+                if i == idx_current_sort_opt:
+                    current_rad.SetValue(True)
+                szr_rad_sort.Add(current_rad, 0, wx.RIGHT, 5)
+            rad2add2szr = szr_rad_sort
+        return rad2add2szr
     
+    def get_rad_perc(self, panel, chart_type):
+        """
+        chart_type -- Note, only one is currently selected (self.chart_type) 
+            when initiating widgets but we need to make whatever the calling 
+            chart type needs.
+        """
+        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        data_reported_group_lbl = _(u"Data reported")
+        if mg.PLATFORM != mg.MAC: # != mg.MAC
+            rad = wx.RadioBox(panel, -1, data_reported_group_lbl, 
+                              choices=mg.DATA_SHOW_OPTS, size=(-1,50))
+            rad.SetFont(mg.GEN_FONT)
+            rad.SetSelection(idx_data_opt)
+            rad.SetToolTipString(_(u"Report frequency or percentage?"))
+            rad.Bind(wx.EVT_RADIOBOX, self.on_rad_perc)
+            rad2add2szr = rad
+        else: # have to do all the wiring myself given I can't use the radio button group - grrr to Mac
+            bx_perc = wx.StaticBox(panel, -1, data_reported_group_lbl)
+            szr_rad_perc = wx.StaticBoxSizer(bx_perc, wx.HORIZONTAL)
+            for i, choice in enumerate(mg.DATA_SHOW_OPTS):
+                if choice == mg.SHOW_FREQ:
+                    rad_freq = wx.RadioButton(panel, -1, choice, 
+                                              style=wx.RB_GROUP)
+                    current_rad = rad_freq
+                    rad_freq.SetFont(mg.GEN_FONT)
+                    rad_freq.Bind(wx.EVT_RADIOBUTTON, self.on_rad_show_freq)
+                    if chart_type == mg.SIMPLE_BARCHART:
+                        self.rad_bar_freq = rad_freq
+                    elif chart_type == mg.CLUSTERED_BARCHART:
+                        self.rad_clust_freq = rad_freq
+                    elif chart_type == mg.LINE_CHART:
+                        self.rad_line_freq = rad_freq
+                    elif chart_type == mg.AREA_CHART:
+                        self.rad_area_freq = rad_freq
+                    else:
+                        raise Exception(u"Unexpected chart_type for freq vs "
+                                        u"perc: %s" % self.chart_type)
+                elif choice == mg.SHOW_PERC:
+                    rad_perc = wx.RadioButton(panel, -1, choice)
+                    current_rad = rad_perc
+                    rad_perc.SetFont(mg.GEN_FONT)
+                    rad_perc.Bind(wx.EVT_RADIOBUTTON, self.on_rad_show_perc)
+                    if chart_type == mg.SIMPLE_BARCHART:
+                        self.rad_bar_perc = rad_perc
+                    elif chart_type == mg.CLUSTERED_BARCHART:
+                        self.rad_clust_perc = rad_perc
+                    elif chart_type == mg.LINE_CHART:
+                        self.rad_line_perc = rad_perc
+                    elif chart_type == mg.AREA_CHART:
+                        self.rad_area_perc = rad_perc
+                    else:
+                        raise Exception(u"Unexpected chart_type for freq vs "
+                                        u"perc: %s" % self.chart_type)
+                if i == idx_data_opt:
+                    current_rad.SetValue(True)
+                szr_rad_perc.Add(current_rad, 0, wx.RIGHT, 5)
+            rad2add2szr = szr_rad_perc
+        return rad2add2szr
+
+    def on_rad_sort_opt(self, event):
+        debug = False
+        global CUR_SORT_OPT
+        rad = event.GetEventObject()
+        idx_sel = rad.GetSelection()
+        try:
+            CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
+        except IndexError:
+            pass
+        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
+
+    def on_rad_sort_none(self, event):
+        global CUR_SORT_OPT
+        CUR_SORT_OPT = mg.SORT_NONE
+        
+    def on_rad_sort_lbl(self, event):
+        global CUR_SORT_OPT
+        CUR_SORT_OPT = mg.SORT_LBL
+        
+    def on_rad_sort_inc(self, event):
+        global CUR_SORT_OPT
+        CUR_SORT_OPT = mg.SORT_INCREASING
+        
+    def on_rad_sort_dec(self, event):
+        global CUR_SORT_OPT
+        CUR_SORT_OPT = mg.SORT_DECREASING
+    
+    def on_rad_perc(self, event):
+        debug = False
+        global CUR_DATA_OPT
+        # http://www.blog.pythonlibrary.org/2011/09/20/...
+        # ... wxpython-binding-multiple-widgets-to-the-same-handler/
+        rad = event.GetEventObject()
+        idx_sel = rad.GetSelection()
+        try:
+            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
+        except IndexError:
+            pass
+        if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
+
+    def on_rad_show_freq(self, event):
+        global CUR_DATA_OPT
+        CUR_DATA_OPT = mg.SHOW_FREQ
+
+    def on_rad_show_perc(self, event):
+        global CUR_DATA_OPT
+        CUR_DATA_OPT = mg.SHOW_PERC
+            
     def get_chk_avg(self, panel, on_event):
         chk = wx.CheckBox(panel, -1, _("Show averages?"))
         chk.SetFont(mg.GEN_FONT)
@@ -737,53 +899,44 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def refresh_vars(self):
         self.setup_var_dropdowns()
         self.update_defaults()
-    
-    def on_rad_perc(self, event):
-        debug = False
-        global CUR_DATA_OPT
-        # http://www.blog.pythonlibrary.org/2011/09/20/...
-        # ... wxpython-binding-multiple-widgets-to-the-same-handler/
-        rad = event.GetEventObject()
-        idx_sel = rad.GetSelection()
-        try:
-            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
-        except IndexError:
-            pass
-        if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
-    
+        
     def on_chk_rotate(self, event):
         global ROTATE
         chk = event.GetEventObject()
         ROTATE = chk.IsChecked()
-
+    
+    def safe_enable(self, obj, enable):
+        """
+        If the object can be enabled/disabled do that. If not, assume it is a 
+            sizer containing widgets needing to be individually enabled etc.
+        Only needed because of a bug in Mac when displaying radio button groups 
+            with a font-size smaller than the system font. Have to build a 
+            collection of individual widgets myself.
+        """
+        try:
+            obj.Enable(enable)
+        except AttributeError:
+            for szr_item in obj.GetChildren():
+                szr_item.GetWindow().Enable(not SHOW_AVG)
+    
     def on_chk_avg(self, chk, rad):
         global SHOW_AVG
         SHOW_AVG = chk.IsChecked()
         self.setup_var_dropdowns()
-        rad.Enable(not SHOW_AVG)
+        enable = not SHOW_AVG
+        self.safe_enable(rad, enable)
             
     def on_chk_simple_bar_avg(self, event):
-        self.on_chk_avg(self.chk_simple_bar_avg, self.rad_simple_bar_perc)
+        self.on_chk_avg(self.chk_simple_bar_avg, self.bar_perc_opts)
 
     def on_chk_clust_bar_avg(self, event):
-        self.on_chk_avg(self.chk_clust_bar_avg, self.rad_clust_bar_perc)
+        self.on_chk_avg(self.chk_clust_bar_avg, self.clust_perc_opts)
                     
     def on_chk_line_avg(self, event):
-        self.on_chk_avg(self.chk_line_avg, self.rad_line_perc)
+        self.on_chk_avg(self.chk_line_avg, self.line_perc_opts)
                         
     def on_chk_area_avg(self, event):
-        self.on_chk_avg(self.chk_area_avg, self.rad_area_perc)
-    
-    def on_rad_sort_opt(self, event):
-        debug = False
-        global CUR_SORT_OPT
-        rad = event.GetEventObject()
-        idx_sel = rad.GetSelection()
-        try:
-            CUR_SORT_OPT = mg.SORT_OPTS[idx_sel]
-        except IndexError:
-            pass
-        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
+        self.on_chk_avg(self.chk_area_avg, self.area_perc_opts)
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
@@ -802,19 +955,56 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
         self.setup_var_dropdowns()
-        
+
+    def set_sort_order_sel(self, sort_opts_obj, sort_item=BARS_SORTED):
+        idx2use = mg.SORT_OPTS.index(CUR_SORT_OPT)
+        try:
+            sort_opts_obj.SetSelection(idx2use)
+        except AttributeError: # have to hand build rad items for Mac if smaller font size than system
+            if sort_item == BARS_SORTED:
+                rads = [self.rad_bar_sort_none, self.rad_bar_sort_lbl, 
+                        self.rad_bar_sort_inc, self.rad_bar_sort_dec]
+            elif sort_item == SLICES_SORTED:
+                rads = [self.rad_pie_sort_none, self.rad_pie_sort_lbl, 
+                        self.rad_pie_sort_inc, self.rad_pie_sort_dec]
+            else:
+                raise Exception(u"Unexpected sort_item: %s" % sort_item)
+            rads[idx2use].SetValue(True)
+
+    def set_perc_sel(self, perc_opts_obj):
+        """
+        We've changed chart type - make sure the correct radio button is 
+            selected - i.e. the one last shown e.g. Percentage
+        """
+        idx2use = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        try:
+            perc_opts_obj.SetSelection(idx2use)
+        except AttributeError: # have to hand build rad items for Mac if smaller font size than system
+            if self.chart_type == mg.SIMPLE_BARCHART:
+                rads = [self.rad_bar_freq, self.rad_bar_perc]
+            elif self.chart_type == mg.CLUSTERED_BARCHART:
+                rads = [self.rad_clust_freq, self.rad_clust_perc]
+            elif self.chart_type == mg.LINE_CHART:
+                rads = [self.rad_line_freq, self.rad_line_perc]
+            elif self.chart_type == mg.AREA_CHART:
+                rads = [self.rad_area_freq, self.rad_area_perc]
+            else:
+                raise Exception(u"Unexpected chart_type: %s" % self.chart_type)
+            rads[idx2use].SetValue(True)
+
     def on_btn_bar_chart(self, event):
         self.chart_type = mg.SIMPLE_BARCHART
         btn = self.btn_bar_chart
         btn_bmp = self.bmp_btn_bar_chart
         btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
-        self.rad_bar_sort_opts.SetSelection(mg.SORT_OPTS.index(CUR_SORT_OPT))
-        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        self.rad_simple_bar_perc.SetSelection(perc_sel)
+        self.set_sort_order_sel(sort_opts_obj=self.bar_sort_opts,
+                                sort_item=BARS_SORTED)
+        self.set_perc_sel(perc_opts_obj=self.bar_perc_opts)
         self.chk_simple_bar_rotate.SetValue(ROTATE)
         self.chk_simple_bar_avg.SetValue(SHOW_AVG)
-        self.rad_simple_bar_perc.Enable(not SHOW_AVG)
+        enable = not SHOW_AVG
+        self.safe_enable(obj=self.bar_perc_opts, enable=enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_clustered_bar_chart(self, event):
@@ -823,11 +1013,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_clust_bar_chart
         btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
         panel = self.panel_clust_bar_chart
-        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        self.rad_clust_bar_perc.SetSelection(perc_sel)
+        self.set_perc_sel(perc_opts_obj=self.clust_perc_opts)
         self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.chk_clust_bar_avg.SetValue(SHOW_AVG)
-        self.rad_clust_bar_perc.Enable(not SHOW_AVG)
+        enable = not SHOW_AVG
+        self.safe_enable(obj=self.clust_perc_opts, enable=enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_pie_chart(self, event):
@@ -836,21 +1026,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_pie_chart
         btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
-        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        self.rad_pie_sort_opts.SetSelection(perc_sel)
+        self.set_sort_order_sel(sort_opts_obj=self.rad_pie_sort_opts, 
+                                sort_item=SLICES_SORTED)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
-        
+
     def on_btn_line_chart(self, event):
         self.chart_type = mg.LINE_CHART
         btn = self.btn_line_chart
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        self.rad_line_perc.SetSelection(perc_sel)
+        self.set_perc_sel(perc_opts_obj=self.line_perc_opts)
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_avg.SetValue(SHOW_AVG)
-        self.rad_line_perc.Enable(not SHOW_AVG)
+        enable = not SHOW_AVG
+        self.safe_enable(obj=self.line_perc_opts, enable=enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         self.setup_line_extras()
 
@@ -860,11 +1050,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        perc_sel = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        self.rad_area_perc.SetSelection(perc_sel)
+        self.set_perc_sel(perc_opts_obj=self.area_perc_opts)
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_avg.SetValue(SHOW_AVG)
-        self.rad_area_perc.Enable(not SHOW_AVG)
+        enable = not SHOW_AVG
+        self.safe_enable(obj=self.area_perc_opts, enable=enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_histogram(self, event):

@@ -289,6 +289,7 @@ class ConfigUI(object):
             project dialog need to have option of taking from proj file.
         """
         cc = get_cc()
+        bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))
         self.btn_run.SetFont(mg.BTN_FONT)
         self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
@@ -299,7 +300,6 @@ class ConfigUI(object):
         self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, self.on_chk_add_to_report)
         self.readonly = readonly
         browse = _("Browse")
-        bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
@@ -363,7 +363,6 @@ class ConfigUI(object):
         if inc_clear:
             szr_output_display.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
         # close
-        close_up_by = 13 if mg.PLATFORM == mg.MAC else 5
         szr_output_display.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         return szr_output_display
     
@@ -377,7 +376,7 @@ class ConfigUI(object):
         style_choices.sort()
         if as_list:
             style_selector = wx.ListBox(panel, -1, choices=style_choices, 
-                                        size=(100,-1))
+                                        size=(120,-1))
             style_selector.Bind(wx.EVT_LISTBOX, self.on_style_sel)
         else:
             style_selector = wx.Choice(panel, -1, choices=style_choices)
