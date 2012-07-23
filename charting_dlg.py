@@ -168,10 +168,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_data = self.get_szr_data(self.panel_data) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
+        # variables
         bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
         self.szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTipString(self.variables_rc_msg)
+        # misc
         self.btn_help = wx.Button(self.panel_data, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -186,7 +188,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # assemble sizer for help_data panel
         self.panel_data.SetSizer(self.szr_help_data)
         self.szr_help_data.SetSizeHints(self.panel_data)
-        # Charts
         # chart buttons
         self.panel_mid = wx.Panel(self)
         bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Types"))
@@ -196,149 +197,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
             bx_charts.SetToolTipString(_("Make chart"))
         # Chart Settings
-        # bar chart
-        self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_bar_chart = wx.Panel(self.panel_mid)
-        self.rad_bar_perc = PercOpts(parent=self,
-                                     panel=self.panel_bar_chart)
-        self.rad_bar_sort = SortOrderOpts(parent=self, 
-                                          panel=self.panel_bar_chart, 
-                                          sort_item=BARS_SORTED)
-        self.chk_simple_bar_avg = self.get_chk_avg(self.panel_bar_chart, 
-                                                   self.on_chk_simple_bar_avg)
-        self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
         if mg.PLATFORM == mg.WINDOWS:
-            tickbox_down_by = 27 # to line up with a combo
+            self.tickbox_down_by = 25 # to line up with a combo
         elif mg.PLATFORM == mg.LINUX:
-            tickbox_down_by = 22
+            self.tickbox_down_by = 21
         else:
-            tickbox_down_by = 27
-        self.szr_bar_chart.Add(self.rad_bar_perc.get_szr(), 0, wx.TOP|
-                               wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.rad_bar_sort.get_szr(), 0, wx.TOP, 5)
-        self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
-                               tickbox_down_by)
-        self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
-                               tickbox_down_by)
-        self.panel_bar_chart.SetSizer(self.szr_bar_chart)
-        self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
-        # clustered bar chart
-        self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_clust_bar_chart = wx.Panel(self.panel_mid)
-
-
-        self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar_chart)
-        self.chk_clust_bar_avg = self.get_chk_avg(self.panel_clust_bar_chart, 
-                                                  self.on_chk_clust_bar_avg)
-        self.rad_clust_perc = PercOpts(parent=self,
-                                       panel=self.panel_clust_bar_chart)
-        self.szr_clust_bar_chart.Add(self.rad_clust_perc.get_szr(), 0, wx.TOP)
-        self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
-                                         tickbox_down_by)
-        self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
-                                         tickbox_down_by)
-        self.panel_clust_bar_chart.SetSizer(self.szr_clust_bar_chart)
-        self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar_chart)
-        # pie chart
-        self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
-        self.panel_pie_chart = wx.Panel(self.panel_mid)
-        self.rad_pie_sort = SortOrderOpts(parent=self, 
-                                          panel=self.panel_pie_chart, 
-                                          sort_item=SLICES_SORTED)
-        self.szr_pie_chart.Add(self.rad_pie_sort.get_szr(), 0, wx.TOP, 5)
-        self.panel_pie_chart.SetSizer(self.szr_pie_chart)
-        self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
-        # line chart
-        self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_line_chart = wx.Panel(self.panel_mid)
-        self.rad_line_perc = PercOpts(parent=self,
-                                      panel=self.panel_line_chart)
-        self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
-        self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Show trend line?"))
-        self.chk_line_trend.SetFont(mg.GEN_FONT)
-        self.chk_line_trend.SetValue(False)
-        self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
-        self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Show smoothed data line?"))
-        self.chk_line_smooth.SetValue(False)
-        self.chk_line_smooth.SetFont(mg.GEN_FONT)
-        self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.rad_line_perc.get_szr(), 0, wx.TOP)
-        self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
-                                             self.on_chk_line_avg)
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.panel_line_chart.SetSizer(self.szr_line_chart)
-        self.szr_line_chart.SetSizeHints(self.panel_line_chart)
-        # area chart
-        self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_area_chart = wx.Panel(self.panel_mid)
-
-        self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
-        self.chk_area_avg = self.get_chk_avg(self.panel_area_chart, 
-                                             self.on_chk_area_avg)
-        self.rad_area_perc = PercOpts(parent=self,
-                                      panel=self.panel_area_chart)
-        self.szr_area_chart.Add(self.rad_area_perc.get_szr(), 0, wx.TOP)
-        self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
-                                tickbox_down_by)
-        self.panel_area_chart.SetSizer(self.szr_area_chart)
-        self.szr_area_chart.SetSizeHints(self.panel_area_chart)
-        # histogram
-        self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
-        self.panel_histogram = wx.Panel(self.panel_mid)
-        self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
-                                           _("Show normal curve?"))
-        self.chk_show_normal.SetFont(mg.GEN_FONT)
-        self.chk_show_normal.SetValue(False)
-        self.chk_show_normal.SetToolTipString(_(u"Show normal curve?"))
-        self.szr_histogram.Add(self.chk_show_normal, 0, 
-                               wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.panel_histogram.SetSizer(self.szr_histogram)
-        self.szr_histogram.SetSizeHints(self.panel_histogram)
-        # scatterplot
-        self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_scatterplot = wx.Panel(self.panel_mid)
-        self.chk_borders = wx.CheckBox(self.panel_scatterplot, -1, 
-                                       _("Dot borders?"))
-        self.chk_borders.SetFont(mg.GEN_FONT)
-        self.chk_borders.SetValue(True)
-        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
-        self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
-                                            "dots?"))
-        self.panel_scatterplot.SetSizer(self.szr_scatterplot)
-        self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
-        # boxplot
-        self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
-        self.panel_boxplot = wx.Panel(self.panel_mid)
-        self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
-        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, 
-                             wx.TOP|wx.BOTTOM|wx.LEFT, 10)
-        self.panel_boxplot.SetSizer(self.szr_boxplot)
-        self.szr_boxplot.SetSizeHints(self.panel_boxplot)
+            self.tickbox_down_by = 25
+        # setup charts
+        self.setup_simple_bar()
+        self.setup_clust_bar()
+        self.setup_pie()
+        self.setup_line()
+        self.setup_area()
+        self.setup_histogram()
+        self.setup_scatterplot()
+        self.setup_boxplot()
         # Hide all panels except default. Display and layout then hide.
         # Prevents flicker on change later.
-        panels2hide = [self.panel_clust_bar_chart, self.panel_pie_chart,
+        panels2hide = [self.panel_clust_bar, self.panel_pie_chart,
                        self.panel_line_chart, self.panel_area_chart,
                        self.panel_histogram, self.panel_scatterplot, 
                        self.panel_boxplot]
@@ -422,6 +298,146 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    self.szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
+    
+    def setup_simple_bar(self):
+        self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_bar_chart = wx.Panel(self.panel_mid)
+        self.rad_bar_perc = PercOpts(parent=self,
+                                     panel=self.panel_bar_chart)
+        self.rad_bar_sort = SortOrderOpts(parent=self, 
+                                          panel=self.panel_bar_chart, 
+                                          sort_item=BARS_SORTED)
+        self.chk_simple_bar_avg = self.get_chk_avg(self.panel_bar_chart, 
+                                                   self.on_chk_simple_bar_avg)
+        self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
+            
+        self.szr_bar_chart.Add(self.rad_bar_perc.get_szr(), 0, wx.TOP|
+                               wx.RIGHT, 5)
+        self.szr_bar_chart.Add(self.rad_bar_sort.get_szr(), 0, wx.TOP, 5)
+        self.szr_bar_chart.AddSpacer(10)
+        self.szr_bar_chart.Add(self.chk_simple_bar_avg, 0, wx.TOP, 
+                               self.tickbox_down_by)
+        self.szr_bar_chart.AddSpacer(10)
+        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
+                               self.tickbox_down_by)
+        self.panel_bar_chart.SetSizer(self.szr_bar_chart)
+        self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
+        
+    def setup_clust_bar(self):
+        self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_clust_bar = wx.Panel(self.panel_mid)
+        self.rad_clust_perc = PercOpts(parent=self,
+                                       panel=self.panel_clust_bar)
+        self.chk_clust_bar_avg = self.get_chk_avg(self.panel_clust_bar, 
+                                                  self.on_chk_clust_bar_avg)
+        self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
+        self.szr_clust_bar_chart.Add(self.rad_clust_perc.get_szr(), 0, 
+                                     wx.TOP, 5)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_avg, 0, wx.TOP, 
+                                     self.tickbox_down_by)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
+                                     self.tickbox_down_by)
+        self.panel_clust_bar.SetSizer(self.szr_clust_bar_chart)
+        self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar)
+    
+    def setup_pie(self):
+        self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
+        self.panel_pie_chart = wx.Panel(self.panel_mid)
+        self.rad_pie_sort = SortOrderOpts(parent=self, 
+                                          panel=self.panel_pie_chart, 
+                                          sort_item=SLICES_SORTED)
+        self.szr_pie_chart.Add(self.rad_pie_sort.get_szr(), 0, wx.TOP, 5)
+        self.panel_pie_chart.SetSizer(self.szr_pie_chart)
+        self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
+    
+    def setup_line(self):
+        self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_line_chart = wx.Panel(self.panel_mid)
+        self.rad_line_perc = PercOpts(parent=self,
+                                      panel=self.panel_line_chart)
+        self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
+        self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
+                                         _("Show trend line?"))
+        self.chk_line_trend.SetFont(mg.GEN_FONT)
+        self.chk_line_trend.SetValue(False)
+        self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
+        self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
+                                         _("Show smoothed data line?"))
+        self.chk_line_smooth.SetValue(False)
+        self.chk_line_smooth.SetFont(mg.GEN_FONT)
+        self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
+        self.szr_line_chart.Add(self.rad_line_perc.get_szr(), 0, wx.TOP, 5)
+        self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
+                                             self.on_chk_line_avg)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.panel_line_chart.SetSizer(self.szr_line_chart)
+        self.szr_line_chart.SetSizeHints(self.panel_line_chart)
+    
+    def setup_area(self):
+        self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_area_chart = wx.Panel(self.panel_mid)
+        self.rad_area_perc = PercOpts(parent=self,
+                                      panel=self.panel_area_chart)
+        self.chk_area_avg = self.get_chk_avg(self.panel_area_chart, 
+                                             self.on_chk_area_avg)
+        self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
+        self.szr_area_chart.Add(self.rad_area_perc.get_szr(), 0, wx.TOP, 5)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.panel_area_chart.SetSizer(self.szr_area_chart)
+        self.szr_area_chart.SetSizeHints(self.panel_area_chart)
+    
+    def setup_histogram(self):
+        self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
+        self.panel_histogram = wx.Panel(self.panel_mid)
+        self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
+                                           _("Show normal curve?"))
+        self.chk_show_normal.SetFont(mg.GEN_FONT)
+        self.chk_show_normal.SetValue(False)
+        self.chk_show_normal.SetToolTipString(_(u"Show normal curve?"))
+        self.szr_histogram.Add(self.chk_show_normal, 0, 
+                               wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.panel_histogram.SetSizer(self.szr_histogram)
+        self.szr_histogram.SetSizeHints(self.panel_histogram)
+    
+    def setup_scatterplot(self):
+        self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_scatterplot = wx.Panel(self.panel_mid)
+        self.chk_borders = wx.CheckBox(self.panel_scatterplot, -1, 
+                                       _("Dot borders?"))
+        self.chk_borders.SetFont(mg.GEN_FONT)
+        self.chk_borders.SetValue(True)
+        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
+        self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
+                                            "dots?"))
+        self.panel_scatterplot.SetSizer(self.szr_scatterplot)
+        self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
+    
+    def setup_boxplot(self):
+        self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
+        self.panel_boxplot = wx.Panel(self.panel_mid)
+        self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
+        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, 
+                             wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.panel_boxplot.SetSizer(self.szr_boxplot)
+        self.szr_boxplot.SetSizeHints(self.panel_boxplot)
     
     def get_fresh_drop_var1(self, items, idx_sel):
         """
@@ -735,19 +751,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_bar_chart.SetFocus()
         szr_chart_btns.Add(self.btn_bar_chart, 0, wx.RIGHT, btn_gap)
         # clustered bar charts
-        self.bmp_btn_clust_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+        self.bmp_btn_clust_bar = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                         u"images", u"clustered_bar_chart.xpm"), 
                                         wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_clust_bar_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
+        self.bmp_btn_clust_bar_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                     u"images", u"clustered_bar_chart_sel.xpm"), 
                                     wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_clust_bar_chart = wx.BitmapButton(self.panel_mid, -1, 
-                                                   self.bmp_btn_clust_bar_chart, 
+        self.btn_clust_bar = wx.BitmapButton(self.panel_mid, -1, 
+                                                   self.bmp_btn_clust_bar, 
                                                    style=wx.NO_BORDER)
-        self.btn_clust_bar_chart.Bind(wx.EVT_BUTTON, 
+        self.btn_clust_bar.Bind(wx.EVT_BUTTON, 
                                       self.on_btn_clustered_bar_chart)
-        self.btn_clust_bar_chart.SetToolTipString(_("Make Clustered Bar Chart"))
-        szr_chart_btns.Add(self.btn_clust_bar_chart, 0, wx.RIGHT, btn_gap)
+        self.btn_clust_bar.SetToolTipString(_("Make Clustered Bar Chart"))
+        szr_chart_btns.Add(self.btn_clust_bar, 0, wx.RIGHT, btn_gap)
         # pie charts
         self.bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
                                                 u"images", u"pie_chart.xpm"), 
@@ -829,7 +845,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
-            self.btn_clust_bar_chart.SetCursor(hand)
+            self.btn_clust_bar.SetCursor(hand)
             self.btn_pie_chart.SetCursor(hand)
             self.btn_line_chart.SetCursor(hand)
             self.btn_area_chart.SetCursor(hand)
@@ -908,10 +924,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_btn_clustered_bar_chart(self, event):
         self.chart_type = mg.CLUSTERED_BARCHART
-        btn = self.btn_clust_bar_chart
-        btn_bmp = self.bmp_btn_clust_bar_chart
-        btn_bmp_sel = self.bmp_btn_clust_bar_chart_sel
-        panel = self.panel_clust_bar_chart
+        btn = self.btn_clust_bar
+        btn_bmp = self.bmp_btn_clust_bar
+        btn_bmp_sel = self.bmp_btn_clust_bar_sel
+        panel = self.panel_clust_bar
         self.rad_clust_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.chk_clust_bar_avg.SetValue(SHOW_AVG)
