@@ -102,71 +102,45 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     return u"\n".join(html)
 
 
-class RptTypeOpts(object):
+class RptTypeOpts(config_output.Opts):
     
-    def __init__(self, parent):
+    def __init__(self, parent, panel):
         group_lbl = _("Table Type")
         FREQS_LBL = _("Frequencies")
         CROSS_LBL = _("Crosstabs")
         ROW_STATS_LBL = _("Row Stats")
         DATA_LIST_LBL = _("Data List")
         tab_type_choices = (FREQS_LBL, CROSS_LBL, ROW_STATS_LBL, DATA_LIST_LBL)
-        if mg.PLATFORM != mg.MAC: # != mg.MAC
-            self.rad_tab_type = wx.RadioBox(parent.panel, -1, group_lbl, 
+        if config_output.IS_MAC:
+            self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
                                             choices=tab_type_choices,
                                             style=wx.RA_SPECIFY_COLS)
-            self.rad_tab_type.SetFont(mg.GEN_FONT)
-            self.rad_tab_type.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
+            self.rad_opts.SetFont(mg.GEN_FONT)
+            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
         else:
-            bx_rpt_type = wx.StaticBox(parent.panel, -1, group_lbl)
+            bx_rpt_type = wx.StaticBox(panel, -1, group_lbl)
             szr_rad_rpt_type = wx.StaticBoxSizer(bx_rpt_type, wx.HORIZONTAL)
-            self.rad_freq = wx.RadioButton(parent.panel, -1, FREQS_LBL, 
-                                           style=wx.RB_GROUP)
+            self.rad_freq = wx.RadioButton(panel, -1, FREQS_LBL, 
+                                           style=wx.RB_GROUP) # leads
             self.rad_freq.SetFont(mg.GEN_FONT)
             self.rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
             self.rad_freq.SetValue(True) # init (required by Mac)
             szr_rad_rpt_type.Add(self.rad_freq)
-            self.rad_cross = wx.RadioButton(parent.panel, -1, CROSS_LBL)
+            self.rad_cross = wx.RadioButton(panel, -1, CROSS_LBL)
             self.rad_cross.SetFont(mg.GEN_FONT)
             self.rad_cross.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_cross, 0, wx.LEFT, 5)
-            self.rad_row_stats = wx.RadioButton(parent.panel, -1, ROW_STATS_LBL)
+            self.rad_row_stats = wx.RadioButton(panel, -1, ROW_STATS_LBL)
             self.rad_row_stats.SetFont(mg.GEN_FONT)
             self.rad_row_stats.Bind(wx.EVT_RADIOBUTTON, 
                                     parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_row_stats, 0, wx.LEFT, 5)
-            self.rad_data_list = wx.RadioButton(parent.panel, -1, DATA_LIST_LBL)
+            self.rad_data_list = wx.RadioButton(panel, -1, DATA_LIST_LBL)
             self.rad_data_list.SetFont(mg.GEN_FONT)
             self.rad_data_list.Bind(wx.EVT_RADIOBUTTON, 
                                     parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_data_list, 0, wx.LEFT, 5)
-            self.rad_tab_type = szr_rad_rpt_type
-
-    def GetSelection(self):
-        debug = True
-        try:
-            return self.rad_tab_type.GetSelection()
-        except AttributeError:
-            for idx, szr_item in enumerate(self.rad_tab_type.GetChildren()):
-                rad = szr_item.GetWindow()
-                if debug: print(u"Item %s with value of %s" % (idx, 
-                                                               rad.GetValue()))
-                if rad.GetValue():
-                    return idx
-            return None
-        
-    def SetSelection(self, idx):
-        try:
-            return self.rad_tab_type.SetSelection(idx)
-        except AttributeError:
-            self.rad_tab_type.GetChildren()[idx].GetWindow().SetValue(True)
-            
-    def get_szr(self):
-        """
-        Use this when inserting into a sizer (expects a sizer or widget not this 
-            object.
-        """
-        return self.rad_tab_type
+            self.rad_opts = szr_rad_rpt_type
 
 
 class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
@@ -241,8 +215,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                                          style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         # table type. NB max indiv width sets width for all items in Win or OSX
-        self.rad_tab_type = RptTypeOpts(parent=self)
-        self.tab_type = self.rad_tab_type.GetSelection()
+        self.rad_opts = RptTypeOpts(parent=self, panel=self.panel)
+        self.tab_type = self.rad_opts.GetSelection()
         # option checkboxs
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
         self.chk_totals_row.SetFont(mg.GEN_FONT)
@@ -349,9 +323,9 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
         szr_top.Add(self.szr_data, 1, wx.LEFT, 5)
         try:
-            szr_tab_type.Add(self.rad_tab_type, 0, wx.LEFT|wx.RIGHT, 10)
+            szr_tab_type.Add(self.rad_opts, 0, wx.LEFT|wx.RIGHT, 10)
         except TypeError:
-            szr_tab_type.Add(self.rad_tab_type.get_szr(), 0, 
+            szr_tab_type.Add(self.rad_opts.get_szr(), 0, 
                              wx.LEFT|wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
@@ -496,7 +470,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         Don't set show_perc when instantiating here as needs to be checked every 
             time get_demo_html_if_ok() is called.
         """
-        self.tab_type = self.rad_tab_type.GetSelection() # for convenience
+        self.tab_type = self.rad_opts.GetSelection() # for convenience
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
         if self.tab_type != mg.RAW_DISPLAY:
@@ -663,11 +637,13 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                             child=child, child_fldname=child_fldname)
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.RAW_DISPLAY:
-            col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
-                                                     self.var_labels)
+            (col_names, col_labels, 
+             col_sorting) = lib.get_col_dets(self.coltree, self.colroot, 
+                                             self.var_labels)
             # pprint.pformat() fails on non-ascii - a shame
             script_lst.append(u"col_names = " + unicode(col_names))
             script_lst.append(u"col_labels = " + unicode(col_labels))
+            script_lst.append(u"col_sorting = " + unicode(col_sorting))
             script_lst.append(u"flds = " + lib.dic2unicode(dd.flds))
             script_lst.append(u"var_labels = " +
                               lib.dic2unicode(self.var_labels))
@@ -702,16 +678,16 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
             first_label = (u"True" if self.chk_first_as_label.IsChecked()
                            else u"False")
-            script_lst.append(u"tab_test = rawtables.RawTable(" +
-                    u"titles=%s, " % unicode(titles) +
-                    u"\n    subtitles=%s, " % unicode(subtitles) +
-                    u"\n    dbe=u\"%s\", " % dd.dbe +
-                    u"col_names=col_names, col_labels=col_labels, flds=flds," +
-                    u"\n    var_labels=var_labels, val_dics=val_dics, " +
-                    u"tbl=u\"%s\"," % dd.tbl +
-                    u"\n    tbl_filt=tbl_filt, cur=cur, add_total_row=%s, " %
-                        tot_rows +
-                    u"\n    first_col_as_label=%s)" % first_label)
+            script_lst.append(u"""
+tab_test = rawtables.RawTable(titles=%(titles)s, 
+    subtitles=%(subtitles)s, dbe=u\"%(dbe)s\", col_names=col_names, 
+    col_labels=col_labels, col_sorting=col_sorting, flds=flds, 
+    var_labels=var_labels, val_dics=val_dics, tbl=u\"%(tbl)s\",
+    tbl_filt=tbl_filt, cur=cur, add_total_row=%(tot_rows)s,
+    first_col_as_label=%(first_label)s)""" % {u"titles": unicode(titles), 
+                u"subtitles": unicode(subtitles), u"dbe": dd.dbe, 
+                u"tbl": dd.tbl, u"tot_rows": tot_rows, 
+                u"first_label": first_label})
         if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")
@@ -826,7 +802,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         "Clear all settings"
         self.txt_titles.SetValue("")        
         self.txt_subtitles.SetValue("")
-        self.rad_tab_type.SetSelection(mg.FREQS_TBL)
+        self.rad_opts.SetSelection(mg.FREQS_TBL)
         self.tab_type = mg.FREQS_TBL
         self.delete_all_dim_children()
         self.update_by_tab_type()
@@ -852,7 +828,6 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     
     # demo table display
     def get_live_html(self):
-        debug = False
         run_ok, has_cols = self.table_config_ok(silent=True)
         if not run_ok:
             return False, u""
@@ -860,7 +835,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         get_script_args = [has_cols,]
         (bolran_report, 
          str_content) = config_output.ConfigUI.get_script_output(self, 
-                                                  get_script_args, new_has_dojo)
+                                                  get_script_args, new_has_dojo,
+                                                  allow_add2rpt=False)
         return bolran_report, str_content
     
     def update_demo_display(self, titles_only=False):
@@ -978,16 +954,18 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         ready2run, unused = self.table_config_ok(silent=True)
         if live_demo:
             runlbl2use = config_output.ADD2RPT_LBL
-            show_chk_add_to_report = False
+            mg.ADD2RPT = True
+            self.chk_add_to_report.Show(False)
         else:
             runlbl2use = config_output.RUN_LBL
-            show_chk_add_to_report = True
+            self.chk_add_to_report.Show(True)
+            if self.chk_add_to_report.Enabled:
+                mg.ADD2RPT = self.chk_add_to_report.IsChecked()
         if not self.btn_run.IsEnabled():
             self.btn_run.Enable()
         self.btn_run.SetLabel(runlbl2use)
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
-        self.chk_add_to_report.Show(show_chk_add_to_report)
         
     def on_btn_var_config(self, event):
         """

@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import copy
+        
 import wx
 
 import my_globals as mg
@@ -10,9 +12,7 @@ import projects
 MEASURES = u"measures"
 HAS_TOT = u"has_tot"
 SORT_ORDER = u"sort_order"
-SORT_OPT_NONE = 0 # No sorting options
-SORT_OPT_BY_LABEL = 1 # Only provide option of sorting by label
-SORT_OPT_ALL = 2 # Option of sorting by labels and freqs
+ITEM_CONFIG = u"item_config"
 
 """
 Dimtree (tree of dimensions i.e. rows and columns) handles the GUI configuration 
@@ -28,7 +28,6 @@ A label tree has nodes for each value under a variable e.g. the dimension might
     need to add label nodes for totals, row %s etc.   
 """
 
-
 class DimTree(object):
     
     # dimension (rows/columns) trees
@@ -42,14 +41,16 @@ class DimTree(object):
         """
         Store last used item config ready for reuse.
         Gets set whenever a col or row is configured (using 
-            update_default_item_conf()). 
+            update_default_item_confs()). 
         Used in set_initial_config() when setting up a fresh item.
         """
         self.default_item_confs = {
-             mg.FREQS_TBL: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None}, 
+             mg.FREQS_TBL: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: 
+                                        mg.SORT_VALUE}, 
                             mg.COLDIM: {MEASURES: None},},
-             mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: None},
-                           mg.COLDIM: {HAS_TOT: None, SORT_ORDER: None, 
+             mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE},
+                           mg.COLDIM: {HAS_TOT: None, 
+                                       SORT_ORDER: mg.SORT_VALUE, 
                                        MEASURES: None},},
              mg.ROW_SUMM: {mg.ROWDIM: {HAS_TOT: None},
                            mg.COLDIM: {MEASURES: None},}}
@@ -183,7 +184,9 @@ class DimTree(object):
             (e.g. col_no_vars_item) rather than a normal dim variable.
         """
         dd = mg.DATADETS_OBJ
-        item_conf = lib.ItemConfig()
+        default_sort = (mg.SORT_NONE if self.tab_type == mg.RAW_DISPLAY 
+                        else mg.SORT_VALUE)
+        item_conf = lib.ItemConfig(sort_order=default_sort)
         # reuse stored item config from same sort if set previously
         if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
             default_item_conf = self.default_item_confs[self.tab_type]
@@ -209,7 +212,8 @@ class DimTree(object):
         else:
             item_conf.bolnumeric = False
         tree.SetItemPyData(new_id, item_conf)
-        tree.SetItemText(new_id, item_conf.get_summary(), 1)
+        summary = item_conf.get_summary()
+        tree.SetItemText(new_id, summary, 1)
     
     def on_row_add_under(self, event):
         """
@@ -315,7 +319,7 @@ class DimTree(object):
                     item_conf.measures_lst = []
                     if item_conf.sort_order in [mg.SORT_INCREASING, 
                                                 mg.SORT_DECREASING]:
-                        item_conf.sort_order = mg.SORT_NONE
+                        item_conf.sort_order = mg.SORT_VALUE
                     tree.SetItemText(ancestor, item_conf.get_summary(), 1)                        
         tree.ExpandAll(root)
         tree.UnselectAll() # multiple
@@ -441,14 +445,15 @@ class DimTree(object):
         # ok to open config dlg
         rpt_config = mg.RPT_CONFIG[self.tab_type]
         title = _("Configure %s Item") % itemlbl.title()
-        if no_vars_item in selected_ids or self.tab_type == mg.RAW_DISPLAY:
-            sort_opt_allowed = SORT_OPT_NONE
+        if no_vars_item in selected_ids:
+            sort_opt_allowed = mg.SORT_NO_OPTS
+        elif self.tab_type == mg.RAW_DISPLAY:
+            sort_opt_allowed = mg.RAW_DISPLAY_SORT_OPTS
         elif not lib.item_has_children(tree, parent=selected_ids[0]):
-            sort_opt_allowed = SORT_OPT_ALL
+            sort_opt_allowed = mg.STD_SORT_OPTS
         else:
-            sort_opt_allowed = SORT_OPT_BY_LABEL
+            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPTS
         horizontal = rpt_config[mg.MEASURES_HORIZ_KEY]
-        item_config_dets = ItemConfigDets()
         if no_vars_item in selected_ids:
             has_vars = False
         elif root not in selected_ids:
@@ -471,7 +476,8 @@ class DimTree(object):
                 measures = rpt_config[mg.COL_MEASURES_KEY]
                 if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
                     measures.append(mg.ROWPCT)
-        if self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM:
+        if ((self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM) 
+                or self.tab_type == mg.RAW_DISPLAY): # raw display is not controlled at item level but for report as a whole
             allow_tot = False
         else:
             allow_tot = has_vars
@@ -479,12 +485,13 @@ class DimTree(object):
         if any_config2get:
             if debug: print("Some config to get.")
             parent = self
+            rets_dic = {ITEM_CONFIG: None} # use it to grab deep copy of object
             dlg = DlgConfig(parent, self.var_labels, selected_ids, tree, title,
-                            allow_tot, measures, sort_opt_allowed, horizontal,
-                            item_config_dets)
+                            allow_tot, measures, sort_opt_allowed, rets_dic, 
+                            horizontal)
             ret = dlg.ShowModal()
-            if ret == wx.ID_OK:
-                self.update_default_item_conf(dim, item_config_dets)
+            if ret == wx.ID_OK and self.tab_type != mg.RAW_DISPLAY: # never sets defaults
+                self.update_default_item_confs(dim, rets_dic[ITEM_CONFIG])
                 self.update_demo_display()
 
     def on_row_config(self, event):
@@ -495,12 +502,12 @@ class DimTree(object):
         "Configure column button clicked."
         self.config_dim(dim=mg.COLDIM)
 
-    def update_default_item_conf(self, dim, item_config_dets):
+    def update_default_item_confs(self, dim, item_config_dets):
         """
         Store settings for possible reuse.
         Only store what there is a slot for.
         """
-        if self.tab_type == mg.RAW_DISPLAY:
+        if self.tab_type == mg.RAW_DISPLAY: # no reuse for config items
             return
         dim_item_conf = self.default_item_confs[self.tab_type][dim]
         if HAS_TOT in dim_item_conf:
@@ -508,8 +515,8 @@ class DimTree(object):
         if SORT_ORDER in dim_item_conf:
             dim_item_conf[SORT_ORDER] = item_config_dets.sort_order
         if MEASURES in dim_item_conf:
-            dim_item_conf[MEASURES] = item_config_dets.measures
-
+            dim_item_conf[MEASURES] = item_config_dets.measures_lst
+    
     def add_default_column_config(self):
         self.col_no_vars_item = self.coltree.AppendItem(self.colroot, 
                                                         mg.COL_CONFIG_ITEM_LBL)
@@ -577,43 +584,16 @@ class DimTree(object):
             self.btn_col_add.Enable(True)
             self.btn_col_add_under.Enable(False)
             self.btn_col_del.Enable(True)
-            self.btn_col_conf.Enable(False)
+            self.btn_col_conf.Enable(enable=has_cols)
 
-
-class ItemConfigDets(object):
-    """
-    Stores data collected from the item config dialog ready to be added as 
-        pydata to the tree dim item. Dialog -> object in other words.
-    """
-    
-    def __init__(self):
-        self.measures = None
-        self.has_tot = None
-        self.sort_order = None
-    
-    def set_measures(self, measures):
-        self.measures = measures
-        
-    def set_has_tot(self, has_tot):
-        self.has_tot = has_tot
-        
-    def set_sort_order(self, sort_order):
-        self.sort_order = sort_order
-        
-    def __str__(self):
-        return "Measures: %s; Has total: %s; Sort Order: %s" % (self.measures,
-                                                                self.has_tot,
-                                                                self.sort_order)
 
 class DlgConfig(wx.Dialog):
     
     def __init__(self, parent, var_labels, node_ids, tree, title, allow_tot, 
-                 measures, sort_opt_allowed, horizontal=True, 
-                 item_config_dets=None):
+                 measures, sort_opt_allowed, rets_dic, horizontal=True):
         """
-        Parent class for all dialogs collecting configuration details 
-            for rows and cols.
-        node_ids - list, even if only one item selected.
+        Collects configuration details for rows and cols.
+        node_ids -- list, even if only one item selected.
         """
         wx.Dialog.__init__(self, parent, id=-1, title=title)
         self.node_ids = node_ids
@@ -622,7 +602,7 @@ class DlgConfig(wx.Dialog):
         self.allow_tot = allow_tot
         self.measures = measures
         self.sort_opt_allowed = sort_opt_allowed
-        self.item_config_dets = item_config_dets
+        self.rets_dic = rets_dic
         # base item configuration on first one selected
         item_conf = self.tree.GetItemPyData(first_node_id)
         chk_size = (170, 20)
@@ -639,22 +619,16 @@ class DlgConfig(wx.Dialog):
                 self.chk_total.SetValue(True)
             szr_misc.Add(self.chk_total, 0, wx.LEFT, 5)
             szr_main.Add(szr_misc, 0, wx.GROW|wx.ALL, 10)
-        if self.sort_opt_allowed != SORT_OPT_NONE:
+        if self.sort_opt_allowed != mg.SORT_NO_OPTS:
             self.rad_sort_opts = wx.RadioBox(self, -1, _("Sort order"),
-                                             choices=mg.SORT_OPTS, 
+                                             choices=self.sort_opt_allowed, 
                                              size=(-1,50))
             # set selection according to existing item_conf
             try:
-                idx_sort_opt = mg.SORT_OPTS.index(item_conf.sort_order)
+                idx_sort_opt = self.sort_opt_allowed.index(item_conf.sort_order)
                 self.rad_sort_opts.SetSelection(idx_sort_opt)
             except IndexError:
                 pass
-            if self.sort_opt_allowed == SORT_OPT_BY_LABEL:
-                # disable freq options
-                idx_freq_asc = mg.SORT_OPTS.index(mg.SORT_INCREASING)
-                self.rad_sort_opts.EnableItem(idx_freq_asc, False)
-                idx_freq_desc = mg.SORT_OPTS.index(mg.SORT_DECREASING)
-                self.rad_sort_opts.EnableItem(idx_freq_desc, False)
             szr_main.Add(self.rad_sort_opts, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.measure_chks_dic = {}
         if self.measures:
@@ -690,8 +664,11 @@ class DlgConfig(wx.Dialog):
              
     def on_ok(self, event):
         """
-        Store selection details into item conf object
+        Store selection details into item conf dets object.
+        Note - can configure multiple items at once (can't if one has children 
+            and the others don't).
         """
+        debug = False
         # measures
         measures_lst = []
         any_measures = False
@@ -703,28 +680,35 @@ class DlgConfig(wx.Dialog):
         if self.measures and not any_measures:
             wx.MessageBox(_("Please select at least one measure"))
             return
-        # Store measures ready to be used as default when adding next item.
-        self.item_config_dets.set_measures(measures_lst)
         # tot
         has_tot = self.allow_tot and self.chk_total.GetValue()
-        self.item_config_dets.set_has_tot(has_tot)
         # sort order
-        if self.sort_opt_allowed == SORT_OPT_NONE:
-            sort_order = mg.SORT_NONE
+        if self.sort_opt_allowed == mg.SORT_NO_OPTS:
+            sort_order = mg.SORT_VALUE
         else:
             try:
-                sort_order = mg.SORT_OPTS[self.rad_sort_opts.GetSelection()]
+                idx_sort = self.rad_sort_opts.GetSelection()
+                sort_order = self.sort_opt_allowed[idx_sort]
             except IndexError:
                 raise Exception(u"Unexpected sort type")
-        self.item_config_dets.set_sort_order(sort_order)
-        for node_id in self.node_ids:
+        # apply configuration to GUI tree
+        for node_id in self.node_ids: # potentially configuring multiple at once
             existing_data = self.tree.GetItemPyData(node_id)
             var_name = existing_data.var_name
             bolnumeric = existing_data.bolnumeric
-            item_conf = lib.ItemConfig(var_name, measures_lst, has_tot, 
-                                       sort_order, bolnumeric)
+            item_conf = lib.ItemConfig(sort_order, var_name, measures_lst, 
+                                       has_tot, bolnumeric)
             self.tree.SetItemPyData(node_id, item_conf)        
             self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
+        """
+        Grab deep copy of last one. This will be used to set defaults so that 
+            when we add more items, we can default to the same settings if 
+            possible. Note - deep copy to guarantee staying independent. The 
+            other object is used to set the ItemPyData for a particular node in 
+            the GUI.
+        """
+        self.rets_dic[ITEM_CONFIG] = copy.deepcopy(item_conf)
+        if debug: print(self.rets_dic[ITEM_CONFIG].get_summary(verbose=True)) 
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!
         # Prebuilt dialogs presumably do this internally.

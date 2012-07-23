@@ -84,13 +84,13 @@ class DimNode(tree.Node):
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
     measures - e.g. FREQ
     has_tot - boolean
-    sort_order - mg.SORT_NONE, mg.SORT_LBL, mg.SORT_INCREASING, 
+    sort_order -- mg.SORT_VALUE, mg.SORT_LBL, mg.SORT_INCREASING, 
         mg.SORT_DECREASING
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
     """
     def __init__(self, fld=None, label="", labels=None, measures=None, 
-                 has_tot=False, sort_order=mg.SORT_NONE, bolnumeric=False):
+                 has_tot=False, sort_order=mg.SORT_VALUE, bolnumeric=False):
         ""
         self.fld = fld
         self.filt_flds = [] # only built when added as child to another DimNode

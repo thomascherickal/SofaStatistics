@@ -1465,27 +1465,30 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
 # report tables
 def get_col_dets(coltree, colroot, var_labels):
     """
-    Get names and labels of columns actually selected in GUI column tree.
-    Returns col_names, col_labels.
+    Get names and labels of columns actually selected in GUI column tree plus 
+        any sort order. Returns col_names, col_labels, col_sorting.
     """
     descendants = get_tree_ctrl_descendants(tree=coltree, parent=colroot)
     col_names = []
+    col_sorting = []
     for descendant in descendants: # NB GUI tree items, not my Dim Node obj
         item_conf = coltree.GetItemPyData(descendant)
         col_names.append(item_conf.var_name)
+        col_sorting.append(item_conf.sort_order)
     col_labels = [var_labels.get(x, x.title()) for x in col_names]
-    return col_names, col_labels
+    return col_names, col_labels, col_sorting
 
 
 class ItemConfig(object):
     """
     Item config storage and retrieval.
     Has: var_name, measures, has_tot, sort order, bolnumeric
-    NB: won't have a var name if it is the column config item.
+    bolnumeric is only used for verbose summary reporting.
+    Note - won't have a var name if it is the column config item.
     """
     
-    def __init__(self, var_name=None, measures_lst=None, has_tot=False, 
-                 sort_order=mg.SORT_NONE, bolnumeric=False):
+    def __init__(self, sort_order, var_name=None, measures_lst=None, 
+                 has_tot=False, bolnumeric=False):
         self.var_name = var_name
         if measures_lst:
             self.measures_lst = measures_lst
@@ -1495,14 +1498,6 @@ class ItemConfig(object):
         self.sort_order = sort_order
         self.bolnumeric = bolnumeric
     
-    def has_data(self):
-        """
-        Has the item got any extra config e.g. measures, a total?
-        Variable name doesn't count.
-        """
-        return self.measures_lst or self.has_tot or \
-            self.sort_order != mg.SORT_NONE
-    
     def get_summary(self, verbose=False):
         """
         String summary of data (apart from variable name).
@@ -1511,14 +1506,13 @@ class ItemConfig(object):
         total_part = _("Has TOTAL") if self.has_tot else None
         if total_part:
             str_parts.append(total_part)
-        if self.sort_order == mg.SORT_NONE:
-            sort_order_part = None
-        elif self.sort_order == mg.SORT_LBL:
-            sort_order_part = _("Sort by Label")
-        elif self.sort_order == mg.SORT_INCREASING:
-            sort_order_part = _("Sort by Freq (Asc)")
-        elif self.sort_order == mg.SORT_DECREASING:
-            sort_order_part = _("Sort by Freq (Desc)")            
+        # ordinary sorting by freq (may include rows and cols)
+        order2lbl_dic = {mg.SORT_NONE: u"Not Sorted",
+                         mg.SORT_VALUE: u"Sort by Value", 
+                         mg.SORT_LBL: _("Sort by Label"),
+                         mg.SORT_INCREASING: _("Sort by Freq (Asc)"),
+                         mg.SORT_DECREASING: _("Sort by Freq (Desc)")}
+        sort_order_part = order2lbl_dic.get(self.sort_order)        
         if sort_order_part:
             str_parts.append(sort_order_part)
         if verbose:

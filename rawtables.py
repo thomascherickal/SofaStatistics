@@ -1,4 +1,6 @@
 
+from collections import namedtuple
+
 import my_globals as mg
 import lib
 import getdata
@@ -35,9 +37,9 @@ def get_hdr_dets(titles, subtitles, col_labels, css_idx):
     hdr_html += u"</tr>\n</thead>"
     return hdr_html
 
-def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur, 
-             first_col_as_label, val_dics, add_total_row, where_tbl_filt, 
-             css_idx, page_break_after=False, display_n=None):
+def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl, 
+             flds, cur, first_col_as_label, val_dics, add_total_row, 
+             where_tbl_filt, css_idx, page_break_after=False, display_n=None):
     """
     Get HTML for table.
     SELECT statement lists values in same order as col names.
@@ -49,7 +51,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur,
         is called (current by definition) and instantiates and gets html in one
         go.
     """
-    debug = False    
+    debug = False
+    idx_and_data = namedtuple('idx_and_data', 'sort_idx, lbl_cols')  
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
     CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)
@@ -61,18 +64,9 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur,
     html.append(hdr_html)
     # build body
     body_html = [u"\n<tbody>",]
-    row_tots = [0 for x in col_names]
-    if first_col_as_label:
-        del row_tots[0] # ignore label col
-    objqtr = getdata.get_obj_quoter_func(dbe)
-    colnames_clause = u", ".join([objqtr(x) for x in col_names])
-    SQL_get_data = u"""SELECT %s FROM %s %s """ % (colnames_clause, 
-                                             getdata.tblname_qtr(dbe, tbl), 
-                                             where_tbl_filt)
-    if debug: print(SQL_get_data)
-    cur.execute(SQL_get_data) # must be dd.cur
-    cols_n = len(col_names)
+    # Prepare column level config
     # pre-store val dics for each column where possible
+    cols_n = len(col_names)
     col_val_dics = []
     for col_name in col_names:
         if val_dics.get(col_name):
@@ -89,7 +83,23 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur,
             col_class_lsts[i].append(CSS_ALIGN_RIGHT)
     if add_total_row:
         row_tots = [0 for x in col_names] # init
-        row_tots_used = set() # some will never have anything added to them
+        row_tots_used = set() # some will never have anything added to them    
+    # get data from SQL 
+    objqtr = getdata.get_obj_quoter_func(dbe)
+    colnames_clause = u", ".join([objqtr(x) for x in col_names])
+    """
+    Get data from SQL and apply labels. Collect totals along the way as is 
+        currently the case.
+    Sort by labels if appropriate. Then generate HTML row by row and cell by 
+        cell.
+    """
+    SQL_get_data = u"""SELECT %s 
+    FROM %s 
+    %s""" % (colnames_clause, getdata.tblname_qtr(dbe, tbl), where_tbl_filt)
+    if debug: print(SQL_get_data)
+    cur.execute(SQL_get_data) # must be dd.cur
+    # get labelled vals and a sorting index (list of labelled values)
+    idx_and_data_rows = []
     row_idx = 0
     while True:
         if display_n:
@@ -99,21 +109,21 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur,
         if row is None:
             break # run out of rows
         row_idx+=1
-        row_tds = []
+        sorting_lbls = []
+        labelled_cols = []
         for i in range(cols_n):
             # process row data to display cell contents
             if col_val_dics[i]: # has a label dict
-                row_val = col_val_dics[i].get(row[i], row[i]) # use if poss
+                row_val = col_val_dics[i].get(row[i], row[i]) # use if possible
             else:
                 if row[i] or row[i] in (u"", 0):
                     row_val = row[i]
                 elif row[i] is None:
                     row_val = u"-"
-            # cell format
-            col_class_names = u"\"" + u" ".join(col_class_lsts[i]) + u"\""
-            col_classes = (u"class = %s" % col_class_names
-                           if col_class_names else u"")
-            row_tds.append(u"<td %s>%s</td>" % (col_classes, row_val))
+            labelled_cols.append(row_val)
+            # include row_val in lbl list which the data will be sorted by
+            if col_sorting[i] == mg.SORT_LBL:
+                sorting_lbls.append(row_val)
             # process totals
             if add_total_row:
                 # Skip if first col as val and this is first col
@@ -126,6 +136,22 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, tbl, flds, cur,
                       and lib.is_basic_num(row_tots[i])):
                     row_tots[i] += row_val
                     row_tots_used.add(i)
+        idx_and_data_rows.append(idx_and_data(sorting_lbls, labelled_cols))
+    if debug: print("row_tots: %s" % row_tots)
+    # sort labelled data if appropriate
+    if mg.SORT_LBL in col_sorting:
+        idx_and_data_rows.sort(key=lambda s: s.sort_idx)
+    # generate html
+    for idx_and_data_row in idx_and_data_rows:
+        labelled_cols = idx_and_data_row.lbl_cols
+        row_tds = []
+        for i, labelled_col in enumerate(labelled_cols):
+            # cell format
+            col_class_names = u"\"" + u" ".join(col_class_lsts[i]) + u"\""
+            col_classes = (u"class = %s" % col_class_names
+                           if col_class_names else u"")
+            row_tds.append(u"<td %s>%s</td>" % (col_classes, labelled_col))
+ 
         body_html.append(u"<tr>" + u"".join(row_tds) + u"</td></tr>")
     if add_total_row:
         row_tot_vals = []
@@ -158,9 +184,9 @@ class RawTable(object):
     Can add totals row.
     Can have the first column formatted as labels
     """
-    def __init__(self, titles, subtitles, dbe, col_names, col_labels, flds, 
-                 var_labels, val_dics, tbl, tbl_filt, cur, add_total_row=False, 
-                 first_col_as_label=False):
+    def __init__(self, titles, subtitles, dbe, col_names, col_labels, 
+                 col_sorting, flds, var_labels, val_dics, tbl, tbl_filt, cur, 
+                 add_total_row=False, first_col_as_label=False):
         """
         Set up table details required to make mg.
         dbe - needed for quoting entities and values
@@ -173,6 +199,7 @@ class RawTable(object):
         self.dbe = dbe
         self.col_names = col_names
         self.col_labels = col_labels
+        self.col_sorting = col_sorting
         self.flds = flds
         self.var_labels = var_labels
         self.val_dics = val_dics
@@ -199,9 +226,7 @@ class RawTable(object):
             immediately run.
         """
         return get_html(self.titles, self.subtitles, self.dbe, self.col_labels, 
-                        self.col_names, self.tbl, self.flds, self.cur, 
-                        self.first_col_as_label, self.val_dics,
-                        self.add_total_row, self.where_tbl_filt, 
-                        css_idx, page_break_after, display_n)
-        
-        
+                        self.col_names, self.col_sorting, self.tbl, self.flds, 
+                        self.cur, self.first_col_as_label, self.val_dics,
+                        self.add_total_row, self.where_tbl_filt, css_idx, 
+                        page_break_after, display_n)

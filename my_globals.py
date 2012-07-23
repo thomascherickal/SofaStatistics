@@ -99,7 +99,7 @@ RPT_CONFIG = {
                 ROWPCT_AN_OPTION_KEY: True,
                 MEASURES_HORIZ_KEY: True,
                 DEFAULT_MEASURE_KEY: FREQ,
-                QUICK_IF_BELOW_KEY: 5000},
+                QUICK_IF_BELOW_KEY: 5000}, # 5000
     CROSSTAB: {COL_MEASURES_KEY: [FREQ, COLPCT], 
                VAR_SUMMARISED_KEY: False,
                NEEDS_ROWS_KEY: True,
@@ -128,11 +128,15 @@ COL_CONFIG_ITEM_LBL = _("Column configuration")
 ROWDIM = _("row") #double as labels
 COLDIM = _("column")
 # actual options selected ...
-SORT_NONE = _(u"None") # double as labels
+SORT_VALUE = _(u"By Value") # double as labels
+SORT_NONE = _(u"None")
 SORT_LBL = _(u"By Label")
 SORT_INCREASING = _(u"Increasing")
 SORT_DECREASING = _(u"Decreasing")
-SORT_OPTS = [SORT_NONE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
+SORT_NO_OPTS = []
+STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
+SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
+RAW_DISPLAY_SORT_OPTS = [SORT_NONE, SORT_LBL]
 SHOW_FREQ = _(u"Frequency")
 SHOW_PERC = _(u"Percent")
 DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]

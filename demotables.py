@@ -167,13 +167,14 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         dd = mg.DATADETS_OBJ
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-        col_names, col_labels = lib.get_col_dets(self.coltree, self.colroot, 
-                                                 self.var_labels)
+        (col_names, col_labels, 
+         col_sorting) = lib.get_col_dets(self.coltree, self.colroot, 
+                                         self.var_labels)
         demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,  
-                                 col_labels, col_names, dd.tbl, dd.flds, dd.cur, 
-                                 self.first_col_as_label, self.val_dics, 
-                                 self.add_total_row, where_tbl_filt, css_idx, 
-                                 page_break_after=False, display_n=4)
+                              col_labels, col_names, col_sorting, dd.tbl, 
+                              dd.flds, dd.cur, self.first_col_as_label, 
+                              self.val_dics, self.add_total_row, where_tbl_filt, 
+                              css_idx, page_break_after=False, display_n=4)
         return demo_html
 
     
@@ -290,7 +291,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             tree = self.rowtree
             item_conf = tree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
-            item_conf = lib.ItemConfig()
+            default_sort = (mg.SORT_NONE if self.tab_type == mg.RAW_DISPLAY 
+                            else mg.SORT_VALUE)
+            item_conf = lib.ItemConfig(sort_order=default_sort)
         # 1) if col_no_vars, just the measures
         if tree_dims_item == self.col_no_vars_item:
             # add measures only

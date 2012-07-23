@@ -14,6 +14,11 @@ import output
 #import filtselect # prevent circular import (inherits from Dlg not loaded yet)
 import webbrowser
 
+debug = False
+PRETEND_IS_MAC = debug
+IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
+          else (mg.PLATFORM == mg.MAC))
+
 def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
@@ -67,7 +72,47 @@ def path2style(path):
     if style == u"":
         raise Exception("Problem stripping style out of path (%s)" % path)
     return style
-     
+
+
+class Opts(object):
+
+    def GetSelection(self):
+        debug = False
+        try:
+            return self.rad_opts.GetSelection()
+        except AttributeError:
+            for idx, szr_item in enumerate(self.rad_opts.GetChildren()):
+                rad = szr_item.GetWindow()
+                if debug: print(u"Item %s with value of %s" % (idx, 
+                                                               rad.GetValue()))
+                if rad.GetValue():
+                    return idx
+            return None
+        
+    def SetSelection(self, idx):
+        try:
+            return self.rad_opts.SetSelection(idx)
+        except AttributeError:
+            self.rad_opts.GetChildren()[idx].GetWindow().SetValue(True)
+            
+    def Enable(self, enable=True):
+        """
+        If the object can be enabled/disabled do that. If not, assume it is a 
+            sizer containing widgets needing to be individually enabled etc.
+        """
+        try:
+            self.rad_opts.Enable(enable)
+        except AttributeError:
+            for szr_item in self.rad_opts.GetChildren():
+                szr_item.GetWindow().Enable(enable)
+            
+    def get_szr(self):
+        """
+        Use this when inserting into a sizer (expects a sizer or widget not this 
+            object.
+        """
+        return self.rad_opts
+
 
 class VarConfigDlg(wx.Dialog):
     """
@@ -353,15 +398,16 @@ class ConfigUI(object):
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         # add to sizer
         szr_output_display = wx.FlexGridSizer(rows=5, cols=1, hgap=5, vgap=5)
-        szr_output_display.AddGrowableRow(1,2) # idx, propn
+        idx_style = 3 if inc_clear else 2
+        szr_output_display.AddGrowableRow(idx_style,2) # idx, propn
         szr_output_display.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
         szr_output_display.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 5)
-        szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 10)
         szr_output_display.Add(self.btn_expand, 1, wx.ALIGN_RIGHT|wx.ALIGN_TOP)
         if inc_clear:
             szr_output_display.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
+        szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 10)
         # close
         szr_output_display.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         return szr_output_display
@@ -536,7 +582,8 @@ class ConfigUI(object):
     def on_btn_export_imgs(self, event):
         wx.MessageBox(u"Available as extension for SOFA from %s" % mg.CONTACT)
     
-    def get_script_output(self, get_script_args, new_has_dojo):
+    def get_script_output(self, get_script_args, new_has_dojo, 
+                          allow_add2rpt=True):
         debug = False
         cc = get_cc()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -546,8 +593,9 @@ class ConfigUI(object):
         except Exception, e:
             raise Exception("Problem getting script. Orig error: %s" % 
                             lib.ue(e))
+        add_to_report = False if not allow_add2rpt else mg.ADD2RPT
         (bolran_report, 
-         str_content) = output.run_report(self.output_modules, mg.ADD2RPT, 
+         str_content) = output.run_report(self.output_modules, add_to_report, 
                                           css_fils, new_has_dojo, script)
         if debug: print(str_content)
         return bolran_report, str_content
