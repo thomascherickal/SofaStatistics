@@ -35,7 +35,7 @@ class PercOpts(config_output.Opts):
     def __init__(self, parent, panel):
         idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
         group_lbl = _(u"Data reported")
-        if config_output.IS_MAC:
+        if not config_output.IS_MAC:
             self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
                                         choices=mg.DATA_SHOW_OPTS, size=(-1,50))
             self.rad_opts.SetFont(mg.GEN_FONT)
@@ -71,7 +71,7 @@ class SortOrderOpts(config_output.Opts):
     def __init__(self, parent, panel, sort_item):
         group_lbl = _(u"Sort order of %s" % sort_item)
         idx_current_sort_opt = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
-        if config_output.IS_MAC:
+        if not config_output.IS_MAC:
             self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
                                         choices=mg.STD_SORT_OPTS, size=(-1,50))
             self.rad_opts.SetFont(mg.GEN_FONT)
@@ -1071,10 +1071,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_output.ConfigUI.on_database_sel(self, event)
-        # now update var dropdowns
-        config_output.update_var_dets(dlg=self)
-        self.setup_var_dropdowns()
+        if config_output.ConfigUI.on_database_sel(self, event):
+            config_output.update_var_dets(dlg=self)
+            self.setup_var_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       

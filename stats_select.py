@@ -225,14 +225,16 @@ class StatsSelectDlg(wx.Dialog):
         self.lst_tests = wx.ListCtrl(self.panel, -1, 
                  pos=(self.lst_left, self.lst_top), 
                  size=(self.lst_width+self.scroll_allowance, self.lst_height),
-                 style=wx.LC_REPORT)
-        il = wx.ImageList(16, 16)
+                 style=wx.LC_REPORT|wx.LC_HRULES|wx.LC_SINGLE_SEL)
+        il = wx.ImageList(16, 16, mask=False)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"tick"
-        for img in [tick, u"blank"]:
-            bmp = wx.Bitmap(os.path.join(mg.SCRIPT_PATH, u"images", 
-                                         u"%s.png" % img), wx.BITMAP_TYPE_PNG)
+        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"ticktest"
+        for img in [tick, u"blanktest"]:
+            bmp_pth = os.path.join(mg.SCRIPT_PATH, u"images", u"%s.png" % img)
+            bmp = wx.Bitmap(bmp_pth, wx.BITMAP_TYPE_PNG)
+            mask = wx.Mask(bmp, "red")
+            bmp.SetMask(mask)
             il.Add(bmp)
         self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lst_tests.InsertColumn(0, _("Statistical Test"))
@@ -265,6 +267,20 @@ class StatsSelectDlg(wx.Dialog):
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         self.update_test_tips(STATS_TESTS[0], assisted=False)
         self.lst_tests.SetFocus()
+    
+    def indicate_test(self, test_const):
+        "Select a test in the listbox with a tick and a selection."
+        if test_const not in STATS_TESTS:
+            raise Exception(u"indicate_test was passed a test not from the "
+                            u"standard list")
+        idx = STATS_TESTS.index(test_const)
+        self.lst_tests.SetStringItem(idx, 1, "", self.idx_tick)
+        self.lst_tests.Select(idx)
+    
+    def remove_test_indicators(self):
+        for i, unused in enumerate(STATS_TESTS):
+            self.lst_tests.SetStringItem(i, 1, "", self.idx_blank)
+            self.lst_tests.Select(i, on=0)
         
     def on_paint(self, event):
         """
@@ -487,11 +503,6 @@ class StatsSelectDlg(wx.Dialog):
         self.rad_normal2.Enable(enable)
         self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)
-    
-    def remove_test_indicators(self):
-        for i, unused in enumerate(STATS_TESTS):
-            self.lst_tests.SetStringItem(i, 1, "", self.idx_blank)
-            self.lst_tests.Select(i, on=0)
     
     def on_radio_btn(self, event):
         self.respond_to_assisted_choices()
@@ -761,15 +772,6 @@ class StatsSelectDlg(wx.Dialog):
         else:
             test_type = None
         return test_type
-    
-    def indicate_test(self, test_const):
-        "Select a test in the listbox with a tick and a selection."
-        if test_const not in STATS_TESTS:
-            raise Exception(u"indicate_test was passed a test not from the "
-                            u"standard list")
-        idx = STATS_TESTS.index(test_const)
-        self.lst_tests.SetStringItem(idx, 1, "", self.idx_tick)
-        self.lst_tests.Select(idx)
     
     def on_list_item_selected(self, event):
         self.respond_to_selection(event)

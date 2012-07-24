@@ -208,10 +208,10 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         event.Skip()
 
     def on_database_sel(self, event):
-        config_output.ConfigUI.on_database_sel(self, event)
-        self.setup_vars(var_a=True, var_b=self.paired)
-        self.set_histo_to_blank()
-        self.set_output_to_blank()
+        if config_output.ConfigUI.on_database_sel(self, event):
+            self.setup_vars(var_a=True, var_b=self.paired)
+            self.set_histo_to_blank()
+            self.set_output_to_blank()
         
     def on_table_sel(self, event):
         config_output.ConfigUI.on_table_sel(self, event)

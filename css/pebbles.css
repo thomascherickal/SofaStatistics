@@ -129,8 +129,9 @@ dojo_style_end
     }
     .colvar{
         padding: 6px 0px;            
-    }            
-    .colval{
+    }           
+    .colval, .measure{
+        font-size: 12px;
         vertical-align: top;
     }
     table {

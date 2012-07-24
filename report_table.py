@@ -111,7 +111,7 @@ class RptTypeOpts(config_output.Opts):
         ROW_STATS_LBL = _("Row Stats")
         DATA_LIST_LBL = _("Data List")
         tab_type_choices = (FREQS_LBL, CROSS_LBL, ROW_STATS_LBL, DATA_LIST_LBL)
-        if config_output.IS_MAC:
+        if not config_output.IS_MAC:
             self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
                                             choices=tab_type_choices,
                                             style=wx.RA_SPECIFY_COLS)
@@ -399,8 +399,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             fields, has_unique, and idxs after a database selection.
         Clear dim areas.
         """
-        config_output.ConfigUI.on_database_sel(self, event)
-        self.data_changed()
+        if config_output.ConfigUI.on_database_sel(self, event):
+            self.data_changed()
         
     def on_table_sel(self, event):
         """

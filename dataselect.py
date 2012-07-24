@@ -116,9 +116,9 @@ class DataSelectDlg(wx.Dialog):
         getdata.readonly_enablement(self.chk_readonly)
         
     def on_database_sel(self, event):
-        getdata.refresh_db_dets(self)
-        self.reset_tbl_dropdown()
-        self.ctrl_enablement()
+        if getdata.refresh_db_dets(self):
+            self.reset_tbl_dropdown()
+            self.ctrl_enablement()
         
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to dd.tbl"

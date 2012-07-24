@@ -261,9 +261,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        config_output.ConfigUI.on_database_sel(self, event)
-        config_output.update_var_dets(dlg=self)
-        self.setup_var_dropdowns()
+        if config_output.ConfigUI.on_database_sel(self, event):
+            config_output.update_var_dets(dlg=self)
+            self.setup_var_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       

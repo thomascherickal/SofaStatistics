@@ -518,12 +518,15 @@ class ConfigUI(object):
         """
         Copes if have to back out of selection because cannot access required
             details e.g. MS SQL Server model database.
+        Return False if no change made so no updating etc required.
         """
         debug = False
         if debug: print(u"on_database_sel called")
-        getdata.refresh_db_dets(self)
-        getdata.readonly_enablement(self.chk_readonly)
-        self.rows_n = self.get_rows_n()
+        if getdata.refresh_db_dets(self):
+            getdata.readonly_enablement(self.chk_readonly)
+            self.rows_n = self.get_rows_n()
+            return True
+        return False
         
     def on_table_sel(self, event):
         "Reset key data details after table selection."  

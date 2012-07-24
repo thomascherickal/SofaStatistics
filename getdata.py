@@ -752,13 +752,14 @@ def refresh_db_dets(parent):
         need to undo, we set selection to that and also reset all database 
         details. If ok to accept change, reset the selected idx to what has just 
         been selected.
+    Returns False if no change (so we can avoid all the updating).
     """
     debug = False
     # only go through step if a change made
     orig_selected_dbe_db_idx = parent.selected_dbe_db_idx
     if parent.drop_dbs.GetSelection() == orig_selected_dbe_db_idx:
         if debug: print("No change so nothing to do")
-        return
+        return False
     if debug: print("Was change - so plenty of work ahead")
     wx.BeginBusyCursor()
     db_choice_item = parent.db_choice_items[parent.drop_dbs.GetSelection()]
@@ -777,6 +778,7 @@ def refresh_db_dets(parent):
         parent.drop_dbs.SetSelection(orig_selected_dbe_db_idx)
     finally:
         lib.safe_end_cursor()
+    return True
 
 def refresh_tbl_dets(parent):
     """
