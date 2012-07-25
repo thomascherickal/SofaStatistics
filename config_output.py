@@ -11,13 +11,53 @@ import config_globals
 import lib
 import getdata
 import output
+import traceback
 #import filtselect # prevent circular import (inherits from Dlg not loaded yet)
 import webbrowser
+
+"Import hyperlink"
+try:
+    from agw import hyperlink as hl
+except ImportError: # if it's not there locally, try the wxPython lib.
+    try:
+        import wx.lib.agw.hyperlink as hl
+    except ImportError:
+        msg = (u"There seems to be a problem related to your wxPython "
+               u"package. %s" % traceback.format_exc())
+        raise Exception(msg)
 
 debug = False
 PRETEND_IS_MAC = debug
 IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
           else (mg.PLATFORM == mg.MAC))
+
+class GetTestDlg(wx.Dialog):
+    
+    def __init__(self):
+        wx.Dialog.__init__(self, parent=None, id=-1, 
+                           title="Get Export as Images Extension", 
+                           pos=(mg.HORIZ_OFFSET+200, 300))
+        #, style=wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
+        #                   wx.CLIP_CHILDREN)
+        szr = wx.BoxSizer(wx.VERTICAL)
+        lbl_msg1 = wx.StaticText(self, -1, u"Export extension under "
+                            u"construction. Free test version")
+        lbl_msg2 = wx.StaticText(self, -1, u"available for a limited time from "
+                                 u"%s" % mg.CONTACT)
+        link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension", 
+            URL=u"mailto:grant@sofastatistics.com?"
+            u"subject=Please%20send%20free%20export%20as%20images%20extension")
+        lib.setup_link(link=link_home, link_colour="black", 
+                       bg_colour=wx.NullColour)
+        btn_ok = wx.Button(self, wx.ID_OK) # autobound to close event by id
+        szr.Add(lbl_msg1, 0, wx.TOP|wx.LEFT|wx.RIGHT, 10)
+        szr.Add(lbl_msg2, 0, wx.LEFT|wx.RIGHT, 10)
+        szr.Add(link_home, 0, wx.ALL, 10)
+        szr.Add(btn_ok, 0, wx.ALL, 10)
+        self.SetSizer(szr)
+        szr.SetSizeHints(self)
+        szr.Layout()
+
 
 def get_cc():
     debug = False
@@ -583,7 +623,16 @@ class ConfigUI(object):
         dlg_get_file.Destroy()
     
     def on_btn_export_imgs(self, event):
-        wx.MessageBox(u"Available as extension for SOFA from %s" % mg.CONTACT)
+        debug = True
+        if debug:
+            dlg = GetTestDlg()
+            dlg.ShowModal()
+        else:
+            try:
+                import export_as_images
+            except ImportError:
+                dlg = GetTestDlg()
+                dlg.ShowModal()
     
     def get_script_output(self, get_script_args, new_has_dojo, 
                           allow_add2rpt=True):

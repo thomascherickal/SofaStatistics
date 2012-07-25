@@ -822,15 +822,15 @@ class StartFrame(wx.Frame):
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
                                      pos=(home_link_hpos, self.top_top), 
                                      URL="http://www.sofastatistics.com")
-        self.setup_link(link=link_home, link_colour=wx.Colour(255,255,255), 
-                        bg_colour=wx.Colour(0, 0, 0))
+        lib.setup_link(link=link_home, link_colour=wx.Colour(255,255,255), 
+                       bg_colour=wx.Colour(0, 0, 0))
         # help link
         link_help = hl.HyperLinkCtrl(self.panel, -1, 
                             _("Get help from community"), 
                             pos=(self.main_left, self.top_top + 200), 
                             URL="http://groups.google.com/group/sofastatistics")
-        self.setup_link(link=link_help, link_colour=self.text_brown, 
-                        bg_colour=wx.Colour(205, 217, 215))
+        lib.setup_link(link=link_help, link_colour=self.text_brown, 
+                       bg_colour=wx.Colour(205, 217, 215))
         # upgrade link
         if self.upgrade_available:
             upgrade_link_hpos = self.main_left if REVERSE \
@@ -839,18 +839,16 @@ class StartFrame(wx.Frame):
                             _(u"Upgrade to %s here") % new_version, 
                             pos=(upgrade_link_hpos, self.top_top), 
                             URL="http://www.sofastatistics.com/downloads.php")
-            self.setup_link(link=link_upgrade, 
-                            link_colour=wx.Colour(255,255,255), 
-                            bg_colour=wx.Colour(0, 0, 0))
+            lib.setup_link(link=link_upgrade, link_colour=wx.Colour(255,255,255), 
+                           bg_colour=wx.Colour(0, 0, 0))
         # feedback link
         feedback_link_hpos = self.main_left if REVERSE\
                                             else self.main_sofa_logo_right
         link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK, 
                         pos=(feedback_link_hpos, self.form_height-53), 
                         URL="http://www.sofastatistics.com/feedback.htm")
-        self.setup_link(link=link_feedback, 
-                        link_colour=wx.Colour(255,255,255), 
-                        bg_colour=wx.Colour(116, 99, 84))
+        lib.setup_link(link=link_feedback, link_colour=wx.Colour(255,255,255), 
+                       bg_colour=wx.Colour(116, 99, 84))
     
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
@@ -968,20 +966,7 @@ class StartFrame(wx.Frame):
             raise Exception(u"Unable to extract latest sofa version."
                             u"/nCaused by error: %s" % lib.ue(e))
         return new_version
-    
-    def setup_link(self, link, link_colour, bg_colour):
-        link.SetColours(link=link_colour, visited=link_colour, 
-                        rollover=link_colour)
-        link.SetOwnBackgroundColour(bg_colour)
-        link.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
-                                wx.SWISS, wx.NORMAL, wx.NORMAL))
-        link.SetSize(wx.Size(250, 17))
-        link.SetUnderlines(link=True, visited=True, rollover=False)
-        link.SetLinkCursor(wx.CURSOR_HAND)
-        link.EnableRollover(True)
-        link.SetVisited(True)
-        link.UpdateLink(True)
-        
+            
     def on_show(self, event):
         setup.init_com_types(self, self.panel) # fortunately, not needed on Mac
     
