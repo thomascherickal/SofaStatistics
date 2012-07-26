@@ -178,48 +178,17 @@ def check_python_version():
     pyversion = sys.version[:3]
     if debug: pyversion = None
     # Linux installer doesn't have hard-wired site-packages so 2.6 or 2.7 should 
-    # work. Other installers have site-packages for 2.6 only.
-    if (mg.PLATFORM != mg.LINUX and pyversion != u"2.6") \
-            or (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
+    # work. Other installers have site-packages baked into the exe for their python version
+    if (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
         fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = codecs.open(fixit_file, "w", "utf-8")
         div = u"*"*80
-        win_msg = u"""
-Fortunately, this is easily fixed (assuming you installed Python 2.6 as part of 
-the SOFA installation). NB during installation you needed to install all the 
-extra packages e.g. mysqldb, comtypes etc to the python26 folder, 
-not to python27 etc.
-
-You need to click the SOFA icon once with the right mouse button and select 
-Properties.
-
-In the Shortcut tab, there is a text box called Target.
-
-Change it from "C:\\Program Files\\sofastats\\start.pyw"
-to
-C:\\Python26\\pythonw.exe "C:\Program Files\\sofastats\\start.pyw" and click 
-the OK button down the bottom.
-
-If Python 2.6 is installed somewhere else, change the Target details accordingly
-- e.g. to D:\Python26 etc
-"""
-        mac_msg = u"""
-The icon for SOFA Statistics created during installation should explicitly refer
-to the correct version of Python (2.6).  Are you launching SOFA Statistics in 
-some other way?  Only Python 2.6 will work.
-        """
-        oth_msg = u"""
+        os_msg = u"""
 If you have multiple versions of Python available you will need to ensure that
 SOFA Statistics is launched with version 2.6 or 2.7 explicitly defined.
 E.g. /usr/bin/python2.6 instead of python.
         """
-        if mg.PLATFORM == mg.WINDOWS:
-            os_msg = win_msg
-        elif mg.PLATFORM == mg.MAC:
-            os_msg = mac_msg
-        else:
-            os_msg = oth_msg
         msg_dic = {u"div": div, u"os_msg": os_msg, u"contact": mg.CONTACT}
         msg = (u"""
 %(div)s

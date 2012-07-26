@@ -112,12 +112,12 @@ def get_con_resources(con_dets, default_dbs, db=None):
     except Exception, e:
         user = con_dets_pgsql.get("user")
         if user != 'postgres' and not db:
-            msg = u"Unable to connect to PostgreSQL db. A default database " + \
-                  u"is required unless the user is 'postgres'." + \
-                  u"\nCaused by error: %s" % lib.ue(e)
+            msg = (u"Unable to connect to PostgreSQL db. A default database "
+                  u"is required unless the user is 'postgres'."
+                  u"\nCaused by error: %s" % lib.ue(e))
         else:
-            msg = u"Unable to connect to PostgreSQL db." + \
-                  u"\nCaused by error: %s" % lib.ue(e)
+            msg = (u"Unable to connect to PostgreSQL db."
+                   u"\nCaused by error: %s" % lib.ue(e))
         raise Exception(msg)
     cur = con.cursor() # must return tuples not dics
     # get database name
