@@ -175,6 +175,7 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" %
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=titles, indiv_title=u"")
     return u"\n".join(html)
 
 

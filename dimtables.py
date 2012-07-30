@@ -457,8 +457,8 @@ class LiveTable(DimTable):
         """
         Get HTML for table.
         """
-        html = u""
-        html += u"<table cellspacing='0'>\n" # IE6 no support CSS borderspacing
+        html = []
+        html.append(u"<table cellspacing='0'>\n") # IE6 no support CSS borderspacing
         if not (self.prepared and self.prep_css_idx == css_idx):
             # need to get fresh - otherwise, can skip this step. Did it in prep.
             (self.row_label_rows_lst, 
@@ -475,10 +475,11 @@ class LiveTable(DimTable):
             # flatten row list
             body_html += u"\n" + u"".join(row) + u"</tr>"
         body_html += u"\n</tbody>"
-        html += self.hdr_html
-        html += body_html
-        html += u"\n</table>"
-        return html
+        html.append(self.hdr_html)
+        html.append(body_html)
+        html.append(u"\n</table>")
+        output.append_divider(html, titles=self.titles, indiv_title=u"")
+        return u"\n".join(html)
 
     def get_hdr_dets(self, row_label_cols_n, css_idx):
         """

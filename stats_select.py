@@ -229,12 +229,12 @@ class StatsSelectDlg(wx.Dialog):
         il = wx.ImageList(16, 16, mask=False)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"ticktest"
-        for img in [tick, u"blanktest"]:
+        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"tick"
+        for img in [tick, u"blank"]:
             bmp_pth = os.path.join(mg.SCRIPT_PATH, u"images", u"%s.png" % img)
             bmp = wx.Bitmap(bmp_pth, wx.BITMAP_TYPE_PNG)
-            mask = wx.Mask(bmp, "red")
-            bmp.SetMask(mask)
+            #mask = wx.Mask(bmp, "red")
+            #bmp.SetMask(mask)
             il.Add(bmp)
         self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lst_tests.InsertColumn(0, _("Statistical Test"))

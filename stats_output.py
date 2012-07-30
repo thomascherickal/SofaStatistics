@@ -35,9 +35,11 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                                    css_idx)
     footnotes = []
     html = []
-    html.append(_("<h2>Results of ANOVA test of average %(avg)s for groups from"
-             " \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, "a": label_a, 
-                                                "b": label_b})
+    title = _(u"Results of ANOVA test of average %(avg)s for groups from"
+              u" \"%(a)s\" to \"%(b)s\"") % {u"avg": label_avg, 
+                                             u"a": label_a, u"b": label_b}
+    html_title = u"<h2>%s</h2>" % title
+    html.append(html_title)
     html.append(u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>")
     html.append(u"\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" + \
@@ -121,8 +123,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         results = (dic["label"], dic["n"], round(dic["mean"], dp), 
                    round(dic["sd"], dp), dic["min"], dic["max"])
         try:
-            unused, p_arr, cskew, unused, ckurtosis, unused = \
-                                                core_stats.normaltest(sample)
+            (unused, p_arr, cskew, 
+             unused, ckurtosis, unused) = core_stats.normaltest(sample)
             results += (round(ckurtosis, dp), round(cskew, dp), 
                         lib.get_p(p_arr[0], dp))
         except Exception:
@@ -135,8 +137,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
-    for dic_sample_tup in dic_sample_tups:
-        
+    output.append_divider(html, titles=[title,], indiv_title=u"")
+    for chart_idx, dic_sample_tup in enumerate(dic_sample_tups):
         dic, sample = dic_sample_tup
         hist_label = dic["label"]
         # histogram
@@ -156,6 +158,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
+        output.append_divider(html, titles=[title,], indiv_title=hist_label)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -173,14 +176,16 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                                                    css_idx)
     footnotes = []
     if indep:
-        html.append(_("<h2>Results of Independent Samples t-test "
-            "of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"</h2>") % \
-            {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LBL], 
-             "b": dic_b[mg.STATS_DIC_LBL]})
+        title = (_(u"Results of Independent Samples t-test of average "
+                   u"\"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"") %
+                                {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LBL], 
+                                 "b": dic_b[mg.STATS_DIC_LBL]})
+        
     else:
-        html.append(_("<h2>Results of Paired Samples t-test "
-            "of \"%(a)s\" vs \"%(b)s\"</h2>") % 
-            {"a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
+        title = (_("Results of Paired Samples t-test of \"%(a)s\" vs \"%(b)s\"") 
+                 % {"a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
+    title_html = u"<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -268,6 +273,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
+    return title
 
 def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
                        add_to_report, report_name, css_fil, css_idx=0, dp=3, 
@@ -279,11 +285,13 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     """
     html = []
     indep = True
-    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
-                        dp, indep, css_idx, html)
+    title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
+                                label_avg, dp, indep, css_idx, html)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
-    for (unused, sample, hist_label) in sample_dets:
+    for chart_idx, sample_det in enumerate(sample_dets):
+        unused, sample, hist_label = sample_det
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
@@ -301,6 +309,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
+        output.append_divider(html, titles=[title,], indiv_title=hist_label)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -320,15 +329,16 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     """
     html = []
     indep = False
-    ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
-                        dp, indep, css_idx, html)
+    title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
+                                label_avg, dp, indep, css_idx, html)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     # histogram
+    hist_label = u"Differences between %s and %s" % (dic_a["label"], 
+                                                     dic_b["label"])
     charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
                               ytick_labelsize=8)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
-    hist_label = u"Differences between %s and %s" % (dic_a["label"], 
-                                                     dic_b["label"])
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     try:
         charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, 
@@ -338,12 +348,13 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         html.append(u"\n<img src='%s'>" % img_src)
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                (hist_label, lib.ue(e)))
+                    (hist_label, lib.ue(e)))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" %
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=[title,], indiv_title=hist_label)
     html_str = u"\n".join(html)
     return html_str
 
@@ -360,10 +371,11 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     label_b = dic_b[mg.STATS_DIC_LBL]
     n_a = dic_a[mg.STATS_DIC_N]
     n_b = dic_b[mg.STATS_DIC_N]
-    html.append(_("<h2>Results of Mann Whitney U Test of \"%(ranked)s\" for "
-                  "\"%(a)s\" vs \"%(b)s\"</h2>") % {"ranked": label_ranked, 
-                                                    "a": label_a, 
-                                                    "b": label_b})
+    title = (_(u"Results of Mann Whitney U Test of \"%(ranked)s\" for "
+               u"\"%(a)s\" vs \"%(b)s\"") % {"ranked": label_ranked, 
+                                             "a": label_a, "b": label_b})
+    title_html = u"<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     # double one-tailed p value so can report two-tailed result
     html.append(u"\n<p>" + _("Two-tailed p value") \
@@ -416,6 +428,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     return u"".join(html)
 
 def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3, 
@@ -428,8 +441,10 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     footnotes = []
     label_a = dic_a[mg.STATS_DIC_LBL]
     label_b = dic_b[mg.STATS_DIC_LBL]
-    html.append(_("<h2>Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
-                  "\"%(b)s\"</h2>") % {"a": label_a, "b": label_b})
+    title = (_(u"Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
+               u"\"%(b)s\"") % {"a": label_a, "b": label_b})
+    title_html = u"<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
@@ -460,6 +475,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
         html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     return u"".join(html)
 
 def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
@@ -471,9 +487,10 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
-    title = (_("Results of Pearson's Test of Linear Correlation "
-               "for %s") % x_vs_y)
-    html.append("<h2>%s</h2>" % title)
+    title = (_("Results of Pearson's Test of Linear Correlation for %s") % 
+             x_vs_y)
+    title_html = "<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
@@ -490,6 +507,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         u"regression line.</p>")
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
@@ -513,6 +531,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=[title,], indiv_title=u"scatterplot")
     return u"".join(html)
 
 def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
@@ -525,7 +544,8 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Spearman's Test of Linear Correlation "
                "for %s") % x_vs_y)
-    html.append("<h2>%s</h2>" % title)
+    title_html = "<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -534,11 +554,13 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
                     mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
+    
     charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
                                    series_dets, label_x, label_y, x_vs_y, 
                                    title_dets_html, add_to_report, 
@@ -549,6 +571,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=[title,], indiv_title=u"scatterplot")
     return u"".join(html)
 
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
@@ -576,9 +599,11 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     val_labels_b_n = len(val_labels_b)
     html = []
     footnotes = []
-    html.append(_("<h2>Results of Pearson's Chi Square Test of Association "
-        "Between \"%(laba)s\" and \"%(labb)s\"</h2>") % {u"laba": var_label_a, 
-                                                         u"labb": var_label_b})
+    title = (_("Results of Pearson's Chi Square Test of Association Between "
+               "\"%(laba)s\" and \"%(labb)s\"") % {u"laba": var_label_a, 
+                                                   u"labb": var_label_b})
+    title_html = u"<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -661,6 +686,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                     CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
                             var_label_a, var_label_b, val_labels_a, 
                             val_labels_b, val_labels_a_n, val_labels_b_n, 
@@ -695,8 +721,8 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     # chart 1 - proportions
     plot = boomslang.Plot()
     y_label = _("Proportion")
-    plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
-                               "y": y_label})
+    title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
+    plot.setTitle(title)
     plot.setTitleProperties(title_overrides)
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
@@ -709,11 +735,12 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
+    output.append_divider(html, titles=[title,], indiv_title=u"proportion")
     # chart 2 - freqs
     plot = boomslang.Plot()
     y_label = _("Frequency")
-    plot.setTitle(title_tmp % {"laba": var_label_a, "labb": var_label_b, 
-                               "y": y_label})
+    title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
+    plot.setTitle(title)
     plot.setTitleProperties(title_overrides)
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
@@ -726,6 +753,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
+    output.append_divider(html, titles=[title,], indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 
                           css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
@@ -736,9 +764,11 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
                                                       css_idx)
     html = []
     footnotes = []
-    html.append(_("<h2>Results of Kruskal-Wallis H test of average %(avg)s for "
-                 "groups from \"%(a)s\" to \"%(b)s\"</h2>") % {"avg": label_avg, 
-                                                "a": label_a, "b": label_b})
+    title = (_(u"Results of Kruskal-Wallis H test of average %(avg)s for "
+               u"groups from \"%(a)s\" to \"%(b)s\"") % {"avg": label_avg, 
+                                                   "a": label_a, "b": label_b})
+    title_html = u"<h2>%s</h2>" % title
+    html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -770,4 +800,5 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
+    output.append_divider(html, titles=[title,], indiv_title=u"")
     return u"".join(html)

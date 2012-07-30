@@ -34,7 +34,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         freshest image showing in html (without having to reload etc).
     """
     debug = False
-    kwargs = {"bbox_inches": "tight"}
+    kwargs = {"bbox_inches": "tight"} # hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
     if dpi:
         kwargs["dpi"] = dpi
     if add_to_report:

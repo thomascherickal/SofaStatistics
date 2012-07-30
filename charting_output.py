@@ -258,6 +258,38 @@ def get_prestructured_grouped_data(raw_data):
                 same_series_dic[XY_KEY].append((x_val, y_val))
     return prestructure
 
+def get_overall_title(var_role_avg_name, var_role_cat_name, 
+                      var_role_series_name, var_role_charts_name):
+    title_bits = []
+    if var_role_avg_name:
+        title_bits.append(u"Avg %s" % var_role_avg_name)
+    if var_role_cat_name:
+        if var_role_avg_name:
+            title_bits.append(u"By %s" % var_role_cat_name)
+        else:
+            title_bits.append(u"%s" % var_role_cat_name)
+    if var_role_series_name:
+        title_bits.append(u"By %s" % var_role_series_name)
+    if var_role_charts_name:
+        title_bits.append(u"By %s" % var_role_charts_name)
+    return u" ".join(title_bits)
+
+def get_overall_title_scatterplot(var_role_x_axis_name, var_role_y_axis_name, 
+                                  var_role_series_name, var_role_charts_name):
+    title_bits = []
+    title_bits.append(u"%s vs %s" % (var_role_x_axis_name, 
+                                     var_role_y_axis_name))
+    if var_role_series_name:
+        title_bits.append(u"By %s" % var_role_series_name)
+    if var_role_charts_name:
+        title_bits.append(u"By %s" % var_role_charts_name)
+    return u" ".join(title_bits)
+
+def charts_append_divider(html, titles, overall_title, indiv_title=u"", 
+                          indiv_type=u""):
+    title = overall_title if not titles else titles[0]
+    output.append_divider(html, title, indiv_title, indiv_type)
+
 def structure_gen_data(chart_type, raw_data, xlblsdic, 
                    var_role_avg, var_role_avg_name, var_role_avg_lbls,
                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
@@ -282,10 +314,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                XY_KEY: [(1,13), (2,59), (3,200), (4,0)] },
              ]}, ]
     Returns chart_output_dets:
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
-                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                         mg.CHARTS_CHART_DETS: chart_dets}
+    chart_output_dets = {
+        mg.CHARTS_OVERALL_TITLE: Age Group vs Gender, # used to label output items
+        mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
+        mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
+        mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
+        mg.CHARTS_CHART_DETS: chart_dets}
     chart_dets = [
         {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
@@ -311,7 +345,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     if multichart:
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
-    else: # clustered, line - can have multiple series but only one chart
+    else: # clustered, line - can have multiple series without being multi-chart
         chart_fldname = None
         chart_fldlbls = {}
     for chart_dic in prestructure:
@@ -383,7 +417,10 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len,
+    overall_title = get_overall_title(var_role_avg_name, var_role_cat_name, 
+                                     var_role_series_name, var_role_charts_name)
+    chart_output_dets = {mg.CHARTS_OVERALL_TITLE: overall_title,
+                         mg.CHARTS_MAX_LBL_LEN: max_lbl_len,
                          mg.CHARTS_MAX_LBL_LINES: max_lbl_lines,
                          mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
                          mg.CHARTS_CHART_DETS: chart_dets}
@@ -404,7 +441,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     Note - not all charts have x-axis labels and thus the option of rotating 
         them.
     """
-    debug = False
+    debug = True
     is_avg = (var_role_avg is not None)
     # validate fields supplied (or not)
     chart_subtype_key = mg.AVG_KEY if is_avg else mg.NON_AVG_KEY
@@ -439,6 +476,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls,
                     sort_opt, dp, rotate, is_perc)
+    if debug: print(chart_output_dets)
     return chart_output_dets
 
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
@@ -616,6 +654,12 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                            mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
                            mg.CHART_BOXPLOT_OUTLIERS: outliers}
             boxdet_series.append(box_dic)
+        title_bits = []
+        title_bits.append(var_role_desc_name)
+        title_bits.append(u"By %s" % var_role_cat_name)
+        if var_role_series_name:
+            title_bits.append(u"By %s" % var_role_series_name)
+        overall_title = u" ".join(title_bits)
         series_dic = {mg.CHART_SERIES_LBL: legend_lbl, 
                       mg.CHART_BOXDETS: boxdet_series}
         chart_dets.append(series_dic)
@@ -628,7 +672,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, max_lbl_lines,
-            chart_dets, any_missing_boxes)
+            overall_title, chart_dets, any_missing_boxes)
 
 def get_lwhisker(raw_lwhisker, lbox, measure_vals):
     """
@@ -664,8 +708,9 @@ def get_uwhisker(raw_uwhisker, ubox, measure_vals):
         uwhisker = ubox
     return uwhisker
 
-def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts, 
-                   var_role_charts_name, var_role_charts_lbls):
+def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, 
+                   var_role_bin_name, var_role_charts, var_role_charts_name, 
+                   var_role_charts_lbls):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
@@ -754,7 +799,12 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts,
         norm_multiplier = sum_yval/(1.0*sum_norm_ys)
         norm_ys = [x*norm_multiplier for x in norm_ys]
         if debug: print(minval, maxval, xaxis_dets, y_vals, bin_lbls)
-        histo_dic = {mg.CHARTS_CHART_BY_LBL: chart_by_lbl,
+        title_bits = []
+        title_bits.append(var_role_bin_name)
+        if var_role_charts_name:
+            title_bits.append(u"By %s" % var_role_charts_name)
+        overall_title = u" ".join(title_bits)    
+        histo_dic = {mg.CHARTS_CHART_LBL: chart_by_lbl,
                      mg.CHARTS_XAXIS_DETS: xaxis_dets,
                      mg.CHARTS_SERIES_Y_VALS: y_vals,
                      mg.CHART_NORMAL_Y_VALS: norm_ys,
@@ -762,10 +812,11 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, var_role_charts,
                      mg.CHART_MAXVAL: maxval,
                      mg.CHART_BIN_LBLS: bin_lbls}
         histo_dets.append(histo_dic)
-    return histo_dets
+    return overall_title, histo_dets
 
 def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, 
-                    var_role_x_axis, var_role_y_axis, 
+                    var_role_x_axis, var_role_x_axis_name, 
+                    var_role_y_axis, var_role_y_axis_name, 
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
                     unique=True):
@@ -866,9 +917,12 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
+    overall_title = get_overall_title_scatterplot(var_role_x_axis_name, 
+                                    var_role_y_axis_name, var_role_series_name, 
+                                    var_role_charts_name)
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
                         mg.CHARTS_CHART_DETS: chart_dets}
-    return scatterplot_dets
+    return overall_title, scatterplot_dets
 
 def reshape_sql_crosstab_data(raw_data, dp=0):
     """
@@ -1024,8 +1078,8 @@ def get_title_dets_html(titles, subtitles, css_idx):
     """
     For titles and subtitles.
     """
-    (CSS_TBL_TITLE, CSS_TBL_SUBTITLE, 
-                  CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
+    (CSS_TBL_TITLE, 
+     CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
     title_dets_html_lst = []
     if titles:
         title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_TITLE, 
@@ -1080,27 +1134,22 @@ def get_axis_lbl_drop(multichart, rotate, max_lbl_lines):
     if debug: print(axis_lbl_drop)
     return axis_lbl_drop
 
+def get_indiv_title(multichart, chart_det):
+    if multichart:
+        indiv_title = chart_det[mg.CHARTS_CHART_LBL]
+        indiv_title_html = ("<p><b>%s</b></p>" % indiv_title)
+    else:
+        indiv_title = u""
+        indiv_title_html = u""
+    return indiv_title, indiv_title_html
+
 def simple_barchart_output(titles, subtitles, x_title, y_title, 
                            chart_output_dets, rotate, css_idx, css_fil, 
                            page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
-                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                         mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
-         mg.CHARTS_SERIES_DETS: series_dets},
-        {mg.CHARTS_CHART_LBL: u"Gender: Female",
-         mg.CHARTS_SERIES_DETS: series_dets}, ...
-    ]
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
-                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
-                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
-                                               u"28<br>14%", u"94<br>47%"]}
+    chart_output_dets -- see structure_gen_data()
     var_numeric -- needs to be quoted or not.
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
@@ -1161,11 +1210,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
         left_axis_lbl_shift += 20
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
-        if multichart:
-            indiv_chart_title = ("<p><b>%s</b></p>" % 
-                               chart_det[mg.CHARTS_CHART_LBL])
-        else:
-            indiv_chart_title = u""
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         # only one series per chart by design
         series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
         xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
@@ -1233,14 +1278,14 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-%(indiv_chart_title)s
+%(indiv_title_html)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
 </div>""" % {u"colour_cases": colour_cases,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
              u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap, 
-             u"xfontsize": xfontsize, u"indiv_chart_title": indiv_chart_title,
+             u"xfontsize": xfontsize, u"indiv_title_html": indiv_title_html,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
              u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
@@ -1252,6 +1297,9 @@ makechartRenumber%(chart_idx)s = function(){
              u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
              u"chart_idx": u"%02d" % chart_idx,
              u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+        overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Bar Chart")
     """
     zero padding chart_idx so that when we search and replace, and go to 
         replace Renumber1 with Renumber15, we don't change Renumber16 to 
@@ -1269,21 +1317,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
-                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                         mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
-         mg.CHARTS_SERIES_DETS: series_dets},
-        {mg.CHARTS_CHART_LBL: u"Gender: Female",
-         mg.CHARTS_SERIES_DETS: series_dets}, ...
-    ]
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
-                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
-                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
-                                               u"28<br>14%", u"94<br>47%"]}
+    chart_output_dets -- see structure_gen_data()
     var_numeric -- needs to be quoted or not.
     xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
                    (5, "65+")]
@@ -1347,11 +1381,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         </p>
         <div id="legendMychartRenumber%02d">
             </div>""" % (legend_lbl, chart_idx)
-        if multichart:
-            indiv_chart_title = ("<p><b>%s</b></p>" % 
-                                 chart_det[mg.CHARTS_CHART_LBL])
-        else:
-            indiv_chart_title = u""
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         single_colour = False
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                     and single_colour)
@@ -1422,14 +1452,14 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; ">
-%(indiv_chart_title)s
+%(indiv_title_html)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
 %(legend)s
 </div>""" % {u"colour_cases": colour_cases, u"legend": legend,
              u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-             u"indiv_chart_title": indiv_chart_title, 
+             u"indiv_title_html": indiv_title_html, 
              u"width": width, u"height": height, u"xgap": xgap, u"ymax": ymax,
              u"xfontsize": xfontsize,
              u"axis_lbl_font_colour": axis_lbl_font_colour,
@@ -1444,28 +1474,19 @@ makechartRenumber%(chart_idx)s = function(){
              u"outer_bg": outer_bg,
              u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
              u"chart_idx": u"%02d" % chart_idx,})
-        html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
-        if page_break_after:
-            html.append(u"<br><hr><br><div class='%s'></div>" % 
-                        CSS_PAGE_BREAK_BEFORE)
+        overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                      u"Clust Bar")
+    html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx, 
                     page_break_after):
     """
-    chart_output_dets -- {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [        
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or a dummy title if only one chart because not displayed
-         mg.CHARTS_SERIES_DETS: series_dets},
-        {mg.CHARTS_CHART_LBL: u"Gender: Female",
-         mg.CHARTS_SERIES_DETS: series_dets}, ...
-    ]
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # if only one series, use cat label e.g. Age Group
-                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
-                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
-                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
-                                               u"28<br>14%", u"94<br>47%"]}
+    chart_output_dets -- see structure_gen_data()
     """
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1480,9 +1501,8 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
     radius = 120 if multichart else 140
     lbl_offset = -20 if multichart else -30
     (outer_bg, grid_bg, axis_lbl_font_colour, 
-         unused, unused, unused, 
-         tooltip_border_colour, 
-         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+     unused, unused, unused, tooltip_border_colour, 
+     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
                 else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
@@ -1513,8 +1533,7 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
                     {u"y": y_val, u"text": split_lbl, u"tooltip": tooltip})
         slices_js = (u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) 
                      + u"\n];")
-        indiv_pie_title = ("<p><b>%s</b></p>" % chart_det[mg.CHARTS_CHART_LBL]
-                           if multichart else u"")
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         html.append(u"""
 <script type="text/javascript">
 makechartRenumber%(chart_idx)s = function(){
@@ -1545,20 +1564,23 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-%(indiv_pie_title)s
+%(indiv_title_html)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
 </div>""" % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
              u"width": width, u"height": height, u"radius": radius,
              u"lbl_offset": lbl_offset, u"pagebreak": pagebreak,
-             u"indiv_pie_title": indiv_pie_title,
+             u"indiv_title_html": indiv_title_html,
              u"slices_js": slices_js, u"slice_fontsize": slice_fontsize, 
              u"lbl_font_colour": lbl_font_colour,
              u"tooltip_border_colour": tooltip_border_colour,
              u"connector_style": connector_style, u"outer_bg": outer_bg, 
              u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
              })
+        overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Pie Chart")
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -1623,21 +1645,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
-                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                         mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
-         mg.CHARTS_SERIES_DETS: series_dets},
-        {mg.CHARTS_CHART_LBL: u"Gender: Female",
-         mg.CHARTS_SERIES_DETS: series_dets}, ...
-    ]
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
-                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
-                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
-                                               u"28<br>14%", u"94<br>47%"]}
+    chart_output_dets -- see structure_gen_data()
     css_idx -- css index so can apply    
     """
     debug = False
@@ -1704,11 +1712,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             </div>""" % (legend_lbl, chart_idx)
         else:
             legend = u"" 
-        if multichart:
-            indiv_chart_title = ("<p><b>%s</b></p>" % 
-                               chart_det[mg.CHARTS_CHART_LBL])
-        else:
-            indiv_chart_title = u""
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         """
         If only one series, and trendlines/smoothlines are selected, make 
             additional series for each as appropriate.
@@ -1801,14 +1805,14 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     </script>
         
     <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-    %(indiv_chart_title)s
+    %(indiv_title_html)s
     <div id="mychartRenumber%(chart_idx)s" style="width: %(width)spx; 
             height: %(height)spx;">
         </div>
     %(legend)s
     </div>""" % {u"legend": legend,
                  u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-                 u"indiv_chart_title": indiv_chart_title, 
+                 u"indiv_title_html": indiv_title_html, 
                  u"width": width, u"height": height, u"xfontsize": xfontsize, 
                  u"axis_lbl_font_colour": axis_lbl_font_colour,
                  u"major_gridline_colour": major_gridline_colour,
@@ -1822,9 +1826,12 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                  u"grid_bg": grid_bg, 
                  u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks,
                  u"chart_idx": u"%02d" % chart_idx})
-        if page_break_after:
-            html.append(u"<br><hr><br><div class='%s'></div>" % 
-                        CSS_PAGE_BREAK_BEFORE)
+        overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Line Chart")
+    if page_break_after:
+        html.append(u"<br><hr><br><div class='%s'></div>" % 
+                    CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
 def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
@@ -1832,21 +1839,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
-    chart_output_dets = {mg.CHARTS_MAX_LBL_LEN: max_lbl_len, # used to set height of chart(s)
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines, # used to set axis lbl drop
-                         mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                         mg.CHARTS_CHART_DETS: chart_dets}
-    chart_dets = [
-        {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
-         mg.CHARTS_SERIES_DETS: series_dets},
-        {mg.CHARTS_CHART_LBL: u"Gender: Female",
-         mg.CHARTS_SERIES_DETS: series_dets}, ...
-    ]
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.CHARTS_XAXIS_DETS: [(val, lbl, lbl_split), (...), ...], 
-                   mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
-                   mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
-                                               u"28<br>14%", u"94<br>47%"]}
+    chart_output_dets -- see structure_gen_data()
     css_idx -- css index so can apply    
     """
     axis_lbl_rotate = -90 if rotate else 0
@@ -1898,11 +1891,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         stroke = mg.DOJO_COLOURS[0]
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
-        if multichart:
-            indiv_chart_title = ("<p><b>%s</b></p>" % 
-                               chart_det[mg.CHARTS_CHART_LBL])
-        else:
-            indiv_chart_title = u""
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         # only one series per chart by design
         series_det = chart_det[mg.CHARTS_SERIES_DETS][0]
         xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
@@ -1953,12 +1942,12 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div style="float: left; margin-right: 10px; %(pagebreak)s">
-%(indiv_chart_title)s
+%(indiv_title_html)s
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
     </div>
 </div>""" % {u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
-             u"indiv_chart_title": indiv_chart_title,
+             u"indiv_title_html": indiv_title_html,
              u"width": width, u"height": height, u"xfontsize": xfontsize, 
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
@@ -1971,14 +1960,17 @@ makechartRenumber%(chart_idx)s = function(){
              u"connector_style": connector_style, 
              u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
              u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
+        overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Area Chart")
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
-                     css_fil, css_idx, page_break_after=False):
+def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets, 
+                     inc_normal, css_fil, css_idx, page_break_after=False):
     """
     See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
@@ -1992,7 +1984,7 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     """
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    multichart = (len(histo_dets) > 1)
+    multichart = (len(chart_dets) > 1)
     html = []
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -2010,22 +2002,22 @@ def histogram_output(titles, subtitles, var_lbl, histo_dets, inc_normal,
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
     fill = item_colours[0]
     js_inc_normal = u"true" if inc_normal else u"false"
-    for chart_idx, histo_det in enumerate(histo_dets):
-        minval = histo_det[mg.CHART_MINVAL]
-        maxval = histo_det[mg.CHART_MAXVAL]
-        xaxis_dets = histo_det[mg.CHARTS_XAXIS_DETS]
-        y_vals = histo_det[mg.CHARTS_SERIES_Y_VALS]
-        norm_ys = histo_det[mg.CHART_NORMAL_Y_VALS]
-        bin_lbls = histo_det[mg.CHART_BIN_LBLS]
+    for chart_idx, chart_det in enumerate(chart_dets):
+        minval = chart_det[mg.CHART_MINVAL]
+        maxval = chart_det[mg.CHART_MAXVAL]
+        xaxis_dets = chart_det[mg.CHARTS_XAXIS_DETS]
+        y_vals = chart_det[mg.CHARTS_SERIES_Y_VALS]
+        norm_ys = chart_det[mg.CHART_NORMAL_Y_VALS]
+        bin_lbls = chart_det[mg.CHART_BIN_LBLS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
-        indiv_histo_title = "<p><b>%s</b></p>" % \
-                histo_det[mg.CHARTS_CHART_BY_LBL] if multichart else u""        
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)      
         xaxis_lbls = u"[" + \
             u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
                                     for i,x in enumerate(xaxis_dets,1)]) + u"]"
         bin_labs = u"\"" + u"\", \"".join(bin_lbls) + u"\""
         n_xvals = len(xaxis_dets)
-        width = 700 if n_xvals <= 10 else 70*n_xvals
+        width = 50*n_xvals
+        width = max(width, 700)
         xfontsize = 10 if len(xaxis_dets) <= 20 else 8
         left_axis_lbl_shift = 10 
         if multichart:
@@ -2081,12 +2073,12 @@ makechartRenumber%(chart_idx)s = function(){
 </script>
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-%(indiv_histo_title)s
+%(indiv_title_html)s
 <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
     </div>
 </div>
-        """ % {u"indiv_histo_title": indiv_histo_title,
+        """ % {u"indiv_title_html": indiv_title_html,
                u"stroke_width": stroke_width, 
                u"normal_stroke_width": stroke_width*2, u"fill": fill,
                u"colour_cases": colour_cases,
@@ -2105,6 +2097,8 @@ makechartRenumber%(chart_idx)s = function(){
                u"minor_ticks": u"true",
                u"tick_colour": major_gridline_colour, 
                u"norm_ys": norm_ys, u"js_inc_normal": js_inc_normal})
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Histogram")
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -2319,9 +2313,9 @@ def get_series_colours_by_lbl(chart_output_dets, css_fil):
         series_colours_by_lbl[series_lbl] = item_colours[i]
     return series_colours_by_lbl 
 
-def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y, 
-                       add_to_report, report_name, dot_borders, css_fil, 
-                       css_idx, page_break_after=False):
+def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
+                       label_x, label_y, add_to_report, report_name, 
+                       dot_borders, css_fil, css_idx, page_break_after=False):
     """
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                         mg.CHARTS_CHART_DETS: chart_dets}
@@ -2341,7 +2335,7 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
                                                       css_idx)
     pagebreak = u"page-break-after: always;"
     title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
-    x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
+    x_vs_y = '"%s"' % label_x + _(u" vs ") + '"%s"' % label_y
     chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
     multiseries = len(chart0_series_dets) > 1
@@ -2367,22 +2361,20 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
             </div>""" % (legend_lbl, chart_idx)
         else:
             legend = u"" 
-        if multichart:
-            indiv_chart_title = ("<p><b>%s</b></p>" % 
-                                 chart_det[mg.CHARTS_CHART_LBL])
-        else:
-            indiv_chart_title = u""
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         if use_mpl:
-            make_mpl_scatterplot(multichart, html, indiv_chart_title, 
+            make_mpl_scatterplot(multichart, html, indiv_title_html, 
                                  dot_borders, legend, series_dets, 
                                  series_colours_by_lbl, label_x, label_y, ymin, 
                                  ymax, x_vs_y, add_to_report, report_name, 
                                  css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_chart_title, dot_borders, legend, 
+                                  indiv_title_html, dot_borders, legend, 
                                   series_dets, series_colours_by_lbl, label_x, 
                                   label_y, ymin, ymax, css_fil, pagebreak)
+        charts_append_divider(html, titles, overall_title, indiv_title, 
+                              u"Scatterplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -2390,8 +2382,8 @@ def scatterplot_output(titles, subtitles, scatterplot_dets, label_x, label_y,
 
 def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
                    var_role_series_name, xaxis_dets, max_lbl_len, max_lbl_lines, 
-                   chart_dets, xmin, xmax, ymin, ymax, rotate, css_fil, css_idx, 
-                   page_break_after):
+                   overall_title, chart_dets, xmin, xmax, ymin, ymax, rotate, 
+                   css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2619,6 +2611,8 @@ makechartRenumber00 = function(){
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
+    charts_append_divider(html, titles, overall_title, indiv_title=u"", 
+                          indiv_type=u"Scatterplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

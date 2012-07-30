@@ -1249,7 +1249,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             else:
                 script_lst.append(u"%s = u\"%s\"" % (var_role, var_val)) # e.g. var_role_avg = "age"
                 var_name = lib.get_item_label(self.var_labels, var_val)
-                script_lst.append(u"%s_name=u\"%s\"" % (var_role, var_name)) # e.g. var_role_avg_name = "Age"
+                script_lst.append(u"%s_name = u\"%s\"" % (var_role, var_name)) # e.g. var_role_avg_name = "Age"
                 val_lbls = self.val_dics.get(var_val, {})
                 script_lst.append(u"%s_lbls = %s" % (var_role, val_lbls)) # e.g. var_role_avg_lbls = {}
             if var_role == mg.VAR_ROLE_AVG:
@@ -1426,12 +1426,14 @@ def get_histogram_script(inc_normal, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = u"""
-histo_dets = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
-                                    var_role_bin, var_role_charts, 
-                                    var_role_charts_name, var_role_charts_lbls)
+(overall_title, 
+ chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
+                                          var_role_bin, var_role_bin_name, 
+                                          var_role_charts, var_role_charts_name, 
+                                          var_role_charts_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
-            var_role_bin_name, histo_dets, inc_normal=%(inc_normal)s, 
-            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
+        var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
+        css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, u"css_fil": esc_css_fil, 
            u"css_idx": css_idx}
     return script
@@ -1440,15 +1442,17 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = u"""
-scatterplot_dets = charting_output.get_scatterplot_dets(dbe, cur, tbl, tbl_filt, 
-            flds, var_role_x_axis, var_role_y_axis, 
+(overall_title, 
+ scatterplot_dets) = charting_output.get_scatterplot_dets(dbe, cur, tbl, 
+            tbl_filt, flds, var_role_x_axis, var_role_x_axis_name, 
+            var_role_y_axis, var_role_y_axis_name, 
             var_role_series, var_role_series_name, var_role_series_lbls,
             var_role_charts, var_role_charts_name, var_role_charts_lbls, 
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
-            scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
-            add_to_report, report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
-            css_idx=%(css_idx)s, page_break_after=False)
+    overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
+    add_to_report, report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
            u"dot_border": dot_border}
     return script
@@ -1457,9 +1461,9 @@ def get_boxplot_script(rotate, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = u"""
-(xaxis_dets, xmin, xmax, 
- ymin, ymax, max_label_len, 
- max_lbl_lines, chart_dets, 
+(xaxis_dets, xmin, xmax, ymin, ymax, 
+ max_label_len, max_lbl_lines, 
+ overall_title, chart_dets, 
  any_missing_boxes) = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
                     var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
@@ -1468,10 +1472,10 @@ def get_boxplot_script(rotate, css_fil, css_idx):
 x_title = var_role_cat_name
 y_title = var_role_desc_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
-                    any_missing_boxes, x_title, y_title, var_role_series_name, 
-                    xaxis_dets, max_label_len, max_lbl_lines, chart_dets, xmin, 
-                    xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
-                    css_idx=%(css_idx)s, page_break_after=False)
+            any_missing_boxes, x_title, y_title, var_role_series_name, 
+            xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets, 
+            xmin, xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
+            css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"rotate": rotate, 
            u"css_idx": css_idx}
     return script

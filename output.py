@@ -63,6 +63,41 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
+def append_divider(html, titles, indiv_title=u"", item_type=u""):
+    item_title = get_item_title(titles, indiv_title, item_type)
+    html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
+                                    mg.OUTPUT_ITEM_DIVIDER))
+
+def get_part_dets(part, ideal):
+    len_part = min(len(part), ideal)
+    extra = ideal - len_part
+    return len_part, extra 
+
+def get_item_title(title, indiv_title=u"", item_type=u""):
+    """
+    45 characters is max for title - plus the split if needed, plus a number 
+        at the start and the image extension at the end.
+    """
+    debug = True
+    ideal_a = 32
+    ideal_b = 13
+    len_a, extra4b = get_part_dets(part=title, ideal=ideal_a)
+    len_b, extra4a = get_part_dets(part=indiv_title, ideal=ideal_b)
+    len_a += extra4a
+    len_b += extra4b
+    parts = []
+    if item_type:
+        parts.append(item_type)
+    title_part = title[:len_a]
+    if title_part:
+        parts.append(title[:len_a])
+    indiv_title_part = indiv_title[:len_b]
+    if indiv_title_part:
+        parts.append(indiv_title_part)
+    item_title = u" - ".join(parts)
+    if debug: print(item_title)
+    return item_title
+
 def colour_mappings_to_item_colours(colour_mappings):
     """
     str() so no u"" in front of strings - needs to be ready for Javascript to 

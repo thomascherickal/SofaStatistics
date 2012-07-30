@@ -159,6 +159,13 @@ script_export_measures_dic = {FREQ: u"FREQ",
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 
 # html_title, html_post_title etc was deemed an even worse approach ;-)
+"""
+To make it easy to extract individual items out of reports, split by divider, 
+    and in each chunk, the text after the item_title_start till the end is the 
+    item title we use to name any images we extract from it.
+"""
+ITEM_TITLE_START = u"<!--ITEM_TITLE_START-->" # put item title immediately after this and before divider
+OUTPUT_ITEM_DIVIDER = u"<!--SOFASTATS_ITEM_DIVIDER-->"  # put at end of every item
 TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
@@ -746,8 +753,8 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHARTS_CHART_DETS = u"chart_dets"
-CHARTS_CHART_BY_LBL = u"chart_by_lbl"
 CHARTS_CHART_LBL = u"Chart lbl" # Label for top of chart e.g. Gender: Male
+CHARTS_OVERALL_TITLE = u"charts_overall_title" # e.g. Agegroup by Gender
 CHARTS_OVERALL_LEGEND_LBL = u"Overall Legend Label" # One per chart
 CHARTS_SERIES_LBL_IN_LEGEND = u"Series Label in Legend" # one per series in chart e.g. Male. Goes in legend on bottom
 CHART_VAL_MEASURES = u"chart_val_measures" # e.g. freqs or avgs
@@ -802,7 +809,7 @@ MAX_CLUSTERS = 50
 MAX_CATS_GEN = 100
 MAX_CHART_SERIES = 30
 MIN_HISTO_VALS = 5
-MAX_POINTS_DOJO_SCATTERPLOT = 800
+MAX_POINTS_DOJO_SCATTERPLOT = 800 # 800 (use 5000 to demo dojo using demo_tbl)
 MAX_SCATTERPLOT_SERIES = 5
 MAX_CHARTS_IN_SET = 16
 MAX_SERIES_IN_BOXPLOT = 8
