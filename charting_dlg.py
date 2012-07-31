@@ -286,11 +286,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
                               static_box_gap)
-        self.szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
                               static_box_gap)
-        self.szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr_main)

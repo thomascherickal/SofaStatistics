@@ -972,6 +972,20 @@ def reshape_sql_crosstab_data(raw_data, dp=0):
         print(oth_vals)
     return series_data, oth_vals
 
+def get_histo_sizings(var_lbl, n_bins, minval, maxval):
+    debug = True
+    MIN_PXLS_PER_BAR = 30
+    MIN_CHART_WIDTH = 700
+    PADDING_PXLS = 5
+    AVG_CHAR_WIDTH_PXLS = 10.5 # need more for histograms
+    max_lbl_width = max(len(str(x)) for x in [minval, maxval])
+    if debug: print(u"max_lbl_width: %s" % max_lbl_width)
+    min_bin_width = max(max_lbl_width*AVG_CHAR_WIDTH_PXLS, MIN_PXLS_PER_BAR)
+    width_x_title = len(var_lbl)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
+    width = max([n_bins*min_bin_width, width_x_title, MIN_CHART_WIDTH])
+    if debug: print(u"Width: %s" % width)
+    return width
+
 def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster, max_lbl_width):
     debug = False
     MIN_PXLS_PER_BAR = 30
@@ -1977,9 +1991,9 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     subtitles -- list of subtitle lines
     minval -- minimum values for x axis
     maxval -- maximum value for x axis
-    xaxis_dets -- [(1, u""), (2, u""), ...]
+    xaxis_dets -- [(1, u""), (2, u""), ...] - 1-based idx
     y_vals -- list of values e.g. [12, 30, 100.5, -1, 40]
-    bin_lbls -- [u"1 to under 2", u"2 to under 3", ...]
+    bin_lbls -- [u"1 to under 2", u"2 to under 3", ...] for tooltips
     css_idx -- css index so can apply    
     """
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1992,8 +2006,8 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
             gridline_width, stroke_width, tooltip_border_colour, 
             colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
-    outer_bg = u"" if outer_bg == u"" \
-        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg
+    outer_bg = (u"" if outer_bg == u""
+                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
                                 and single_colour)
@@ -2010,18 +2024,16 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
         norm_ys = chart_det[mg.CHART_NORMAL_Y_VALS]
         bin_lbls = chart_det[mg.CHART_BIN_LBLS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
-        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)      
-        xaxis_lbls = u"[" + \
-            u",\n            ".join([u"{value: %s, text: \"%s\"}" % (i, x[1]) 
-                                    for i,x in enumerate(xaxis_dets,1)]) + u"]"
+        indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
+        idx_lbls = [u"{value: %s, text: \"%s\"}" % x for x in xaxis_dets]
+        xaxis_lbls = (u"[" + u",\n            ".join(idx_lbls) + u"]")
         bin_labs = u"\"" + u"\", \"".join(bin_lbls) + u"\""
-        n_xvals = len(xaxis_dets)
-        width = 50*n_xvals
-        width = max(width, 700)
+        n_bins = len(xaxis_dets)
+        width = get_histo_sizings(var_lbl, n_bins, minval, maxval)
         xfontsize = 10 if len(xaxis_dets) <= 20 else 8
         left_axis_lbl_shift = 10 
         if multichart:
-            width = width*0.8
+            width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
             xfontsize = xfontsize*0.8
             left_axis_lbl_shift += 20
         html.append(u"""
