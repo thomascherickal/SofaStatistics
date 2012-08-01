@@ -64,7 +64,11 @@ import showhtml
 # in Windows the \r\n makes it fail.
 
 def append_divider(html, titles, indiv_title=u"", item_type=u""):
-    item_title = get_item_title(titles, indiv_title, item_type)
+    if titles:
+        title = titles[0]
+    else:
+        title = u""
+    item_title = get_item_title(title, indiv_title, item_type)
     html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
                                     mg.OUTPUT_ITEM_DIVIDER))
 
@@ -115,8 +119,8 @@ def get_stats_chart_colours(css_fil):
 
 def get_fallback_css():
     """
-    Get fallback CSS.  The "constants" are used so that we can guarantee the 
-        class names we use later on are the same as used here.  Keep aligned 
+    Get fallback CSS. The "constants" are used so that we can guarantee the 
+        class names we use later on are the same as used here. Keep aligned 
         with default.css.
     """
     default_css = u"""
@@ -138,8 +142,9 @@ def get_fallback_css():
         }
         .%s{""" % mg.CSS_TBL_TITLE_CELL + u"""
             border: none;
-            padding: 18px 0px 12px 0px;
+            padding: 0;
             margin: 0;
+            color: red;
         }
         .%s{""" % mg.CSS_TBL_TITLE + u"""
             padding: 0;
@@ -201,9 +206,10 @@ def get_fallback_css():
             background-color: white;
         }
         .%s{""" % mg.CSS_COL_VAR + u"""
-            padding: 6px 0px;            
+            padding: 6px 0px;
         }            
         .%s{""" % mg.CSS_COL_VAL + u"""
+            font-size: 12px;
             vertical-align: top;
         }
         tr.%s td{""" % mg.CSS_TOTAL_ROW + u"""
@@ -497,33 +503,50 @@ def get_css_dets():
     css_idx = css_fils.index(cc[mg.CURRENT_CSS_PATH])
     return css_fils, css_idx
 
-def get_title_dets_html(titles, subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE):
+def get_title_dets_html(titles, subtitles, css_idx, istable=False):
     """
-    Table title and subtitle html ready to put in a cell.
-    Applies to dim tables and raw tables.
-    Do not want block display - if title and/or subtitle are empty, want minimal
-        display height.
+    Table title and subtitle html ready to display.
+    If title and/or subtitle are empty, want minimal display height. But have to 
+        have stable html. Solution - have cells table containing spans. But make 
+        separate table from main table so wide title !- wide table ;-)
     """
-    titles_html = u"\n<span class='%s'>%s" % (CSS_TBL_TITLE, mg.TBL_TITLE_START)
-    titles_inner_html = get_titles_inner_html(titles_html, titles)
-    titles_html += titles_inner_html
-    titles_html += u"%s</span>" % mg.TBL_TITLE_END
-    subtitles_html = u"\n<span class='%s'>%s" % (CSS_TBL_SUBTITLE, 
-                                                 mg.TBL_SUBTITLE_START)
-    subtitles_inner_html = get_subtitles_inner_html(subtitles_html, subtitles)
-    subtitles_html += subtitles_inner_html 
-    subtitles_html += u"%s</span>" % mg.TBL_SUBTITLE_END
-    joiner = u"<br>" if titles_inner_html and subtitles_inner_html else u""
-    title_dets_html = titles_html + joiner + subtitles_html
-    return title_dets_html
-
-def get_titles_inner_html(titles_html, titles):
+    (CSS_TBL_TITLE, 
+     CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
+    title_dets_html_lst = []
+    # titles
+    title_dets_html_lst.append(u"<table cellspacing='0'><thead><tr>"
+                               u"<th class='%s'>" % CSS_TBL_TITLE_CELL)
+    title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_TITLE)
+    if istable:
+        title_dets_html_lst.append(mg.TBL_TITLE_START) # so we can refresh content
+    if titles:
+        title_dets_html_lst.append(get_titles_inner_html(titles))
+    if istable:
+        title_dets_html_lst.append(mg.TBL_TITLE_END)
+    title_dets_html_lst.append(u"</span>")
+    # subtitles
+    if titles and subtitles:
+        title_dets_html_lst.append(u"<br>")
+    title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_SUBTITLE)
+    if istable:
+        title_dets_html_lst.append(mg.TBL_SUBTITLE_START) # so we can refresh content
+    if subtitles:
+        title_dets_html_lst.append(get_subtitles_inner_html(subtitles))
+    if istable:
+        title_dets_html_lst.append(mg.TBL_SUBTITLE_END)
+    title_dets_html_lst.append(u"</span>")
+    title_dets_html_lst.append(u"</th></tr></thead></table>")
+    # combine
+    title_dets_html = u"\n".join(title_dets_html_lst)
+    return title_dets_html    
+    
+def get_titles_inner_html(titles):
     """
     Just the bits within the tags, css etc.
     """
     return u"<br>".join(titles)
 
-def get_subtitles_inner_html(subtitles_html, subtitles):
+def get_subtitles_inner_html(subtitles):
     """
     Just the bits within the tags, css etc.
     """

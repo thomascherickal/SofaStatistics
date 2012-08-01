@@ -212,6 +212,10 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         "Returns demo_html"
         debug = False
         html = []
+        title_dets_html = output.get_title_dets_html(self.titles, 
+                                                     self.subtitles, css_idx,
+                                                     istable=True)
+        html.append(title_dets_html)
         (row_label_rows_lst, tree_row_labels, 
                     row_label_cols_n) = self.get_row_dets(css_idx)
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)

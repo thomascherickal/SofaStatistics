@@ -19,9 +19,7 @@ import output
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """
-    Have original html
-        <span class='tbltitle0'><tag>Title<tag></span> # or other n
-        <span class='tblsubtitle0'><tag>Subtitle<tag></span> # or other n
+    Have original html.
     Have list of titles and subtitles (both or either could be empty).
     Use specific tags to slice it up and reassemble it. Easiest to do with crude 
         slicing and inserting.  Best to leave the table-making processes code 
@@ -29,7 +27,7 @@ def replace_titles_subtitles(orig, titles, subtitles):
     Will have TBL_TITLE_START and TBL_TITLE_END. We only change what is between.
     Subtitles follows the same approach.
     NB if either or both of the titles and subtitles are empty, the row should 
-        be of minimal height (using span instead of block display).
+        be of minimal height.
     pre_title = everything before the actual content of the title
     titles_html = just the inner html (words with lines sep by <br>)
     post_title = everything after the actual content of the title
@@ -40,11 +38,8 @@ def replace_titles_subtitles(orig, titles, subtitles):
     debug = False
     if debug: print(u"orig: %s\n\ntitles: %s\n\nsubtitles: %s\n\n" % (orig, 
                                                             titles, subtitles))
-    titles_inner_html = u""
-    titles_inner_html = output.get_titles_inner_html(titles_inner_html, titles)
-    subtitles_inner_html = u""
-    subtitles_inner_html = \
-            output.get_subtitles_inner_html(subtitles_inner_html, subtitles)
+    titles_inner_html = output.get_titles_inner_html(titles)
+    subtitles_inner_html = output.get_subtitles_inner_html(subtitles)
     # need break between titles and subtitles if both present
     if titles_inner_html and subtitles_inner_html:
         subtitles_inner_html = u"<br>" + subtitles_inner_html

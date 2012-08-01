@@ -16,24 +16,12 @@ def get_hdr_dets(titles, subtitles, col_labels, css_idx):
     """
     Set up titles, subtitles, and col labels into table header.
     """
-    CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
-    CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
-                                                 css_idx)
-    CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
-                                                   css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
                                                   css_idx)
-    title_dets_html = output.get_title_dets_html(titles, subtitles, 
-                                            CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
-    hdr_html = (u"\n<thead>\n<tr><th " +
-                u"class='%s'" % CSS_TBL_TITLE_CELL +
-                u" colspan='%s'>" % len(col_labels) +
-                u"%s</th></tr>" % title_dets_html)
     # col labels
-    hdr_html += u"\n<tr>"
+    hdr_html = u"\n<tr>"
     for col_label in col_labels:
-        hdr_html += u"<th class='%s'>%s</th>" % (CSS_FIRST_COL_VAR, 
-                                                 col_label)
+        hdr_html += u"<th class='%s'>%s</th>" % (CSS_FIRST_COL_VAR, col_label)
     hdr_html += u"</tr>\n</thead>"
     return hdr_html
 
@@ -59,6 +47,9 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
                                         (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = []
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx,
+                                                 istable=True)
+    html.append(title_dets_html)
     html.append(u"\n\n<table cellspacing='0'>\n") # IE6 - no support CSS borderspacing
     hdr_html = get_hdr_dets(titles, subtitles, col_labels, css_idx)
     html.append(hdr_html)

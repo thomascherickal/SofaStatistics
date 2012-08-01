@@ -160,29 +160,14 @@ class DimTable(object):
     """
     def process_hdr_tree(self, tree_col_labels, row_label_cols_n, css_idx):
         """
-        Set up titles, subtitles, and col labels into table header.
-        Having titles, and or subtitles, is optional but there will always be a 
-            row there (may be a row with little height). May contain heightless
-            placeholders needed by demo table if not titles or subtitles.
+        Set up col labels into table header.
         """
         debug = False
-        CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
-        CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
-                                                     css_idx)
-        CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
-                                                       css_idx)
         CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)        
         if debug: print(tree_col_labels)
         # includes root so -1, includes title/subtitle row so +1 (share row)
         col_label_rows_n = tree_col_labels.get_depth()
         col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
-        title_dets_html = output.get_title_dets_html(self.titles, 
-                                self.subtitles, CSS_TBL_TITLE, CSS_TBL_SUBTITLE)
-        title_span = len(tree_col_labels.get_terminal_nodes())
-        extra_title_row_html = u"<th class='%s' " % CSS_TBL_TITLE_CELL + \
-            u"colspan='%s'>%s</th>" % (title_span + row_label_cols_n, 
-                                       title_dets_html)
-        col_label_rows_lst[0].append(extra_title_row_html)
         # start off with spaceholder heading cell
         col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " %
                             (CSS_SPACEHOLDER, tree_col_labels.get_depth() - 1) +
@@ -458,6 +443,10 @@ class LiveTable(DimTable):
         Get HTML for table.
         """
         html = []
+        title_dets_html = output.get_title_dets_html(self.titles,
+                                                     self.subtitles, css_idx,
+                                                     istable=True)
+        html.append(title_dets_html)
         html.append(u"<table cellspacing='0'>\n") # IE6 no support CSS borderspacing
         if not (self.prepared and self.prep_css_idx == css_idx):
             # need to get fresh - otherwise, can skip this step. Did it in prep.

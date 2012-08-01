@@ -1088,24 +1088,6 @@ def setup_highlights(colour_mappings, single_colour,
     colour_cases = colour_cases.lstrip()
     return colour_cases
 
-def get_title_dets_html(titles, subtitles, css_idx):
-    """
-    For titles and subtitles.
-    """
-    (CSS_TBL_TITLE, 
-     CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = output.get_title_css(css_idx)
-    title_dets_html_lst = []
-    if titles:
-        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_TITLE, 
-                                                           CSS_TBL_TITLE_CELL) + 
-                                   u"\n<br>".join(titles) + u"</p>")
-    if subtitles:
-        title_dets_html_lst.append(u"<p class='%s %s'>" % (CSS_TBL_SUBTITLE, 
-                                                           CSS_TBL_TITLE_CELL) + 
-                                   u"\n<br>".join(subtitles) + u"</p>")
-    title_dets_html = u"\n".join(title_dets_html_lst)
-    return title_dets_html
-
 def get_lbl_dets(xaxis_dets):
     # can be a risk that a split label for the middle x value will overlap with x-axis label below
     lbl_dets = []
@@ -1173,7 +1155,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
@@ -1343,7 +1325,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
     max_lbl_lines = chart_output_dets[mg.CHARTS_MAX_LBL_LINES]
@@ -1506,7 +1488,7 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     width = 500 if mg.PLATFORM == mg.WINDOWS else 450
     if multichart:
@@ -1668,7 +1650,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     # following details are same across all charts so look at first
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
@@ -1860,7 +1842,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     max_lbl_len = chart_output_dets[mg.CHARTS_MAX_LBL_LEN]
@@ -2000,7 +1982,7 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
                                                       css_idx)
     multichart = (len(chart_dets) > 1)
     html = []
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     height = 300 if multichart else 350
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
@@ -2346,7 +2328,7 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     pagebreak = u"page-break-after: always;"
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     x_vs_y = '"%s"' % label_x + _(u" vs ") + '"%s"' % label_y
     chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -2417,7 +2399,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     axis_lbl_rotate = -90 if rotate else 0
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
-    title_dets_html = get_title_dets_html(titles, subtitles, css_idx)
+    title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     lbl_dets = get_lbl_dets(xaxis_dets)
     lbl_dets.insert(0, u"""{value: 0, text: ""}""")
     lbl_dets.append(u"""{value: %s, text: ""}""" % len(lbl_dets))

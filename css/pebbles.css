@@ -56,25 +56,28 @@ dojo_style_end
     tr, td, th{
         margin: 0;
     }
-    .tbltitle{
-        padding: 0;
-        margin: 0;
-        font-family: Arial, Helvetica, sans-serif;
-        font-weight: bold;
-        font-size: 18px;
-    }
-    .tblsubtitle{
-        padding: 12px 0px 0px 0px;
+
+    .tbltitle, .tblsubtitle{
         margin: 0;
         font-family: Arial, Helvetica, sans-serif;
         font-weight: bold;
         font-size: 14px;
     }
-    .tblcelltitle{
+    .tbltitle{ /*spans*/
+        padding: 0;
+        font-size: 18px;
+    }
+    .tblsubtitle{
+        padding: 12px 0px 0px 0px;
+        font-size: 14px;
+    }
+    .tblcelltitle{ /*th*/
+        text-align: left;
         border: none;
         padding: 0px 0px 12px 0px;
         margin: 0;
     }
+
     th, .rowvar, .rowval, .datacell, .firstdatacell {
         border: solid 1px #A1A1A1;
     }
