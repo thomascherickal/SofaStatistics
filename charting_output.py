@@ -441,7 +441,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     Note - not all charts have x-axis labels and thus the option of rotating 
         them.
     """
-    debug = True
+    debug = False
     is_avg = (var_role_avg is not None)
     # validate fields supplied (or not)
     chart_subtype_key = mg.AVG_KEY if is_avg else mg.NON_AVG_KEY
@@ -973,7 +973,7 @@ def reshape_sql_crosstab_data(raw_data, dp=0):
     return series_data, oth_vals
 
 def get_histo_sizings(var_lbl, n_bins, minval, maxval):
-    debug = True
+    debug = False
     MIN_PXLS_PER_BAR = 30
     MIN_CHART_WIDTH = 700
     PADDING_PXLS = 5

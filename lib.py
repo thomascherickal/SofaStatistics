@@ -23,6 +23,20 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def path2url(path):
+    """
+    http://en.wikipedia.org/wiki/File_URI_scheme
+    Two slashes after file:
+    then either host and a slash or just a slash
+    then the full path e.g. /home/g/etc
+    *nix platforms start with a forward slash
+    """
+    if mg.PLATFORM == mg.WINDOWS:
+        url = u"file:///%s" % path
+    else:
+        url = u"file://%s" % path
+    return url
+
 def setup_link(link, link_colour, bg_colour):
     link.SetColours(link=link_colour, visited=link_colour, 
                     rollover=link_colour)

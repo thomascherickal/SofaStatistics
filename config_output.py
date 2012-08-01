@@ -623,13 +623,14 @@ class ConfigUI(object):
         dlg_get_file.Destroy()
     
     def on_btn_export_imgs(self, event):
-        debug = True
+        debug = False
         if debug:
             dlg = GetTestDlg()
             dlg.ShowModal()
         else:
             try:
-                import export_as_images
+                import export_as_images as export
+                export.export(cc[mg.CURRENT_REPORT_PATH])
             except ImportError:
                 dlg = GetTestDlg()
                 dlg.ShowModal()
@@ -695,10 +696,7 @@ class ConfigUI(object):
                         "view")
             wx.MessageBox(msg)
         else:
-            if mg.PLATFORM == mg.WINDOWS:
-                url = u"file:///%s" % cc[mg.CURRENT_REPORT_PATH]
-            else:
-                url = u"file://%s" % cc[mg.CURRENT_REPORT_PATH]
+            url = lib.path2url(cc[mg.CURRENT_REPORT_PATH])
             if debug: print(url)            
             webbrowser.open_new_tab(url)
         event.Skip()

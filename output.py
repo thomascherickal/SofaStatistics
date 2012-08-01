@@ -78,7 +78,7 @@ def get_item_title(title, indiv_title=u"", item_type=u""):
     45 characters is max for title - plus the split if needed, plus a number 
         at the start and the image extension at the end.
     """
-    debug = True
+    debug = False
     ideal_a = 32
     ideal_b = 13
     len_a, extra4b = get_part_dets(part=title, ideal=ideal_a)
@@ -273,12 +273,12 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
         css += u"\ntd, th {\n    color: #5f5f5f;\n}"
     css = u"""
 body {
-    background-color: #fefefe;
+    background-color: %s;
 }
 td, th {
     background-color: white;
 }
-""" + css
+""" % mg.BODY_BACKGROUND_COLOUR + css
     if has_dojo:
         """
         zero padding so that when we search and replace, and we go to replace 
@@ -431,12 +431,12 @@ def get_js_n_charts(html):
     """
     debug = False
     try:
-        idx_start = html.index(mg.N_CHARTS_TAG_START) + \
-                                                    len(mg.N_CHARTS_TAG_START)
+        idx_start = (html.index(mg.N_CHARTS_TAG_START) +
+                     len(mg.N_CHARTS_TAG_START))
         idx_end = html.index(mg.N_CHARTS_TAG_END)
         raw_n_charts_str = html[idx_start: idx_end]
         if debug: print(raw_n_charts_str)
-        js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR).\
+        js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR).
                           rstrip(u";"))
         if debug: print(js_n_charts)
     except Exception:
@@ -529,20 +529,6 @@ def get_subtitles_inner_html(subtitles_html, subtitles):
     """
     return u"<br>".join(subtitles)
 
-def get_rpt_extras_file_url():
-    """
-    http://en.wikipedia.org/wiki/File_URI_scheme
-    Two slashes after file:
-    then either host and a slash or just a slash
-    then the full path e.g. /home/g/etc
-    *nix platforms start with a forward slash
-    """
-    if mg.PLATFORM == mg.WINDOWS:
-        url = u"file:///%s" % mg.REPORT_EXTRAS_PATH
-    else:
-        url = u"file://%s" % mg.REPORT_EXTRAS_PATH
-    return url
-
 def rel2abs_rpt_img_links(str_html):
     """
     Linked images in external HTML reports are in different locations from those 
@@ -582,7 +568,7 @@ def rel2abs_rpt_extras(strhtml, tpl):
     Will run OK when displayed internally in GUI.
     """ 
     debug = False
-    url = get_rpt_extras_file_url()
+    url = lib.path2url(mg.REPORT_EXTRAS_PATH)
     abs_display_content = strhtml.replace(tpl % mg.REPORT_EXTRAS_FOLDER, 
                                           tpl % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
@@ -624,8 +610,8 @@ def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     debug = False
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     pagebreak = u" page-break-before: always " if page_break_before else u""
-    div = u"""\n<br><br>\n<hr style="clear: both; %s">\n%s\n<p>%s</p>""" % \
-                (pagebreak, source, filt_msg)
+    div = (u"""\n<br><br>\n<hr style="clear: both; %s">\n%s\n<p>%s</p>\n%s""" %
+                (pagebreak, source, filt_msg, mg.VISUAL_DIVIDER_BEFORE_THIS))
     if debug: print(div)
     return div
 

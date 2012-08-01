@@ -166,10 +166,12 @@ To make it easy to extract individual items out of reports, split by divider,
 """
 ITEM_TITLE_START = u"<!--ITEM_TITLE_START-->" # put item title immediately after this and before divider
 OUTPUT_ITEM_DIVIDER = u"<!--SOFASTATS_ITEM_DIVIDER-->"  # put at end of every item
+VISUAL_DIVIDER_BEFORE_THIS = u"<!--VISUAL_DIVIDER_BEFORE_THIS-->"
 TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
+BODY_BACKGROUND_COLOUR = u"#ffffff" # if not white, will have to trim PDFs twice - once with this colour, then with white
 DEFAULT_HDR = \
 u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
 'http://www.w3.org/TR/html4/loose.dtd'>
