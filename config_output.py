@@ -31,6 +31,16 @@ PRETEND_IS_MAC = debug
 IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
           else (mg.PLATFORM == mg.MAC))
 
+label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
+ADD2_RPT_LBL = _("Add to%sreport") % label_divider
+RUN_LBL = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
+ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
+               else _("Add to\nReport"))
+NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
+                       u"\"%(add2rpt_lbl)s\" ticked) to add output to this "
+                       u"report.") % {u"run": RUN_LBL, 
+                             u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
+
 class GetTestDlg(wx.Dialog):
     
     def __init__(self):
@@ -93,12 +103,6 @@ def get_szr_level(parent, panel, horiz=True):
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
     parent.rad_level.Enable(False)
     return parent.szr_level
-
-label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-ADD2_RPT_LBL = _("Add to%sreport") % label_divider
-RUN_LBL = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
-ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
-               else _("Add to\nReport"))
 
 def style2path(style):
     "Get full path of css file from style name alone"
@@ -630,7 +634,7 @@ class ConfigUI(object):
         else:
             try:
                 import export_as_images as export
-                export.export(cc[mg.CURRENT_REPORT_PATH])
+                export.export2imgs()
             except ImportError:
                 dlg = GetTestDlg()
                 dlg.ShowModal()
@@ -687,12 +691,9 @@ class ConfigUI(object):
             except AttributeError:
                 self.can_run_report = True
             if self.can_run_report:
-                msg = _("No output yet. Click \"%(run)s\" (with "
-                        "\"%(add2rpt_lbl)s\" ticked) to add output to this "
-                        "report.") % {u"run": RUN_LBL, 
-                                      u"add2rpt_lbl": ADD2_RPT_LBL}
+                msg = NO_OUTPUT_YET_MSG
             else:
-                msg = _("The output file has not been created yet.  Nothing to "
+                msg = _("The output file has not been created yet. Nothing to "
                         "view")
             wx.MessageBox(msg)
         else:

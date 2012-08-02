@@ -1,3 +1,6 @@
+#! /usr/bin/env python
+# -*- coding: utf-8 -*-
+
 import codecs
 import os
 import traceback
@@ -8,7 +11,6 @@ import lib
 import my_exceptions
 import output
 use_renderer = True # False if renderer not available and other testing required
-debug = False
 
 # url_load only needed for Windows
 
@@ -65,6 +67,7 @@ else:
                 If first time, will have delay while initialising comtypes.
                 url_load -- so internal links like footnotes will work.
                 """
+                debug = False
                 if url_load:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
@@ -83,71 +86,66 @@ else:
                 self.LoadUrl(url)
                 
     elif mg.PLATFORM == mg.LINUX:
-        use_gtk = True
-        if not use_gtk:
-            try:
-                import wx.webview
-            except ImportError, e:
-                raise Exception(_("Problem importing wx.webview.  Did you " 
-                    "follow the instructions at http://www.sofastatistics.com/"
-                    "predeb.php before installing the deb file (especially the "
-                    "step installing python-webkitwx)?"))                
+        # http://wiki.wxpython.org/wxGTKWebKit
+        import gobject
+        gobject.threads_init()
+        import pygtk
+        pygtk.require('2.0')
+        import gtk.gdk
+        # pywebkitgtk (http://code.google.com/p/pywebkitgtk/)
+        import webkit
+    
+        class FullHTML(wx.Panel):
+    
+            def __init__(self, panel, parent, size):
+                wx.Panel.__init__(self, panel, size=size)
             
-            class FullHTML(wx.webview.WebView):
-        
-                def __init__(self, panel, parent, size):
-                    wx.webview.WebView.__init__(self, panel, -1, size=size)
-                
-                def show_html(self, str_html, url_load=False):
-                    if debug: print("str_html is: %s" % str_html)
-                    # NB no issue with backslashes because not in Windows ;-)
-                    self.SetPageSource(str_html, "file://%s/" % mg.INT_PATH)
-                
-                def load_url(self, url):
-                    self.LoadURL(url)
-                    
-        else:
-            # http://wiki.wxpython.org/wxGTKWebKit
-            import gobject
-            gobject.threads_init()
-            import pygtk
-            pygtk.require('2.0')
-            import gtk.gdk
-            # pywebkitgtk (http://code.google.com/p/pywebkitgtk/)
-            import webkit
-        
-            class FullHTML(wx.Panel):
-        
-                def __init__(self, panel, parent, size):
-                    wx.Panel.__init__(self, panel, size=size)
-                
-                def pizza_magic(self):
-                    """
-                    Do pizza_magic when parent is created (EVT_WINDOW_CREATE).
-                    EVT_SHOW worked on Windows and Linux but not on Macs. If not 
-                        shown/created, can't get handle and can't make magic 
-                        work. See http://groups.google.com/group/...
-                        ...wxpython-users/t/ac193c36b9fafe48 
-                    """
-                    debug = False
-                    whdl = self.GetHandle() # only works if parent is shown
-                    if debug: print(whdl) # 0 if not shown so will fail
-                    window = gtk.gdk.window_lookup(whdl)
-                    self.pizza = pizza = window.get_user_data()
-                    self.scrolled_window = scrolled_window = pizza.parent
-                    scrolled_window.remove(pizza)
-                    self.ctrl = ctrl = webkit.WebView()
-                    scrolled_window.add(ctrl)
-                    scrolled_window.show_all()
-                
-                def show_html(self, str_html, url_load=False):
-                    if debug: print("str_html is: %s" % str_html)
-                    # NB no issue with backslashes because not in Windows ;-)
-                    self.ctrl.load_string(str_html, "text/html", "utf-8",
-                                          "file://%s/" % mg.INT_PATH)
-                
-                def load_url(self, url):
-                    self.ctrl.load_uri(url)
+            def pizza_magic(self):
+                """
+                Do pizza_magic when parent is created (EVT_WINDOW_CREATE).
+                EVT_SHOW worked on Windows and Linux but not on Macs. If not 
+                    shown/created, can't get handle and can't make magic 
+                    work. See http://groups.google.com/group/...
+                    ...wxpython-users/t/ac193c36b9fafe48 
+                """
+                debug = False
+                whdl = self.GetHandle() # only works if parent is shown
+                if debug: print(whdl) # 0 if not shown so will fail
+                window = gtk.gdk.window_lookup(whdl)
+                self.pizza = pizza = window.get_user_data()
+                self.scrolled_window = scrolled_window = pizza.parent
+                scrolled_window.remove(pizza)
+                self.ctrl = ctrl = webkit.WebView()
+                scrolled_window.add(ctrl)
+                scrolled_window.show_all()
+            
+            def show_html(self, str_html, url_load=False):
+                debug = False
+                verbose = True
+                if debug: print(self.ctrl.get_encoding())
+                if debug: 
+                    if verbose:
+                        print(u"str_html is: %s" % str_html)
+                    else:
+                        print(u"str_html is: %s ... %s" % (str_html[:60], 
+                                                           str_html[-60:]))
+                # NB no issue with backslashes because not in Windows ;-)
+                """
+                http://webkitgtk.org/reference/webkitgtk/stable/webkitgtk-webkitwebview.html
+                webkit_web_view_load_string         (WebKitWebView *web_view,
+                                                     const gchar *content,
+                                                     const gchar *mime_type,
+                                                     const gchar *encoding,
+                                                     const gchar *base_uri);
+                """
+                content = str_html
+                mime_type = "text/html"
+                encoding = "utf-8"
+                base_uri = "file://%s/" % mg.INT_PATH
+                self.ctrl.load_string(content, mime_type, encoding, base_uri)
+            
+            def load_url(self, url):
+                self.ctrl.load_uri(url)
                 
     elif mg.PLATFORM == mg.MAC:
         import wx.webkit        
@@ -158,6 +156,7 @@ else:
                 wx.webkit.WebKitCtrl.__init__(self, panel, -1, size=size)
             
             def show_html(self, str_html, url_load=False):
+                debug = False
                 if debug: print("str_html is: %s" % str_html)
                 # NB no issue with backslashes because not used in Windows ;-)
                 self.SetPageSource(str_html, "file://%s/" % mg.INT_PATH)

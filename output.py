@@ -63,6 +63,16 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
+def ensure_imgs_path(report_path, ext=u"_images"):
+    debug = False
+    imgs_path = os.path.join(report_path[:-len(".htm")] + ext, u"")
+    if debug: print("imgs_path: %s" % imgs_path)
+    try:
+        os.mkdir(imgs_path)
+    except OSError:
+        pass # already there
+    return imgs_path
+
 def append_divider(html, title, indiv_title=u"", item_type=u""):
     item_title = get_item_title(title, indiv_title, item_type)
     html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
@@ -94,7 +104,7 @@ def get_item_title(title, indiv_title=u"", item_type=u""):
     indiv_title_part = indiv_title[:len_b]
     if indiv_title_part:
         parts.append(indiv_title_part)
-    item_title = u" - ".join(parts)
+    item_title = u"_".join(parts)
     if debug: print(item_title)
     return item_title
 
@@ -548,6 +558,19 @@ def get_subtitles_inner_html(subtitles):
     """
     return u"<br>".join(subtitles)
 
+def percent_encode(url2esc):
+    """
+    http://kbyanc.blogspot.co.nz/2010_07_01_archive.html
+    """
+    import urllib
+    try:
+        url2esc_str = url2esc.encode("utf-8")
+        perc_url = urllib.quote(url2esc_str)
+    except Exception, e:
+        raise Exception(u"Unable to percent encode \"%s\". Orig error: %s" % 
+                        (url2esc, lib.ue(e)))
+    return perc_url
+
 def rel2abs_rpt_img_links(str_html):
     """
     Linked images in external HTML reports are in different locations from those 
@@ -568,15 +591,16 @@ def rel2abs_rpt_img_links(str_html):
         written to, and read from, anywhere (and still show the images!) in the 
         temporary GUI displays.
     """
-    debug = False
+    debug = True
     cc = config_output.get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")
+    report_path = percent_encode(report_path)
     if debug: print(u"report_path: %s" % report_path)
-    abs_display_content = str_html.replace(u"<img src='", 
-                                           u"<img src='%s" % report_path)\
-                                  .replace(u"<img src=\"", 
-                                           u"<img src=\"%s" % report_path)
+    abs_display_content = (str_html.replace(u"%s'" % mg.IMG_SRC, 
+                                         u"%s'%s" % (mg.IMG_SRC, report_path))
+                                  .replace(u"%s\"" % mg.IMG_SRC, 
+                                         u"%s\"%s" % (mg.IMG_SRC, report_path)))
     if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
                                                   abs_display_content))
     return abs_display_content
@@ -659,7 +683,7 @@ def extract_html_body(html):
     """
     Get html between the body tags. The start tag must be present.
     """
-    html_body = extract_html_content(html, start_tag=u"<body class=\"tundra\">", 
+    html_body = extract_html_content(html, start_tag=mg.BODY_START, 
                                      end_tag=u"</body>")
     return html_body
 
@@ -679,7 +703,13 @@ def extract_html_content(html, start_tag, end_tag):
     try:
         start_idx = html.index(start_tag) + len(start_tag)
     except ValueError:
-        raise my_exceptions.MalformedHtml(html)
+        if not html:
+            msg = (u"Empty report file. Please delete it. SOFA builds report "
+                   u"files as needed if you enter a report name to add output "
+                   u"to that doesn't yet exist.")
+        else:
+            msg = u"Start of broken file: %s ..." % html[:60]
+        raise my_exceptions.MalformedHtml(msg)
     try:
         end_idx = html.index(end_tag)
         extracted = html[start_idx:end_idx]
@@ -899,12 +929,13 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     add_to_report -- also append result to current report.
     """
     debug = False
+    verbose = False
     dd = mg.DATADETS_OBJ
     cc = config_output.get_cc()
     # generate script
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
-        if debug: print(css_fils)
+        if debug and verbose: print(css_fils)
         insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, 
                            new_has_dojo)
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
@@ -950,13 +981,17 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     # makechartRenumber0, a chart called mychartRenumber0, and a legend called 
     # legendMychartRenumber0, and makechartsRenumber1 etc.
     try:
-        f = codecs.open(mg.INT_REPORT_PATH, "U", "utf-8")
-        raw_results = lib.clean_bom_utf8(f.read())
-        if debug: print(raw_results)
-        f.close()
+        with codecs.open(mg.INT_REPORT_PATH, "U", "utf-8") as f:
+            raw_results = lib.clean_bom_utf8(f.read())
+            f.close()
+        if debug and verbose: print(raw_results)
+        """
+        Split raw_results so can insert messages about filters etc AFTER the 
+            header.
+        """
+        above_inner_body, inner_body = raw_results.split(mg.BODY_START)
         source = get_source(dd.db, dd.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
-        results_with_source = source + u"<p>%s</p>" % filt_msg + raw_results
     except Exception, e:
         raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read local copy of "
                         u"output report."
@@ -980,30 +1015,35 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         # If in real report, will need a relative version for actual report.
         # Make relative js absolute so dojo charts can display.
         try:
-            rel_display_content = (u"\n<p>Output also saved to '%s'</p>" %
-                            lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH]) + 
-                            results_with_source)
-            debug = False
-            if debug:
+            esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
+            rel_display_content = (above_inner_body + mg.BODY_START + 
+                        u"\n<p>Output also saved to '%s'</p>" % esc_rpt_path +  
+                        u"<p>%s</p>" % filt_msg + inner_body)
+            if debug and verbose:
                 print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
             css_links_fixed = rel2abs_css_links(rel_display_content)
-            if debug: print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_links_fixed)
+            if debug and verbose: 
+                print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_links_fixed)
             imgs_fixed = rel2abs_rpt_img_links(css_links_fixed)
-            if debug: print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
+            if debug and verbose: 
+                print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
             js_fixed = rel2abs_js_links(imgs_fixed)
-            if debug: print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
+            if debug and verbose: 
+                print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
             ie_js_fixed = rel2abs_extra_js_links(js_fixed)
-            if debug: print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
+            if debug and verbose: 
+                print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
             gui_display_content = rel2abs_css_bg_imgs(ie_js_fixed)
-            if debug: 
+            if debug and verbose: 
                 print(u"\ngui\n" + 100*u"*" + u"\n\n" + gui_display_content)
         except Exception, e:
             raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting copy of "
-                            u"output to display."
-                            u"\nOrig error: %s</p>" % lib.ue(e))
+                          u"output to display.\nOrig error: %s</p>" % lib.ue(e))
     else: # standalone internal GUI only - make everything absolute
         # need to make background css images absolute
         # need to make css and js links absolute
+        results_with_source = (above_inner_body + mg.BODY_START + source + 
+                               u"<p>%s</p>" % filt_msg + inner_body)
         try:
             css_imgs_fixed = rel2abs_css_bg_imgs(results_with_source)
             css_links_fixed = rel2abs_css_links(css_imgs_fixed)
@@ -1013,7 +1053,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
             raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting content to "
                             u"display on screen."
                             u"\nOrig error: %s</p>" % lib.ue(e))
-    if debug: print(gui_display_content)
+    if debug: 
+        print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 
+                                               gui_display_content))
     return True, gui_display_content
 
 def display_report(parent, str_content, url_load=False):

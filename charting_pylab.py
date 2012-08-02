@@ -9,6 +9,7 @@ import wx
 import my_globals as mg
 import lib
 import my_exceptions
+import output
 
 try:
     import wxmpl
@@ -33,18 +34,15 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         image source.  Remember to alternate sets of names so always the 
         freshest image showing in html (without having to reload etc).
     """
-    debug = False
+    debug = True
     kwargs = {"bbox_inches": "tight"} # hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
     if dpi:
         kwargs["dpi"] = dpi
     if add_to_report:
         # look in report folder for subfolder
-        imgs_path = os.path.join(report_name[:-len(".htm")] + u"_images", u"")
+        imgs_path = output.ensure_imgs_path(report_path=report_name, 
+                                            ext=u"_images")
         if debug: print("imgs_path: %s" % imgs_path)
-        try:
-            os.mkdir(imgs_path)
-        except OSError, e:
-            pass # already there
         n_imgs = len(os.listdir(imgs_path))
         file_name = u"%03d.png" % n_imgs
         img_path = os.path.join(imgs_path, file_name) # absolute
@@ -65,6 +63,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         args = [img_src]
         save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_src)
+    img_src = output.percent_encode(img_src)
     if debug: print("img_src: %s" % img_src)
     return img_src
 
@@ -224,7 +223,7 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)
-    html.append(u"\n<img src='%s'>" % img_src)
+    html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
     if debug: print("Just linked to %s" % img_src)
 
 

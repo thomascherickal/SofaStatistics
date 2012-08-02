@@ -177,7 +177,9 @@ TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
+IMG_SRC = u"<img src="
 BODY_BACKGROUND_COLOUR = u"#ffffff" # if not white, will have to trim PDFs twice - once with this colour, then with white
+BODY_START = u"<body class=\"tundra\">"
 DEFAULT_HDR = \
 u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
 'http://www.w3.org/TR/html4/loose.dtd'>
@@ -186,15 +188,15 @@ u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
 <meta http-equiv="P3P" content='CP="IDC DSP COR CURa ADMa OUR IND PHY ONL COM 
 STA"'>
 <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-<title>%(title)s</title>
-%(dojo_insert)s
+<title>%%(title)s</title>
+%%(dojo_insert)s
 <style type="text/css">
 <!--
-%(css)s
+%%(css)s
 -->
 </style>
 </head>
-<body class="tundra">\n""" # tundra is for dojo
+%s\n""" % BODY_START # tundra is for dojo
 JS_N_CHARTS_STR = u"var n_charts = "
 CSS_FILS_START_TAG = u"<!--css_fils"
 N_CHARTS_TAG_START = u"//n_charts_start"

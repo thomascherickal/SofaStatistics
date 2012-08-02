@@ -19,9 +19,9 @@ class MalformedDb(Exception):
         Exception.__init__(self, u"Malformed database error")
         
 class MalformedHtml(Exception):
-    def __init__(self, html):
+    def __init__(self, msg):
         Exception.__init__(self, u"Unable to extract content from malformed "
-                           u"HTML. Original HTML: %s" % html)
+                           u"HTML. %s" % msg)
 class MalformedCssDojo(Exception):
     def __init__(self, text):
         Exception.__init__(self, u"Unable to extract style from malformed "
