@@ -137,7 +137,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for i, footnote in enumerate(footnotes):
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     for chart_idx, dic_sample_tup in enumerate(dic_sample_tups):
         dic, sample = dic_sample_tup
         hist_label = dic["label"]
@@ -158,7 +158,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
-        output.append_divider(html, titles=[title,], indiv_title=hist_label)
+        output.append_divider(html, title, indiv_title=hist_label)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -287,7 +287,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     indep = True
     title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
                                 label_avg, dp, indep, css_idx, html)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
     for chart_idx, sample_det in enumerate(sample_dets):
@@ -309,7 +309,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
-        output.append_divider(html, titles=[title,], indiv_title=hist_label)
+        output.append_divider(html, title, indiv_title=hist_label)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -331,7 +331,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     indep = False
     title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
                                 label_avg, dp, indep, css_idx, html)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     # histogram
     hist_label = u"Differences between %s and %s" % (dic_a["label"], 
                                                      dic_b["label"])
@@ -354,7 +354,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" %
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, titles=[title,], indiv_title=hist_label)
+    output.append_divider(html, title, indiv_title=hist_label)
     html_str = u"\n".join(html)
     return html_str
 
@@ -428,7 +428,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     return u"".join(html)
 
 def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3, 
@@ -475,7 +475,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
         html.append(footnote % (next_ft, next_ft))
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     return u"".join(html)
 
 def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
@@ -507,7 +507,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         u"regression line.</p>")
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
@@ -531,7 +531,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, titles=[title,], indiv_title=u"scatterplot")
+    output.append_divider(html, title, indiv_title=u"scatterplot")
     return u"".join(html)
 
 def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
@@ -554,7 +554,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     dot_borders = True
@@ -571,7 +571,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, titles=[title,], indiv_title=u"scatterplot")
+    output.append_divider(html, title, indiv_title=u"scatterplot")
     return u"".join(html)
 
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
@@ -686,7 +686,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                     CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
                             var_label_a, var_label_b, val_labels_a, 
                             val_labels_b, val_labels_a_n, val_labels_b_n, 
@@ -735,7 +735,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
-    output.append_divider(html, titles=[title,], indiv_title=u"proportion")
+    output.append_divider(html, title, indiv_title=u"proportion")
     # chart 2 - freqs
     plot = boomslang.Plot()
     y_label = _("Frequency")
@@ -753,7 +753,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
     html.append(u"\n<img src='%s'>" % img_src)
-    output.append_divider(html, titles=[title,], indiv_title=u"frequency")
+    output.append_divider(html, title, indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 
                           css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
@@ -800,5 +800,5 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, titles=[title,], indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"")
     return u"".join(html)

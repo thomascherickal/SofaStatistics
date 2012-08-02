@@ -70,7 +70,7 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     """
     html = [u"<div style=\"color: 29221c; font-size: 20px;"
         u"font-family: Arial; font-weight: bold\">"]
-    if tab_type == mg.FREQS_TBL:
+    if tab_type == mg.FREQS:
         html.append(_("Add and configure rows"))
     elif tab_type == mg.CROSSTAB:
         if not has_rows and not has_cols:
@@ -81,7 +81,7 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
             html.append(_("Add and configure columns"))
         else:
             html.append(_("Waiting for enough settings ..."))
-    elif tab_type == mg.ROW_SUMM:
+    elif tab_type == mg.ROW_STATS:
         html.append(_("Add and configure columns"))
         if not has_rows:
             html.append(_(u" (and optionally rows)"))
@@ -89,7 +89,7 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
                 u"if you want the average age per country select age as the "
                 u"<u>column</u> variable (configure mean, median etc) and "
                 u"country as the <u>row</u> variable.</p>")
-    elif tab_type == mg.RAW_DISPLAY:
+    elif tab_type == mg.DATA_LIST:
         html.append(_("Add and configure columns"))
     else:
         raise Exception(u"Unknown table type")
@@ -101,11 +101,8 @@ class RptTypeOpts(config_output.Opts):
     
     def __init__(self, parent, panel):
         group_lbl = _("Table Type")
-        FREQS_LBL = _("Frequencies")
-        CROSS_LBL = _("Crosstabs")
-        ROW_STATS_LBL = _("Row Stats")
-        DATA_LIST_LBL = _("Data List")
-        tab_type_choices = (FREQS_LBL, CROSS_LBL, ROW_STATS_LBL, DATA_LIST_LBL)
+        tab_type_choices = (mg.FREQS_LBL, mg.CROSSTAB_LBL, mg.ROW_STATS_LBL, 
+                            mg.DATA_LIST_LBL)
         if not config_output.IS_MAC:
             self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
                                             choices=tab_type_choices,
@@ -115,22 +112,22 @@ class RptTypeOpts(config_output.Opts):
         else:
             bx_rpt_type = wx.StaticBox(panel, -1, group_lbl)
             szr_rad_rpt_type = wx.StaticBoxSizer(bx_rpt_type, wx.HORIZONTAL)
-            self.rad_freq = wx.RadioButton(panel, -1, FREQS_LBL, 
+            self.rad_freq = wx.RadioButton(panel, -1, mg.FREQS_LBL, 
                                            style=wx.RB_GROUP) # leads
             self.rad_freq.SetFont(mg.GEN_FONT)
             self.rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
             self.rad_freq.SetValue(True) # init (required by Mac)
             szr_rad_rpt_type.Add(self.rad_freq)
-            self.rad_cross = wx.RadioButton(panel, -1, CROSS_LBL)
+            self.rad_cross = wx.RadioButton(panel, -1, mg.CROSSTAB_LBL)
             self.rad_cross.SetFont(mg.GEN_FONT)
             self.rad_cross.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_cross, 0, wx.LEFT, 5)
-            self.rad_row_stats = wx.RadioButton(panel, -1, ROW_STATS_LBL)
+            self.rad_row_stats = wx.RadioButton(panel, -1, mg.ROW_STATS_LBL)
             self.rad_row_stats.SetFont(mg.GEN_FONT)
             self.rad_row_stats.Bind(wx.EVT_RADIOBUTTON, 
                                     parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_row_stats, 0, wx.LEFT, 5)
-            self.rad_data_list = wx.RadioButton(panel, -1, DATA_LIST_LBL)
+            self.rad_data_list = wx.RadioButton(panel, -1, mg.DATA_LIST_LBL)
             self.rad_data_list.SetFont(mg.GEN_FONT)
             self.rad_data_list.Bind(wx.EVT_RADIOBUTTON, 
                                     parent.on_tab_type_change)
@@ -284,7 +281,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.prev_demo = None
         self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
                                      txt_subtitles=self.txt_subtitles,
-                                     tab_type=mg.FREQS_TBL, # the default
+                                     tab_type=mg.FREQS, # the default
                                      colroot=self.colroot, rowroot=self.rowroot, 
                                      rowtree=self.rowtree, coltree=self.coltree, 
                                      col_no_vars_item=self.col_no_vars_item, 
@@ -415,7 +412,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         """
         self.delete_all_dim_children()
         self.col_no_vars_item = None
-        if self.tab_type == mg.FREQS_TBL:
+        if self.tab_type == mg.FREQS:
             self.add_default_column_config()
         self.setup_row_btns()
         self.setup_col_btns()
@@ -468,7 +465,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.tab_type = self.rad_opts.GetSelection() # for convenience
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
-        if self.tab_type != mg.RAW_DISPLAY:
+        if self.tab_type != mg.DATA_LIST:
             rowdescendants = lib.get_tree_ctrl_descendants(tree=self.rowtree, 
                                                            parent=self.rowroot)
             for tree_dims_item in rowdescendants:
@@ -480,7 +477,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         else:
             self.rowtree.DeleteChildren(self.rowroot)
         # link to appropriate demo table type
-        if self.tab_type != mg.RAW_DISPLAY:
+        if self.tab_type != mg.DATA_LIST:
             self.enable_raw_display_opts(enable=False)
             rpt_config = mg.RPT_CONFIG[self.tab_type]
             has_perc = rpt_config[mg.VAR_SUMMARISED_KEY]
@@ -492,7 +489,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                          rowtree=self.rowtree, coltree=self.coltree, 
                          col_no_vars_item=self.col_no_vars_item, 
                          var_labels=self.var_labels, val_dics=self.val_dics)
-            if self.tab_type == mg.FREQS_TBL:
+            if self.tab_type == mg.FREQS:
                 self.add_default_column_config()
         else:
             self.enable_raw_display_opts(enable=True)
@@ -552,7 +549,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     def too_long(self):
         # check not a massive report table. Overrides default
         too_long = False
-        if self.tab_type == mg.RAW_DISPLAY:
+        if self.tab_type == mg.DATA_LIST:
             rows_n = config_output.ConfigUI.get_rows_n(self)
             if rows_n > 500:
                 strn = locale.format('%d', rows_n, True)
@@ -607,7 +604,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.g = self.get_next_node_name()
         script_lst = []
         # set up variables required for passing into main table instantiation
-        if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
+        if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
             for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
@@ -631,7 +628,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                             parent_name=u"column",
                             child=child, child_fldname=child_fldname)
             script_lst.append(u"# Misc" + 60*u"*")
-        elif self.tab_type == mg.RAW_DISPLAY:
+        elif self.tab_type == mg.DATA_LIST:
             (col_names, col_labels, 
              col_sorting) = lib.get_col_dets(self.coltree, self.colroot, 
                                              self.var_labels)
@@ -647,7 +644,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         titles, subtitles = self.get_titles()
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         # NB the following text is all going to be run
-        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB):
+        if self.tab_type in (mg.FREQS, mg.CROSSTAB):
             show_perc = (u"True" if self.chk_show_perc_symbol.IsChecked() 
                          else u"False")
             script_lst.append(u"tab_test = dimtables.GenTable(" +
@@ -659,7 +656,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                             u"tbl_filt=tbl_filt," +
                             u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " +
                             u"tree_cols=tree_cols, show_perc=%s)" % show_perc)
-        elif self.tab_type == mg.ROW_SUMM:
+        elif self.tab_type == mg.ROW_STATS:
             script_lst.append(u"tab_test = dimtables.SummTable(" +
                             u"titles=%s," % unicode(titles) +
                             u"\n    subtitles=%s," % unicode(subtitles) +
@@ -669,7 +666,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                             u"tbl_filt=tbl_filt," +
                             u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " +
                             u"tree_cols=tree_cols)")
-        elif self.tab_type == mg.RAW_DISPLAY:
+        elif self.tab_type == mg.DATA_LIST:
             tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
             first_label = (u"True" if self.chk_first_as_label.IsChecked()
                            else u"False")
@@ -683,7 +680,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 u"subtitles": unicode(subtitles), u"dbe": dd.dbe, 
                 u"tbl": dd.tbl, u"tot_rows": tot_rows, 
                 u"first_label": first_label})
-        if self.tab_type in [mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM]:
+        if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = 5000")
             script_lst.append(u"if tab_test.get_cell_n_ok("
@@ -797,8 +794,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         "Clear all settings"
         self.txt_titles.SetValue("")        
         self.txt_subtitles.SetValue("")
-        self.rad_opts.SetSelection(mg.FREQS_TBL)
-        self.tab_type = mg.FREQS_TBL
+        self.rad_opts.SetSelection(mg.FREQS)
+        self.tab_type = mg.FREQS
         self.delete_all_dim_children()
         self.update_by_tab_type()
 
@@ -915,7 +912,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         """
         has_rows, has_cols = self.get_row_col_status()
         export_ok = False
-        if self.tab_type == mg.FREQS_TBL:
+        if self.tab_type == mg.FREQS:
             if has_rows:
                 export_ok = True
             elif not has_rows and not silent:
@@ -927,12 +924,12 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 wx.MessageBox(_("Missing row(s)"))
             elif not has_cols and not silent:
                 wx.MessageBox(_("Missing column(s)"))
-        elif self.tab_type == mg.ROW_SUMM:
+        elif self.tab_type == mg.ROW_STATS:
             if has_cols:
                 export_ok = True
             elif not silent:
                 wx.MessageBox(_("Missing column(s)"))
-        elif self.tab_type == mg.RAW_DISPLAY:
+        elif self.tab_type == mg.DATA_LIST:
             if has_cols:
                 export_ok = True
             elif not silent:

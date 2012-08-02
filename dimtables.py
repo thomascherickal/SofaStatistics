@@ -71,6 +71,14 @@ class LabelNodeTree(tree.NodeTree):
     def __init__(self):
         self.root_node = LabelNode(label=u"Root")
         self.root_node.level = 0
+    
+    def get_overall_title(self):
+        parts = []
+        for child in self.root_node.children: # only want first level
+            if child.measure is None and child.label != mg.EMPTY_ROW_ITEM:
+                parts.append(child.label)
+        overall_title = u" And ".join(parts)
+        return overall_title
 
         
 class DimNode(tree.Node):
@@ -146,11 +154,11 @@ class LabelNode(tree.Node):
         tree.Node.__init__(self, dets_dic=None, label=label)
 
     def __str__(self):
-        return self.level*2*u" " + u"Level: " + unicode(self.level) + \
-            u"; Label: " + self.label + \
-            u"; Measure: " + (self.measure if self.measure else u"None") + \
-            u"; Col Total?: " + (u"Yes" if self.is_coltot else u"No") + \
-            u"; Child labels: " + u", ".join([x.label for x in self.children])
+        return (self.level*2*u" " + u"Level: " + unicode(self.level) +
+            u"; Label: " + self.label +
+            u"; Measure: " + (self.measure if self.measure else u"None") +
+            u"; Col Total?: " + (u"Yes" if self.is_coltot else u"No") +
+            u"; Child labels: " + u", ".join([x.label for x in self.children]))
 
 
 class DimTable(object):
@@ -467,7 +475,24 @@ class LiveTable(DimTable):
         html.append(self.hdr_html)
         html.append(body_html)
         html.append(u"\n</table>")
-        output.append_divider(html, titles=self.titles, indiv_title=u"")
+        parts = []
+        overall_row_title = self.tree_row_labels.get_overall_title()
+        overall_col_title = self.tree_col_labels.get_overall_title()
+        if self.tab_type in [mg.FREQS, mg.CROSSTAB]:
+            if overall_row_title:
+                parts.append(overall_row_title)
+            if overall_col_title:
+                parts.append(overall_col_title)
+            overall_title = u" By ".join(parts)
+        elif self.tab_type == mg.ROW_STATS:
+            if overall_col_title:
+                parts.append(overall_col_title)
+            if overall_row_title:
+                parts.append(overall_row_title)
+            overall_title = u" Stats By ".join(parts)
+        title = (self.titles[0] if self.titles else overall_title)
+        output.append_divider(html, title, indiv_title=u"", 
+                              item_type=mg.TAB_TYPE2LBL[self.tab_type])
         return u"\n".join(html)
 
     def get_hdr_dets(self, row_label_cols_n, css_idx):
@@ -528,7 +553,7 @@ class LiveTable(DimTable):
                                     dim=mg.ROWDIM, 
                                     oth_dim_root=self.tree_cols.root_node)
         if tree_row_labels.get_depth() == 1 and self.row_var_optional:
-            tree_row_labels.add_child(LabelNode(label=u"Measures"))
+            tree_row_labels.add_child(LabelNode(label=mg.EMPTY_ROW_ITEM))
         return self.process_row_tree(tree_row_labels, css_idx)        
     
     def add_subtrees_to_col_label_tree(self, tree_col_labels):

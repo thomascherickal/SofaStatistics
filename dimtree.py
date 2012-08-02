@@ -45,15 +45,14 @@ class DimTree(object):
         Used in set_initial_config() when setting up a fresh item.
         """
         self.default_item_confs = {
-             mg.FREQS_TBL: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: 
-                                        mg.SORT_VALUE}, 
-                            mg.COLDIM: {MEASURES: None},},
+             mg.FREQS: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE}, 
+                        mg.COLDIM: {MEASURES: None},},
              mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE},
                            mg.COLDIM: {HAS_TOT: None, 
                                        SORT_ORDER: mg.SORT_VALUE, 
                                        MEASURES: None},},
-             mg.ROW_SUMM: {mg.ROWDIM: {HAS_TOT: None},
-                           mg.COLDIM: {MEASURES: None},}}
+             mg.ROW_STATS: {mg.ROWDIM: {HAS_TOT: None},
+                            mg.COLDIM: {MEASURES: None},}}
 
     def on_row_item_activated(self, event):
         "Activated row item in tree.  Show config dialog."
@@ -109,8 +108,8 @@ class DimTree(object):
     def get_selected_idxs(self, dim, sorted_choices):
         "Where we provide a single or multi choice dialog to select variables."
         selected_idxs = None # init
-        if ((self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM) 
-                or self.tab_type == mg.RAW_DISPLAY):
+        if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM) 
+                or self.tab_type == mg.DATA_LIST):
             dlg = wx.MultiChoiceDialog(parent=self, 
                                  message=_("Select a variable"), 
                                  caption=_("Variables"), choices=sorted_choices)
@@ -133,7 +132,7 @@ class DimTree(object):
             what our config tree looks like in the GUI) from it and then build a 
             label node tree (a tree of what we see in output) from that.
         """
-        if self.tab_type == mg.ROW_SUMM and tree == self.coltree:
+        if self.tab_type == mg.ROW_STATS and tree == self.coltree:
             min_data_type = mg.VAR_TYPE_ORD
         else:
             min_data_type = mg.VAR_TYPE_CAT
@@ -155,7 +154,7 @@ class DimTree(object):
                     wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
                     return
                 # in raw tables, can only use once
-                if self.tab_type == mg.RAW_DISPLAY:
+                if self.tab_type == mg.DATA_LIST:
                     used_in_this_dim = self.used_in_this_dim(text, tree, root)
                     if used_in_this_dim:
                         msg = _("Variable '%(text)s' cannot be used more than "
@@ -184,11 +183,11 @@ class DimTree(object):
             (e.g. col_no_vars_item) rather than a normal dim variable.
         """
         dd = mg.DATADETS_OBJ
-        default_sort = (mg.SORT_NONE if self.tab_type == mg.RAW_DISPLAY 
+        default_sort = (mg.SORT_NONE if self.tab_type == mg.DATA_LIST 
                         else mg.SORT_VALUE)
         item_conf = lib.ItemConfig(sort_order=default_sort)
         # reuse stored item config from same sort if set previously
-        if self.tab_type != mg.RAW_DISPLAY: # Data list has nothing to reuse
+        if self.tab_type != mg.DATA_LIST: # Data list has nothing to reuse
             default_item_conf = self.default_item_confs[self.tab_type]
             # availability of config options vary by table type and dimension
             # If a table type/dim doesn't have a key, the config isn't used by it.
@@ -227,7 +226,7 @@ class DimTree(object):
         oth_dim_tree = self.coltree
         oth_dim_root = self.colroot
         selected_ids = tree.GetSelections()
-        if (self.tab_type == mg.RAW_DISPLAY
+        if (self.tab_type == mg.DATA_LIST
                 and root not in selected_ids):
             msg = _("Rows can't be nested in Raw Display tables")
             wx.MessageBox(msg)
@@ -255,7 +254,7 @@ class DimTree(object):
         oth_dim_tree = self.rowtree
         oth_dim_root = self.rowroot
         selected_ids = tree.GetSelections()
-        if (self.tab_type == mg.ROW_SUMM and root not in selected_ids):
+        if (self.tab_type == mg.ROW_STATS and root not in selected_ids):
             msg = _("Columns can't be nested in Row Summary tables")
             wx.MessageBox(msg)
             return
@@ -447,8 +446,8 @@ class DimTree(object):
         title = _("Configure %s Item") % itemlbl.title()
         if no_vars_item in selected_ids:
             sort_opt_allowed = mg.SORT_NO_OPTS
-        elif self.tab_type == mg.RAW_DISPLAY:
-            sort_opt_allowed = mg.RAW_DISPLAY_SORT_OPTS
+        elif self.tab_type == mg.DATA_LIST:
+            sort_opt_allowed = mg.DATA_LIST
         elif not lib.item_has_children(tree, parent=selected_ids[0]):
             sort_opt_allowed = mg.STD_SORT_OPTS
         else:
@@ -476,8 +475,8 @@ class DimTree(object):
                 measures = rpt_config[mg.COL_MEASURES_KEY]
                 if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
                     measures.append(mg.ROWPCT)
-        if ((self.tab_type == mg.ROW_SUMM and dim == mg.COLDIM) 
-                or self.tab_type == mg.RAW_DISPLAY): # raw display is not controlled at item level but for report as a whole
+        if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM) 
+                or self.tab_type == mg.DATA_LIST): # raw display is not controlled at item level but for report as a whole
             allow_tot = False
         else:
             allow_tot = has_vars
@@ -490,7 +489,7 @@ class DimTree(object):
                             allow_tot, measures, sort_opt_allowed, rets_dic, 
                             horizontal)
             ret = dlg.ShowModal()
-            if ret == wx.ID_OK and self.tab_type != mg.RAW_DISPLAY: # never sets defaults
+            if ret == wx.ID_OK and self.tab_type != mg.DATA_LIST: # never sets defaults
                 self.update_default_item_confs(dim, rets_dic[ITEM_CONFIG])
                 self.update_demo_display()
 
@@ -507,7 +506,7 @@ class DimTree(object):
         Store settings for possible reuse.
         Only store what there is a slot for.
         """
-        if self.tab_type == mg.RAW_DISPLAY: # no reuse for config items
+        if self.tab_type == mg.DATA_LIST: # no reuse for config items
             return
         dim_item_conf = self.default_item_confs[self.tab_type][dim]
         if HAS_TOT in dim_item_conf:
@@ -546,12 +545,12 @@ class DimTree(object):
         has_rows = True if lib.get_tree_ctrl_children(tree=self.rowtree, 
                                                       item=self.rowroot) \
                                                       else False
-        if self.tab_type in (mg.FREQS_TBL, mg.CROSSTAB, mg.ROW_SUMM):
+        if self.tab_type in (mg.FREQS, mg.CROSSTAB, mg.ROW_STATS):
             self.btn_row_add.Enable(True)
             self.btn_row_add_under.Enable(has_rows)
             self.btn_row_del.Enable(has_rows)
             self.btn_row_conf.Enable(has_rows)
-        elif self.tab_type == mg.RAW_DISPLAY:
+        elif self.tab_type == mg.DATA_LIST:
             self.btn_row_add.Enable(False)
             self.btn_row_add_under.Enable(False)
             self.btn_row_del.Enable(False)
@@ -565,7 +564,7 @@ class DimTree(object):
         has_cols = True if lib.get_tree_ctrl_children(tree=self.coltree, 
                                                       item=self.colroot) \
                                                       else False
-        if self.tab_type == mg.FREQS_TBL:
+        if self.tab_type == mg.FREQS:
             self.btn_col_add.Enable(False)
             self.btn_col_add_under.Enable(False)
             self.btn_col_del.Enable(False)
@@ -575,12 +574,12 @@ class DimTree(object):
             self.btn_col_add_under.Enable(enable=has_cols)
             self.btn_col_del.Enable(enable=has_cols)
             self.btn_col_conf.Enable(enable=has_cols)
-        elif self.tab_type == mg.ROW_SUMM:
+        elif self.tab_type == mg.ROW_STATS:
             self.btn_col_add.Enable(True)
             self.btn_col_add_under.Enable(enable=False)
             self.btn_col_del.Enable(enable=has_cols)
             self.btn_col_conf.Enable(enable=has_cols)
-        elif self.tab_type == mg.RAW_DISPLAY:
+        elif self.tab_type == mg.DATA_LIST:
             self.btn_col_add.Enable(True)
             self.btn_col_add_under.Enable(False)
             self.btn_col_del.Enable(True)

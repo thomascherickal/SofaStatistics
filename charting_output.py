@@ -286,9 +286,9 @@ def get_overall_title_scatterplot(var_role_x_axis_name, var_role_y_axis_name,
     return u" ".join(title_bits)
 
 def charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          indiv_type=u""):
+                          item_type=u""):
     title = overall_title if not titles else titles[0]
-    output.append_divider(html, title, indiv_title, indiv_type)
+    output.append_divider(html, title, indiv_title, item_type)
 
 def structure_gen_data(chart_type, raw_data, xlblsdic, 
                    var_role_avg, var_role_avg_name, var_role_avg_lbls,
@@ -2606,7 +2606,7 @@ makechartRenumber00 = function(){
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          indiv_type=u"Scatterplot")
+                          intem_type=u"Scatterplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

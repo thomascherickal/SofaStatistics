@@ -63,11 +63,7 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
-def append_divider(html, titles, indiv_title=u"", item_type=u""):
-    if titles:
-        title = titles[0]
-    else:
-        title = u""
+def append_divider(html, title, indiv_title=u"", item_type=u""):
     item_title = get_item_title(title, indiv_title, item_type)
     html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
                                     mg.OUTPUT_ITEM_DIVIDER))

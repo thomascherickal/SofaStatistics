@@ -80,10 +80,17 @@ measures_long_lbl_dic = {FREQ: _("Frequency"),
                          UPPER_QUARTILE: _("Upper Quartile"),
                          }
 HAS_TOTAL = _("Total") # doubles as display label
-FREQS_TBL = 0 # indexes in tab type
+FREQS = 0 # indexes in tab type
 CROSSTAB = 1
-ROW_SUMM = 2
-RAW_DISPLAY = 3
+ROW_STATS = 2
+DATA_LIST = 3
+FREQS_LBL = _("Frequencies")
+CROSSTAB_LBL = _("Crosstabs")
+ROW_STATS_LBL = _("Row Stats")
+DATA_LIST_LBL = _("Data List")
+TAB_TYPE2LBL = {FREQS: FREQS_LBL, CROSSTAB: CROSSTAB_LBL, 
+                ROW_STATS: ROW_STATS_LBL, DATA_LIST: DATA_LIST_LBL}
+EMPTY_ROW_ITEM = u"empty_row_item"
 COL_MEASURES_KEY = u"Col measures key"
 ROWPCT_AN_OPTION_KEY = u"Rowpct an option? key"
 MEASURES_HORIZ_KEY = u"measures_horiz_key"
@@ -93,13 +100,13 @@ NEEDS_ROWS_KEY = u"needs_row_key"
 QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
     # live demo output if table has less than this records
 RPT_CONFIG = {
-    FREQS_TBL: {COL_MEASURES_KEY: [FREQ, COLPCT], 
-                VAR_SUMMARISED_KEY: False,
-                NEEDS_ROWS_KEY: True,
-                ROWPCT_AN_OPTION_KEY: True,
-                MEASURES_HORIZ_KEY: True,
-                DEFAULT_MEASURE_KEY: FREQ,
-                QUICK_IF_BELOW_KEY: 5000}, # 5000
+    FREQS: {COL_MEASURES_KEY: [FREQ, COLPCT], 
+            VAR_SUMMARISED_KEY: False,
+            NEEDS_ROWS_KEY: True,
+            ROWPCT_AN_OPTION_KEY: True,
+            MEASURES_HORIZ_KEY: True,
+            DEFAULT_MEASURE_KEY: FREQ,
+            QUICK_IF_BELOW_KEY: 5000}, # 5000
     CROSSTAB: {COL_MEASURES_KEY: [FREQ, COLPCT], 
                VAR_SUMMARISED_KEY: False,
                NEEDS_ROWS_KEY: True,
@@ -107,21 +114,21 @@ RPT_CONFIG = {
                MEASURES_HORIZ_KEY: True,
                DEFAULT_MEASURE_KEY: FREQ,
                QUICK_IF_BELOW_KEY: 4000},
-    ROW_SUMM: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
-                                  LOWER_QUARTILE, UPPER_QUARTILE, SUM],
+    ROW_STATS: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
+                                   LOWER_QUARTILE, UPPER_QUARTILE, SUM],
                VAR_SUMMARISED_KEY: True,
                NEEDS_ROWS_KEY: False,
                ROWPCT_AN_OPTION_KEY: False, 
                MEASURES_HORIZ_KEY: False,
                DEFAULT_MEASURE_KEY: MEAN,
                QUICK_IF_BELOW_KEY: 2000},
-    RAW_DISPLAY: {COL_MEASURES_KEY: [],
-                  VAR_SUMMARISED_KEY: False, 
-                  NEEDS_ROWS_KEY: False,
-                  ROWPCT_AN_OPTION_KEY: False,
-                  MEASURES_HORIZ_KEY: True,
-                  DEFAULT_MEASURE_KEY: None,
-                  QUICK_IF_BELOW_KEY: 750},
+    DATA_LIST: {COL_MEASURES_KEY: [],
+                VAR_SUMMARISED_KEY: False, 
+                NEEDS_ROWS_KEY: False,
+                ROWPCT_AN_OPTION_KEY: False,
+                MEASURES_HORIZ_KEY: True,
+                DEFAULT_MEASURE_KEY: None,
+                QUICK_IF_BELOW_KEY: 750},
   }
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
@@ -136,7 +143,6 @@ SORT_DECREASING = _(u"Decreasing")
 SORT_NO_OPTS = []
 STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
 SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
-RAW_DISPLAY_SORT_OPTS = [SORT_NONE, SORT_LBL]
 SHOW_FREQ = _(u"Frequency")
 SHOW_PERC = _(u"Percent")
 DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]

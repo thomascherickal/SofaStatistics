@@ -1,6 +1,7 @@
 
 import my_exceptions
 
+
 class Nodes(object):
     """
     Nodes functionality used by Nodes and Trees
@@ -55,13 +56,14 @@ class Nodes(object):
         for child_node in self.children:
             for node in child_node.gener_node():
                 yield node
-    
+
+
 class NodeTree(Nodes):
     """
     Object names follow standard tree data structure terminology of 
     root, nodes, subtrees, terminal nodes, parent, child, sibling, 
     and tree depth.
-    Nodes can only have one parent.  All nodes come from root.
+    Nodes can only have one parent. All nodes come from root.
     """
     
     def __init__(self):
@@ -82,7 +84,8 @@ class NodeTree(Nodes):
         l.append(unicode(self.root_node))
         l.append(self.print_children(self.root_node))
         return "\n".join(l)
-        
+
+
 class Node(Nodes):
     """
     Optionally, has details (a dictionary) and a text label.    

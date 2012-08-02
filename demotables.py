@@ -156,7 +156,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.val_dics = val_dics
         self.add_total_row = add_total_row
         self.first_col_as_label = first_col_as_label
-        self.needs_rows = mg.RPT_CONFIG[mg.RAW_DISPLAY][mg.NEEDS_ROWS_KEY]
+        self.needs_rows = mg.RPT_CONFIG[mg.DATA_LIST][mg.NEEDS_ROWS_KEY]
    
     def get_html(self, css_idx):
         """
@@ -262,7 +262,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                               dim=mg.ROWDIM)
         # If no row variables, make a special row node.
         if tree_row_labels.get_depth() == 1:
-            tree_row_labels.add_child(dimtables.LabelNode(label=u"Measures"))
+            child = dimtables.LabelNode(label=mg.EMPTY_ROW_ITEM)
+            tree_row_labels.add_child(child)
         return self.process_row_tree(tree_row_labels, css_idx)
 
     def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node, 
@@ -295,7 +296,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             tree = self.rowtree
             item_conf = tree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
-            default_sort = (mg.SORT_NONE if self.tab_type == mg.RAW_DISPLAY 
+            default_sort = (mg.SORT_NONE if self.tab_type == mg.DATA_LIST 
                             else mg.SORT_VALUE)
             item_conf = lib.ItemConfig(sort_order=default_sort)
         # 1) if col_no_vars, just the measures
