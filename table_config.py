@@ -393,7 +393,7 @@ class SafeTblNameValidator(wx.PyValidator):
         return True
 
     
-class ConfigTableDlg(settings_grid.SettingsEntryDlg):
+class DlgConfigTable(settings_grid.DlgSettingsEntry):
     
     debug = False
     styles = u"""
@@ -717,7 +717,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
     
     def insert_before(self):
         """
-        Overrides SettingsEntryDlg (only part where different is if pos == 0.
+        Overrides DlgSettingsEntry (only part where different is if pos == 0.
         Returns bolinserted, row inserted before (or None if no insertion),
             and row data (or None if no content added). 
         """
@@ -954,7 +954,7 @@ class ConfigTableDlg(settings_grid.SettingsEntryDlg):
                 return
         tblname = self.tblname_lst[0]
         # open recode dialog
-        dlg = recode.RecodeDlg(tblname, self.settings_data)
+        dlg = recode.DlgRecode(tblname, self.settings_data)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK: # run recode
             self.changes_made = True

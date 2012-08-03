@@ -41,22 +41,22 @@ NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
                        u"report.") % {u"run": RUN_LBL, 
                              u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
 
-class GetTestDlg(wx.Dialog):
+class DlgGetTest(wx.Dialog):
     
-    def __init__(self):
+    def __init__(self, title, label):
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                           title="Get Export as Images Extension", 
+                           title=title, 
                            pos=(mg.HORIZ_OFFSET+200, 300))
         #, style=wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
         #                   wx.CLIP_CHILDREN)
         szr = wx.BoxSizer(wx.VERTICAL)
-        lbl_msg1 = wx.StaticText(self, -1, u"Export extension under "
-                            u"construction. Free test version")
+        lbl_msg1 = wx.StaticText(self, -1, u"%s extension under "
+                            u"construction. Free test version" % label)
         lbl_msg2 = wx.StaticText(self, -1, u"available for a limited time from "
                                  u"%s" % mg.CONTACT)
+        subject = output.percent_encode("Please send free %s extension" % label)
         link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension", 
-            URL=u"mailto:grant@sofastatistics.com?"
-            u"subject=Please%20send%20free%20export%20as%20images%20extension")
+                    URL=u"mailto:grant@sofastatistics.com?subject=%s" % subject)
         lib.setup_link(link=link_home, link_colour="black", 
                        bg_colour=wx.NullColour)
         btn_ok = wx.Button(self, wx.ID_OK) # autobound to close event by id
@@ -69,6 +69,38 @@ class GetTestDlg(wx.Dialog):
         szr.Layout()
 
 
+class DlgGetExt(wx.Dialog):
+    
+    def __init__(self, label, comments):
+        wx.Dialog.__init__(self, parent=None, id=-1, 
+                           title=u"Extend and Improve SOFA", 
+                           pos=(mg.HORIZ_OFFSET+200, 300))
+        """
+        Now available as a SOFA extension plug-in.
+        "Get Plug-in"
+        Add button to open get_extensions page.
+        """
+        szr = wx.BoxSizer(wx.VERTICAL)
+        szr.AddSpacer(10)
+        for comment in comments:
+            szr.Add(wx.StaticText(self, -1, comment), 0, wx.LEFT|wx.RIGHT, 10)
+        btn_get_ext = wx.Button(self, -1, _(u"Get %s Plug-in") % label,
+                                size=(-1,50))
+        btn_get_ext.Bind(wx.EVT_BUTTON, self.on_btn_get_ext)
+        btn_ok = wx.Button(self, wx.ID_OK, u"No Thanks") # autobound to close event by id
+        szr.Add(btn_get_ext, 1, wx.GROW|wx.ALL, 10)
+        szr.Add(btn_ok, 0, wx.ALL, 10)
+        self.SetSizer(szr)
+        szr.SetSizeHints(self)
+        szr.Layout()
+
+    def on_btn_get_ext(self, event):        
+        import webbrowser
+        url = u"http://www.sofastatistics.com/get_extensions.php"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+        
+        
 def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
@@ -158,7 +190,7 @@ class Opts(object):
         return self.rad_opts
 
 
-class VarConfigDlg(wx.Dialog):
+class DlgVarConfig(wx.Dialog):
     """
     Shouldn't set variable details globally - it may not be appropriate to 
         autoupdate. Leave that for the parent dialog this returns to.
@@ -409,19 +441,20 @@ class ConfigUI(object):
         self.btn_view.Enable(not self.readonly)
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
-        self.btn_export_imgs = wx.Button(panel, -1, _("Export as Images"))
-        self.btn_export_imgs.SetFont(mg.BTN_FONT)
-        self.btn_export_imgs.Bind(wx.EVT_BUTTON, self.on_btn_export_imgs)
-        self.btn_export_imgs.Enable(not self.readonly)
-        self.btn_export_imgs.SetToolTipString(_(u"Export as images ready for "
-                                             u"use in reports, slideshows etc"))
+        self.btn_export_output = wx.Button(panel, -1, _("Export Output"))
+        self.btn_export_output.SetFont(mg.BTN_FONT)
+        self.btn_export_output.Bind(wx.EVT_BUTTON, self.on_btn_export_output)
+        self.btn_export_output.Enable(not self.readonly)
+        self.btn_export_output.SetToolTipString(_(u"Export as PDF or as images"
+                                                  u" ready for reports, "
+                                                  u"slideshows etc"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_output_config.Add(self.btn_run, 0)
         szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
         szr_output_config.Add(self.txt_report_file, 1)
         szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_output_config.Add(self.btn_export_imgs, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_output_config.Add(self.btn_export_output, 0, wx.LEFT|wx.RIGHT, 5)
         return szr_output_config
 
     def get_szr_output_display(self, panel, inc_clear=True):
@@ -499,7 +532,7 @@ class ConfigUI(object):
         """
         cc = get_cc()
         ret_dic = {}
-        dlg = VarConfigDlg(self, self.readonly, ret_dic, self.vdt_file)
+        dlg = DlgVarConfig(self, self.readonly, ret_dic, self.vdt_file)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
@@ -583,7 +616,7 @@ class ConfigUI(object):
     def filters(self):
         import filtselect # by now, DLG will be available to inherit from
         parent = self
-        dlg = filtselect.FiltSelectDlg(parent, self.var_labels, self.var_notes, 
+        dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
         self.refresh_vars()
@@ -626,18 +659,21 @@ class ConfigUI(object):
                  u"new_rpt": new_rpt})
         dlg_get_file.Destroy()
     
-    def on_btn_export_imgs(self, event):
+    def on_btn_export_output(self, event):
         debug = False
-        if debug:
-            dlg = GetTestDlg()
+        try:
+            if debug: raise ImportError
+            import export_output as export
+            dlg = export.DlgExportOutput()
             dlg.ShowModal()
-        else:
-            try:
-                import export_as_images as export
-                export.export2imgs()
-            except ImportError:
-                dlg = GetTestDlg()
-                dlg.ShowModal()
+        except ImportError:
+            # don't have extension installed (or working)
+            comments = [u"Make it easy to share reports as PDFs ",
+                        u"or export high-quality images ready to ",
+                        u"put into documents or slideshows"]
+            dlg = DlgGetExt(label=u"Export Output", 
+                            comments=comments)
+            dlg.ShowModal()
     
     def get_script_output(self, get_script_args, new_has_dojo, 
                           allow_add2rpt=True):

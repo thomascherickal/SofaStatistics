@@ -31,7 +31,7 @@ myEVT_CELL_MOVE = wx.NewEventType()
 EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
-class SettingsEntryDlg(wx.Dialog):
+class DlgSettingsEntry(wx.Dialog):
     def __init__(self, title, grid_size, col_dets, init_settings_data, 
                  settings_data, insert_data_func=None, 
                  row_validation_func=None):

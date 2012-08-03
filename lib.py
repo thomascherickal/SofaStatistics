@@ -23,6 +23,15 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def extract_img_path(content):
+    idx_start = content.index(mg.IMG_SRC) + len(mg.IMG_SRC) + 1
+    try:
+        idx_end = content.rindex(u"'>")
+    except ValueError:
+        idx_end = content.rindex(u'">')
+    img_path = content[idx_start: idx_end]
+    return img_path
+
 def path2url(path):
     """
     http://en.wikipedia.org/wiki/File_URI_scheme
@@ -50,7 +59,7 @@ def setup_link(link, link_colour, bg_colour):
     link.SetVisited(True)
     link.UpdateLink(True)
 
-class HelpDlg(wx.Dialog):
+class DlgHelp(wx.Dialog):
     def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 
                  help_pg):
         wx.Dialog.__init__(self, parent=parent, title=title, 

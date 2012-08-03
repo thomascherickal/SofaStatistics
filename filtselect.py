@@ -48,7 +48,7 @@ def get_val(raw_val, flds, fldname):
             return raw_val
         
 
-class FiltSelectDlg(wx.Dialog):
+class DlgFiltSelect(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         dd = mg.DATADETS_OBJ
         self.var_dets = _("Variable Details")
@@ -182,7 +182,7 @@ class FiltSelectDlg(wx.Dialog):
             settings dialog.
         """
         updated = set() # will get populated with a True to indicate update
-        dlg = projects.ListVarsDlg(self.var_labels, self.var_notes, 
+        dlg = projects.DlgListVars(self.var_labels, self.var_notes, 
                                    self.var_types, self.val_dics, updated)
         dlg.ShowModal()
         if updated:
@@ -209,7 +209,7 @@ class FiltSelectDlg(wx.Dialog):
 
     def on_btn_help(self, event):
         demo = self.get_demo()
-        dlg = lib.HelpDlg(parent=self, title=_("Filtering Help"), 
+        dlg = lib.DlgHelp(parent=self, title=_("Filtering Help"), 
                           guidance_lbl=_("Filtering Rules"), 
                           activity_lbl=u"filtering", guidance=demo, 
                           help_pg=u"filtering_data")

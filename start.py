@@ -374,7 +374,7 @@ def get_next_y_pos(start, height):
         i += 1
 
 
-class FeedbackDlg(wx.Dialog):
+class DlgFeedback(wx.Dialog):
     def __init__(self, parent):
         wx.Dialog.__init__(self, parent=parent, title=_("Feedback"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
@@ -1118,7 +1118,7 @@ class StartFrame(wx.Frame):
     def on_proj_click(self, event):
         proj_fils = projects.get_projs() # should always be the default present
         # open proj selection form
-        dlgProj = projselect.ProjSelectDlg(self, proj_fils, self.active_proj)
+        dlgProj = projselect.DlgProjSelect(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()
         event.Skip()
 
@@ -1149,7 +1149,7 @@ class StartFrame(wx.Frame):
         except Exception:
             prefs_dic = {}
         if debug: print(prefs_dic)
-        dlg = prefs.PrefsDlg(parent=self, prefs_dic_in=prefs_dic)
+        dlg = prefs.DlgPrefs(parent=self, prefs_dic_in=prefs_dic)
         dlg.ShowModal()
         event.Skip()
     
@@ -1172,7 +1172,7 @@ class StartFrame(wx.Frame):
         # open proj selection form
         import dataselect
         proj_name = self.active_proj
-        dlgData = dataselect.DataSelectDlg(self, proj_name)
+        dlgData = dataselect.DlgDataSelect(self, proj_name)
         dlgData.ShowModal()
         event.Skip()
         
@@ -1209,7 +1209,7 @@ class StartFrame(wx.Frame):
     def on_import_click(self, event):
         # open import data dialog
         import importer
-        dlg = importer.ImportFileSelectDlg(self)
+        dlg = importer.DlgImportFileSelect(self)
         dlg.ShowModal()
         event.Skip()
         
@@ -1310,7 +1310,7 @@ class StartFrame(wx.Frame):
         wx.BeginBusyCursor()
         import stats_select
         try:
-            dlg = stats_select.StatsSelectDlg(self.active_proj)
+            dlg = stats_select.DlgStatsSelect(self.active_proj)
             lib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
@@ -1359,7 +1359,7 @@ class StartFrame(wx.Frame):
         lib.safe_end_cursor()
         #LOCAL_PATH_SETUP_NEEDED = True # testing
         if LOCAL_PATH_SETUP_NEEDED: # if first use, pop up on way out
-            dlg = FeedbackDlg(self)
+            dlg = DlgFeedback(self)
             dlg.ShowModal()
         self.Destroy()
         sys.exit()

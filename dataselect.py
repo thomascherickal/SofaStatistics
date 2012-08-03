@@ -12,7 +12,7 @@ import getdata
 import table_config
 
 
-class DataSelectDlg(wx.Dialog):
+class DlgDataSelect(wx.Dialog):
     def __init__(self, parent, proj_name):
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
@@ -178,7 +178,7 @@ class DataSelectDlg(wx.Dialog):
         init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
         if debug: print("Initial table_config data: %s" % init_fld_settings)
         fld_settings = [] # can read final result at the end  
-        dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+        dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics, 
                                              tblname_lst, init_fld_settings, 
                                              fld_settings, readonly, new=False)
         ret = dlg_config.ShowModal()
@@ -221,7 +221,7 @@ class DataSelectDlg(wx.Dialog):
         init_fld_settings = [("sofa_id", "Numeric"), ("var001", "Numeric"),]
         fld_settings = [] # can read final result at the end
         if debug: print(mg.DATADETS_OBJ)
-        dlg_config = table_config.ConfigTableDlg(self.var_labels, self.val_dics, 
+        dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics, 
                                  tblname_lst, init_fld_settings, fld_settings, 
                                  readonly=False, new=True)
         ret = dlg_config.ShowModal()

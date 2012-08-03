@@ -10,7 +10,7 @@ import config_output
 import projects
 
 
-class ProjSelectDlg(wx.Dialog):
+class DlgProjSelect(wx.Dialog):
     def __init__(self, parent, projs, proj):
         wx.Dialog.__init__(self, parent=parent, title=_("Projects"),
                            size=wx.DefaultSize, 
@@ -117,7 +117,7 @@ class ProjSelectDlg(wx.Dialog):
         readonly = (self.projs[proj_sel_id] == mg.DEFAULT_PROJ)
         fil_proj = self.projs[self.drop_projs.GetSelection()]
         try:
-            dlgProj = projects.ProjectDlg(parent=self, readonly=readonly,
+            dlgProj = projects.DlgProject(parent=self, readonly=readonly,
                                           fil_proj=fil_proj)
         except Exception, e:
             wx.MessageBox(u"Unable to open project dialog for %s. "
@@ -135,7 +135,7 @@ class ProjSelectDlg(wx.Dialog):
             self.set_to_name_from_ok()
           
     def on_new_click(self, event):
-        dlg_proj = projects.ProjectDlg(parent=self, readonly=False)
+        dlg_proj = projects.DlgProject(parent=self, readonly=False)
         ret = dlg_proj.ShowModal()
         if ret == wx.ID_OK:
             self.set_to_name_from_ok()

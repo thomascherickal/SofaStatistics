@@ -22,7 +22,7 @@ STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
                TEST_TTEST_PAIRED, TEST_WILCOXON]
 
 
-class StatsSelectDlg(wx.Dialog):
+class DlgStatsSelect(wx.Dialog):
     
     def __init__(self, proj_name, var_labels=None, var_notes=None, 
                  val_dics=None):
@@ -403,7 +403,7 @@ class StatsSelectDlg(wx.Dialog):
         cc = config_output.get_cc()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        dlg = normal.NormalityDlg(self, self.var_labels, self.var_notes, 
+        dlg = normal.DlgNormality(self, self.var_labels, self.var_notes, 
                                   self.var_types, self.val_dics)
         dlg.ShowModal()
     
@@ -490,7 +490,7 @@ class StatsSelectDlg(wx.Dialog):
         updated = set() # will get populated with a True to indicate update
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        dlg = projects.ListVarsDlg(self.var_labels, self.var_notes, 
+        dlg = projects.DlgListVars(self.var_labels, self.var_notes, 
                                    self.var_types, self.val_dics, updated)
         dlg.ShowModal()
     

@@ -191,7 +191,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
     return idx
     
     
-class ListVarsDlg(wx.Dialog):
+class DlgListVars(wx.Dialog):
     def __init__(self, var_labels, var_notes, var_types, val_dics, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
@@ -267,7 +267,7 @@ class ListVarsDlg(wx.Dialog):
         return var, var_item
     
     
-class GetSettings(settings_grid.SettingsEntryDlg):
+class GetSettings(settings_grid.DlgSettingsEntry):
     
     def __init__(self, title, boltext, boldatetime, var_desc, 
                  init_settings_data, settings_data, val_type):
@@ -360,7 +360,7 @@ class GetSettings(settings_grid.SettingsEntryDlg):
         self.SetReturnCode(wx.ID_OK)
 
 
-class ProjectDlg(wx.Dialog, config_output.ConfigUI):
+class DlgProject(wx.Dialog, config_output.ConfigUI):
     def __init__(self, parent, readonly=False, fil_proj=None):
         config_output.ConfigUI.__init__(self, autoupdate=False)
         self.can_run_report = False

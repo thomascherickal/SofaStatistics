@@ -25,7 +25,7 @@ SPREADSHEET_NAME = u"spreadsheet name"
 SPREADSHEET_KEY = u"spreadsheet key"
 
 
-class GdataDownloadDlg(wx.Dialog):
+class DlgGdataDownload(wx.Dialog):
     def __init__(self, parent):
         wx.BeginBusyCursor()
         title = _("Download Google Spreadsheet")

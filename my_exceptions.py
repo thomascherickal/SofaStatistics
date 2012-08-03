@@ -30,6 +30,10 @@ class MalformedCssDojo(Exception):
 class MissingCss(Exception):
     def __init__(self, missing_css_fil):
         Exception.__init__(self, u"Missing css file \"%s\"." % missing_css_fil)
+        
+class ExportCancel(Exception):
+    def __init__(self):
+        Exception.__init__(self, u"Exporting has been cancelled.")
 
 class ImportCancel(Exception):
     def __init__(self):

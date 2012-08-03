@@ -85,12 +85,12 @@ def get_part_dets(part, ideal):
 
 def get_item_title(title, indiv_title=u"", item_type=u""):
     """
-    45 characters is max for title - plus the split if needed, plus a number 
+    Limits maximum characters for title - plus the split if needed, plus a number 
         at the start and the image extension at the end.
     """
     debug = False
-    ideal_a = 32
-    ideal_b = 13
+    ideal_a = 35
+    ideal_b = 15
     len_a, extra4b = get_part_dets(part=title, ideal=ideal_a)
     len_b, extra4a = get_part_dets(part=indiv_title, ideal=ideal_b)
     len_a += extra4a
@@ -561,10 +561,11 @@ def get_subtitles_inner_html(subtitles):
 def percent_encode(url2esc):
     """
     http://kbyanc.blogspot.co.nz/2010_07_01_archive.html
+    http://stackoverflow.com/questions/2742852/unicode-characters-in-urls
     """
     import urllib
     try:
-        url2esc_str = url2esc.encode("utf-8")
+        url2esc_str = url2esc.encode("utf-8") #essential to encode first
         perc_url = urllib.quote(url2esc_str)
     except Exception, e:
         raise Exception(u"Unable to percent encode \"%s\". Orig error: %s" % 
@@ -591,7 +592,7 @@ def rel2abs_rpt_img_links(str_html):
         written to, and read from, anywhere (and still show the images!) in the 
         temporary GUI displays.
     """
-    debug = True
+    debug = False
     cc = config_output.get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")

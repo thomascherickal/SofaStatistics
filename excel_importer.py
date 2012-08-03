@@ -79,7 +79,7 @@ class ExcelImporter(importer.FileImporter):
                 prob_has_hdr = self.has_header_row(row1_types, row2_types)
             except Exception:
                 prob_has_hdr = False
-            dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, strdata,
+            dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, strdata,
                                                  prob_has_hdr)
             ret = dlg.ShowModal()
             if debug: print(unicode(ret))

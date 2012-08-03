@@ -97,7 +97,7 @@ class OdsImporter(importer.FileImporter):
                     prob_has_hdr = self.has_header_row(strdata)
                 except Exception:
                     prob_has_hdr = False
-                dlg = importer.HasHeaderGivenDataDlg(self.parent, self.ext, 
+                dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, 
                                                      strdata, prob_has_hdr)
                 ret = dlg.ShowModal()
                 if debug: print(unicode(ret))

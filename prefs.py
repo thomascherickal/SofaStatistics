@@ -11,7 +11,7 @@ import config_output
 import config_globals
 
 
-class PrefsDlg(wx.Dialog):
+class DlgPrefs(wx.Dialog):
     def __init__(self, parent, prefs_dic_in):
         """
         prefs_dic_in -- expects a dict, even an empty one. If empty, or with 

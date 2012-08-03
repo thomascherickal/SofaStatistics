@@ -22,7 +22,7 @@ import full_html
 import projects
 
 
-class NormalityDlg(wx.Dialog, config_output.ConfigUI):
+class DlgNormality(wx.Dialog, config_output.ConfigUI):
     
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
@@ -403,7 +403,7 @@ class NormalityDlg(wx.Dialog, config_output.ConfigUI):
         tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
         hist_label = u"Histogram of %s\n%s" % (self.data_label, filt_msg)
-        dlg = charting_pylab.HistDlg(parent=self, vals=self.vals, 
+        dlg = charting_pylab.DlgHist(parent=self, vals=self.vals, 
                                      var_label=self.data_label, 
                                      hist_label=hist_label)
         dlg.ShowModal()

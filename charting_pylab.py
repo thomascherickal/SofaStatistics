@@ -34,7 +34,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         image source.  Remember to alternate sets of names so always the 
         freshest image showing in html (without having to reload etc).
     """
-    debug = True
+    debug = False
     kwargs = {"bbox_inches": "tight"} # hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
     if dpi:
         kwargs["dpi"] = dpi
@@ -227,7 +227,7 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     if debug: print("Just linked to %s" % img_src)
 
 
-class HistDlg(wxmpl.PlotDlg):
+class DlgHist(wxmpl.PlotDlg):
     def __init__(self, parent, vals, var_label, hist_label):
         wxmpl.PlotDlg.__init__(self, parent, 
             title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 

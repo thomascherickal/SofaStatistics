@@ -26,7 +26,7 @@ FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
 ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
 
-class FixMismatchDlg(wx.Dialog):
+class DlgFixMismatch(wx.Dialog):
     # weird bugs when using stdbtndialog here and calling dlg multiple times
     # actual cause not known but buggy original had a setup_btns method
     def __init__(self, fldname, fldtype_choices, fldtypes, 
@@ -150,7 +150,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
         if mg.VAL_DATE in main_type_set:
             fldtype_choices.append(mg.FLDTYPE_DATE)
         if not testing:
-            dlg = FixMismatchDlg(fldname=fldname, 
+            dlg = DlgFixMismatch(fldname=fldname, 
                             fldtype_choices=fldtype_choices, fldtypes=fldtypes, 
                             faulty2missing_fld_list=faulty2missing_fld_list, 
                             details=first_mismatch, assessing_sample=True)
@@ -583,7 +583,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         con.commit()
         progbar.SetValue(0)
         # go through again or raise an exception
-        dlg = FixMismatchDlg(fldname=e.fldname, 
+        dlg = DlgFixMismatch(fldname=e.fldname, 
                              fldtype_choices=[e.expected_fldtype,], 
                              fldtypes=fldtypes, 
                              faulty2missing_fld_list=faulty2missing_fld_list, 
@@ -682,7 +682,7 @@ def get_content_dets(strdata):
     return content, content_height
 
 
-class HasHeaderDlg(wx.Dialog):
+class DlgHasHeader(wx.Dialog):
     def __init__(self, parent, ext):
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
                            size=(550, 300), style=wx.CAPTION|wx.SYSTEM_MENU, 
@@ -747,7 +747,7 @@ class HasHeaderDlg(wx.Dialog):
         # Prebuilt dialogs presumably do this internally.
     
     
-class HasHeaderGivenDataDlg(wx.Dialog):
+class DlgHasHeaderGivenData(wx.Dialog):
     def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
@@ -821,7 +821,7 @@ class FileImporter(object):
             self.has_header = True
             return True
         else:
-            dlg = HasHeaderDlg(self.parent, self.ext)
+            dlg = DlgHasHeader(self.parent, self.ext)
             ret = dlg.ShowModal()
             if debug: print(unicode(ret))
             if ret == wx.ID_CANCEL:
@@ -831,7 +831,7 @@ class FileImporter(object):
                 return True
     
     
-class ImportFileSelectDlg(wx.Dialog):
+class DlgImportFileSelect(wx.Dialog):
     def __init__(self, parent):
         """
         Make selection based on file extension 
@@ -961,7 +961,7 @@ class ImportFileSelectDlg(wx.Dialog):
     
     def on_btn_google(self, event):
         "Open dialog and take the file selected (if any)"
-        dlg_gdata = gdata_downloader.GdataDownloadDlg(self)
+        dlg_gdata = gdata_downloader.DlgGdataDownload(self)
         # MUST have a parent to enforce modal in Windows
         ret = dlg_gdata.ShowModal()
         downloaded = False

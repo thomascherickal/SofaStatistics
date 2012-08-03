@@ -208,7 +208,7 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
                              "existing_labels": existing_labels})
 
 
-class RecodeDlg(settings_grid.SettingsEntryDlg):
+class DlgRecode(settings_grid.DlgSettingsEntry):
     
     def __init__(self, tblname, fld_settings):
         """
@@ -342,7 +342,7 @@ class RecodeDlg(settings_grid.SettingsEntryDlg):
             "10+ to 99 you would have one line with \n\n    \"MIN TO 5\" as "
             "From and 99 as To \n\n        and another line with\n\n"
             "    \"10 TO MAX\" as From and 99 as To.")
-        dlg = lib.HelpDlg(parent=self, title=_("Recoding Help"), 
+        dlg = lib.DlgHelp(parent=self, title=_("Recoding Help"), 
                           guidance_lbl=_("Recoding Rules"), 
                           activity_lbl=u"recoding", guidance=rules, 
                           help_pg=u"recoding_data")
