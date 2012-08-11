@@ -223,7 +223,7 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)
-    html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     if debug: print("Just linked to %s" % img_src)
 
 

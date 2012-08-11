@@ -177,7 +177,12 @@ TBL_TITLE_START = u"<!--_title_start-->"
 TBL_TITLE_END = u"<!--_title_end-->"
 TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
 TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
-IMG_SRC = u"<img src="
+IMG_SRC_START = u"<img src='"
+IMG_SRC_END = u"'>"
+PERC_ENCODED_BACKSLASH = u"%5C"
+PERC_ENCODED_COLON = u"%3A"
+FILE_URL_START_GEN = u"file://"
+FILE_URL_START_WIN = u"file:///"
 BODY_BACKGROUND_COLOUR = u"#ffffff" # if not white, will have to trim PDFs twice - once with this colour, then with white
 BODY_START = u"<body class=\"tundra\">"
 DEFAULT_HDR = \

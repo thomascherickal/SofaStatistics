@@ -18,7 +18,7 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
     html = fil.read()
     html = html.replace("%title%", title)
     html = html.replace("%content%", content)
-    html = html.replace("%root%", "file://" + root)
+    html = html.replace("%root%", mg.FILE_URL_START_GEN + root)
     fil.close()
     #save copy of html content (for printing)
     if print_folder:

@@ -154,7 +154,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-            html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+            html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
@@ -305,7 +305,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-            html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+            html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
@@ -345,7 +345,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
                                    False, grid_bg, item_colours[0], line_colour)
         img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-        html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+        html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                     (hist_label, lib.ue(e)))
@@ -734,7 +734,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                     propns_as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
-    html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+    html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"proportion")
     # chart 2 - freqs
     plot = boomslang.Plot()
@@ -752,7 +752,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                     val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
-    html.append(u"\n%s'%s'>" % (mg.IMG_SRC, img_src))
+    html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 

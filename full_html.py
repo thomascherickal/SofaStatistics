@@ -51,16 +51,25 @@ else:
             
             def back2forwards_slashes(self, mystr):
                 """
-                But not LBL_LINE_BREAK_JS.  Don't turn \n in JS to /n!
+                But not LBL_LINE_BREAK_JS. Don't turn \n in JS to /n!
                 """
                 debug = False
                 safe_str = mystr.replace(mg.LBL_LINE_BREAK_JS, 
                                          u"<label_line_break>")
-                new_str = safe_str.replace("\\", "/")
+                new_str = safe_str.replace(u"\\", u"/")
                 final_str = new_str.replace(u"<label_line_break>", 
                                             mg.LBL_LINE_BREAK_JS)
                 if debug: print(final_str)
                 return final_str
+            
+            def fix_bad_perc_encodings(self, mystr):
+                """
+                IE6 at least chokes on C%3A%5CDocuments but is OK with 
+                    C:/Documents.
+                """
+                fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
+                             replace(mg.PERC_ENCODED_COLON, u":"))
+                return fixed_str
             
             def show_html(self, str_html, url_load=False):
                 """
@@ -72,12 +81,12 @@ else:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
-                    html2write = self.back2forwards_slashes(\
-                                    output.rel2abs_css_links(\
-                                    str_html))
+                    html2write = self.fix_bad_perc_encodings(
+                        self.back2forwards_slashes(
+                            output.rel2abs_css_links(str_html)))
                     f.write(html2write)
                     f.close()
-                    self.LoadUrl(u"file:///%s" % url_fil)
+                    self.LoadUrl(u"%s%s" % (mg.FILE_URL_START_WIN, url_fil))
                 else:
                     html2load = self.back2forwards_slashes(str_html)
                     self.LoadString(html2load)
@@ -141,7 +150,7 @@ else:
                 content = str_html
                 mime_type = "text/html"
                 encoding = "utf-8"
-                base_uri = "file://%s/" % mg.INT_PATH
+                base_uri = "%s%s/" % (mg.FILE_URL_START_GEN, mg.INT_PATH)
                 self.ctrl.load_string(content, mime_type, encoding, base_uri)
             
             def load_url(self, url):
@@ -159,7 +168,8 @@ else:
                 debug = False
                 if debug: print("str_html is: %s" % str_html)
                 # NB no issue with backslashes because not used in Windows ;-)
-                self.SetPageSource(str_html, "file://%s/" % mg.INT_PATH)
+                self.SetPageSource(str_html, "%s%s/" % (mg.FILE_URL_START_GEN,
+                                                        mg.INT_PATH))
             
             def load_url(self, url):
                 self.LoadURL(url)

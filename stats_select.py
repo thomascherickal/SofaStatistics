@@ -226,15 +226,13 @@ class DlgStatsSelect(wx.Dialog):
                  pos=(self.lst_left, self.lst_top), 
                  size=(self.lst_width+self.scroll_allowance, self.lst_height),
                  style=wx.LC_REPORT|wx.LC_HRULES|wx.LC_SINGLE_SEL)
-        il = wx.ImageList(16, 16, mask=False)
+        il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
         tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"tick"
         for img in [tick, u"blank"]:
             bmp_pth = os.path.join(mg.SCRIPT_PATH, u"images", u"%s.png" % img)
             bmp = wx.Bitmap(bmp_pth, wx.BITMAP_TYPE_PNG)
-            #mask = wx.Mask(bmp, "red")
-            #bmp.SetMask(mask)
             il.Add(bmp)
         self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lst_tests.InsertColumn(0, _("Statistical Test"))

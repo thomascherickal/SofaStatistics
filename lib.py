@@ -13,6 +13,7 @@ import os
 import random
 import re
 import time
+import urllib
 import wx
 
 # only import my_globals from local modules
@@ -23,28 +24,13 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
-def extract_img_path(content):
-    idx_start = content.index(mg.IMG_SRC) + len(mg.IMG_SRC) + 1
-    try:
-        idx_end = content.rindex(u"'>")
-    except ValueError:
-        idx_end = content.rindex(u'">')
+def extract_img_path(content, url=False):
+    idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
+    idx_end = content.rindex(mg.IMG_SRC_END)
     img_path = content[idx_start: idx_end]
+    if not url:
+        img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
     return img_path
-
-def path2url(path):
-    """
-    http://en.wikipedia.org/wiki/File_URI_scheme
-    Two slashes after file:
-    then either host and a slash or just a slash
-    then the full path e.g. /home/g/etc
-    *nix platforms start with a forward slash
-    """
-    if mg.PLATFORM == mg.WINDOWS:
-        url = u"file:///%s" % path
-    else:
-        url = u"file://%s" % path
-    return url
 
 def setup_link(link, link_colour, bg_colour):
     link.SetColours(link=link_colour, visited=link_colour, 

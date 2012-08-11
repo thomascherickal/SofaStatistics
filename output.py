@@ -52,6 +52,7 @@ import codecs
 import os
 import time
 import traceback
+import urllib
 import wx
 
 import my_globals as mg
@@ -85,8 +86,9 @@ def get_part_dets(part, ideal):
 
 def get_item_title(title, indiv_title=u"", item_type=u""):
     """
-    Limits maximum characters for title - plus the split if needed, plus a number 
-        at the start and the image extension at the end.
+    Limits maximum characters for title - plus the split if needed.
+    A separate process adds a number at the start and the image extension at the 
+        end.
     """
     debug = False
     ideal_a = 35
@@ -563,7 +565,6 @@ def percent_encode(url2esc):
     http://kbyanc.blogspot.co.nz/2010_07_01_archive.html
     http://stackoverflow.com/questions/2742852/unicode-characters-in-urls
     """
-    import urllib
     try:
         url2esc_str = url2esc.encode("utf-8") #essential to encode first
         perc_url = urllib.quote(url2esc_str)
@@ -577,13 +578,13 @@ def rel2abs_rpt_img_links(str_html):
     Linked images in external HTML reports are in different locations from those 
         in internal standalone GUI output. 
         The former are in subfolders of the reports folder ready to be shared 
-        with other people alongside the report file which refers to them.  The 
+        with other people alongside the report file which refers to them. The 
         latter are in the internal folder only.
     The internal-only images/js can be referred to by the GUI with reference to 
         their absolute path.
     The report-associated images/js, can be referred to by their report in a 
         relative sense, but not by the GUI which has a different relative 
-        location than the report.  That is why it must use an absolute path to 
+        location than the report. That is why it must use an absolute path to 
         the images/js (stored in a particular report's subfolder).
     So this functionality is only needed for GUI display of report-associated 
         images/js.
@@ -596,15 +597,30 @@ def rel2abs_rpt_img_links(str_html):
     cc = config_output.get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")
-    report_path = percent_encode(report_path)
+    file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
+                      else mg.FILE_URL_START_GEN)
+    report_path = file_url_start + percent_encode(report_path)
     if debug: print(u"report_path: %s" % report_path)
-    abs_display_content = (str_html.replace(u"%s'" % mg.IMG_SRC, 
-                                         u"%s'%s" % (mg.IMG_SRC, report_path))
-                                  .replace(u"%s\"" % mg.IMG_SRC, 
-                                         u"%s\"%s" % (mg.IMG_SRC, report_path)))
+    abs_display_content = (str_html.replace(u"%s" % mg.IMG_SRC_START, 
+                                            u"%s%s" % (mg.IMG_SRC_START, 
+                                                       report_path)))
     if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
                                                   abs_display_content))
     return abs_display_content
+
+def path2url(path):
+    """
+    http://en.wikipedia.org/wiki/File_URI_scheme
+    Two slashes after file:
+    then either host and a slash or just a slash
+    then the full path e.g. /home/g/etc
+    *nix platforms start with a forward slash
+    """
+    if mg.PLATFORM == mg.WINDOWS:
+        url = u"%s%s" % (mg.FILE_URL_START_WIN, path)
+    else:
+        url = u"%s%s" % (mg.FILE_URL_START_GEN, path)
+    return url
 
 def rel2abs_rpt_extras(strhtml, tpl):
     """
@@ -612,7 +628,7 @@ def rel2abs_rpt_extras(strhtml, tpl):
     Will run OK when displayed internally in GUI.
     """ 
     debug = False
-    url = lib.path2url(mg.REPORT_EXTRAS_PATH)
+    url = path2url(mg.REPORT_EXTRAS_PATH)
     abs_display_content = strhtml.replace(tpl % mg.REPORT_EXTRAS_FOLDER, 
                                           tpl % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
