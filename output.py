@@ -597,9 +597,10 @@ def rel2abs_rpt_img_links(str_html):
     cc = config_output.get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")
-    file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
-                      else mg.FILE_URL_START_GEN)
-    report_path = file_url_start + percent_encode(report_path)
+    #file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
+    #                  else mg.FILE_URL_START_GEN)
+    #report_path = file_url_start + percent_encode(report_path)
+    report_path = percent_encode(report_path)
     if debug: print(u"report_path: %s" % report_path)
     abs_display_content = (str_html.replace(u"%s" % mg.IMG_SRC_START, 
                                             u"%s%s" % (mg.IMG_SRC_START, 

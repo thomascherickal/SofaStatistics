@@ -66,6 +66,10 @@ else:
                 """
                 IE6 at least chokes on C%3A%5CDocuments but is OK with 
                     C:/Documents.
+                IE6 can't cope with non-English text percent encoded or 
+                    otherwise. See http://ihateinternetexplorer.com/
+                These steps made a difference in the wxPython IE-based window
+                    on XP. Crazy.
                 """
                 fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
                              replace(mg.PERC_ENCODED_COLON, u":"))
@@ -86,7 +90,9 @@ else:
                             output.rel2abs_css_links(str_html)))
                     f.write(html2write)
                     f.close()
-                    self.LoadUrl(u"%s%s" % (mg.FILE_URL_START_WIN, url_fil))
+                    html2load = u"%s%s" % (mg.FILE_URL_START_WIN, 
+                                           self.back2forwards_slashes(url_fil))
+                    self.LoadUrl(html2load)
                 else:
                     html2load = self.back2forwards_slashes(str_html)
                     self.LoadString(html2load)
