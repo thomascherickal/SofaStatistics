@@ -1469,7 +1469,7 @@ def get_boxplot_script(rotate, css_fil, css_idx):
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     rotate=%(rotate)s)
-x_title = var_role_cat_name
+x_title = var_role_cat_name if var_role_cat_name else u""
 y_title = var_role_desc_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
             any_missing_boxes, x_title, y_title, var_role_series_name, 

@@ -727,7 +727,7 @@ CHART_CONFIG = {
              VAR_ROLE_KEY: VAR_ROLE_DESC}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
-             INC_SELECT_KEY: False,
+             INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_SERIES_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,

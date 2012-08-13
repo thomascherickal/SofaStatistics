@@ -540,23 +540,27 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         series_vals = [None,] # Got to have something to loop through ;-)
     # 2) Get all cat vals needed for x-axis i.e. all those appearing in any rows 
     # where all fields are non-missing.
-    and_series_filt = (u"" if not var_role_series 
-                       else " AND %(var_role_series)s IS NOT NULL " % sql_dic)
-    sql_dic[u"and_series_filt"] = and_series_filt
-    SQL_cat_vals = """SELECT %(var_role_cat)s
-        FROM %(tbl)s 
-        WHERE %(var_role_cat)s IS NOT NULL
-        AND %(var_role_desc)s IS NOT NULL
-        %(and_series_filt)s
-        %(and_tbl_filt)s 
-        GROUP BY %(var_role_cat)s""" % sql_dic
-    if debug: print(SQL_cat_vals)
-    cur.execute(SQL_cat_vals)
-    cat_vals = [x[0] for x in cur.fetchall()]
-    if debug: print(cat_vals)
-    if len(cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
-        raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
+    if var_role_cat:
+        and_series_filt = (u"" if not var_role_series 
+                           else " AND %(var_role_series)s IS NOT NULL " % 
+                           sql_dic)
+        sql_dic[u"and_series_filt"] = and_series_filt
+        SQL_cat_vals = """SELECT %(var_role_cat)s
+            FROM %(tbl)s 
+            WHERE %(var_role_cat)s IS NOT NULL
+            AND %(var_role_desc)s IS NOT NULL
+            %(and_series_filt)s
+            %(and_tbl_filt)s 
+            GROUP BY %(var_role_cat)s""" % sql_dic
+        if debug: print(SQL_cat_vals)
+        cur.execute(SQL_cat_vals)
+        cat_vals = [x[0] for x in cur.fetchall()]
+        if debug: print(cat_vals)
+        if len(cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
+            raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
                                             max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
+    else:
+        cat_vals = [1,] # the first boxplot is always 1 on the x-axis
     # init
     ymin = None # init
     ymax = 0
@@ -579,26 +583,30 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         boxdet_series = []
         for i, cat_val in enumerate(cat_vals, 1): # e.g. "Mt Albert Grammar", 
                 # "Epsom Girls Grammar", "Hebron Christian College", ...
-            if first_chart_by: # build xaxis_dets once
-                x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
-                (x_val_split_lbl, 
-                 actual_lbl_width,
-                 n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                         max_width=17, dojo=True, rotate=rotate)
-                if actual_lbl_width > max_lbl_len:
-                    max_lbl_len = actual_lbl_width
-                if n_lines > max_lbl_lines:
-                    max_lbl_lines = n_lines
-                xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
-            # Now see if any desc values for particular series_val and cat_val
-            cat_val_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                                   fldname=var_role_cat, 
-                                                   val=cat_val)
-            sql_dic[u"cat_val_filt"] = cat_val_filt
+            if var_role_cat:
+                if first_chart_by: # build xaxis_dets once
+                    x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
+                    (x_val_split_lbl, 
+                     actual_lbl_width,
+                     n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                                             max_width=17, dojo=True, rotate=rotate)
+                    if actual_lbl_width > max_lbl_len:
+                        max_lbl_len = actual_lbl_width
+                    if n_lines > max_lbl_lines:
+                        max_lbl_lines = n_lines
+                    xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
+                # Now see if any desc values for particular series_val and cat_val
+                and_cat_val_filt = u" AND %s" % getdata.make_fld_val_clause(dbe, 
+                                                  dd.flds, fldname=var_role_cat, 
+                                                  val=cat_val)
+            else:
+                xaxis_dets.append((i, u"''", "''"))
+                and_cat_val_filt = u""
+            sql_dic[u"and_cat_val_filt"] = and_cat_val_filt
             SQL_vals2desc = """SELECT %(var_role_desc)s
             FROM %(tbl)s 
             WHERE %(var_role_desc)s IS NOT NULL
-            AND %(cat_val_filt)s
+            %(and_cat_val_filt)s
             %(and_series_val_filt)s
             %(and_tbl_filt)s""" % sql_dic
             cur.execute(SQL_vals2desc)
@@ -669,7 +677,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     xmin = 0.5
     xmax = i+0.5
     ymin, ymax = get_optimal_min_max(ymin, ymax)
-    xaxis_dets.append((xmax, u"''", u"''"))
+    #xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_lbl_len, max_lbl_lines,
             overall_title, chart_dets, any_missing_boxes)
@@ -1049,11 +1057,12 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     n_series = len(series_dets)
     PADDING_PXLS = 50
     MIN_PXLS_PER_BOX = 30
-    MIN_CHART_WIDTH = 400
+    MIN_CHART_WIDTH = 200 if len(xaxis_dets) == 1 else 400 # only one box
     min_pxls_per_cat = MIN_PXLS_PER_BOX*n_series
     width_per_cat = (max([min_pxls_per_cat, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)
-    width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
+    width_x_title = (len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS if x_title 
+                     else 0)
     width = max([width_per_cat*n_cats, width_x_title, MIN_CHART_WIDTH])
     minor_ticks = u"true" if n_cats > 10 else u"false"
     if n_cats <= 5:
@@ -2415,7 +2424,12 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         minor_ticks) = get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, 
                                            chart_dets)
     yfontsize = xfontsize
-    left_axis_lbl_shift = 20 if width > 1200 else 10 # gets squeezed
+    if width > 1200:
+        left_axis_lbl_shift = 20
+    elif len(xaxis_dets) == 1:
+        left_axis_lbl_shift = 20
+    else:
+        left_axis_lbl_shift = 10 # gets squeezed
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
@@ -2606,7 +2620,7 @@ makechartRenumber00 = function(){
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          intem_type=u"Scatterplot")
+                          item_type=u"Scatterplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

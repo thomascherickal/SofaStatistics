@@ -46,8 +46,8 @@ else:
         class FullHTML(ie.IEHtmlWindow):
         
             def __init__(self, panel, parent, size):
-                ie.IEHtmlWindow.__init__(self, panel, -1, 
-                                         size=wx.Size(size[0], size[1]))
+                ie.IEHtmlWindow.__init__(self, panel, -1, size=wx.Size(size[0], 
+                                                                       size[1]))
             
             def back2forwards_slashes(self, mystr):
                 """
@@ -67,7 +67,9 @@ else:
                 IE6 at least chokes on C%3A%5CDocuments but is OK with 
                     C:/Documents.
                 IE6 can't cope with non-English text percent encoded or 
-                    otherwise. See http://ihateinternetexplorer.com/
+                    otherwise. See http://ihateinternetexplorer.com/. The IE 
+                    widget on Windows 7 is fine though so time will fix this 
+                    problem.
                 These steps made a difference in the wxPython IE-based window
                     on XP. Crazy.
                 """
