@@ -80,6 +80,7 @@ class ClusteredBars(PlotInfo):
             attrs = bar.getAttributes()
             
             currHandle = axis.bar(xVals, bar.yValues, **attrs)
+            
             # Only give handle to first rectangle in bar
             plotHandles.append(currHandle[0])
             plotLabels.append(bar.label)

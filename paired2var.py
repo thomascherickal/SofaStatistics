@@ -220,10 +220,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             self.refresh_vars()
 
     def refresh_vars(self):
-        var_a, var_b = self.get_vars()
-        fld_choice_items = self.get_group_choices()
-        self.setup_group_a(fld_choice_items, var_a)
-        self.setup_group_b(fld_choice_items, var_b)
+        self.setup_var_dropdowns()
         self.update_defaults()
         self.update_phrase()
         

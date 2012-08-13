@@ -154,7 +154,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-            html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+            html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
+                                       mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
@@ -305,7 +306,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-            html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+            html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
+                                       mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                         (hist_label, lib.ue(e)))
@@ -345,7 +347,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
                                    False, grid_bg, item_colours[0], line_colour)
         img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
-        html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+        html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                     (hist_label, lib.ue(e)))
@@ -693,6 +695,18 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                             add_to_report, report_name, html)
     return u"".join(html)
 
+def get_xaxis_fontsize(val_labels):
+    maxlen = max(len(x) for x in val_labels)
+    if maxlen > 15:
+        fontsize = 7
+    elif maxlen > 10:
+        fontsize = 9
+    elif maxlen > 7:
+        fontsize = 10
+    else:
+        fontsize = 11
+    return fontsize
+
 def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs, 
                             var_label_a, var_label_b, val_labels_a, 
                             val_labels_b, val_labels_a_n, val_labels_b_n, 
@@ -727,6 +741,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
+    plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
                                     plot, var_label_a, y_label, val_labels_a_n, 
@@ -734,7 +749,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                     propns_as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
-    html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"proportion")
     # chart 2 - freqs
     plot = boomslang.Plot()
@@ -745,6 +760,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setDimensions(7) # allow height to be set by golden ratio
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
+    plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
     # only need 6 because program limits to that. See core_stats.get_obs_exp().
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
@@ -752,7 +768,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                                     val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                              save_func=plot.save, dpi=None)
-    html.append(u"\n%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 

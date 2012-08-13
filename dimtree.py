@@ -444,7 +444,8 @@ class DimTree(object):
         # ok to open config dlg
         rpt_config = mg.RPT_CONFIG[self.tab_type]
         title = _("Configure %s Item") % itemlbl.title()
-        if no_vars_item in selected_ids:
+        if (no_vars_item in selected_ids 
+                or (self.tab_type == mg.ROW_STATS and dim == mg.COLDIM)):
             sort_opt_allowed = mg.SORT_NO_OPTS
         elif self.tab_type == mg.DATA_LIST:
             sort_opt_allowed = mg.DATA_LIST
