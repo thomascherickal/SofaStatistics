@@ -728,8 +728,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         child_node_label = self.g.next()
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
-        measures = u", ".join([(u"mg." + \
-                               mg.script_export_measures_dic[x]) for \
+        measures = u", ".join([(u"mg." +
+                               mg.script_export_measures_dic[x]) for
                                x in measures_lst])
         if measures:
             measures_arg = u", \n    measures=[%s]" % measures
@@ -742,19 +742,19 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         sort_order_arg = u", \n    sort_order=u\"%s\"" % \
             item_conf.sort_order
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
-        fldname = _("Column configuration") if child_fldname is None \
-                                             else child_fldname
+        fldname = (_("Column configuration") if child_fldname is None
+                   else child_fldname)
         script_lst.append(u"# Defining %s (\"%s\")" % (child_node_label, 
                                                        fldname))
-        script_lst.append(child_node_label + \
-                          u" = dimtables.DimNode(" + fld_arg + \
-                          u"\n    label=u\"%s\"," % unicode(var_label) + \
-                          u"\n    labels=" + unicode(labels_dic) + \
-                          measures_arg + tot_arg + sort_order_arg + \
+        script_lst.append(child_node_label +
+                          u" = dimtables.DimNode(" + fld_arg +
+                          u"\n    label=u\"%s\"," % unicode(var_label) +
+                          u"\n    labels=" + unicode(labels_dic) +
+                          measures_arg + tot_arg + sort_order_arg +
                           numeric_arg + u")")
         if parent_node_label in (u"tree_rows", u"tree_cols"):
-            parent_name = u"rows" if parent_node_label == u"tree_rows" \
-                else u"columns"          
+            parent_name = (u"rows" if parent_node_label == u"tree_rows"
+                           else u"columns")          
             script_lst.append(u"# Adding \"%s\" to %s" % (fldname, 
                                                           parent_name))
         else:

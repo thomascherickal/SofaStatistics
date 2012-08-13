@@ -262,7 +262,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                               dim=mg.ROWDIM)
         # If no row variables, make a special row node.
         if tree_row_labels.get_depth() == 1:
-            child = dimtables.LabelNode(label=mg.EMPTY_ROW_ITEM)
+            child = dimtables.LabelNode(label=mg.EMPTY_ROW_LBL)
             tree_row_labels.add_child(child)
         return self.process_row_tree(tree_row_labels, css_idx)
 

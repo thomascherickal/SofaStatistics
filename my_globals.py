@@ -65,6 +65,7 @@ MAX = _("Max")
 RANGE = _("Range")
 LOWER_QUARTILE = _("L. Quartile")
 UPPER_QUARTILE = _("U. Quartile")
+IQR = _(u"IQR") # Inter-Quartile Range
 measures_long_lbl_dic = {FREQ: _("Frequency"), 
                          ROWPCT: _("Row %"),
                          COLPCT: _("Column %"),
@@ -78,6 +79,7 @@ measures_long_lbl_dic = {FREQ: _("Frequency"),
                          RANGE: _("Range"),
                          LOWER_QUARTILE: _("Lower Quartile"),
                          UPPER_QUARTILE: _("Upper Quartile"),
+                         IQR: _("Inter-Quartile Range"),
                          }
 HAS_TOTAL = _("Total") # doubles as display label
 FREQS = 0 # indexes in tab type
@@ -90,7 +92,7 @@ ROW_STATS_LBL = _("Row Stats")
 DATA_LIST_LBL = _("Data List")
 TAB_TYPE2LBL = {FREQS: FREQS_LBL, CROSSTAB: CROSSTAB_LBL, 
                 ROW_STATS: ROW_STATS_LBL, DATA_LIST: DATA_LIST_LBL}
-EMPTY_ROW_ITEM = u"empty_row_item"
+EMPTY_ROW_LBL = u""
 COL_MEASURES_KEY = u"Col measures key"
 ROWPCT_AN_OPTION_KEY = u"Rowpct an option? key"
 MEASURES_HORIZ_KEY = u"measures_horiz_key"
@@ -115,7 +117,7 @@ RPT_CONFIG = {
                DEFAULT_MEASURE_KEY: FREQ,
                QUICK_IF_BELOW_KEY: 4000},
     ROW_STATS: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
-                                   LOWER_QUARTILE, UPPER_QUARTILE, SUM],
+                                   LOWER_QUARTILE, UPPER_QUARTILE, IQR, SUM],
                VAR_SUMMARISED_KEY: True,
                NEEDS_ROWS_KEY: False,
                ROWPCT_AN_OPTION_KEY: False, 
@@ -161,6 +163,7 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               RANGE: u"RANGE",
                               LOWER_QUARTILE: u"LOWER_QUARTILE",
                               UPPER_QUARTILE: u"UPPER_QUARTILE",
+                              IQR: u"IQR",
                               }
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 

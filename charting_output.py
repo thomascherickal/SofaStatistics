@@ -1061,8 +1061,7 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     min_pxls_per_cat = MIN_PXLS_PER_BOX*n_series
     width_per_cat = (max([min_pxls_per_cat, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)
-    width_x_title = (len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS if x_title 
-                     else 0)
+    width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([width_per_cat*n_cats, width_x_title, MIN_CHART_WIDTH])
     minor_ticks = u"true" if n_cats > 10 else u"false"
     if n_cats <= 5:

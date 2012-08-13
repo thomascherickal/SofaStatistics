@@ -75,7 +75,7 @@ class LabelNodeTree(tree.NodeTree):
     def get_overall_title(self):
         parts = []
         for child in self.root_node.children: # only want first level
-            if child.measure is None and child.label != mg.EMPTY_ROW_ITEM:
+            if child.measure is None and child.label != mg.EMPTY_ROW_LBL:
                 parts.append(child.label)
         overall_title = u" And ".join(parts)
         return overall_title
@@ -553,7 +553,7 @@ class LiveTable(DimTable):
                                     dim=mg.ROWDIM, 
                                     oth_dim_root=self.tree_cols.root_node)
         if tree_row_labels.get_depth() == 1 and self.row_var_optional:
-            tree_row_labels.add_child(LabelNode(label=mg.EMPTY_ROW_ITEM))
+            tree_row_labels.add_child(LabelNode(label=mg.EMPTY_ROW_LBL))
         return self.process_row_tree(tree_row_labels, css_idx)        
     
     def add_subtrees_to_col_label_tree(self, tree_col_labels):
@@ -1149,7 +1149,7 @@ class SummTable(LiveTable):
                       u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                        overall_filter))
         sql_for_raw_only = [mg.MEDIAN, mg.LOWER_QUARTILE, mg.UPPER_QUARTILE,
-                            mg.STD_DEV]
+                            mg.IQR, mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
@@ -1182,7 +1182,7 @@ class SummTable(LiveTable):
                              + overall_filter)
             try:
                 self.cur.execute(SQL_get_range)
-                data_val = self.cur.fetchone()[0]
+                data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
             except Exception:
                 raise Exception(u"Unable to get range of %s." % col_fld)
         elif measure == mg.SUM:
@@ -1243,6 +1243,20 @@ class SummTable(LiveTable):
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate upper quartile "
+                                    u"for %s." % col_fld)
+        elif measure == mg.IQR:
+            try:
+                lq, uq = core_stats.get_quartiles(data)
+                data_val = dp2_tpl % round(uq-lq, 2)
+            except Exception:
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception(u"Unable to calculate Inter-Quartile Range "
+                        u"for %s. " % col_fld +
+                        u"The field contains at least one non-numeric " +
+                        u"value: \"%s\"" % bad_val)
+                else:
+                    raise Exception(u"Unable to calculate inter-quartile range "
                                     u"for %s." % col_fld)
         elif measure == mg.SUMM_N:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
