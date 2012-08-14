@@ -795,7 +795,14 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     hdr_title = time.strftime(_("SOFA Statistics Report") + \
                               " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
-    f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
+    try:
+        f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
+    except IOError:
+        if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
+            raise Exception(u"Unable to save to report. You might need to "
+                            u"check and correct the path to the report.")
+    except Exception, e:
+        raise Exception(u"Unable to save to report. Orig error: %s" % lib.ue(e))
     css_fils_str = '[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
     f.write(hdr)
@@ -1026,7 +1033,13 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
             wx.MessageBox(_("Problems with the content of the report you are "
                             "saving to. Please fix, or delete report and start "
                             "again.\nCaused by error: %s") % lib.ue(e))
-            return False, u""
+            gui_display_content = u""
+            return False, gui_display_content
+        except Exception, e:
+            wx.MessageBox(u"Problem running report.\nCaused by error: %s" % 
+                          lib.ue(e))
+            gui_display_content = u""
+            return False, gui_display_content
         # has to deal with local GUI version to display as well
         # Make relative image links absolute so GUI viewers can display images.
         # If not add_to_report, already has absolute link to internal imgs.

@@ -116,7 +116,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     SQL_charts = ("""SELECT %(var_role_charts)s 
     AS charts
     FROM %(tbl)s
-    WHERE charts IS NOT NULL 
+    WHERE %(var_role_charts)s IS NOT NULL 
         AND %(var_role_series)s IS NOT NULL 
         AND %(var_role_cat)s IS NOT NULL
         %(and_tbl_filt)s
@@ -126,7 +126,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     SQL_series = ("""SELECT %(var_role_series)s 
     AS series
     FROM %(tbl)s
-    WHERE series IS NOT NULL 
+    WHERE %(var_role_series)s IS NOT NULL 
         AND %(var_role_charts)s IS NOT NULL 
         AND %(var_role_cat)s IS NOT NULL
         %(and_tbl_filt)s
@@ -136,15 +136,15 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     SQL_cat = ("""SELECT %(var_role_cat)s 
     AS cat
     FROM %(tbl)s
-    WHERE cat IS NOT NULL 
+    WHERE %(var_role_cat)s IS NOT NULL 
         AND %(var_role_charts)s IS NOT NULL 
         AND %(var_role_series)s IS NOT NULL
         %(and_tbl_filt)s
         %(and_avg_filt)s
     GROUP BY %(var_role_cat)s""" % sql_dic)
     if debug: print(SQL_cat)
-    SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts INNER JOIN 
-        (%s) AS qryseries INNER JOIN
+    SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts JOIN 
+        (%s) AS qryseries JOIN
         (%s) AS qrycat""" % (SQL_charts, SQL_series, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
@@ -168,13 +168,18 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     # grouping vars.
     sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
     sql_dic[u"SQL_vals2show"] = SQL_vals2show
-    SQL_get_raw_data = """SELECT charts, series, cat,
+    SQL_get_raw_data = """SELECT qrygrouping_vars.charts, 
+    qrygrouping_vars.series, 
+    qrygrouping_vars.cat,
         CASE WHEN val2show IS NULL THEN 0 ELSE val2show END 
     AS val
     FROM (%(SQL_group_by_vars)s) AS qrygrouping_vars 
     LEFT JOIN (%(SQL_vals2show)s) AS qryvals2show
-    USING(charts, series, cat)
-    ORDER BY charts, series, cat""" % sql_dic    
+    ON qrygrouping_vars.charts = qryvals2show.charts
+    AND qrygrouping_vars.series = qryvals2show.series
+    AND qrygrouping_vars.cat = qryvals2show.cat
+    ORDER BY qrygrouping_vars.charts, qrygrouping_vars.series, 
+        qrygrouping_vars.cat""" % sql_dic    
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
@@ -463,7 +468,11 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
                                     and_tbl_filt, var_role_avg, var_role_cat, 
                                     var_role_series, var_role_charts)
     if debug: print(SQL_raw_data)
-    cur.execute(SQL_raw_data)
+    try:
+        cur.execute(SQL_raw_data)
+    except Exception, e:
+        raise Exception(u"Unable to get raw data for chart. Orig error: %s" % 
+                        lib.ue(e))
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     if not raw_data:

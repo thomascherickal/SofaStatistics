@@ -1186,7 +1186,7 @@ class SummTable(LiveTable):
             except Exception:
                 raise Exception(u"Unable to get range of %s." % col_fld)
         elif measure == mg.SUM:
-            SQL_get_sum = (u"SELECT SUM(%s) " % self.quote_obj(col_fld) +
+            SQL_get_sum = (u"SELECT SUM((%s)) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
             try:

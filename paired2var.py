@@ -322,7 +322,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         Update phrase based on Group A and Group B.
         """
-        unused, label_a, unused, label_b = self.get_drop_vals()
+        try:
+            unused, label_a, unused, label_b = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to update phrase. Orig error: %s" 
+                          % lib.ue(e))
         self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
                                 {"a": label_a, "b": label_b})
     

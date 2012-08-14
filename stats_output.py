@@ -27,6 +27,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                  mean_squ_bn, label_a, label_b, label_avg, add_to_report,
                  report_name, css_fil, css_idx=0, dp=3, 
                  level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+    debug = False
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -138,9 +139,10 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         next_ft = i + 1
         html.append(footnote % (next_ft, next_ft))
     output.append_divider(html, title, indiv_title=u"")
-    for chart_idx, dic_sample_tup in enumerate(dic_sample_tups):
+    for dic_sample_tup in dic_sample_tups:
         dic, sample = dic_sample_tup
-        hist_label = dic["label"]
+        histlbl = dic["label"]
+        if debug: print(histlbl)
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
@@ -150,7 +152,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         (grid_bg, item_colours, 
             line_colour) = output.get_stats_chart_colours(css_fil)
         try:
-            charting_pylab.config_hist(fig, sample, label_avg, hist_label, 
+            charting_pylab.config_hist(fig, sample, label_avg, histlbl, 
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
@@ -158,8 +160,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                                        mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                        (hist_label, lib.ue(e)))
-        output.append_divider(html, title, indiv_title=hist_label)
+                        (histlbl, lib.ue(e)))
+        output.append_divider(html, title, indiv_title=histlbl)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

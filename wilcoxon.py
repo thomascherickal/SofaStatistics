@@ -21,7 +21,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
-        var_a, label_a, var_b, label_b = self.get_drop_vals()
+        try:
+            var_a, label_a, var_b, label_b = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
+                          % lib.ue(e))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"""
 sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s", 

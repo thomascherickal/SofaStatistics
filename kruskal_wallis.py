@@ -1,6 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+import wx
+
 import my_globals as mg
 import lib
 import indep2var
@@ -25,8 +27,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         """
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
-        unused, unused, unused, unused, label_a, unused, label_b, unused, \
-            label_avg = self.get_drop_vals()
+        try:
+            (unused, unused, unused, unused, label_a, 
+             unused, label_b, unused, label_avg) = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to update phrase. Orig error: %s" % 
+                          lib.ue(e))
+            return
         self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the groups "
                                  "between \"%(a)s\" and \"%(b)s\"?") %
                                  {"avg": label_avg, "a": label_a, "b": label_b})
@@ -34,8 +41,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
     def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
-        var_gp_numeric, var_gp, unused, val_a, label_a, val_b, label_b, \
-            var_avg, label_avg = self.get_drop_vals()
+        try:
+            (var_gp_numeric, var_gp, unused, val_a, 
+             label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
+                          % lib.ue(e))
         script_lst = [u"dp = 3"]        
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         lst_samples = []
@@ -60,7 +71,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             try:
                 val_label = self.val_dics[var_gp][val]
             except KeyError:
-                val_label = unicode(val).upper()
+                val_label = unicode(val).title()
             lst_labels.append(val_label)
         samples = u"[%s]" % u", ".join(lst_samples)
         script_lst.append(u"raw_labels = %s" % lst_labels)

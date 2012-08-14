@@ -627,6 +627,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.drop_group_a.GetSelection()
+        if selection_idx_a == -1:
+            raise Exception(u"Unable to set values for groups a and b. Check "
+                            u"your data and any filtering applied.")
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.any2unicode(val_a_raw)
         label_a = lib.get_item_label(item_labels=val_dic, 
@@ -678,8 +681,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             wx.MessageBox(_("Group A and Group B must be different"))
             return False
         if self.takes_range:
-            (var_gp_numeric, unused, unused, unused, 
-             unused, unused, unused, unused, unused) = self.get_drop_vals()
+            try:
+                (var_gp_numeric, unused, unused, unused, 
+                 unused, unused, unused, unused, unused) = self.get_drop_vals()
+            except Exception, e:
+                wx.MessageBox(u"Unable to get script to make output. "
+                              u"Orig error: %s" % lib.ue(e))
             # group a must be lower than group b
             selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.gp_vals_sorted[selection_idx_a]

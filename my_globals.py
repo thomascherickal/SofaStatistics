@@ -405,6 +405,7 @@ DBE_MYSQL = u"MySQL"
 DBE_MS_ACCESS = u"MS Access"
 DBE_MS_SQL = u"MS SQL Server"
 DBE_PGSQL = u"PostgreSQL"
+DBE_CUBRID = u"CUBRID"
 MUST_DEL_TMP = False
 DBE_PROBLEM = []
 DBES = []

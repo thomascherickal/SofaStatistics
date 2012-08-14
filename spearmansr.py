@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import wx
+
 import my_globals as mg
 import lib
 import paired2var
@@ -22,7 +24,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         """
         Update phrase based on Group A and Group B.
         """
-        unused, label_a, unused, label_b = self.get_drop_vals()
+        try:
+            unused, label_a, unused, label_b = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to update phrase. Orig error: %s" % 
+                          lib.ue(e))
+            return
         self.lbl_phrase.SetLabel(_("Are \"%(a)s\" and \"%(b)s\" correlated - "
                                "do they change together in a linear fashion?") %
                                {"a": label_a, "b": label_b})
@@ -31,7 +38,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
-        var_a, label_a, var_b, label_b = self.get_drop_vals()
+        try:
+            var_a, label_a, var_b, label_b = self.get_drop_vals()
+        except Exception, e:
+            wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
+                          % lib.ue(e))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"""
 sample_a, sample_b, data_tups = core_stats.get_paired_data(
