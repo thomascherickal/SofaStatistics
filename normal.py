@@ -31,6 +31,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
                            wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         # the following properties all required to utilise get_szr_data
@@ -150,6 +151,8 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.set_size()
 
     def on_show(self, event):
+        if self.exiting:
+            return
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception, e:
@@ -204,6 +207,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.html.show_html("<p>%s</p>" % msg)
 
     def on_ok(self, event):
+        self.exiting = True
         self.Destroy()
         event.Skip()
 

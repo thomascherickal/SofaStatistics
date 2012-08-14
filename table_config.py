@@ -431,10 +431,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             item, even if only a "rename me").  Empty list ok.
         fld_settings -- add details to it in form of a list of dicts.
         """
-        self.new = new
         self.exiting = False
+        self.new = new
         self.changes_made = False
         self.readonly = readonly
+        self.exiting = False
         if self.new and self.readonly:
             raise Exception(u"If new, should never be read only")
         self.var_labels = var_labels
@@ -538,13 +539,14 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.txt_tblname.SetFocus()
         
     def on_show(self, event):
+        if self.exiting:
+            return
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
             pass # need on Mac or exceptn survives
         finally: # any initial content
-            if not self.exiting:
-                self.update_demo()
+            self.update_demo()
             
     def get_demo_val(self, row_idx, col_label, lbl_type):
         """
@@ -986,6 +988,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         """
         dd = mg.DATADETS_OBJ
         if self.readonly:
+            self.exiting = True
             self.Destroy()
         else:
             # NB any changes defined in recode are already done
@@ -1011,6 +1014,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                                     " %s") % lib.ue(e))
                     return
             elif self.changes_made: # not in tableconf. Must've been in recoding
+                self.exiting = True
                 self.Destroy()
                 self.SetReturnCode(mg.RET_CHANGED_DESIGN)
                 return

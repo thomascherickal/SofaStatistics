@@ -977,8 +977,8 @@ class StartFrame(wx.Frame):
     
     def on_paint(self, event):
         """
-        Cannot use static bitmaps and static text to replace.  In windows
-            doesn't show background wallpaper.
+        Cannot use static bitmaps and static text to replace. In windows doesn't 
+            show background wallpaper.
         NB painting like this sets things behind the controls.
         """
         try:

@@ -618,7 +618,6 @@ class ConfigUI(object):
         parent = self
         dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
-        dlg.ShowModal()
         retval = dlg.ShowModal()
         if retval != wx.ID_CANCEL:
             self.refresh_vars()

@@ -145,6 +145,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
+        self.exiting = False
         cc = config_output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, 
                        title=_("Make Report Table"), 
@@ -367,6 +368,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def on_show(self, event):
+        if self.exiting:
+            return
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
@@ -801,18 +804,9 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
 
     def on_close(self, event):
         "Close report tables dialog"
-        try:
-            # add end to each open script file and close.
-            for fil_script in self.open_scripts:
-                # add ending code to script
-                f = codecs.open(fil_script, "a", "utf-8")
-                output.add_end_script_code(f)
-                f.close()
-        except Exception:
-            pass
-        finally:
-            self.Destroy()
-            event.Skip()
+        self.Destroy()
+        event.Skip()
+        event.Skip()
     
     def update_titles_subtitles(self, orig):
         titles, subtitles = self.get_titles()

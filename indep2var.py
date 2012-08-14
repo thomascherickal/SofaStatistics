@@ -44,6 +44,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     inc_gp_by_select = False
     
     def __init__(self, title, takes_range=False):
+        self.exiting = False
         cc = config_output.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
@@ -341,6 +342,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.panel_vars.Layout()
 
     def on_show(self, event):
+        if self.exiting:
+            return
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:
@@ -717,15 +720,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     
     def on_close(self, event):
         "Close dialog"
-        try:
-            # add end to each open script file and close.
-            for fil_script in self.open_scripts:
-                # add ending code to script
-                f = file(fil_script, "a")
-                output.add_end_script_code(f)
-                f.close()
-        except Exception:
-            pass
-        finally:
-            self.Destroy()
-            event.Skip()
+        self.exiting = True
+        self.Destroy()
+        event.Skip()

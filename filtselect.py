@@ -9,12 +9,12 @@ import projects
 
 def get_val(raw_val, flds, fldname):
     """
-    Value is validated first.  Raw value will always be a string.
+    Value is validated first. Raw value will always be a string.
     If numeric, must be a number, an empty string (turned to Null), 
         or any variant of Null.
-    If a date, must be a usable date, an empty string, or Null.  Empty 
-        strings are turned to Null.  Usable dates are returned as std datetimes.
-    If a string, can be anything.  Variants of Null are treated specially.
+    If a date, must be a usable date, an empty string, or Null. Empty 
+        strings are turned to Null. Usable dates are returned as std datetimes.
+    If a string, can be anything. Variants of Null are treated specially.
     Null values (or any variant of Null) are turned to None which will be 
         processed correctly as a Null when clauses are made.
     """
@@ -46,7 +46,7 @@ def get_val(raw_val, flds, fldname):
             return None
         else:
             return raw_val
-        
+
 
 class DlgFiltSelect(wx.Dialog):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
@@ -201,6 +201,7 @@ class DlgFiltSelect(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE) # only for dialogs 
         # (MUST come after Destroy)
+        event.Skip()
     
     def on_cancel(self, event):
         self.Destroy()
@@ -227,7 +228,7 @@ class DlgFiltSelect(wx.Dialog):
         gte = self.drop_gte.GetStringSelection()
         filt = getdata.make_fld_val_clause(dd.dbe, dd.flds, fldname, val, gte)
         if idx_var == 0 and rawval == u"":
-            dlg = wx.MessageDialog(self, u"Are you sure you want to apply the "
+            dlg = wx.MessageDialog(None, u"Are you sure you want to apply the "
                                    u"filter \"%s\"?" % filt, u"Confirm Filter", 
                                    wx.YES_NO|wx.ICON_QUESTION)
             retval = dlg.ShowModal()
@@ -313,6 +314,7 @@ class DlgFiltSelect(wx.Dialog):
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
+        event.Skip()
 
     def on_rad_quick_sel(self, event):
         self.enable_quick_dets(True)
@@ -347,4 +349,5 @@ class DlgFiltSelect(wx.Dialog):
                                          self.var_labels, self.var_notes, 
                                          self.var_types, self.val_dics)
         if updated:
-            self.setup_vars(var_name)        
+            self.setup_vars(var_name)
+    

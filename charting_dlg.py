@@ -136,6 +136,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
                    wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
+        self.exiting = False
         self.SetFont(mg.GEN_FONT)
         cc = config_output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 
@@ -717,6 +718,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return chk
 
     def on_show(self, event):
+        if self.exiting:
+            return
         try:
             self.html.pizza_magic() # must happen after Show
         except Exception:

@@ -989,7 +989,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         exec script in dummy_dic
     except my_exceptions.OutputException, e:
         wx.MessageBox(lib.ue(e))
-        return False, u""
+        return False, u"<p>Waiting for a report to be run.</p>"
     except Exception, e:
         print("Unable to run report: %s" % traceback.format_exc())
         err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script to "
