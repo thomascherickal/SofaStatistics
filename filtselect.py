@@ -221,10 +221,19 @@ class DlgFiltSelect(wx.Dialog):
         debug = False
         dd = mg.DATADETS_OBJ
         idx_var = self.drop_vars.GetSelection()
-        fldname = self.sorted_var_names[idx_var]      
-        val = get_val(self.txt_val.GetValue(), dd.flds, fldname)
+        fldname = self.sorted_var_names[idx_var]
+        rawval = self.txt_val.GetValue()
+        val = get_val(rawval, dd.flds, fldname)
         gte = self.drop_gte.GetStringSelection()
         filt = getdata.make_fld_val_clause(dd.dbe, dd.flds, fldname, val, gte)
+        if idx_var == 0 and rawval == u"":
+            dlg = wx.MessageDialog(self, u"Are you sure you want to apply the "
+                                   u"filter \"%s\"?" % filt, u"Confirm Filter", 
+                                   wx.YES_NO|wx.ICON_QUESTION)
+            retval = dlg.ShowModal()
+            dlg.Destroy()
+            if retval != wx.ID_YES:
+                return
         if debug: print(filt)
         return filt
     
@@ -263,10 +272,17 @@ class DlgFiltSelect(wx.Dialog):
         if self.rad_quick.GetValue():
             try:
                 tbl_filt = self.get_quick_filter()
+                if tbl_filt is None:
+                    lib.safe_end_cursor()
+                    wx.MessageBox(u"Please set a filter and try again. Or just "
+                                  u"Cancel")
+                    self.txt_val.SetFocus()
+                    return
             except Exception, e:
                 lib.safe_end_cursor()
                 wx.MessageBox(_("Problem with design of filter: %s") % 
                               lib.ue(e))
+                self.txt_val.SetFocus()
                 return
         else:
             tbl_filt = self.txt_flex_filter.GetValue()

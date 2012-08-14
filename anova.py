@@ -32,13 +32,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
              label_a, unused, 
              label_b, unused, 
              label_avg) = self.get_drop_vals()
-        except Exception, e:
-            wx.MessageBox(u"Unable to update phrase. Orig error: %s" % 
-                          lib.ue(e))
-            return
-        self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the groups "
-            "between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
-                                                   "a": label_a, "b": label_b})
+            self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the "
+                                       u"groups between \"%(a)s\" and "
+                                       u"\"%(b)s\"?") % {"avg": label_avg, 
+                                                    "a": label_a, "b": label_b})
+        except Exception:
+            self.lbl_phrase.SetLabel(u"")
 
     def add_other_var_opts(self, szr):
         self.lbl_algorithm = wx.StaticText(self.panel_vars, -1, 

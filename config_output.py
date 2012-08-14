@@ -619,27 +619,12 @@ class ConfigUI(object):
         dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
                                        self.var_types, self.val_dics)
         dlg.ShowModal()
-        """
         retval = dlg.ShowModal()
         if retval != wx.ID_CANCEL:
             self.refresh_vars()
             parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
                                                          parent.drop_tbls_szr, 
                                                          parent.drop_tbls_panel)
-        """
-        self.refresh_vars()
-        parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
-                                                     parent.drop_tbls_szr, 
-                                                     parent.drop_tbls_panel)
-            
-            
-            
-            
-            
-            
-            
-            
-            
         lib.safe_end_cursor()
 
     def on_rclick_tables(self, event):

@@ -26,12 +26,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         """
         try:
             unused, label_a, unused, label_b = self.get_drop_vals()
-        except Exception, e:
-            wx.MessageBox(u"Unable to update phrase. Orig error: %s" % 
-                          lib.ue(e))
-            return
-        self.lbl_phrase.SetLabel(_("Is there a relationship between "
-            "\"%(a)s\" and \"%(b)s\"") % {"a": label_a, "b": label_b})
+            self.lbl_phrase.SetLabel(_("Is there a relationship between "
+                                       "\"%(a)s\" and \"%(b)s\"") % 
+                                     {"a": label_a, "b": label_b})
+            
+        except Exception:
+            self.lbl_phrase.SetLabel(u"")
     
     def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"

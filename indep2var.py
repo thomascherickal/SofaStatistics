@@ -7,7 +7,6 @@ import wx.html
 
 import my_globals as mg
 import lib
-import my_exceptions
 import getdata
 import config_output
 import full_html

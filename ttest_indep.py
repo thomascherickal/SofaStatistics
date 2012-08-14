@@ -28,14 +28,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         try:
             (unused, unused, label_gp, unused, label_a, 
              unused, label_b, unused, label_avg) = self.get_drop_vals()
-        except Exception, e:
-            wx.MessageBox(u"Unable to update phrase. Orig error: %s" % 
-                          lib.ue(e))
-            return
-        self.lbl_phrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
-                                  "average %(avg)s from \"%(b)s\"?") % \
-                                  {"gp": label_gp, "a": label_a, 
-                                   "avg": label_avg, "b": label_b})
+            self.lbl_phrase.SetLabel(_("Does %(gp)s \"%(a)s\" have a different "
+                                      "average %(avg)s from \"%(b)s\"?") %
+                                      {"gp": label_gp, "a": label_a, 
+                                       "avg": label_avg, "b": label_b})
+        except Exception:
+            self.lbl_phrase.SetLabel(u"")
 
     def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"

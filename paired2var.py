@@ -5,7 +5,6 @@ import wx
 
 import my_globals as mg
 import lib
-import my_exceptions
 import config_output
 import full_html
 import getdata
@@ -33,7 +32,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                                "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.url_load = True # btn_expand
-        self.html_msg = u""
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.variables_rc_msg = _("Right click variables to view/edit details")
@@ -196,8 +194,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         except Exception:
             pass # need on Mac or exceptn survives
         finally: # any initial content
-            self.html.show_html(self.html_msg)
-            self.html_msg = u""
+            html2show = _("<p>Waiting for a report to be run.</p>")
+            self.html.show_html(html2show)       
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
@@ -243,14 +241,14 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                     u"to a numeric format in the spreadsheet and re-import it."
                     u"</p>") % 
                     mg.VAR_TYPE_TO_SHORT.get(self.min_data_type, _("suitable")))
-        else:
-            msg = _("<p>Waiting for a report to be run.</p>")
-        try:
-            self.html.show_html(msg)
-        except Exception: # no html ctrl yet so defer and display when ready
-            self.html_msg = msg
-        fld_choice_items, self.sorted_var_names = lib.get_sorted_choice_items(
-                                dic_labels=self.var_labels, vals=var_names)
+            try:
+                self.html.show_html(msg)
+            except Exception: # no html ctrl yet so defer and display when ready
+                pass
+        (fld_choice_items, 
+         self.sorted_var_names) = lib.get_sorted_choice_items(
+                                                     dic_labels=self.var_labels, 
+                                                     vals=var_names)
         return fld_choice_items
        
     def on_database_sel(self, event):
@@ -324,11 +322,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         try:
             unused, label_a, unused, label_b = self.get_drop_vals()
+            self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") 
+                                     % {"a": label_a, "b": label_b})
         except Exception, e:
-            wx.MessageBox(u"Unable to update phrase. Orig error: %s" 
-                          % lib.ue(e))
-        self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") %
-                                {"a": label_a, "b": label_b})
+            self.lbl_phrase.SetLabel(u"")
     
     def update_defaults(self):
         mg.GROUP_A_DEFAULT = self.drop_group_a.GetStringSelection()

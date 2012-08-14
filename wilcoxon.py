@@ -1,5 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
+import wx
+
 import my_globals as mg
 import lib
 import paired2var
