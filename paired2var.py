@@ -31,10 +31,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.SetFont(mg.GEN_FONT)
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
                                "output", "stats_output"]
-        self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True # btn_expand
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        (self.var_labels, self.var_notes, 
+         self.var_types, 
+         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.variables_rc_msg = _("Right click variables to view/edit details")
         # set up panel for frame
         self.panel = wx.Panel(self)
@@ -366,8 +367,3 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         wx.MessageBox("Under construction")
         event.Skip()
     
-    def on_close(self, event):
-        "Close dialog"
-        self.exiting = True
-        self.Destroy()
-        event.Skip()

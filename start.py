@@ -1351,7 +1351,7 @@ class StartFrame(wx.Frame):
         debug = False
         wx.BeginBusyCursor()
         # wipe any internal images
-        int_img_pattern = os.path.join(mg.INT_PATH, u"*.png")
+        int_img_pattern = os.path.join(mg.INT_IMG_PATH, u"*.png")
         if debug: print(int_img_pattern)
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)

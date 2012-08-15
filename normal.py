@@ -19,6 +19,7 @@ import config_output
 import core_stats
 import getdata
 import full_html
+import output
 import projects
 
 
@@ -332,6 +333,8 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
             msg = u"Unable to produce histogram. Reason: %s" % lib.ue(e)
             self.html.show_html(u"<p>%s</p>" % msg)
             return
+        output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
+                                ext=mg.RPT_SUBFOLDER_SUFFIX)
         pylab.savefig(mg.INT_IMG_ROOT + u".png", dpi=100)
         thumbnail_uncropped = wx.Image(mg.INT_IMG_ROOT + u".png", 
                                        wx.BITMAP_TYPE_PNG).ConvertToBitmap()

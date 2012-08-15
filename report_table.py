@@ -157,7 +157,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         dimtree.DimTree.__init__(self)
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
                                "output", "getdata"]
-        self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True # btn_expand    
         (self.var_labels, self.var_notes, 
          self.var_types, 
@@ -802,12 +802,6 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         self.delete_all_dim_children()
         self.update_by_tab_type()
 
-    def on_close(self, event):
-        "Close report tables dialog"
-        self.Destroy()
-        event.Skip()
-        event.Skip()
-    
     def update_titles_subtitles(self, orig):
         titles, subtitles = self.get_titles()
         return replace_titles_subtitles(orig, titles, subtitles)

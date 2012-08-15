@@ -39,9 +39,8 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
     if dpi:
         kwargs["dpi"] = dpi
     if add_to_report:
-        # look in report folder for subfolder
         imgs_path = output.ensure_imgs_path(report_path=report_name, 
-                                            ext=u"_images")
+                                            ext=mg.RPT_SUBFOLDER_SUFFIX)
         if debug: print("imgs_path: %s" % imgs_path)
         n_imgs = len(os.listdir(imgs_path))
         file_name = u"%03d.png" % n_imgs
@@ -56,6 +55,8 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         # must ensure internal images are always different each time we
         # refresh html.  Otherwise might just show old version of same-named 
         # image file!
+        output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
+                                ext=mg.RPT_SUBFOLDER_SUFFIX)
         global int_imgs_n
         int_imgs_n += 1
         img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n

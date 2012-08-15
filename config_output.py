@@ -441,20 +441,19 @@ class ConfigUI(object):
         self.btn_view.Enable(not self.readonly)
         self.btn_view.SetToolTipString(_("View selected HTML output file in "
                                          "your default browser"))
-        self.btn_export_output = wx.Button(panel, -1, _("Export Output"))
-        self.btn_export_output.SetFont(mg.BTN_FONT)
-        self.btn_export_output.Bind(wx.EVT_BUTTON, self.on_btn_export_output)
-        self.btn_export_output.Enable(not self.readonly)
-        self.btn_export_output.SetToolTipString(_(u"Export as PDF or as images"
-                                                  u" ready for reports, "
-                                                  u"slideshows etc"))
+        self.btn_export_report = wx.Button(panel, -1, _("Export Report"))
+        self.btn_export_report.SetFont(mg.BTN_FONT)
+        self.btn_export_report.Bind(wx.EVT_BUTTON, self.on_btn_export_report)
+        self.btn_export_report.Enable(not self.readonly)
+        self.btn_export_report.SetToolTipString(_(u"Export report as PDF or as "
+                                   u"images ready for reports, slideshows etc"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_output_config.Add(self.btn_run, 0)
         szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
         szr_output_config.Add(self.txt_report_file, 1)
         szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_output_config.Add(self.btn_export_output, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_output_config.Add(self.btn_export_report, 0, wx.LEFT|wx.RIGHT, 5)
         return szr_output_config
 
     def get_szr_output_display(self, panel, inc_clear=True):
@@ -463,8 +462,21 @@ class ConfigUI(object):
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.SetFont(mg.BTN_FONT)
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
-        self.btn_expand.SetToolTipString(_("Open report in own window"))
+        self.btn_expand.SetToolTipString(_(u"Open displayed output in own "
+                                           u"window"))
         self.btn_expand.Enable(False)
+        self.btn_export_output = wx.Button(panel, -1, _("Export Output"))
+        self.btn_export_output.SetFont(mg.BTN_FONT)
+        self.btn_export_output.Bind(wx.EVT_BUTTON, self.on_btn_export_output)
+        self.btn_export_output.SetToolTipString(_(u"Export displayed output as "
+                         u"PDF or as images ready for reports, slideshows etc"))
+        self.btn_export_output.Enable(False)
+        self.btn_copy_output = wx.Button(panel, -1, _("Copy Output"))
+        self.btn_copy_output.SetFont(mg.BTN_FONT)
+        self.btn_copy_output.Bind(wx.EVT_BUTTON, self.on_btn_copy_output)
+        self.btn_copy_output.SetToolTipString(_(u"Copy displayed output to "
+                                         u"clipboard as images ready to paste"))
+        self.btn_copy_output.Enable(False)
         if inc_clear:
             self.btn_clear = wx.Button(panel, -1, _("Clear"))
             self.btn_clear.SetFont(mg.BTN_FONT)
@@ -472,21 +484,26 @@ class ConfigUI(object):
             self.btn_clear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
         self.btn_close = wx.Button(panel, wx.ID_CLOSE)
         self.btn_close.SetFont(mg.BTN_FONT)
-        self.btn_close.Bind(wx.EVT_BUTTON, self.on_close)
+        self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         # add to sizer
-        szr_output_display = wx.FlexGridSizer(rows=5, cols=1, hgap=5, vgap=5)
-        idx_style = 3 if inc_clear else 2
+        szr_output_display = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
+        idx_style = 5 if inc_clear else 4
         szr_output_display.AddGrowableRow(idx_style,2) # idx, propn
         szr_output_display.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
         szr_output_display.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 5)
-        szr_output_display.Add(self.btn_expand, 1, wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+        szr_output_display.Add(self.btn_expand, 0, wx.GROW|wx.ALIGN_RIGHT|
+                               wx.ALIGN_TOP)
+        szr_output_display.Add(self.btn_export_output, 0, 
+                               wx.GROW|wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+        szr_output_display.Add(self.btn_copy_output, 0, 
+                               wx.GROW|wx.ALIGN_RIGHT|wx.ALIGN_TOP)
         if inc_clear:
-            szr_output_display.Add(self.btn_clear, 1, wx.ALIGN_RIGHT)
+            szr_output_display.Add(self.btn_clear, 0, wx.GROW|wx.ALIGN_RIGHT)
         szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 10)
         # close
-        szr_output_display.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
+        szr_output_display.Add(self.btn_close, 0, wx.GROW|wx.ALIGN_RIGHT)
         return szr_output_display
     
     def get_style_selector(self, panel, as_list=True, css_file=None):
@@ -661,21 +678,100 @@ class ConfigUI(object):
                  u"new_rpt": new_rpt})
         dlg_get_file.Destroy()
     
-    def on_btn_export_output(self, event):
+    def on_btn_export_report(self, event):
         debug = False
         try:
             if debug: raise ImportError
             import export_output as export
-            dlg = export.DlgExportOutput()
+            cc = get_cc()
+            dlg = export.DlgExportOutput(title=u"Export Report (PDF/Images)", 
+                                       report2export=cc[mg.CURRENT_REPORT_PATH], 
+                                       temp_report_only=False)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
             comments = [u"Make it easy to share reports as PDFs ",
                         u"or export high-quality images ready to ",
                         u"put into documents or slideshows"]
-            dlg = DlgGetExt(label=u"Export Output", 
+            dlg = DlgGetExt(label=u"Export Report", comments=comments)
+            dlg.ShowModal()
+        
+    def on_btn_export_output(self, event):
+        debug = False
+        try:
+            if debug: raise ImportError
+            import export_output as export
+            dlg = export.DlgExportOutput(title=u"Export Output (PDF/Images)", 
+                                       report2export=mg.INT_REPORT_PATH, 
+                                       temp_report_only=True)
+            dlg.ShowModal()
+        except ImportError:
+            # don't have extension installed (or working)
+            comments = [u"Make it easy to share output as PDFs ",
+                        u"or export high-quality images ready to ",
+                        u"put into documents or slideshows"]
+            dlg = DlgGetExt(label=u"Export Output", comments=comments)
+            dlg.ShowModal()
+    
+    def on_btn_copy_output(self, event):
+        debug = True
+        wx.BeginBusyCursor()
+        try:
+            import export_output as export
+            # act as if user selected print dpi and export as images
+            export_status = {mg.CANCEL_EXPORT: False}
+            try:
+                os.mkdir(mg.INT_COPY_IMGS_PATH)
+            except OSError: # already there
+                pass
+            sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
+            sorted_names.sort()
+            for filename in sorted_names:
+                delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
+                os.remove(delme)
+            export.export2imgs(report_path=mg.INT_REPORT_PATH, 
+                               special_folder=mg.INT_COPY_IMGS_PATH, 
+                               progbar=None, output_dpi=export.PRINT_DPI, 
+                               export_status=export_status, also_pdf=False)
+            sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
+            sorted_names.sort()
+            # http://wiki.wxpython.org/ClipBoard
+            wx.TheClipboard.Open()
+            for filname in sorted_names:
+                if filname.endswith(u".png"):
+                    imgname = os.path.join(mg.INT_COPY_IMGS_PATH, filname)
+                    if debug: print(imgname)
+                    img_demo = wx.Image(imgname, wx.BITMAP_TYPE_PNG)
+                    bmp_demo = wx.BitmapFromImage(img_demo)
+                    clipdata = wx.DataObjectComposite() # multiple formats not items
+                    clipdata.Add(wx.BitmapDataObject(bmp_demo), True)
+                    alt_txt = (u"If you see this text instead of the "
+                               u"image \"%s\", try pasting the output into a "
+                               u"graphics program first and edit/copy/save "
+                               u"from there etc." % imgname)
+                    clipdata.Add(wx.TextDataObject(alt_txt), False)
+                    wx.TheClipboard.AddData(clipdata)
+            wx.TheClipboard.Close()
+            lib.safe_end_cursor()
+            """
+            Copying to the clipboard does not actually copy anything, it just 
+                posts a promise to provide the data later when when it is asked 
+                for. http://wxpython-users.1045709.n5.nabble.com/...
+                ...Going-crazy-with-copy-paste-problem-td2365276.html
+            """
+            wx.MessageBox(_(u"Finished. Note - don't close this form before "
+                            u"pasting the output or it won't work."))
+        except ImportError:
+            # don't have extension installed (or working)
+            comments = [u"Make it easy to copy and paste images ready to ",
+                        u"edit and put into documents or slideshows"]
+            dlg = DlgGetExt(label=u"Copy Output to Clipboard As Images", 
                             comments=comments)
             dlg.ShowModal()
+        except Exception, e:
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
+                          % lib.ue(e))
     
     def get_script_output(self, get_script_args, new_has_dojo, 
                           allow_add2rpt=True):
@@ -704,6 +800,8 @@ class ConfigUI(object):
         lib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.btn_expand.Enable(bolran_report)
+        self.btn_export_output.Enable(bolran_report)
+        self.btn_copy_output.Enable(bolran_report)
         lib.safe_end_cursor()
 
     def on_btn_run(self, event, get_script_args, new_has_dojo=False):
@@ -780,6 +878,11 @@ class ConfigUI(object):
     
     def on_btn_expand(self, event):
         output.display_report(self, self.content2expand, self.url_load)
+        event.Skip()
+            
+    def on_btn_close(self, event):
+        self.Destroy()
+        event.Skip()
         event.Skip()
 
 def add_icon(frame):

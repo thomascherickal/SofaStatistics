@@ -64,9 +64,9 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
-def ensure_imgs_path(report_path, ext=u"_images"):
+def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     debug = False
-    imgs_path = os.path.join(report_path[:-len(".htm")] + ext, u"")
+    imgs_path = os.path.join(os.path.splitext(report_path)[0] + ext, u"")
     if debug: print("imgs_path: %s" % imgs_path)
     try:
         os.mkdir(imgs_path)

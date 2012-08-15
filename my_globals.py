@@ -283,6 +283,7 @@ platforms = {u"Linux": LINUX, u"Windows": WINDOWS, u"Darwin": MAC}
 PLATFORM = platforms.get(platform.system())
 INT_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
+HOME_PATH = unicode(os.path.expanduser("~"), local_encoding)
 OLD_SOFASTATS_FOLDER = False
 if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/952077
     try:
@@ -292,7 +293,7 @@ if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/95207
         USER_PATH = ""
     USER_PATH = unicode(USER_PATH or os.path.expanduser('~'), local_encoding)
 else:
-    USER_PATH = unicode(os.path.expanduser("~"), local_encoding)
+    USER_PATH = HOME_PATH
 LOCAL_PATH = os.path.join(USER_PATH, u"sofastats")
 RECOVERY_PATH = os.path.join(USER_PATH, u"sofastats_recovery")
 REPORTS_FOLDER = u"reports"
@@ -316,9 +317,9 @@ USERDETS_PATH = os.path.join(INT_PATH, USERDETS)
 CONTROL = u"control"
 CONTROL_PATH = os.path.join(INT_PATH, CONTROL)
 INT_SCRIPT_PATH = os.path.join(INT_PATH, u"script.py")
-INT_REPORT_FILE = u"report.htm"
 INT_PREFS_FILE = u"prefs.txt"
-INT_REPORT_PATH = os.path.join(INT_PATH, INT_REPORT_FILE)
+INT_REPORT_FILE = u"sofa_use_only_report.htm"
+INT_REPORT_PATH = os.path.join(REPORTS_PATH, INT_REPORT_FILE)
 CSS_PATH = os.path.join(LOCAL_PATH, CSS_FOLDER)
 DEFAULT_CSS_PATH = os.path.join(CSS_PATH, DEFAULT_STYLE)
 CURRENT_CONFIG = None
@@ -490,7 +491,14 @@ MPL_FACECOLOR = u"#e95f29"
 MPL_EDGECOLOR = u"white"
 MPL_BGCOLOR = u"#f2f1f0"
 MPL_NORM_LINE_COLOR = u"#736354"
-INT_IMG_ROOT = os.path.join(INT_PATH, u"_img")
+RPT_SUBFOLDER_SUFFIX = u"_images"
+rpt_subfolder_prefix = os.path.splitext(INT_REPORT_FILE)[0]
+# e.g. /home/g/Documents/sofastats/reports/sofastats_use_only
+INT_IMG_PREFIX_PATH = os.path.join(REPORTS_PATH, rpt_subfolder_prefix)
+# e.g. /home/g/Documents/sofastats/reports/sofastats_use_only_images/
+INT_IMG_PATH = INT_IMG_PREFIX_PATH + RPT_SUBFOLDER_SUFFIX
+INT_IMG_ROOT = os.path.join(INT_IMG_PATH, u"_img")
+INT_COPY_IMGS_PATH = os.path.join(INT_PATH, u"delete_after_copy")
 # date formats
 MDY = u"month_day_year"
 DMY = u"day_month_year"
