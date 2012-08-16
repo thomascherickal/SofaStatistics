@@ -8,7 +8,6 @@ import lib
 import config_output
 import full_html
 import getdata
-import output
 import projects
 
 
@@ -185,9 +184,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         except Exception:
             pass
         self.szr_vars_top.Add(self.lbl_group_a, 0, wx.RIGHT, 5)
-        self.szr_vars_top.Add(self.drop_group_a, 0, wx.GROW)
+        self.szr_vars_top.Add(self.drop_group_a)
         self.szr_vars_top.Add(self.lbl_group_b, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_vars_top.Add(self.drop_group_b, 0, wx.GROW)
+        self.szr_vars_top.Add(self.drop_group_b)
         self.panel.Layout()
 
     def on_show(self, event):
@@ -328,7 +327,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             unused, label_a, unused, label_b = self.get_drop_vals()
             self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") 
                                      % {"a": label_a, "b": label_b})
-        except Exception, e:
+        except Exception:
             self.lbl_phrase.SetLabel(u"")
     
     def update_defaults(self):

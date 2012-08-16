@@ -714,16 +714,28 @@ class ConfigUI(object):
             dlg.ShowModal()
     
     def on_btn_copy_output(self, event):
-        debug = True
+        debug = False
+        wx.MessageBox(u"Works brilliantly in Windows - still thinking about "
+                      u"a Linux (Mac) fix")
+        return
         wx.BeginBusyCursor()
         try:
             import export_output as export
+            do = wx.FileDataObject()
+            rootdir = u"/home/g/Documents/sofastats/reports/default_report_exported_images"
+            for i, filename in enumerate(os.listdir(rootdir)):
+                do.AddFile(os.path.join(rootdir, filename))
+                if i > 2: 
+                    break
+            wx.TheClipboard.Open()
+            wx.TheClipboard.AddData(do)
+            wx.TheClipboard.Close()
+            lib.safe_end_cursor()
+            wx.MessageBox(u"Finished")
+            return
+        
             # act as if user selected print dpi and export as images
             export_status = {mg.CANCEL_EXPORT: False}
-            try:
-                os.mkdir(mg.INT_COPY_IMGS_PATH)
-            except OSError: # already there
-                pass
             sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
             sorted_names.sort()
             for filename in sorted_names:
@@ -743,14 +755,14 @@ class ConfigUI(object):
                     if debug: print(imgname)
                     img_demo = wx.Image(imgname, wx.BITMAP_TYPE_PNG)
                     bmp_demo = wx.BitmapFromImage(img_demo)
-                    clipdata = wx.DataObjectComposite() # multiple formats not items
-                    clipdata.Add(wx.BitmapDataObject(bmp_demo), True)
+                    do = wx.DataObjectComposite() # multiple formats not items
+                    do.Add(wx.BitmapDataObject(bmp_demo), True)
                     alt_txt = (u"If you see this text instead of the "
                                u"image \"%s\", try pasting the output into a "
                                u"graphics program first and edit/copy/save "
                                u"from there etc." % imgname)
-                    clipdata.Add(wx.TextDataObject(alt_txt), False)
-                    wx.TheClipboard.AddData(clipdata)
+                    do.Add(wx.TextDataObject(alt_txt), False)
+                    wx.TheClipboard.AddData(do)
             wx.TheClipboard.Close()
             lib.safe_end_cursor()
             """

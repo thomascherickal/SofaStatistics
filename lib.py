@@ -1454,14 +1454,14 @@ def get_item_label(item_labels, item_val):
     e.g. if has a label, turn agegrp into Age Group
     """
     item_val_u = any2unicode(item_val)
-    return item_labels.get(item_val, item_val_u.title())
+    return item_labels.get(item_val, item_val_u.title()) #.replace(u"\n", u" ") # leave as is
 
 def get_choice_item(item_labels, item_val):
     """
     e.g. "Age Group (agegrp)"
     """
     item_label = get_item_label(item_labels, item_val)
-    return u"%s (%s)" % (item_label, any2unicode(item_val))
+    return u"%s (%s)" % (item_label, any2unicode(item_val)) #.replace(u"\n", u" "))
 
 def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     """

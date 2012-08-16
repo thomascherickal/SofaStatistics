@@ -548,7 +548,7 @@ def setup_folders():
             raise Exception(u"Unable to make local sofa folders in \"%s.\""
                             % mg.LOCAL_PATH +
                             u"\nCaused by error: %s" % lib.ue(e))
-        run_test_code(mg.TEST_SCRIPT_POST_CONFIG)#can now use dd and proj config
+        run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
         # 2) Modify existing local SOFA folder if version change require it
         existing_local = not local_path_setup_needed
         if existing_local:
@@ -561,14 +561,14 @@ def setup_folders():
                 if new_version:
                     # update css files - url(images...) -> url("images...")
                     populate_css_path(prog_path, mg.LOCAL_PATH)
-                    # add new sofastats_report_extras folder and populate it
+                    # ensure sofastats_report_extras folder and freshly populate it
                     REPORT_EXTRAS_PATH = os.path.join(mg.LOCAL_PATH, 
                                                       mg.REPORTS_FOLDER, 
                                                       mg.REPORT_EXTRAS_FOLDER)
                     try:
                         os.mkdir(REPORT_EXTRAS_PATH) # under reports
-                        if show_early_steps: print(u"Just made %s" % 
-                                                   REPORT_EXTRAS_PATH)
+                        if show_early_steps: 
+                            print(u"Just made %s" % REPORT_EXTRAS_PATH)
                     except OSError, e:
                         pass # Already there.
                     except Exception, e:
@@ -589,6 +589,11 @@ def setup_folders():
         except Exception, e:
             raise Exception(u"Problem freshening your recovery folder \"%s\"."
                     u"\nCaused by error: %s" % (prog_path, lib.ue(e)))
+        # 4) ensure the internal copy images path exists
+        try:
+            os.mkdir(mg.INT_COPY_IMGS_PATH)
+        except OSError:
+            pass # already there
     except Exception, e:
         if show_early_steps: print(u"Problem running initial setup - about to "
                                    u"make msg.")

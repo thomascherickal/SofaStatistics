@@ -82,7 +82,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                         u"var_gp": lib.esc_str_input(var_gp)})
         for i, val in enumerate(vals_in_range):
             sample_name = u"sample_%s" % i
-            val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val
+            val_str_quoted = val if var_gp_numeric else u'u"""%s"""' % val
             script_lst.append(str_get_sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
             try:
@@ -101,9 +101,9 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"""
 if len(samples) < 2:
     raise my_exceptions.TooFewSamplesForAnalysis""")
-        script_lst.append(u"label_a = u\"%s\"" % label_a)
-        script_lst.append(u"label_b = u\"%s\"" % label_b)
-        script_lst.append(u"label_avg = u\"%s\"" % label_avg)
+        script_lst.append(u'label_a = u"""%s"""' % label_a)
+        script_lst.append(u'label_b = u"""%s"""' % label_b)
+        script_lst.append(u'label_avg = u"""%s"""' % label_avg)
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
