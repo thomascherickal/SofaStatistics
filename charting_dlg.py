@@ -147,7 +147,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         CUR_DATA_OPT = mg.SHOW_FREQ
         self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
         # up to 4 drop downs
-        self.Bind(wx.EVT_CLOSE, self.on_btn_export_output)
+        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True # btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 

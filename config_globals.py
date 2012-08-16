@@ -185,7 +185,7 @@ def get_settings_dic(subfolder, fil_name):
                         % settings_path)
     settings_cont = lib.get_exec_ready_text(text=f.read())
     f.close()
-    settings_cont = lib.clean_bom_utf8(settings_cont)
+    settings_cont = lib.clean_boms(settings_cont)
     settings_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

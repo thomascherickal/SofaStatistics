@@ -283,7 +283,7 @@ def run_test_code(script):
     f = codecs.open(test_path, "r", "utf8")
     test_code = lib.get_exec_ready_text(text=f.read())
     f.close()
-    test_code = lib.clean_bom_utf8(test_code)
+    test_code = lib.clean_boms(test_code)
     test_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

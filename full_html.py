@@ -62,21 +62,6 @@ else:
                 if debug: print(final_str)
                 return final_str
             
-            def fix_bad_perc_encodings(self, mystr):
-                """
-                IE6 at least chokes on C%3A%5CDocuments but is OK with 
-                    C:/Documents.
-                IE6 can't cope with non-English text percent encoded or 
-                    otherwise. See http://ihateinternetexplorer.com/. The IE 
-                    widget on Windows 7 is fine though so time will fix this 
-                    problem.
-                These steps made a difference in the wxPython IE-based window
-                    on XP. Crazy.
-                """
-                fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
-                             replace(mg.PERC_ENCODED_COLON, u":"))
-                return fixed_str
-            
             def show_html(self, str_html, url_load=False):
                 """
                 If first time, will have delay while initialising comtypes.
@@ -87,7 +72,7 @@ else:
                     url_fil = os.path.join(mg.INT_PATH, u"ready2load.htm")
                     if debug: print(url_fil)
                     f = codecs.open(url_fil, "w", encoding="utf-8")
-                    html2write = self.fix_bad_perc_encodings(
+                    html2write = output.fix_perc_encodings_for_win(
                         self.back2forwards_slashes(
                             output.rel2abs_css_links(str_html)))
                     f.write(html2write)

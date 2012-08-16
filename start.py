@@ -874,7 +874,7 @@ class StartFrame(wx.Frame):
             connect_cont = lib.get_exec_ready_text(text=f.read())
             f.close()
             if show_more_steps: print(u"Just got connection details")
-            connect_cont = lib.clean_bom_utf8(connect_cont)
+            connect_cont = lib.clean_boms(connect_cont)
             connect_dic = {}
             # http://docs.python.org/reference/simple_stmts.html
             exec connect_cont in connect_dic

@@ -78,7 +78,7 @@ class DlgProjSelect(wx.Dialog):
         f = codecs.open(proj_path, "U", encoding="utf-8")
         proj_txt = lib.get_exec_ready_text(text=f.read())
         f.close()
-        proj_cont = lib.clean_bom_utf8(proj_txt)
+        proj_cont = lib.clean_boms(proj_txt)
         proj_dic = {}
         try:
             exec proj_cont in proj_dic

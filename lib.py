@@ -603,7 +603,7 @@ def get_val_type(val, comma_dec_sep_ok=False):
         usable_datetime = is_usable_datetime_str(val)
         if usable_datetime:
             val_type = mg.VAL_DATE
-        elif val == u"":
+        elif val == "": # Note - some strings can't be coerced into u"" comparison
             val_type = mg.VAL_EMPTY_STRING
         else:
             val_type = mg.VAL_STRING
@@ -699,7 +699,7 @@ def get_invalid_var_dets_msg(fil_var_dets):
         f = codecs.open(fil_var_dets, "U", encoding="utf-8")
         var_dets_txt = get_exec_ready_text(text=f.read())
         f.close()
-        var_dets = clean_bom_utf8(var_dets_txt)
+        var_dets = clean_boms(var_dets_txt)
         var_dets_dic = {}
         exec var_dets in var_dets_dic
         if debug: wx.MessageBox(u"%s got a clean bill of health from "
@@ -724,7 +724,7 @@ def get_var_dets(fil_var_dets):
         return empty_var_dets
     var_dets_txt = get_exec_ready_text(text=f.read())
     f.close()
-    var_dets = clean_bom_utf8(var_dets_txt)
+    var_dets = clean_boms(var_dets_txt)
     var_dets_dic = {}
     results = empty_var_dets # init
     try: # http://docs.python.org/reference/simple_stmts.html
@@ -1101,10 +1101,58 @@ def dic2unicode(mydic, indent=1):
     ustr += u"}"
     return ustr
 
-def clean_bom_utf8(raw):
-    if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")):
-        raw = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):]
+def clean_boms(raw):
+    """
+    Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
+        '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
+    From codecs:
+    
+    BOM_UTF8 = '\xef\xbb\xbf'
+
+    BOM_UTF32 = '\xff\xfe\x00\x00'
+    BOM64_LE = '\xff\xfe\x00\x00'
+    BOM_UTF32_LE = '\xff\xfe\x00\x00'
+    
+    BOM_UTF16_BE = '\xfe\xff'
+    BOM32_BE = '\xfe\xff'
+    BOM_BE = '\xfe\xff'
+    
+    BOM_UTF16 = '\xff\xfe'
+    BOM = '\xff\xfe'
+    BOM_LE = '\xff\xfe'
+    BOM_UTF16_LE = '\xff\xfe'
+    BOM32_LE = '\xff\xfe'
+    
+    BOM_UTF32_BE = '\x00\x00\xfe\xff'
+    BOM64_BE = '\x00\x00\xfe\xff'
+    """
+    if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")): # '\xef\xbb\xbf'
+        bom_stripped = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):] # strip it off
+        return bom_stripped
     return raw
+
+    # FF FE starts the null byte import test file
+
+
+    # that was the only one we strip BOM off. The rest need it.
+    if raw.startswith(unicode(codecs.BOM_UTF32, "utf-32")): # '\xff\xfe\x00\x00'
+        possible_encodings = ["utf-32",]
+    elif raw.startswith(unicode(codecs.BOM_UTF16_BE, "utf-16")): # '\xfe\xff'
+        possible_encodings = ["utf-32", "utf-16"]
+    elif raw.startswith(unicode(codecs.BOM_UTF16, "utf-16")): # '\xff\xfe'
+        possible_encodings = ["utf-16",]
+    elif raw.startswith(unicode(codecs.BOM_UTF32_BE, "utf-32")): # '\x00\x00\xfe\xff'
+        possible_encodings = ["utf-32",]
+    else:
+        return raw
+    # Handle those with 
+    for possible_encoding in possible_encodings + ["utf-8",]:
+        try:
+            fixed = unicode(raw, possible_encoding)
+            return fixed
+        except Exception:
+            pass
+    return u"" # last ditch attempt to return something
 
 if mg.PLATFORM == mg.WINDOWS:
     import pywintypes
@@ -1319,11 +1367,16 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
-    if raw_datetime_str.strip() == u"":
+    clean_datetime_str = clean_boms(raw_datetime_str)
+    if clean_datetime_str.strip() == u"":
         if debug: print("Spaces or empty text are not valid datetime strings")
         return None
+    try:
+        unicode(clean_datetime_str)
+    except Exception:
+        return None # can't do anything further with something that can't be converted to unicode
     # evaluate date and/or time components against allowable formats
-    date_part, time_part, boldate_then_time = datetime_split(raw_datetime_str)
+    date_part, time_part, boldate_then_time = datetime_split(clean_datetime_str)
     if date_part is None and time_part is None:
         if debug: print("Both date and time parts are empty.")
         return None

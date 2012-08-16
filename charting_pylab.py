@@ -50,6 +50,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         if debug: print("Just saved %s" % img_path)
         subfolder = os.path.split(imgs_path[:-1])[1]
         img_src = os.path.join(subfolder, file_name) #relative so can shift html
+        img_src = output.percent_encode(img_src)
         if debug: print("add_to_report img_src: %s" % img_src)
     else:
         # must ensure internal images are always different each time we
@@ -64,7 +65,11 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         args = [img_src]
         save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_src)
-    img_src = output.percent_encode(img_src)
+        file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
+                          else mg.FILE_URL_START_GEN)
+        img_src = file_url_start + output.percent_encode(img_src)
+        if mg.PLATFORM == mg.WINDOWS:
+            img_src = output.fix_perc_encodings_for_win(img_src)
     if debug: print("img_src: %s" % img_src)
     return img_src
 

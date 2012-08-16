@@ -489,7 +489,7 @@ def get_css_dets():
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        content = lib.clean_bom_utf8(f.read())
+        content = lib.clean_boms(f.read())
         f.close()
         if content:
             try:
@@ -573,6 +573,21 @@ def percent_encode(url2esc):
                         (url2esc, lib.ue(e)))
     return perc_url
 
+def fix_perc_encodings_for_win(mystr):
+    """
+    IE6 at least chokes on C%3A%5CDocuments but is OK with 
+        C:/Documents.
+    IE6 can't cope with non-English text percent encoded or 
+        otherwise. See http://ihateinternetexplorer.com/. The IE 
+        widget on Windows 7 is fine though so time will fix this 
+        problem.
+    These steps made a difference in the wxPython IE-based window
+        on XP. Crazy.
+    """
+    fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
+                 replace(mg.PERC_ENCODED_COLON, u":"))
+    return fixed_str
+
 def rel2abs_rpt_img_links(str_html):
     """
     Linked images in external HTML reports are in different locations from those 
@@ -589,24 +604,27 @@ def rel2abs_rpt_img_links(str_html):
     So this functionality is only needed for GUI display of report-associated 
         images/js.
     Turn my_report_name/001.png to e.g. 
-        /home/g/sofastats/reports/my_report_name/001.png so that the html can be 
-        written to, and read from, anywhere (and still show the images!) in the 
-        temporary GUI displays.
+        file:///home/g/Documents/sofastats/reports/my_report_name/001.png so 
+        that the html can be written to, and read from, anywhere (and still show 
+        the images!) in the temporary GUI displays.
     """
     debug = False
+    verbose = False
     cc = config_output.get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")
-    #file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
-    #                  else mg.FILE_URL_START_GEN)
-    #report_path = file_url_start + percent_encode(report_path)
     report_path = percent_encode(report_path)
+    if mg.PLATFORM == mg.WINDOWS:
+        report_path = fix_perc_encodings_for_win(report_path)
     if debug: print(u"report_path: %s" % report_path)
+    file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
+                      else mg.FILE_URL_START_GEN)
     abs_display_content = (str_html.replace(u"%s" % mg.IMG_SRC_START, 
-                                            u"%s%s" % (mg.IMG_SRC_START, 
+                                            u"%s%s" % (mg.IMG_SRC_START,
+                                                       file_url_start, 
                                                        report_path)))
-    if debug: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
-                                                  abs_display_content))
+    if debug and verbose: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
+                                                           abs_display_content))
     return abs_display_content
 
 def path2url(path):
@@ -758,7 +776,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
     if existing_report:
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        existing_html = lib.clean_bom_utf8(f.read())
+        existing_html = lib.clean_boms(f.read())
         existing_has_dojo = hdr_has_dojo(existing_html)
         has_dojo = (new_has_dojo or existing_has_dojo)
         if has_dojo:
@@ -834,7 +852,7 @@ def export_script(script, css_fils, new_has_dojo=False):
                "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
         f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "U", "utf-8")
-        existing_script = lib.clean_bom_utf8(f.read())             
+        existing_script = lib.clean_boms(f.read())             
         f.close()
     else:
         existing_script = None
@@ -978,7 +996,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         script_txt = f.read()
         f.close()
         script_txt = lib.get_exec_ready_text(text=script_txt)
-        script = lib.clean_bom_utf8(script_txt)    
+        script = lib.clean_boms(script_txt)    
         script = script[script.index(mg.MAIN_SCRIPT_START):]
     except Exception, e:
         raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read part of script "
@@ -1007,7 +1025,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     # legendMychartRenumber0, and makechartsRenumber1 etc.
     try:
         with codecs.open(mg.INT_REPORT_PATH, "U", "utf-8") as f:
-            raw_results = lib.clean_bom_utf8(f.read())
+            raw_results = lib.clean_boms(f.read())
             f.close()
         if debug and verbose: print(raw_results)
         """
