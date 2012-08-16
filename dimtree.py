@@ -45,14 +45,15 @@ class DimTree(object):
         Used in set_initial_config() when setting up a fresh item.
         """
         self.default_item_confs = {
-             mg.FREQS: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE}, 
-                        mg.COLDIM: {MEASURES: None},},
-             mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE},
-                           mg.COLDIM: {HAS_TOT: None, 
-                                       SORT_ORDER: mg.SORT_VALUE, 
-                                       MEASURES: None},},
-             mg.ROW_STATS: {mg.ROWDIM: {HAS_TOT: None},
-                            mg.COLDIM: {MEASURES: None},}}
+            mg.FREQS: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE}, 
+                       mg.COLDIM: {MEASURES: None},},
+            mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE},
+                          mg.COLDIM: {HAS_TOT: None, 
+                                      SORT_ORDER: mg.SORT_VALUE, 
+                                      MEASURES: None},},
+            mg.ROW_STATS: {mg.ROWDIM: {HAS_TOT: None},
+                           mg.COLDIM: {MEASURES: None},},
+            mg.DATA_LIST: {mg.COLDIM: {SORT_ORDER: mg.SORT_VALUE}}}
 
     def on_row_item_activated(self, event):
         "Activated row item in tree.  Show config dialog."
@@ -187,24 +188,23 @@ class DimTree(object):
                         else mg.SORT_VALUE)
         item_conf = lib.ItemConfig(sort_order=default_sort)
         # reuse stored item config from same sort if set previously
-        if self.tab_type != mg.DATA_LIST: # Data list has nothing to reuse
-            default_item_conf = self.default_item_confs[self.tab_type]
-            # availability of config options vary by table type and dimension
-            # If a table type/dim doesn't have a key, the config isn't used by it.
-            dim_item_conf = default_item_conf.get(dim) # they all have both
-            if HAS_TOT in dim_item_conf:
-                if dim_item_conf[HAS_TOT] is not None:
-                    item_conf.has_tot = dim_item_conf[HAS_TOT]
-            if SORT_ORDER in dim_item_conf:
-                if dim_item_conf[SORT_ORDER] is not None:
-                    item_conf.sort_order = dim_item_conf[SORT_ORDER]
-            if MEASURES in dim_item_conf:
-                if dim_item_conf[MEASURES] is not None:
-                    item_conf.measures_lst = dim_item_conf[MEASURES]
-                else:
-                    rpt_config = mg.RPT_CONFIG[self.tab_type]
-                    default_measure = rpt_config[mg.DEFAULT_MEASURE_KEY]
-                    item_conf.measures_lst = [default_measure]
+        default_item_conf = self.default_item_confs[self.tab_type]
+        # availability of config options vary by table type and dimension
+        # If a table type/dim doesn't have a key, the config isn't used by it.
+        dim_item_conf = default_item_conf.get(dim) # they all have both
+        if HAS_TOT in dim_item_conf:
+            if dim_item_conf[HAS_TOT] is not None:
+                item_conf.has_tot = dim_item_conf[HAS_TOT]
+        if SORT_ORDER in dim_item_conf:
+            if dim_item_conf[SORT_ORDER] is not None:
+                item_conf.sort_order = dim_item_conf[SORT_ORDER]
+        if MEASURES in dim_item_conf:
+            if dim_item_conf[MEASURES] is not None:
+                item_conf.measures_lst = dim_item_conf[MEASURES]
+            else:
+                rpt_config = mg.RPT_CONFIG[self.tab_type]
+                default_measure = rpt_config[mg.DEFAULT_MEASURE_KEY]
+                item_conf.measures_lst = [default_measure]
         if var_name:
             item_conf.var_name = var_name
             item_conf.bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
@@ -448,7 +448,7 @@ class DimTree(object):
                 or (self.tab_type == mg.ROW_STATS and dim == mg.COLDIM)):
             sort_opt_allowed = mg.SORT_NO_OPTS
         elif self.tab_type == mg.DATA_LIST:
-            sort_opt_allowed = mg.DATA_LIST
+            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPTS
         elif not lib.item_has_children(tree, parent=selected_ids[0]):
             sort_opt_allowed = mg.STD_SORT_OPTS
         else:
