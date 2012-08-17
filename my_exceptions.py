@@ -134,6 +134,11 @@ class TooFewSamplesForAnalysis(OutputException):
                            u"data needed to run the analysis. Please check "
                            u"filtering or source data.")
 
+class InadequateVariability(OutputException):
+    def __init__(self):
+        OutputException.__init__(self, u"Not enough variability in the data to"
+                                 u" allow analysis.")
+
 class TooManySlicesInPieChart(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Too many slices in Pie Chart. "

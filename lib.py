@@ -1101,7 +1101,7 @@ def dic2unicode(mydic, indent=1):
     ustr += u"}"
     return ustr
 
-def clean_boms(raw):
+def clean_boms(orig_utf8):
     """
     Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
         '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
@@ -1126,36 +1126,36 @@ def clean_boms(raw):
     BOM_UTF32_BE = '\x00\x00\xfe\xff'
     BOM64_BE = '\x00\x00\xfe\xff'
     """
-    if raw.startswith(unicode(codecs.BOM_UTF8, "utf-8")): # '\xef\xbb\xbf'
-        bom_stripped = raw[len(unicode(codecs.BOM_UTF8, "utf-8")):] # strip it off
+    try:
+        str_orig = orig_utf8.encode("utf-8")
+    except UnicodeEncodeError:
+        raise Exception("cleans_boms() must be supplied a utf-8 unicode string")
+    if str_orig.startswith(codecs.BOM_UTF8): # '\xef\xbb\xbf'
+        len2rem = len(unicode(codecs.BOM_UTF8, "utf-8"))# 3 long in byte str, 1 in unicode str
+        bom_stripped = orig_utf8[len2rem:] # strip it off 
         return bom_stripped
-    return raw
-
-    # FF FE starts the null byte import test file
-
-
     # that was the only one we strip BOM off. The rest need it.
-    if raw.startswith(unicode(codecs.BOM_UTF32, "utf-32")): # '\xff\xfe\x00\x00'
+    if str_orig.startswith(codecs.BOM_UTF32): # '\xff\xfe\x00\x00'
         possible_encodings = ["utf-32",]
-    elif raw.startswith(unicode(codecs.BOM_UTF16_BE, "utf-16")): # '\xfe\xff'
-        possible_encodings = ["utf-32", "utf-16"]
-    elif raw.startswith(unicode(codecs.BOM_UTF16, "utf-16")): # '\xff\xfe'
-        possible_encodings = ["utf-16",]
-    elif raw.startswith(unicode(codecs.BOM_UTF32_BE, "utf-32")): # '\x00\x00\xfe\xff'
+    elif str_orig.startswith(codecs.BOM_UTF16_BE): # '\xfe\xff'
+        possible_encodings = ["utf-16", "utf-32"]
+    elif str_orig.startswith(codecs.BOM_UTF16): # '\xff\xfe'
+        possible_encodings = ["utf-16", "utf-32"]
+    elif str_orig.startswith(codecs.BOM_UTF32_BE): # '\x00\x00\xfe\xff'
         possible_encodings = ["utf-32",]
     else:
-        return raw
-    # Handle those with 
+        return orig_utf8
+    # Handle those needing to be decoded
     for possible_encoding in possible_encodings + ["utf-8",]:
         try:
-            fixed = unicode(raw, possible_encoding)
+            fixed = orig_utf8.decode(possible_encoding)
             return fixed
         except Exception:
             pass
     return u"" # last ditch attempt to return something
 
 if mg.PLATFORM == mg.WINDOWS:
-    import pywintypes
+    exec u"import pywintypes"
 
 def escape_pre_write(txt):
     "Useful when writing a path to a text file etc"
@@ -1367,16 +1367,15 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     if not is_string(raw_datetime_str):
         if debug: print("%s is not a valid datetime string" % raw_datetime_str)
         return None
-    clean_datetime_str = clean_boms(raw_datetime_str)
-    if clean_datetime_str.strip() == u"":
+    if raw_datetime_str.strip() == u"":
         if debug: print("Spaces or empty text are not valid datetime strings")
         return None
     try:
-        unicode(clean_datetime_str)
+        unicode(raw_datetime_str)
     except Exception:
         return None # can't do anything further with something that can't be converted to unicode
     # evaluate date and/or time components against allowable formats
-    date_part, time_part, boldate_then_time = datetime_split(clean_datetime_str)
+    date_part, time_part, boldate_then_time = datetime_split(raw_datetime_str)
     if date_part is None and time_part is None:
         if debug: print("Both date and time parts are empty.")
         return None
@@ -1702,4 +1701,3 @@ class StaticWrapText(wx.StaticText):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
         self.__wrap()
-

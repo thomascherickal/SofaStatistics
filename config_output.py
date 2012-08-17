@@ -721,49 +721,7 @@ class ConfigUI(object):
         wx.BeginBusyCursor()
         try:
             import export_output as export
-            do = wx.FileDataObject()
-            rootdir = u"/home/g/Documents/sofastats/reports/default_report_exported_images"
-            for i, filename in enumerate(os.listdir(rootdir)):
-                do.AddFile(os.path.join(rootdir, filename))
-                if i > 2: 
-                    break
-            wx.TheClipboard.Open()
-            wx.TheClipboard.AddData(do)
-            wx.TheClipboard.Close()
-            lib.safe_end_cursor()
-            wx.MessageBox(u"Finished")
-            return
-        
-            # act as if user selected print dpi and export as images
-            export_status = {mg.CANCEL_EXPORT: False}
-            sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
-            sorted_names.sort()
-            for filename in sorted_names:
-                delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
-                os.remove(delme)
-            export.export2imgs(report_path=mg.INT_REPORT_PATH, 
-                               special_folder=mg.INT_COPY_IMGS_PATH, 
-                               progbar=None, output_dpi=export.PRINT_DPI, 
-                               export_status=export_status, also_pdf=False)
-            sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
-            sorted_names.sort()
-            # http://wiki.wxpython.org/ClipBoard
-            wx.TheClipboard.Open()
-            for filname in sorted_names:
-                if filname.endswith(u".png"):
-                    imgname = os.path.join(mg.INT_COPY_IMGS_PATH, filname)
-                    if debug: print(imgname)
-                    img_demo = wx.Image(imgname, wx.BITMAP_TYPE_PNG)
-                    bmp_demo = wx.BitmapFromImage(img_demo)
-                    do = wx.DataObjectComposite() # multiple formats not items
-                    do.Add(wx.BitmapDataObject(bmp_demo), True)
-                    alt_txt = (u"If you see this text instead of the "
-                               u"image \"%s\", try pasting the output into a "
-                               u"graphics program first and edit/copy/save "
-                               u"from there etc." % imgname)
-                    do.Add(wx.TextDataObject(alt_txt), False)
-                    wx.TheClipboard.AddData(do)
-            wx.TheClipboard.Close()
+            export.copy_output()
             lib.safe_end_cursor()
             """
             Copying to the clipboard does not actually copy anything, it just 

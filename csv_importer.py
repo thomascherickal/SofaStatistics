@@ -60,6 +60,32 @@ def has_comma_delim(dialect):
     comma_delimiter = (dialect.delimiter.decode("utf8") == u",")
     return comma_delimiter
 
+def get_possible_encodings(file_path):
+    """
+    Get list of encodings which potentially work for a sample. Fast enough 
+        not to have to sacrifice code readability etc for performance.
+    """
+    debug = False
+    local_encoding = locale.getpreferredencoding()
+    if mg.PLATFORM == mg.WINDOWS:
+        encodings = ["cp1252", "iso-8859-1", "cp1257", "utf-8", "utf-16", 
+                     "big5"]
+    else:
+        encodings = ["utf-8", "iso-8859-1", "cp1252", "cp1257", "utf-16", 
+                     "big5"]
+    if local_encoding.lower() not in encodings:
+        encodings.insert(0, local_encoding.lower())
+    possible_encodings = []
+    for encoding in encodings:
+        if debug: print("About to test encoding: %s" % encoding)
+        try:
+            unused = csv2utf8_bytelines(file_path, encoding,
+                                        n_lines=ROWS_TO_SHOW_USER)
+            possible_encodings.append(encoding)
+        except Exception:
+            continue
+    return possible_encodings
+
 def get_sample_rows(file_path):
     debug = False
     try:
@@ -137,15 +163,22 @@ def make_tidied_copy(path):
     f.close()
     return new_file
 
-def has_header_row(sample_rows, delim, comma_dec_sep_ok=False):
+def has_header_row(file_path, sample_rows, delim, comma_dec_sep_ok=False):
     """
     Will return True if nothing but unambiguous strings in first row and 
         anything in other rows that is probably not be a string e.g. a number 
         or a date. Empty strings are not proof of anything so are skipped.
+    OK if this fails - we must leave it to the user to identify if a header row 
+        or not (and to choose a possible encoding).
     """
     if len(sample_rows) < 2: # a header row needs a following row to be a header
         return False
-    delim_str = delim.encode("utf-8")
+    delim_str = delim.encode("utf-8") # might fail but not worth expensive 
+    # process of working out actual decoding if this fails and OK if fails - 
+    # just leave has header row to default.
+    if delim_str is None:
+        raise Exception(u"Unable to decode import file so header row can be "
+                        u"identified")
     first_row_vals = sample_rows[0].split(delim_str)
     second_row_vals = sample_rows[1].split(delim_str)
     row1_types = [lib.get_val_type(val, comma_dec_sep_ok) 
@@ -188,7 +221,8 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
             # test it myself
             delim = dialect.delimiter.decode("utf8")
             comma_dec_sep_ok = not has_comma_delim(dialect)
-            prob_has_hdr = has_header_row(sample_rows, delim, comma_dec_sep_ok)        
+            prob_has_hdr = has_header_row(file_path, sample_rows, delim, 
+                                          comma_dec_sep_ok)        
     except Exception, e:
         pass
     return prob_has_hdr
@@ -366,7 +400,27 @@ def encode_lines_as_utf8(uni_lines):
                             u"\nCaused by error: %s" % lib.ue(e))
     return utf8_encoded_lines
 
-def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
+def get_decoded_unilines(file_path, bom2rem, encoding):
+    """
+    Going to need to trim, decode whole file, replace \r with \n, 
+        split into lines.
+    An expensive process given we only want a finite number of lines but no 
+        alternative if boms in text - they make the file mess up returning 
+        lines broken at the correct places. Sometimes a line is just
+        "\x00" (the nul byte).
+    """
+    debug = False
+    byte_content = open(file_path, "rb").read()
+    len2rem = len(bom2rem)
+    byte_content = byte_content[len2rem:]
+    decoded_file = byte_content.decode(encoding)
+    if debug: print(repr(decoded_file))
+    tidied = decoded_file.replace("\r", "")
+    if debug: print(repr(tidied))
+    split_lines = tidied.split("\n")
+    return split_lines
+    
+def csv2utf8_bytelines(file_path, encoding, n_lines=None, strict=True):
     """
     The csv module infamously only accepts lines of bytes encoded as utf-8.
     Need to do the escaping of double quotes here so we can deal with a unicode
@@ -375,26 +429,81 @@ def csv_to_utf8_byte_lines(file_path, encoding, n_lines=None, strict=True):
         locale it was done on. Eventually we could use chardet module to 
         sensibly guess but in meantime try several - including the local 
         encoding then utf-8 etc.
+    Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
+        '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
+    From codecs:
+    
+    BOM_UTF8 = '\xef\xbb\xbf'
+
+    BOM_UTF32 = '\xff\xfe\x00\x00'
+    BOM64_LE = '\xff\xfe\x00\x00'
+    BOM_UTF32_LE = '\xff\xfe\x00\x00'
+    
+    BOM_UTF16_BE = '\xfe\xff'
+    BOM32_BE = '\xfe\xff'
+    BOM_BE = '\xfe\xff'
+    
+    BOM_UTF16 = '\xff\xfe'
+    BOM = '\xff\xfe'
+    BOM_LE = '\xff\xfe'
+    BOM_UTF16_LE = '\xff\xfe'
+    BOM32_LE = '\xff\xfe'
+    
+    BOM_UTF32_BE = '\x00\x00\xfe\xff'
+    BOM64_BE = '\x00\x00\xfe\xff'
     """
     debug = False
+    unilines = []
+    # if bom available, use or reject supplied encoding according to bom
     try:
-        errors = "strict" if strict else "replace"
-        f = codecs.open(file_path, encoding=encoding, errors=errors)
-    except IOError, e:
-        raise Exception(u"Unable to open file for re-encoding. "
-                        u"\nCaused by error: %s" % lib.ue(e))
-    # this bit can fail even if the open succeeded
-    uni_lines = []
-    for i, line in enumerate(f, 1):
-        uni_lines.append(line)
-        if n_lines is not None:
-            if i >= n_lines:
-                break
-    escaped_uni_lines = escape_double_quotes_in_uni_lines(uni_lines)
-    utf8_byte_lines = encode_lines_as_utf8(escaped_uni_lines)
+        # should be super fast and only once or twice per entire CSV file
+        init_content = open(file_path, "rb").read(20) # 20s enough for length of longest bom
+        boms = [(codecs.BOM_UTF8, ["utf-8"]), # order matters - see above
+                (codecs.BOM_UTF32, ["utf-32"]), 
+                (codecs.BOM_UTF16_BE, ["utf-16"]),
+                (codecs.BOM_UTF16, ["utf-16"]), 
+                (codecs.BOM_UTF32_BE, ["utf-32"]),]
+        for bom2rem, encodings2try in boms:
+            if init_content.startswith(bom2rem):
+                if encoding in encodings2try:
+                    # Going to need to trim, decode whole file,
+                    # replace \r with \n, split into lines, take n lines.
+                    if debug: wx.MessageBox(u"Good encoding: %s" % encoding)
+                    decoded_unilines = get_decoded_unilines(file_path, bom2rem,
+                                                            encoding)
+                    if n_lines is not None:
+                        decoded_unilines = decoded_unilines[:n_lines]
+                    unilines.extend(decoded_unilines)
+                    break
+                else:
+                    raise Exception(u"Found bom for a different encoding. "
+                                 u"Cannot use the encoding supplied to decode.")
+    except Exception, e:
+        raise Exception(u"Unable to recode CSV content. Orig error: %s" % 
+                        lib.ue(e))
+    # no boms to guide us - try what we have and see if it "works".
+    # Note - may get something malformed which fails after the file read when we 
+    # try to iterate through lines.
+    if not unilines:
+        try:
+            errors = "strict" if strict else "replace"
+            f = codecs.open(file_path, encoding=encoding, errors=errors)
+        except IOError, e:
+            raise Exception(u"Unable to open file for re-encoding. "
+                            u"\nCaused by error: %s" % lib.ue(e))
+        for i, line in enumerate(f, 1):
+            unilines.append(line)
+            if n_lines is not None:
+                if i >= n_lines:
+                    break
+    if not unilines:
+        raise Exception(u"No lines in CSV to process")
+    escaped_unilines = escape_double_quotes_in_uni_lines(unilines)
+    utf8_bytelines = encode_lines_as_utf8(escaped_unilines)
     if debug:
-        print(repr(utf8_byte_lines))
-    return utf8_byte_lines
+        print(repr(utf8_bytelines))
+        wx.MessageBox("Adding %s to list" % encoding)
+    return utf8_bytelines
 
 
 class DlgImportDisplay(wx.Dialog):
@@ -490,9 +599,19 @@ class DlgImportDisplay(wx.Dialog):
         event.Skip()
     
     def get_content(self):
-        self.utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
-                                                      self.encoding, 
-                                                      n_lines=ROWS_TO_SHOW_USER)
+        """
+        For display in GUI dlg - so makes sense to use the encoding the user has 
+            selected - whether or not it is a good choice.
+        """
+        try:
+            self.utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path, 
+                                                              self.encoding, 
+                                                  n_lines=ROWS_TO_SHOW_USER)
+        except Exception, e:
+            msg = (u"Unable to display the first lines of this CSV file using "
+                   u"the first selected encoding (%s).\n\nOrig error: %s" % 
+                   (self.encoding, lib.ue(e)))
+            return msg, 100
         try:
             # don't use dict reader - consumes first row when we don't know
             # field names. And if not a header, we might expect some values to
@@ -607,28 +726,6 @@ class CsvImporter(importer.FileImporter):
             original row than the dict reader expected.
         """
         return get_avg_row_size(rows=tmp_reader)
-
-    def get_possible_encodings(self):
-        """
-        Get list of encodings which potentially work for a sample.  Fast enough 
-            not to have to sacrifice code readability etc for performance.
-        """
-        local_encoding = locale.getpreferredencoding()
-        if mg.PLATFORM == mg.WINDOWS:
-            encodings = ["cp1252", "iso-8859-1", "cp1257", "utf-8", "big5"]
-        else:
-            encodings = ["utf-8", "iso-8859-1", "cp1252", "cp1257", "big5"]
-        if local_encoding.lower() not in encodings:
-            encodings.insert(0, local_encoding.lower())
-        possible_encodings = []
-        for encoding in encodings:
-            try:
-                unused = csv_to_utf8_byte_lines(self.file_path, encoding,
-                                                n_lines=ROWS_TO_SHOW_USER)
-                possible_encodings.append(encoding)
-            except Exception:
-                continue
-        return possible_encodings
                       
     def get_sample_with_dets(self):
         """
@@ -651,13 +748,13 @@ class CsvImporter(importer.FileImporter):
         if self.headless:
             encoding = self.supplied_encoding
             has_header = self.headless_has_header
-            utf8_encoded_csv_sample = csv_to_utf8_byte_lines(self.file_path,
-                                                      encoding, 
+            utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path,
+                                                         encoding, 
                                                       n_lines=ROWS_TO_SHOW_USER)
         else:
-            encodings = self.get_possible_encodings()
             probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
                                                 dialect)
+            encodings = get_possible_encodings(self.file_path)
             if not encodings:
                 raise Exception(_("Data could not be processed using available "
                                   "encodings"))
@@ -765,8 +862,8 @@ class CsvImporter(importer.FileImporter):
             raise Exception(u"Unable to get count of rows. "
                             u"\nCaused by error: %s" % lib.ue(e))
         try:
-            utf8_encoded_csv_data = csv_to_utf8_byte_lines(self.file_path, 
-                                                        encoding, strict=False)
+            utf8_encoded_csv_data = csv2utf8_bytelines(self.file_path, 
+                                                       encoding, strict=False)
             # we supply field names so will start with first row
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                                           dialect=dialect, 

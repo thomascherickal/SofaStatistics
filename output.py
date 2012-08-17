@@ -620,9 +620,9 @@ def rel2abs_rpt_img_links(str_html):
     file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
                       else mg.FILE_URL_START_GEN)
     abs_display_content = (str_html.replace(u"%s" % mg.IMG_SRC_START, 
-                                            u"%s%s" % (mg.IMG_SRC_START,
-                                                       file_url_start, 
-                                                       report_path)))
+                                            u"%s%s%s" % (mg.IMG_SRC_START,
+                                                         file_url_start, 
+                                                         report_path)))
     if debug and verbose: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
                                                            abs_display_content))
     return abs_display_content

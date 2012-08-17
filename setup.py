@@ -280,7 +280,7 @@ def run_test_code(script):
     test_path = os.path.join(mg.INT_PATH, script)
     if not os.path.exists(test_path):
         return
-    f = codecs.open(test_path, "r", "utf8")
+    f = codecs.open(test_path, "r", "utf-8")
     test_code = lib.get_exec_ready_text(text=f.read())
     f.close()
     test_code = lib.clean_boms(test_code)

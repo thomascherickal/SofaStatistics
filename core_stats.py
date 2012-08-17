@@ -428,7 +428,7 @@ def anova_orig(lst_samples, lst_labels, high=False):
 def anova(samples, labels, high=True):
     """
     From NIST algorithm used for their ANOVA tests.
-    Added correction factor.
+    Added correction factor. And a zero division trap.
     high - high precision but much, much slower.  Multiplies each by 10 (and
         divides by 10 and 100 as appropriate) plus uses decimal rather than
         floating point.  Needed to handle difficult datasets e.g. ANOVA test 9 
@@ -458,6 +458,8 @@ def anova(samples, labels, high=True):
     sswn = get_sswn(samples, sample_means, sample_ns, high)
     dfwn = sum(sample_ns) - n_samples
     mean_squ_wn = sswn/dfwn
+    if mean_squ_wn == 0:
+        raise my_exceptions.InadequateVariability
     ssbn = get_ssbn(samples, sample_means, n_samples, sample_ns, high)
     dfbn = n_samples - 1
     mean_squ_bn = ssbn/dfbn
@@ -544,7 +546,7 @@ def get_summary_dics(samples, labels, quant=False):
 def kruskalwallish(samples, labels):
     """
     From stats.py.  No changes except also return a dic for each sample with 
-        median etc and args -> samples, plus df.  
+        median etc and args -> samples, plus df.  Also raise a different error.
     -------------------------------------
     The Kruskal-Wallis H-test is a non-parametric ANOVA for 3 or more
     groups, requiring at least 5 subjects in each group.  This function
@@ -574,7 +576,7 @@ def kruskalwallish(samples, labels):
     h = 12.0 / (totaln*(totaln+1)) * ssbn - 3*(totaln+1)
     df = len(samples) - 1
     if T == 0:
-        raise ValueError(u"All numbers are identical in kruskalwallish")
+        raise my_exceptions.InadequateVariability
     h = h / float(T)
     return h, chisqprob(h,df), dics, df
 
@@ -585,6 +587,7 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
         presentation.  There are no changes to algorithms apart from calculating 
         sds once, rather than squaring to get var and taking sqrt to get sd 
         again ;-).  Plus use variance to get var, not stdev then squared.
+        Also put denominator separately so can detect 0 (inadequate variability)
     Returns t, p, dic_a, dic_b, df (p is the two-tailed probability)
     
     use_orig_var = use original (flawed) approach to sd and var.  Needed for 
@@ -609,7 +612,10 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     n_b = len(sample_b)
     df = n_a + n_b - 2
     svar = ((n_a - 1)*se_a + (n_b - 1)*se_b)/float(df)
-    t = (mean_a - mean_b)/math.sqrt(svar*(1.0/n_a + 1.0/n_b))
+    denom = math.sqrt(svar*(1.0/n_a + 1.0/n_b))
+    if denom == 0:
+        raise my_exceptions.InadequateVariability
+    t = (mean_a - mean_b)/denom
     p = betai(0.5*df, 0.5, df/(df + t*t))
     min_a = min(sample_a)
     min_b = min(sample_b)
@@ -673,7 +679,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
         presentation.  Also added calculation of mean ranks, plus min and 
-        max values.
+        max values. And changed error type.
     -------------------------------------
     Calculates a Mann-Whitney U statistic on the provided scores and
     returns the result.  Use only when the n in each condition is < 20 and
@@ -698,7 +704,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     smallu = min(u_a, u_b)
     T = math.sqrt(tiecorrect(ranked))  # correction factor for tied scores
     if T == 0:
-        raise ValueError(u"All numbers are identical in lmannwhitneyu")
+        raise my_exceptions.InadequateVariability
     sd = math.sqrt(T*n_a*n_b*(n_a + n_b + 1)/12.0)
     z = abs((bigu-n_a*n_b/2.0) / sd)  # normal approximation for prob calc
     p = 1.0 - zprob(z)
@@ -824,6 +830,8 @@ def pearsonr(x,y):
     r_num = n*(summult(x,y)) - sum(x)*sum(y)
     r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x)) * 
                       (n*sum_squares(y)-square_of_sums(y)))
+    if r_den == 0:
+        raise my_exceptions.InadequateVariability
     r = (r_num / r_den)  # denominator already a float
     df = n-2
     t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
