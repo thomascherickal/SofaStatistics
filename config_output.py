@@ -769,10 +769,13 @@ class ConfigUI(object):
          str_content) = self.get_script_output(get_script_args, new_has_dojo)
         lib.update_local_display(self.html, str_content)
         self.content2expand = str_content
-        self.btn_expand.Enable(bolran_report)
-        self.btn_export_output.Enable(bolran_report)
-        self.btn_copy_output.Enable(bolran_report)
+        self.align_export_btns(bolran_report)
         lib.safe_end_cursor()
+
+    def align_export_btns(self, enable_btns):
+        self.btn_expand.Enable(enable_btns)
+        self.btn_export_output.Enable(enable_btns)
+        self.btn_copy_output.Enable(enable_btns)
 
     def on_btn_run(self, event, get_script_args, new_has_dojo=False):
         try:

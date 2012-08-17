@@ -420,7 +420,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.setup_row_btns()
         self.setup_col_btns()
         live_demo = self.update_demo_display()
-        self.setup_action_btns(live_demo)
+        self.align_action_btns(live_demo)
         
     def update_var_dets(self, update_display=True):
         "Update all labels, including those already displayed"
@@ -507,7 +507,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.setup_row_btns()
         self.setup_col_btns()
         live_demo = self.update_demo_display()
-        self.setup_action_btns(live_demo)
+        self.align_action_btns(live_demo)
         self.txt_titles.SetFocus()
         
     def enable_raw_display_opts(self, enable=True):
@@ -850,7 +850,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                     bolran_report, demo_html = self.get_live_html()
                     self.btn_expand.Enable(bolran_report)
                     self.content2expand = demo_html
-                    demo_was_live = True
+                    demo_was_live = bolran_report
                 else:
                     demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCss, e:
@@ -926,10 +926,11 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             raise Exception(u"Not an expected table type")
         return (export_ok, has_cols)
 
-    def setup_action_btns(self, live_demo=False):
+    def align_action_btns(self, live_demo=False):
         """
         Enable or disable the action buttons (Run and Export) according to 
             completeness of configuration data.
+        Also align the export buttons.
         """
         ready2run, unused = self.table_config_ok(silent=True)
         if live_demo:
@@ -946,6 +947,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         self.btn_run.SetLabel(runlbl2use)
         self.btn_run.Enable(ready2run)
         self.chk_add_to_report.Enable(ready2run)
+        self.align_export_btns(live_demo)
         
     def on_btn_var_config(self, event):
         """

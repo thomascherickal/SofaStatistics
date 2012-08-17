@@ -175,7 +175,7 @@ class DimTree(object):
             else:
                 self.setup_col_btns()
             live_demo = self.update_demo_display()
-            self.setup_action_btns(live_demo)
+            self.align_action_btns(live_demo)
     
     def set_initial_config(self, tree, dim, new_id, var_name=None):
         """
@@ -387,7 +387,7 @@ class DimTree(object):
         # misc setup
         btn_setup_func()
         live_demo = self.update_demo_display()
-        self.setup_action_btns(live_demo)
+        self.align_action_btns(live_demo)
 
     def on_row_delete(self, event):
         self.on_item_delete(dim=mg.ROWDIM)
