@@ -1042,9 +1042,9 @@ def get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     debug = False
     n_cats = len(xaxis_dets)
     n_series = len(series_dets)
-    MIN_PXLS_PER_CAT = 30
+    MIN_PXLS_PER_CAT = 10
     MIN_CHART_WIDTH = 550 if n_series < 5 else 850 # when vertically squeezed good to have more horizontal room
-    PADDING_PXLS = 50
+    PADDING_PXLS = 10
     width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
@@ -1113,12 +1113,14 @@ def get_lbl_dets(xaxis_dets):
         lbl_dets.append(u"{value: %s, text: %s}" % (i, val_lbl))
     return lbl_dets
 
-def adjust_left_axis_lbl_shift(xaxis_dets, init_left_axis_lbl_shift):
+def adjust_left_axis_lbl_shift(xaxis_dets, rotate, init_left_axis_lbl_shift):
     """
     Need to shift margin left if wide labels to keep y-axis title close enough 
         to y_axis labels.
     """
     debug = False
+    if rotate:
+        return init_left_axis_lbl_shift
     left_axis_lbl_shift = init_left_axis_lbl_shift
     try:
         label1_len = len(xaxis_dets[0][1])
@@ -1214,7 +1216,8 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     # only one series per chart by design
     series_det = chart0_series_dets[0]
     xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
+                                                     init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.9
@@ -1374,7 +1377,8 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
                                                n_bars_in_cluster, max_lbl_width)
     series_det = chart0_series_dets[0]
     xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
+                                                     init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
@@ -1689,7 +1693,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                                                        max_lbl_width, 
                                                        chart0_series_dets)
     init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
+                                                     init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
@@ -1877,7 +1882,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      micro_ticks) = get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, 
                                           chart0_series_dets)
     init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, init_lbl_shift)
+    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
+                                                     init_lbl_shift)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
