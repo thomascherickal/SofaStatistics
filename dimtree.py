@@ -28,6 +28,62 @@ A label tree has nodes for each value under a variable e.g. the dimension might
     need to add label nodes for totals, row %s etc.   
 """
 
+class DlgSelectVars(wx.Dialog):
+    
+    def __init__(self, parent, var_choices):
+        wx.Dialog.__init__(self, parent=parent, 
+                           title=_(u"Select variable(s)"), 
+                           style=wx.CAPTION|wx.SYSTEM_MENU)
+        szr = wx.BoxSizer(wx.VERTICAL)
+        self.var_selector = wx.ListBox(self, -1, choices=var_choices, 
+                                       style=wx.LB_MULTIPLE, size=(-1, 300))
+        self.var_selector.Bind(wx.EVT_LISTBOX_DCLICK, self.on_var_sel)
+        self.var_selector.SetToolTipString(_("Select variable(s)"))
+        self.setup_btns()
+        szr.Add(self.var_selector, 0, wx.GROW|wx.ALL, 10)
+        szr.Add(self.szr_btns, 0, wx.ALL, 10)
+        self.SetSizer(szr)
+        szr.SetSizeHints(self)
+        self.Layout()
+        
+    def setup_btns(self):
+        """
+        Must have ID of wx.ID_... to trigger validators (no event binding 
+            needed) and for std dialog button layout.
+        NB can only add some buttons as part of standard sizer to be realised.
+        Insert or Add others after the Realize() as required.
+        See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
+        and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
+        """
+        btn_cancel = wx.Button(self, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        btn_ok = wx.Button(self, wx.ID_OK)
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
+        self.szr_btns = wx.StdDialogButtonSizer()
+        # assemble
+        self.szr_btns.AddButton(btn_cancel)
+        self.szr_btns.AddButton(btn_ok)
+        self.szr_btns.Realize()
+        btn_ok.SetDefault()
+
+    def on_var_sel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK)
+        event.Skip()
+    
+    def on_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
+        # (MUST come after Destroy)
+
+    def get_selections(self):
+        return self.var_selector.GetSelections()
+
+    def on_ok(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_OK) # or nothing happens!
+        
+
 class DimTree(object):
     
     # dimension (rows/columns) trees
@@ -56,8 +112,8 @@ class DimTree(object):
             mg.DATA_LIST: {mg.COLDIM: {SORT_ORDER: mg.SORT_VALUE}}}
 
     def on_row_item_activated(self, event):
-        "Activated row item in tree.  Show config dialog."
-        self.config_row()
+        "Activated row item in tree. Show config dialog."
+        self.config_dim(dim=mg.ROWDIM)
     
     def on_col_item_activated(self, event):
         "Activated col item in tree. Show config dialog."
@@ -107,22 +163,9 @@ class DimTree(object):
                         oth_dim_root=self.rowroot)
     
     def get_selected_idxs(self, dim, sorted_choices):
-        "Where we provide a single or multi choice dialog to select variables."
-        selected_idxs = None # init
-        if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM) 
-                or self.tab_type == mg.DATA_LIST):
-            dlg = wx.MultiChoiceDialog(parent=self, 
-                                 message=_("Select a variable"), 
-                                 caption=_("Variables"), choices=sorted_choices)
-            ret = dlg.ShowModal()
-            if ret == wx.ID_OK:
-                selected_idxs = dlg.GetSelections()
-        else:
-            ret = wx.GetSingleChoiceIndex(message=_("Select a variable"), 
-                                 caption=_("Variables"), choices=sorted_choices, 
-                                 parent=self)
-            if ret != -1:
-                selected_idxs = [ret,]
+        dlg = DlgSelectVars(parent=self, var_choices=sorted_choices)
+        dlg.ShowModal()
+        selected_idxs = dlg.get_selections()
         return selected_idxs
     
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):

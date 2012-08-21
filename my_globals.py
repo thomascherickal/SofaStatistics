@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.2.0"
+VERSION = u"1.2.1"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -415,6 +415,7 @@ DBES = []
 DBE_MODULES = {}
 DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"), 
                (DBE_MYSQL, u"dbe_mysql"), 
+               (DBE_CUBRID, u"dbe_cubrid"), 
                (DBE_MS_ACCESS, u"dbe_ms_access"), 
                (DBE_MS_SQL, u"dbe_ms_sql"),
                (DBE_PGSQL, u"dbe_postgresql"),

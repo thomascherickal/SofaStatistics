@@ -715,9 +715,6 @@ class ConfigUI(object):
     
     def on_btn_copy_output(self, event):
         debug = False
-        wx.MessageBox(u"Works brilliantly in Windows - still thinking about "
-                      u"a Linux (Mac) fix")
-        return
         wx.BeginBusyCursor()
         try:
             import export_output as export

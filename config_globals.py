@@ -42,6 +42,9 @@ def import_dbe_plugin(dbe_plugin):
         elif dbe_plugin == mg.DBE_MYSQL:
             import dbe_plugins.dbe_mysql as dbe_mysql
             mod = dbe_mysql
+        elif dbe_plugin == mg.DBE_CUBRID:
+            import dbe_plugins.dbe_cubrid as dbe_cubrid
+            mod = dbe_cubrid
         elif dbe_plugin == mg.DBE_MS_ACCESS:
             import dbe_plugins.dbe_ms_access as dbe_ms_access
             mod = dbe_ms_access
