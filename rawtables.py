@@ -39,7 +39,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
         is called (current by definition) and instantiates and gets html in one
         go.
     """
-    debug = False
+    debug = True
+    verbose = True
     idx_and_data = namedtuple('idx_and_data', 'sort_idx, lbl_cols')  
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
@@ -102,36 +103,45 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
         row_idx+=1
         sorting_lbls = []
         labelled_cols = []
-        for i in range(cols_n):
+        for idx_col in range(cols_n):
             # process row data to display cell contents
-            if col_val_dics[i]: # has a label dict
-                row_val = col_val_dics[i].get(row[i], row[i]) # use if possible
+            raw_val = row[idx_col]
+            if col_val_dics[idx_col]: # has a label dict
+                row_val = col_val_dics[idx_col].get(row[idx_col], row[idx_col]) # use if possible
             else:
-                if row[i] or row[i] in (u"", 0):
-                    row_val = row[i]
-                elif row[i] is None:
+                if row[idx_col] or row[idx_col] in (u"", 0):
+                    row_val = row[idx_col]
+                elif row[idx_col] is None:
                     row_val = u"-"
             labelled_cols.append(row_val)
             # include row_val in lbl list which the data will be sorted by
-            if col_sorting[i] == mg.SORT_LBL:
+            if col_sorting[idx_col] == mg.SORT_LBL:
                 sorting_lbls.append(row_val)
+            else:
+                sorting_lbls.append(raw_val) # no label
             # process totals
             if add_total_row:
                 # Skip if first col as val and this is first col
                 # Skip if prev was a Null ("-")
                 # Add to running total if a number
-                if ((first_col_as_label and i == 0) 
+                if ((first_col_as_label and idx_col == 0) 
                         or row_val == u"-"):
                     pass
                 elif (lib.is_basic_num(row_val) 
-                      and lib.is_basic_num(row_tots[i])):
-                    row_tots[i] += row_val
-                    row_tots_used.add(i)
+                      and lib.is_basic_num(row_tots[idx_col])):
+                    row_tots[idx_col] += row_val
+                    row_tots_used.add(idx_col)
         idx_and_data_rows.append(idx_and_data(sorting_lbls, labelled_cols))
-    if debug: print("row_tots: %s" % row_tots)
+    if add_total_row:
+        if debug: print("row_tots: %s" % row_tots)
     # sort labelled data if appropriate
+    if debug and verbose:
+        print(u"Unsorted\n\n%s" % idx_and_data_rows)
     if mg.SORT_LBL in col_sorting:
+        
         idx_and_data_rows.sort(key=lambda s: s.sort_idx)
+    if debug and verbose:
+        print(u"Sorted\n\n%s" % idx_and_data_rows)
     # generate html
     for idx_and_data_row in idx_and_data_rows:
         labelled_cols = idx_and_data_row.lbl_cols

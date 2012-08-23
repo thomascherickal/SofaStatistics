@@ -48,8 +48,8 @@ def replace_titles_subtitles(orig, titles, subtitles):
     title_end_idx = orig.index(mg.TBL_TITLE_END)
     post_title = orig[title_end_idx :] # everything after title inc subtitles
     # use shorter post_title instead or orig from here on
-    subtitle_start_idx = post_title.index(mg.TBL_SUBTITLE_START) + \
-        len(mg.TBL_SUBTITLE_START)
+    subtitle_start_idx = (post_title.index(mg.TBL_SUBTITLE_START) +
+                          len(mg.TBL_SUBTITLE_START))
     between_title_and_sub = post_title[ : subtitle_start_idx]
     post_subtitle = post_title[post_title.index(mg.TBL_SUBTITLE_END):]
     # put it all back together

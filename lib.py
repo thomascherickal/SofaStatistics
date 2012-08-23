@@ -146,9 +146,9 @@ def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote,
             raise Exception(u"Inappropriate attempt to quote non-string value."
                             u"\nCaused by error: %s" % ue(e))
     if use_double_quotes:
-        newval = u"\"%s\"" % val
+        newval = '"' + val + '"'
     else:
-        newval = u"\'%s\'" % val
+        newval = "'" + val + "'"
     return newval
 
 def get_p(p, dp):

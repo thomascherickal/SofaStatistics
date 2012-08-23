@@ -533,7 +533,7 @@ class DimTree(object):
                             allow_tot, measures, sort_opt_allowed, rets_dic, 
                             horizontal)
             ret = dlg.ShowModal()
-            if ret == wx.ID_OK and self.tab_type != mg.DATA_LIST: # never sets defaults
+            if ret == wx.ID_OK:
                 self.update_default_item_confs(dim, rets_dic[ITEM_CONFIG])
                 self.update_demo_display()
 

@@ -99,7 +99,7 @@ class DemoTable(object):
 
     def get_demo_html(self, css_idx):
         "Get demo HTML for table"
-        debug = True
+        debug = False
         cc = config_output.get_cc()
         # sort titles out first
         if self.txt_titles.GetValue():
