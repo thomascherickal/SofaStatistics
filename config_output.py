@@ -80,6 +80,7 @@ class DlgGetExt(wx.Dialog):
         "Get Plug-in"
         Add button to open get_extensions page.
         """
+        self.link = u"http://www.sofastatistics.com/get_extensions.php"
         szr = wx.BoxSizer(wx.VERTICAL)
         szr.AddSpacer(10)
         for comment in comments:
@@ -88,16 +89,22 @@ class DlgGetExt(wx.Dialog):
                                 size=(-1,50))
         btn_get_ext.Bind(wx.EVT_BUTTON, self.on_btn_get_ext)
         btn_ok = wx.Button(self, wx.ID_OK, u"No Thanks") # autobound to close event by id
+        btn_ok.Bind(wx.EVT_BUTTON, self.on_btn_ok)
         szr.Add(btn_get_ext, 1, wx.GROW|wx.ALL, 10)
         szr.Add(btn_ok, 0, wx.ALL, 10)
         self.SetSizer(szr)
         szr.SetSizeHints(self)
         szr.Layout()
 
-    def on_btn_get_ext(self, event):        
+    def on_btn_get_ext(self, event):
         import webbrowser
-        url = u"http://www.sofastatistics.com/get_extensions.php"
-        webbrowser.open_new_tab(url)
+        webbrowser.open_new_tab(url=self.link)
+        event.Skip()
+        
+    def on_btn_ok(self, event):
+        wx.MessageBox(u"If you change your mind, the link is:\n\n%s" % 
+                      self.link)
+        self.Destroy()
         event.Skip()
         
         

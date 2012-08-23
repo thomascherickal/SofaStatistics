@@ -99,7 +99,7 @@ class DemoTable(object):
 
     def get_demo_html(self, css_idx):
         "Get demo HTML for table"
-        debug = False
+        debug = True
         cc = config_output.get_cc()
         # sort titles out first
         if self.txt_titles.GetValue():
@@ -218,6 +218,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         html.append(title_dets_html)
         (row_label_rows_lst, tree_row_labels, 
                     row_label_cols_n) = self.get_row_dets(css_idx)
+        
+        html.append(u"\n\n<table cellspacing='0'>\n") # IE6 - no support CSS borderspacing
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         html.append(hdr_html)
         if debug: print(row_label_rows_lst)

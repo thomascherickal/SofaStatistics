@@ -33,6 +33,7 @@ placeholder = u"?"
 left_obj_quote = u"`"
 right_obj_quote = u"`"
 gte_not_equals = u"!="
+cartesian_joiner = u" JOIN "
 
 def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
@@ -51,7 +52,7 @@ def get_first_sql(tblname, top_n, order_val=None):
         
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
-            placeholder, get_summable, gte_not_equals)
+            placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_con_cur_for_db(con_dets_mysql, db):
     """
@@ -545,7 +546,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         parent.txt_mysql_default_db.SetFocus()
     default_dbs[mg.DBE_MYSQL] = mysql_default_db
     default_tbls[mg.DBE_MYSQL] = mysql_default_tbl
-    if mysql_host and mysql_user and mysql_pwd:
+    if has_mysql_con:
         # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
         con_dets_mysql = {"host": mysql_host, "port": mysql_port, 
                           "user": mysql_user, "passwd": mysql_pwd}

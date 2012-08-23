@@ -407,7 +407,8 @@ class LiveTable(DimTable):
         (self.if_clause, unused, unused, 
          self.quote_obj, self.quote_val, 
          self.placeholder, self.get_summable, 
-         self.gte_not_equals) = getdata.get_dbe_syntax_elements(self.dbe)
+         self.gte_not_equals, 
+         unused) = getdata.get_dbe_syntax_elements(self.dbe)
         self.cur = cur
         self.flds = flds
         self.tree_rows = tree_rows

@@ -103,6 +103,7 @@ DEFAULT_MEASURE_KEY = u"default_measure_key"
 NEEDS_ROWS_KEY = u"needs_row_key"
 QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
     # live demo output if table has less than this records
+debug = True
 RPT_CONFIG = {
     FREQS: {COL_MEASURES_KEY: [FREQ, COLPCT], 
             VAR_SUMMARISED_KEY: False,
@@ -110,14 +111,14 @@ RPT_CONFIG = {
             ROWPCT_AN_OPTION_KEY: True,
             MEASURES_HORIZ_KEY: True,
             DEFAULT_MEASURE_KEY: FREQ,
-            QUICK_IF_BELOW_KEY: 5000}, # 5000
+            QUICK_IF_BELOW_KEY: 1000 if debug else 5000}, # 5000
     CROSSTAB: {COL_MEASURES_KEY: [FREQ, COLPCT], 
                VAR_SUMMARISED_KEY: False,
                NEEDS_ROWS_KEY: True,
                ROWPCT_AN_OPTION_KEY: True,
                MEASURES_HORIZ_KEY: True,
                DEFAULT_MEASURE_KEY: FREQ,
-               QUICK_IF_BELOW_KEY: 4000},
+               QUICK_IF_BELOW_KEY: 1000 if debug else 4000}, # 4000
     ROW_STATS: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
                                    LOWER_QUARTILE, UPPER_QUARTILE, IQR, SUM],
                VAR_SUMMARISED_KEY: True,
@@ -125,7 +126,7 @@ RPT_CONFIG = {
                ROWPCT_AN_OPTION_KEY: False, 
                MEASURES_HORIZ_KEY: False,
                DEFAULT_MEASURE_KEY: MEAN,
-               QUICK_IF_BELOW_KEY: 2000},
+               QUICK_IF_BELOW_KEY: 1000 if debug else 2000}, # 2000
     DATA_LIST: {COL_MEASURES_KEY: [],
                 VAR_SUMMARISED_KEY: False, 
                 NEEDS_ROWS_KEY: False,

@@ -29,6 +29,7 @@ if_clause = u"IIF(%s, %s, %s)"
 placeholder = u"?"
 left_obj_quote = u"["
 right_obj_quote = u"]"
+cartesian_joiner = u" JOIN "
 
 # http://ask.metafilter.com/38350/ ...
 # ... How-does-not-equal-translate-into-Access-Language
@@ -51,7 +52,7 @@ def get_first_sql(tblname, top_n, order_val=None):
 
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
-            placeholder, get_summable, gte_not_equals)
+            placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_dbs_list(con_dets, default_dbs):
     """

@@ -26,6 +26,7 @@ placeholder = u"?"
 left_obj_quote = u"["
 right_obj_quote = u"]"
 gte_not_equals = u"!="
+cartesian_joiner = u" JOIN "
 
 def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
@@ -44,7 +45,7 @@ def get_first_sql(tblname, top_n, order_val=None):
         
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
-            placeholder, get_summable, gte_not_equals)
+            placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_DSN(provider, host, user, pwd, db):
     """

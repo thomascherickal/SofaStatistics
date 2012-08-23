@@ -31,6 +31,7 @@ placeholder = u"?"
 left_obj_quote = u"`"
 right_obj_quote = u"`"
 gte_not_equals = u"!="
+cartesian_joiner = u" JOIN "
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
@@ -54,7 +55,7 @@ def get_summable(clause):
 
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
-            placeholder, get_summable, gte_not_equals)
+            placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_first_sql(tblname, top_n, order_val=None):
     orderby = u"ORDER BY %s" % quote_obj(order_val) if order_val else u""

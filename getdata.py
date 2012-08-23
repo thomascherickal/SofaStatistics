@@ -296,6 +296,12 @@ def get_init_settings_data(default_dd, tblname):
 
 # syntax
 
+def get_cartesian_joiner(dbe):
+    """
+    Get appropriate syntax to cartesian join entities.
+    """
+    return mg.DBE_MODULES[dbe].cartesian_joiner
+
 def get_obj_quoter_func(dbe):
     """
     Get appropriate function to wrap content e.g. table or field name, 
@@ -507,7 +513,7 @@ def insert_row(tbl_dd, data):
     """
     debug = False
     (unused, left_obj_quote, right_obj_quote, unused, unused, 
-              placeholder, unused, unused) = get_dbe_syntax_elements(tbl_dd.dbe) 
+     placeholder, unused, unused, unused) = get_dbe_syntax_elements(tbl_dd.dbe) 
     """
     data = [(value as string (or None), fldname, fld_dets), ...]
     Modify any values (according to field details) to be ready for insertion.

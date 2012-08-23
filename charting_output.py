@@ -94,6 +94,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         variables (or in the variable being averaged if a chart of averages).
     """
     objqtr = getdata.get_obj_quoter_func(dbe)
+    cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
         raise Exception(u"All general charts require a category variable to be "
                         u"identified")
@@ -143,9 +144,10 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         %(and_avg_filt)s
     GROUP BY %(var_role_cat)s""" % sql_dic)
     if debug: print(SQL_cat)
-    SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts JOIN 
-        (%s) AS qryseries JOIN
-        (%s) AS qrycat""" % (SQL_charts, SQL_series, SQL_cat)
+    SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts %s 
+        (%s) AS qryseries %s
+        (%s) AS qrycat""" % (SQL_charts, cartesian_joiner, SQL_series, 
+                             cartesian_joiner, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
     avg_exp = u" AVG(%(var_role_avg)s) " % sql_dic
