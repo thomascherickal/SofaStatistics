@@ -483,7 +483,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         if self.tab_type != mg.DATA_LIST:
             self.enable_raw_display_opts(enable=False)
             rpt_config = mg.RPT_CONFIG[self.tab_type]
-            has_perc = rpt_config[mg.VAR_SUMMARISED_KEY]
+            has_perc = not rpt_config[mg.VAR_SUMMARISED_KEY]
             self.enable_show_perc_symbol_opt(enable=has_perc)
             self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
                          txt_subtitles=self.txt_subtitles, 

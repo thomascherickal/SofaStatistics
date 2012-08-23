@@ -103,7 +103,7 @@ DEFAULT_MEASURE_KEY = u"default_measure_key"
 NEEDS_ROWS_KEY = u"needs_row_key"
 QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
     # live demo output if table has less than this records
-debug = True
+debug = False
 RPT_CONFIG = {
     FREQS: {COL_MEASURES_KEY: [FREQ, COLPCT], 
             VAR_SUMMARISED_KEY: False,
