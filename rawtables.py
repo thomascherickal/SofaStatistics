@@ -137,9 +137,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     # sort labelled data if appropriate
     if debug and verbose:
         print(u"Unsorted\n\n%s" % idx_and_data_rows)
-    if mg.SORT_LBL in col_sorting:
-        
-        idx_and_data_rows.sort(key=lambda s: s.sort_idx)
+    #if mg.SORT_LBL in col_sorting:
+    idx_and_data_rows.sort(key=lambda s: s.sort_idx)
     if debug and verbose:
         print(u"Sorted\n\n%s" % idx_and_data_rows)
     # generate html
