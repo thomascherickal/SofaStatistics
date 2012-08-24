@@ -57,7 +57,7 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            wkbook = xlrd.open_workbook(self.file_path)
+            wkbook = xlrd.open_workbook(self.file_path) # , encoding_override="cp1252"
             wksheet = wkbook.sheet_by_index(0)
             strdata = []
             nrows = wksheet.nrows

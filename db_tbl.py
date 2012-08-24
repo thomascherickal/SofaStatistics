@@ -200,7 +200,9 @@ class DbTbl(wx.grid.PyGridTableBase):
                     if debug:
                         print("row_idx: %s\n\n%s" % (row_idx, self.row_ids_lst))
                 if self.must_quote:
-                    value = self.quote_val(raw_val)
+                    fld_dic = self.get_fld_dic(col)
+                    value = self.quote_val(raw_val, 
+                                           charset2try=fld_dic[mg.FLD_CHARSET])
                 else:
                     value = u"%s" % raw_val
                 IN_clause_lst.append(value)
@@ -269,13 +271,16 @@ class DbTbl(wx.grid.PyGridTableBase):
             colname = self.fldnames[col]
             raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
                                               fld_dic=dd.flds[colname])
-            self.val_of_cell_to_update = raw_val_to_use         
+            self.val_of_cell_to_update = raw_val_to_use
+            fld_dic = self.get_fld_dic(col)     
             if self.must_quote: # only refers to index column
-                id_value = self.quote_val(self.row_ids_lst[row])
+                id_value = self.quote_val(self.row_ids_lst[row], 
+                                          charset2try=fld_dic[mg.FLD_CHARSET])
             else:
                 id_value = self.row_ids_lst[row]
             val2use = (u"NULL" if raw_val_to_use is None
-                       else self.quote_val(raw_val_to_use))
+                       else self.quote_val(raw_val_to_use, 
+                                           charset2try=fld_dic[mg.FLD_CHARSET]))
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = (u"UPDATE %s " %
                         getdata.tblname_qtr(dd.dbe, dd.tbl) +

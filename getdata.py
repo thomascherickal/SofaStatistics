@@ -341,14 +341,15 @@ def get_dbe_syntax_elements(dbe):
 
 def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, quote_obj, 
                                     quote_val):
-    debug = False
+    debug = True
     if len(val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
         raise my_exceptions.CategoryTooLong(fldname)
     quoted_obj = quote_obj(fldname)
-    if debug: print("quoted_obj: %s" % quoted_obj)
-    quoted_val = quote_val(val)    
-    if debug: print("quoted_val: %s" % quoted_val)
-    clause = "%s %s %s" % (quoted_obj, dbe_gte, quoted_val)
+    if debug: print(u"quoted_obj: %s" % quoted_obj)
+    dd = mg.DATADETS_OBJ
+    quoted_val = quote_val(val, charset2try=dd.flds[fldname][mg.FLD_CHARSET])
+    if debug: print(u"quoted_val: %s" % quoted_val)
+    clause = u"%s %s %s" % (quoted_obj, dbe_gte, quoted_val)
     if debug: print(clause)
     return clause
     

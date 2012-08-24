@@ -184,7 +184,7 @@ def process_fldnames(raw_names, headless=False):
         for raw_name in raw_names:
             if not isinstance(raw_name, unicode):
                 try:
-                    raw_name = raw_name.decode("utf8")
+                    raw_name = raw_name.decode("utf-8")
                 except UnicodeDecodeError, e:
                     raise Exception(u"Unable to process raw field name."
                                     u"\nCaused by error: %s" % lib.ue(e))

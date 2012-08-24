@@ -240,7 +240,7 @@ def get_prestructured_grouped_data(raw_data, fldnames):
         for data_val, fldname in zip(raw_data_row, fldnames):
             try:
                 len_val = len(data_val)
-            except Exception:
+            except TypeError:
                 continue
             if len_val > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
                 raise my_exceptions.CategoryTooLong(fldname)

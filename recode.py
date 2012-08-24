@@ -19,7 +19,8 @@ REMAINING = u"REMAINING"
 MISSING = u"MISSING"
 
 objqtr = dbe_sqlite.quote_obj
-valqtr = dbe_sqlite.quote_val
+valqtr = dbe_sqlite.quote_val # only used on internal db in SQLite - all 
+# imported as utf-8 unicode from the start because SQLite3 (I believe).
 
 """
 Take user input and translate into valid SQLite clauses for an update statement.
@@ -33,7 +34,7 @@ get_case_when_clause() calls process_orig() for each line in the recoding
 
 def make_when_clause(orig_clause, new, new_fldtype):
     if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
-        new = valqtr(new)
+        new = valqtr(new, charset2try="utf-8")
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
 
@@ -122,8 +123,8 @@ def process_orig(orig, fldname, fldtype):
             raise Exception(_("Only date values can be recoded for this "
                               "variable"))
         if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
-            l_prep = valqtr(l_part)
-            r_prep = valqtr(r_part)
+            l_prep = valqtr(l_part, charset2try="utf-8")
+            r_prep = valqtr(r_part, charset2try="utf-8")
         else:
             l_prep = l_part
             r_prep = r_part
@@ -140,7 +141,7 @@ def process_orig(orig, fldname, fldtype):
     # 3 Single value
     else:
         if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
-            orig_clause = u"%s = %s" % (fld, valqtr(orig))
+            orig_clause = u"%s = %s" % (fld, valqtr(orig, charset2try="utf-8"))
         elif fldtype == mg.FLDTYPE_NUMERIC:
             if not lib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
@@ -160,7 +161,7 @@ def process_label(dict_labels, new_fldtype, new, label):
     if label == u"":
         return
     if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
-        new = valqtr(new)
+        new = valqtr(new, charset2try="utf-8")
     elif new_fldtype in (mg.FLDTYPE_NUMERIC):
         new = float(new)
     if debug: print(new, label)
@@ -483,7 +484,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
                 if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
-                    remaining_to = valqtr(new)
+                    remaining_to = valqtr(new, charset2try="utf-8")
                 else:
                     remaining_to = new
                 remaining_new = new

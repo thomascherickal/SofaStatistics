@@ -405,7 +405,7 @@ class LiveTable(DimTable):
         self.tbl_filt = tbl_filt
         self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         (self.if_clause, unused, unused, 
-         self.quote_obj, self.quote_val, 
+         self.quote_obj, unused, 
          self.placeholder, self.get_summable, 
          self.gte_not_equals, 
          unused) = getdata.get_dbe_syntax_elements(self.dbe)
@@ -763,6 +763,8 @@ class LiveTable(DimTable):
         if debug: print(SQL_get_vals)
         self.cur.execute(SQL_get_vals)
         all_vals = self.cur.fetchall()
+        # some of these values might not be broken text
+        
         if debug: print(all_vals)
         if not all_vals:
             return # do not add subtree - no values
@@ -926,7 +928,7 @@ class GenTable(LiveTable):
         results is built once per batch of data points for database efficiency 
             reasons. Each call returns multiple values.
         """
-        debug = True
+        debug = False
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
                                                        css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)

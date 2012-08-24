@@ -133,22 +133,28 @@ def get_normal_ys(vals, bins):
     return norm_ys
 
 def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote, 
-              use_double_quotes=True):
+              use_double_quotes=True, charset2try=u"utf-8"):
     """
     Might be a string or a datetime but can't be a number
     """
     try:
         val = raw_val.isoformat()
     except AttributeError, e:
-        try: # escape internal double quotes
-            val = raw_val.replace(unsafe_internal_quote, safe_internal_quote)
+        try:
+            try: # escape internal double quotes (already unicode)
+                val = raw_val.replace(unsafe_internal_quote, 
+                                      safe_internal_quote)
+            except UnicodeDecodeError:
+                val = unicode(raw_val, 
+                              charset2try).replace(unsafe_internal_quote, 
+                                                   safe_internal_quote)
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
                             u"\nCaused by error: %s" % ue(e))
     if use_double_quotes:
-        newval = '"' + val + '"'
+        newval = u'"' + val + u'"'
     else:
-        newval = "'" + val + "'"
+        newval = u"'" + val + u"'"
     return newval
 
 def get_p(p, dp):

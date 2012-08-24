@@ -135,7 +135,8 @@ RPT_CONFIG = {
                 DEFAULT_MEASURE_KEY: None,
                 QUICK_IF_BELOW_KEY: 750},
   }
-MAX_VAL_LEN_IN_SQL_CLAUSE = 30
+cubrid_debug = True
+MAX_VAL_LEN_IN_SQL_CLAUSE = 60 if cubrid_debug else 30
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
 ROWDIM = _("row") #double as labels

@@ -38,17 +38,13 @@ cartesian_joiner = u" JOIN "
 def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
-def quote_val(raw_val):
+def quote_val(raw_val, charset2try="iso-8859-1"):
     """
     Single quote is the literal delimiter and internal single quotes need 
         escaping by repeating them.
     """
-    try:
-        val = raw_val.replace("'", "''") # escape internal single quotes
-    except AttributeError, e:
-        raise Exception(u"Inappropriate attempt to quote non-string value."
-                        u"\nCaused by error: %s" % lib.ue(e))
-    return u"'%s'" % val
+    return lib.quote_val(raw_val, unsafe_internal_quote=u"'", 
+                         safe_internal_quote=u"''", charset2try=charset2try)
 
 def get_summable(clause):
     return clause
