@@ -143,7 +143,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # Gets unique values for selected variable. Sets choices for drop_group_a and B accordingly.
         self.lbl_group_a = wx.StaticText(self.panel_vars, -1, group_a_lbl)
         self.lbl_group_b = wx.StaticText(self.panel_vars, -1, group_b_lbl)
-        self.setup_a_and_b_dropdowns()
+        msg = self.setup_a_and_b_dropdowns(suppress_immediate_msg=True)
         szr_vars_top_right.Add(self.szr_group_by_vars, 1, wx.GROW)
         szr_vars_top_right.Add(self.szr_vars_a_and_b, 0, wx.GROW|wx.TOP, 5)
         szr_vars_top.Add(self.szr_vars_top_left, 0)
@@ -205,6 +205,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
+        if msg: # otherwise appears before dialog even open and visible
+            wx.CallAfter(lambda: wx.MessageBox(msg))
 
     def get_fresh_drop_avg(self, items, idx_avg):
         """
@@ -302,13 +304,18 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.szr_group_by_vars.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
         self.panel_vars.Layout()
 
-    def setup_a_and_b_dropdowns(self, val_a=None, val_b=None):
+    def setup_a_and_b_dropdowns(self, val_a=None, val_b=None, 
+                                suppress_immediate_msg=False):
         """
         Makes fresh objects each time (and rebinds etc) because that is the only 
             way (in Linux at least) to have a non-standard font-size for items
             in a performant way e.g. if more than 10-20 items in a list. Very
             slow if having to add items to dropdown if having to set font e.g.
             using SetItems().
+        suppress_immediate_msg -- so doesn't show message during init before 
+            screen even displayed.
+        Returns msg (if we have suppress_immediate_msg we may want to do 
+            something manually later).
         """
         dd = mg.DATADETS_OBJ
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
@@ -316,10 +323,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         var_gp, choice_item = self.get_group_by()
         no_selection = (not choice_item or choice_item == mg.DROP_SELECT)
         if no_selection:
-            items_a, idx_a, items_b, idx_b, enable = [], 0, [], 0, False
+            (msg, items_a, idx_a, items_b, 
+             idx_b, enable) = (None, [], 0, [], 0, False)
         else: # this is the potentially slow bit
             wx.BeginBusyCursor()
-            (items_a, idx_a, 
+            (msg, items_a, idx_a, 
              items_b, idx_b) = self.get_items_and_idxs_for_a_and_b(var_gp, 
                                              val_a, val_b, where_filt, and_filt)
             lib.safe_end_cursor()
@@ -340,6 +348,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.szr_vars_a_and_b.Add(self.lbl_group_b, 0, wx.RIGHT|wx.TOP, 5)
         self.szr_vars_a_and_b.Add(self.drop_group_b, 0)
         self.panel_vars.Layout()
+        if msg and not suppress_immediate_msg:
+            wx.MessageBox(msg)
+        return msg
 
     def on_show(self, event):
         if self.exiting:
@@ -538,6 +549,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         debug = False
         dd = mg.DATADETS_OBJ
+        msg = None
         n_high = 250000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
         tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
@@ -571,24 +583,47 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # http://docs.python.org/library/locale.html...
         # ...#background-details-hints-tips-and-caveats
         strn = locale.format('%d', n_high, True)
-        chop_warning = _("Showing groups from\n first %s rows") % strn \
-                            if high_n_recs else u""
+        excess_length_cat = False
+        n_vals = 0
         while True:
             try:
                 val2list = dd.cur.fetchone()[0]
             except Exception:
                 break
-            self.gp_vals_sorted.append(val2list)
-            if len(self.gp_vals_sorted) == 20:
-                if high_n_recs:
-                    chop_warning = _("Showing first 20 groups in\n"
-                                     " in first %s rows") % strn
+            try:
+                len_val2list = len(val2list)
+                if len_val2list > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                    excess_length_cat = True
                 else:
-                    chop_warning =_("Showing first 20 unique groups")
+                    self.gp_vals_sorted.append(val2list)
+            except TypeError:
+                self.gp_vals_sorted.append(val2list)
+            n_vals = len(self.gp_vals_sorted)
+            if n_vals == 20:
                 break
+        if n_vals == 20:
+            if high_n_recs:
+                chop_warning = _("Showing first 20 groups in\n"
+                                 " in first %s rows") % strn
+            else:
+                chop_warning =_("Showing first 20 unique groups")
+        elif n_vals == 0:
+            chop_warning = u""
+        else:
+            chop_warning = (_("Showing groups from\n first %s rows") % strn
+                              if high_n_recs else u"")
+        if excess_length_cat:
+            msg = (u"Values longer than %s from \"%s\" were not included" %
+                   (mg.MAX_VAL_LEN_IN_SQL_CLAUSE, var_gp))
+            if not n_vals:
+                msg = u"No suitable values to group by. " + msg
+        else:
+            if not n_vals:
+                wx.MessageBox(u"No suitable values to group by in \"%s\"" % 
+                              var_gp)
         self.lbl_chop_warning.SetLabel(chop_warning)
         self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 
-                                            for x in self.gp_vals_sorted]
+                                       for x in self.gp_vals_sorted]
         items_a = self.gp_choice_items_sorted
         items_b = self.gp_choice_items_sorted
         # set selections
@@ -612,7 +647,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                     idx_b = self.gp_choice_items_sorted.index(mg.VAL_B_DEFAULT)
                 except ValueError:
                     pass # Using idx of 0 is OK
-        return items_a, idx_a, items_b, idx_b
+        return msg, items_a, idx_a, items_b, idx_b
     
     def get_drop_vals(self):
         """

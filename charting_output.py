@@ -214,7 +214,7 @@ def get_sorted_y_dets(is_perc, is_avg, sort_opt, vals_etc_lst, dp):
                                                     round(perc,1)))
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
-def get_prestructured_grouped_data(raw_data):
+def get_prestructured_grouped_data(raw_data, fldnames):
     """
     [(1,1,1,56),
      (1,1,2,103), 
@@ -236,7 +236,15 @@ def get_prestructured_grouped_data(raw_data):
     prestructure = []
     prev_chart_val = None
     prev_series_val = None
-    for chart_val, series_val, x_val, y_val in raw_data:
+    for raw_data_row in raw_data:
+        for data_val, fldname in zip(raw_data_row, fldnames):
+            try:
+                len_val = len(data_val)
+            except Exception:
+                continue
+            if len_val > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                raise my_exceptions.CategoryTooLong(fldname)
+        chart_val, series_val, x_val, y_val = raw_data_row
         same_chart = (chart_val == prev_chart_val)
         if not same_chart:
             chart_dic = {CHART_VAL_KEY: chart_val,
@@ -341,7 +349,9 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     """
     max_lbl_len = 0
     max_lbl_lines = 0
-    prestructure = get_prestructured_grouped_data(raw_data)
+    fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
+                var_role_avg_name]
+    prestructure = get_prestructured_grouped_data(raw_data, fldnames)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
@@ -886,7 +896,9 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     raw_data = cur.fetchall()
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
-    prestructure = get_prestructured_grouped_data(raw_data)
+    fldnames = [sql_dic[u"var_role_charts"], sql_dic[u"var_role_series"], 
+                sql_dic[u"fld_x_axis"], sql_dic[u"fld_y_axis"]]
+    prestructure = get_prestructured_grouped_data(raw_data, fldnames)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:

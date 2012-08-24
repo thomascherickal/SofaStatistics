@@ -79,6 +79,12 @@ class InconsistentFileDate(Exception):
 class OutputException(Exception):
     pass
 
+class CategoryTooLong(OutputException):
+    def __init__(self, fldname):
+        OutputException.__init__(self, _(u"The \"%s\" field can't be used as a "
+            u"category. It has values longer than %s.") % (fldname,
+                                                  mg.MAX_VAL_LEN_IN_SQL_CLAUSE))
+        
 class TooManyCellsInChiSquare(OutputException):
     def __init__(self):
         OutputException.__init__(self, _("Please select variables which have "

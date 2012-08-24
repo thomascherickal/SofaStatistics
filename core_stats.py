@@ -63,10 +63,10 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
                                                  filter_val)
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
-    SQL_get_list = u"SELECT %s " % objqtr(fld_measure) + \
-        u"FROM %s " % getdata.tblname_qtr(dbe, tbl) + \
-        u"WHERE %s IS NOT NULL " % objqtr(fld_measure) + \
-        u"AND %s " % fld_val_clause + and_tbl_filt
+    SQL_get_list = (u"SELECT %s " % objqtr(fld_measure) +
+                    u"FROM %s " % getdata.tblname_qtr(dbe, tbl) +
+                    u"WHERE %s IS NOT NULL " % objqtr(fld_measure) +
+                    u"AND %s " % fld_val_clause + and_tbl_filt)
     if debug: print(SQL_get_list)
     cur.execute(SQL_get_list)
     # SQLite sometimes returns strings even if REAL
@@ -144,16 +144,20 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
         %(and_tbl_filt)s
         GROUP BY %(qfld_a)s
-        ORDER BY %(qfld_a)s """ % {"qtbl": qtbl, "qfld_a": qfld_a, 
-                                   "qfld_b": qfld_b, 
-                                   "and_tbl_filt": and_tbl_filt}
+        ORDER BY %(qfld_a)s """ % {"qtbl": qtbl, "qfld_a": qfld_a,
+                                 "qfld_b": qfld_b, "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     row_vals_used = cur.fetchall()
     # SQLite sometimes returns strings even if REAL
     try:
         vals_a = [float(x[0]) for x in row_vals_used]
     except Exception:
-        vals_a = [x[0] for x in row_vals_used]
+        vals_a = []
+        for row_tup in row_vals_used:
+            row_val = row_tup[0]
+            if len(row_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                raise my_exceptions.CategoryTooLong(fld_a)
+            vals_a.append(row_val)
     if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquare
     if len(vals_a) < mg.MIN_CHI_DIMS:
@@ -173,7 +177,12 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     try:
         vals_b = [float(x[0]) for x in col_vals_used]
     except Exception:
-        vals_b = [x[0] for x in col_vals_used]
+        vals_b = []
+        for col_tup in col_vals_used:
+            col_val = col_tup[0]
+            if len(col_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                raise my_exceptions.CategoryTooLong(fld_b)
+            vals_b.append(col_val)
     if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquare
     if len(vals_b) < mg.MIN_CHI_DIMS:

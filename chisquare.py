@@ -52,8 +52,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         script_lst.append(u"""
-chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df = \\
-    core_stats.pearsons_chisquare(dbe=u"%(dbe)s",
+(chisq, p, vals_a, vals_b, lst_obs, lst_exp, 
+ min_count, perc_cells_lt_5, df) = core_stats.pearsons_chisquare(dbe=u"%(dbe)s",
     db=u"%(db)s", cur=cur, tbl=u"%(tbl)s",
     flds=flds, fld_a=u"%(fld_a)s", fld_b=u"%(fld_b)s",
     tbl_filt=u\"\"\" %(tbl_filt)s \"\"\",

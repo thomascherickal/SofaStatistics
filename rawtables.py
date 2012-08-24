@@ -39,7 +39,7 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
         is called (current by definition) and instantiates and gets html in one
         go.
     """
-    debug = True
+    debug = False
     verbose = True
     idx_and_data = namedtuple('idx_and_data', 'sort_idx, lbl_cols')  
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
