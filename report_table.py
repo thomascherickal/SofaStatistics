@@ -877,16 +877,14 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 if demo_was_live:
                     demo_tbl_html = demo_html
                 else:
-                    demo_tbl_html = (_(u"<p class='gui-msg-medium'>Example data"
+                    demo_only_msg = (_(u"<p class='gui-msg-medium'>Example data"
                        u" only because of size of table - click '%s' for actual"
                        u" results<br>&nbsp;&nbsp;or keep configuring</p>") % 
                                      config_output.RUN_LBL)
-                    
-                    
-                    demo_tbl_html = demo_html
-                    
-                    
-                    #demo_tbl_html += u"\n\n" + demo_html
+                    idx_body_start = (demo_html.index(mg.BODY_START) + 
+                                      len(mg.BODY_START))
+                    demo_tbl_html = (demo_html[:idx_body_start] + demo_only_msg 
+                                     + u"\n\n" + demo_html[idx_body_start:])
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)

@@ -341,7 +341,7 @@ def get_dbe_syntax_elements(dbe):
 
 def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, quote_obj, 
                                     quote_val):
-    debug = True
+    debug = False
     if len(val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
         raise my_exceptions.CategoryTooLong(fldname)
     quoted_obj = quote_obj(fldname)

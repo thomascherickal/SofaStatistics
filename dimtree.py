@@ -30,10 +30,11 @@ A label tree has nodes for each value under a variable e.g. the dimension might
 
 class DlgSelectVars(wx.Dialog):
     
-    def __init__(self, parent, var_choices):
+    def __init__(self, parent, var_choices, selected_idxs):
         wx.Dialog.__init__(self, parent=parent, 
                            title=_(u"Select variable(s)"), 
                            style=wx.CAPTION|wx.SYSTEM_MENU)
+        self.selected_idxs = selected_idxs
         szr = wx.BoxSizer(wx.VERTICAL)
         self.var_selector = wx.ListBox(self, -1, choices=var_choices, 
                                        style=wx.LB_MULTIPLE, size=(-1, 300))
@@ -67,6 +68,7 @@ class DlgSelectVars(wx.Dialog):
         btn_ok.SetDefault()
 
     def on_var_sel(self, event):
+        self.selected_idxs.extend(self.var_selector.GetSelections())
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
         event.Skip()
@@ -76,10 +78,8 @@ class DlgSelectVars(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
-    def get_selections(self):
-        return self.var_selector.GetSelections()
-
     def on_ok(self, event):
+        self.selected_idxs.extend(self.var_selector.GetSelections())
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!
         
@@ -163,9 +163,10 @@ class DimTree(object):
                         oth_dim_root=self.rowroot)
     
     def get_selected_idxs(self, dim, sorted_choices):
-        dlg = DlgSelectVars(parent=self, var_choices=sorted_choices)
+        selected_idxs = []
+        dlg = DlgSelectVars(parent=self, var_choices=sorted_choices,
+                            selected_idxs=selected_idxs)
         dlg.ShowModal()
-        selected_idxs = dlg.get_selections()
         return selected_idxs
     
     def try_adding(self, tree, root, dim, oth_dim, oth_dim_tree, oth_dim_root):

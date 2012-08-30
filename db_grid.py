@@ -1,5 +1,6 @@
 from __future__ import print_function
 from decimal import Decimal
+import locale
 import pprint
 import wx
 import wx.grid
@@ -162,13 +163,16 @@ class TblEditor(wx.Dialog):
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
                        self.on_label_rclick)
-        szr_bottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szr_bottom.AddGrowableCol(0,2) # idx, propn
+        szr_bottom = wx.FlexGridSizer(rows=1, cols=3, hgap=5, vgap=5)
+        szr_bottom.AddGrowableCol(1,2) # idx, propn
         btn_size_cols = wx.Button(self.panel, -1, _("Resize column widths"))
         btn_size_cols.Bind(wx.EVT_BUTTON, self.on_size_cols)
+        btn_export = wx.Button(self.panel, -1, _(u"Export as spreadsheet"))
+        btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_bottom.Add(btn_size_cols, 0)
+        szr_bottom.Add(btn_export, 0, wx.LEFT, 10)
         szr_bottom.Add(btn_close, 0, wx.ALIGN_RIGHT)
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
@@ -1048,6 +1052,28 @@ class TblEditor(wx.Dialog):
         self.grid.SetFocus()
         event.Skip()
     
+    def on_btn_export(self, event):
+        try:
+            import export_data
+        except ImportError:
+            # don't have extension installed (or working)
+            comments = [u"Make it easy to export data to a spreadsheet"]
+            dlg = config_output.DlgGetExt(label=u"Export Data", 
+                                          comments=comments)
+            dlg.ShowModal()
+            return
+        n_rows = self.dbtbl.rows_n - 1
+        if n_rows > 20000:
+            strn = locale.format('%d', self.dbtbl.rows_n-1, True)
+            if wx.MessageBox(_("The underlying data table has %s rows. "
+                   "Do you wish to export it?") % strn, 
+                   caption=_("LARGE DATA TABLE"), 
+                   style=wx.YES_NO) == wx.NO:
+                return
+        dlg = export_data.DlgExportData(n_rows)
+        dlg.ShowModal()
+        event.Skip()
+        
     def set_colwidths(self):
         "Set column widths based on display widths of fields"
         debug = False

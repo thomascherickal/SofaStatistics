@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.2.1"
+VERSION = u"1.2.2"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -135,7 +135,7 @@ RPT_CONFIG = {
                 DEFAULT_MEASURE_KEY: None,
                 QUICK_IF_BELOW_KEY: 750},
   }
-cubrid_debug = True
+cubrid_debug = False
 MAX_VAL_LEN_IN_SQL_CLAUSE = 60 if cubrid_debug else 30
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees

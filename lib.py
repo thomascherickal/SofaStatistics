@@ -137,6 +137,7 @@ def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote,
     """
     Might be a string or a datetime but can't be a number
     """
+    debug = False
     try:
         val = raw_val.isoformat()
     except AttributeError, e:
@@ -145,6 +146,7 @@ def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote,
                 val = raw_val.replace(unsafe_internal_quote, 
                                       safe_internal_quote)
             except UnicodeDecodeError:
+                if debug: print(repr(raw_val))
                 val = unicode(raw_val, 
                               charset2try).replace(unsafe_internal_quote, 
                                                    safe_internal_quote)
