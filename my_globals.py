@@ -119,7 +119,8 @@ RPT_CONFIG = {
                MEASURES_HORIZ_KEY: True,
                DEFAULT_MEASURE_KEY: FREQ,
                QUICK_IF_BELOW_KEY: 1000 if debug else 4000}, # 4000
-    ROW_STATS: {COL_MEASURES_KEY: [MEAN, MEDIAN, SUMM_N, MIN, MAX, RANGE,
+    ROW_STATS: {COL_MEASURES_KEY: [MEAN, STD_DEV, MEDIAN, SUMM_N, 
+                                   MIN, MAX, RANGE,
                                    LOWER_QUARTILE, UPPER_QUARTILE, IQR, SUM],
                VAR_SUMMARISED_KEY: True,
                NEEDS_ROWS_KEY: False,

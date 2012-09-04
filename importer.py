@@ -837,8 +837,8 @@ class DlgImportFileSelect(wx.Dialog):
         Make selection based on file extension 
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
-        title = _("Select file to import") + \
-            u" (csv/xls/ods/Google spreadsheet)"
+        title = _(u"Select file to import") + \
+                  u" (csv/xls/xlsx/ods/Google spreadsheet)"
         wx.Dialog.__init__(self, parent=parent, title=title,
                            size=(550,300), 
                            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
@@ -1121,20 +1121,10 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 return
             else:
                 self.file_type = FILE_CSV
-    elif extension.lower() == u".xls":
+    elif extension.lower() in (u".xls", u".xlsx"):
         self.file_type = FILE_EXCEL
     elif extension.lower() == u".ods":
         self.file_type = FILE_ODS
-    elif extension.lower() == u".xlsx":
-        self.file_type = FILE_UNKNOWN
-        xlsx_msg = ("XLSX files are not currently supported. Please save"
-                    " as XLS or convert to another supported format.")
-        if headless:
-            raise Exception(xlsx_msg)
-        else:
-            wx.MessageBox(xlsx_msg)
-            self.align_btns_to_importing(importing=False)
-            return
     else:
         unknown_msg = _("Files with the file name extension "
                         "'%s' are not supported") % extension
