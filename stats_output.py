@@ -294,7 +294,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
     for chart_idx, sample_det in enumerate(sample_dets):
-        unused, sample, hist_label = sample_det
+        unused, sample, histlbl = sample_det
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
@@ -304,7 +304,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         (grid_bg, item_colours, 
          line_colour) = output.get_stats_chart_colours(css_fil)
         try:
-            charting_pylab.config_hist(fig, sample, label_avg, hist_label, 
+            charting_pylab.config_hist(fig, sample, label_avg, histlbl, 
                                    False, grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
@@ -312,8 +312,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                                        mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                        (hist_label, lib.ue(e)))
-        output.append_divider(html, title, indiv_title=hist_label)
+                        (histlbl, lib.ue(e)))
+        output.append_divider(html, title, indiv_title=histlbl)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -337,28 +337,28 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
                                 label_avg, dp, indep, css_idx, html)
     output.append_divider(html, title, indiv_title=u"")
     # histogram
-    hist_label = u"Differences between %s and %s" % (dic_a["label"], 
-                                                     dic_b["label"])
+    histlbl = u"Differences between %s and %s" % (dic_a["label"], 
+                                                  dic_b["label"])
     charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
                               ytick_labelsize=8)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     try:
-        charting_pylab.config_hist(fig, diffs, _("Differences"), hist_label, 
+        charting_pylab.config_hist(fig, diffs, _("Differences"), histlbl, 
                                    False, grid_bg, item_colours[0], line_colour)
         img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                                                save_func=pylab.savefig, dpi=100)
         html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                    (hist_label, lib.ue(e)))
+                    (histlbl, lib.ue(e)))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         html.append(u"<br><hr><br><div class='%s'></div>" %
                     CSS_PAGE_BREAK_BEFORE)
-    output.append_divider(html, title, indiv_title=hist_label)
+    output.append_divider(html, title, indiv_title=histlbl)
     html_str = u"\n".join(html)
     return html_str
 

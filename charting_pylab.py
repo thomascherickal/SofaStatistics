@@ -117,7 +117,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
     plot.setXLabel(var_label_a)
     plot.setYLabel(y_label)
 
-def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False, 
+def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False, 
                 grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
                 line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
     """
@@ -146,9 +146,9 @@ def config_hist(fig, vals, var_label, hist_label=None, thumbnail=False,
     else:
         axes.set_xlabel(var_label)
         axes.set_ylabel('P')
-        if not hist_label:
-            hist_label = _("Histogram for %s") % var_label
-        axes.set_title(hist_label)
+        if not histlbl:
+            histlbl = _("Histogram for %s") % var_label
+        axes.set_title(histlbl)
         normal_line_width = 4
     #n_bins = 4 # test only
     #wx.MessageBox("n_bins: %s" % n_bins)
@@ -234,7 +234,7 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
 
 
 class DlgHist(wxmpl.PlotDlg):
-    def __init__(self, parent, vals, var_label, hist_label):
+    def __init__(self, parent, vals, var_label, histlbl):
         wxmpl.PlotDlg.__init__(self, parent, 
             title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
             dpi=96)
@@ -242,7 +242,7 @@ class DlgHist(wxmpl.PlotDlg):
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         self.sizer.Add(btn_ok, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
         fig = self.get_figure()
-        config_hist(fig, vals, var_label, hist_label)
+        config_hist(fig, vals, var_label, histlbl)
         self.draw()
         self.SetSizer(self.sizer)
         self.Fit()

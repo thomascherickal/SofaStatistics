@@ -54,7 +54,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_display = self.get_szr_output_display(self.panel,
-                                                              inc_clear=False)
+                                                inc_clear=False, idx_style=4)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)

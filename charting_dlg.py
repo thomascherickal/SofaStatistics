@@ -260,7 +260,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_titles.Add(self.txt_subtitles, 1)
         self.szr_output_config = self.get_szr_output_config(self.panel_bottom) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
-                                                        inc_clear=False) # mixin
+                                        inc_clear=False, idx_style=4) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
                                        size=(200, 150))
         if mg.PLATFORM == mg.MAC:

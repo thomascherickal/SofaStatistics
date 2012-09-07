@@ -91,7 +91,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
-                                                              inc_clear=False)
+                                                inc_clear=False, idx_style=4)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)

@@ -463,7 +463,7 @@ class ConfigUI(object):
         szr_output_config.Add(self.btn_export_report, 0, wx.LEFT|wx.RIGHT, 5)
         return szr_output_config
 
-    def get_szr_output_display(self, panel, inc_clear=True):
+    def get_szr_output_display(self, panel, inc_clear=True, idx_style=5):
         # main
         self.style_selector = self.get_style_selector(panel)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
@@ -494,7 +494,6 @@ class ConfigUI(object):
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         # add to sizer
         szr_output_display = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
-        idx_style = 5 if inc_clear else 4
         szr_output_display.AddGrowableRow(idx_style,2) # idx, propn
         szr_output_display.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
