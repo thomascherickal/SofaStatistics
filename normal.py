@@ -1,19 +1,12 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
-import os
+import pylab
 import wx
 
 import my_globals as mg
 import lib
 import my_exceptions
-
-try:
-    import wxmpl
-except my_exceptions.MatplotlibBackendException, e:
-    wx.MessageBox(lib.ue(e))
-import pylab # must import after wxmpl so matplotlib.use() is always first
-
 import charting_pylab
 import config_output
 import core_stats
@@ -62,7 +55,7 @@ def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
     return data_label, vals
 
 def get_normal_output(vals, data_label, add_to_report, report_name,
-                      css_fil, css_idx, page_break_after=False):
+                      paired, css_fil, css_idx, page_break_after=False):
     html = []
     # normality test (includes both kurtosis and skew)
     n_vals = len(vals)
@@ -118,17 +111,22 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     # histogram
     charting_pylab.gen_config()
     fig = pylab.figure()
-    fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
+    fig.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
+    (grid_bg, item_colours, 
+     line_colour) = output.get_stats_chart_colours(css_fil)
+    histlbl = u"Histogram of differences" if paired else None
     try:
-        charting_pylab.config_hist(fig, vals, data_label, thumbnail=False, 
-                                   inc_attrib=False)
+        charting_pylab.config_hist(fig, vals, data_label, histlbl, 
+                                   thumbnail=False, grid_bg=grid_bg, 
+                                   bar_colour=item_colours[0], 
+                                   line_colour=line_colour, inc_attrib=True)
     except Exception, e:
         raise my_exceptions.OutputException(u"Unable to produce histogram. "
                                             u"Reason: %s" % lib.ue(e))
     output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
                             ext=mg.RPT_SUBFOLDER_SUFFIX)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                       save_func=pylab.savefig, dpi=100)
+                                             save_func=pylab.savefig, dpi=100)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
                                mg.IMG_SRC_END))
     normal_output = u"\n".join(html)
@@ -148,6 +146,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
+        self.url_load = True # btn_expand
         # the following properties all required to utilise get_szr_data
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -207,14 +206,10 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.setup_vars(var_a=True, var_b=False)
         szr_vars.Add(self.drop_var_a, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
         szr_vars.Add(self.drop_var_b, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
-        self.btn_details = wx.Button(self.panel, -1, _("Histogram Details"))
-        self.btn_details.Bind(wx.EVT_BUTTON, self.on_btn_details)
-        self.btn_details.Enable(False)
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
         self.szr_output_config = self.get_szr_output_config(self.panel) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel, 
-                                        inc_clear=False, idx_style=5) # mixin
-        self.szr_output_display.Insert(4, self.btn_details)
+                                        inc_clear=False, idx_style=4) # mixin
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
                                        size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
@@ -241,7 +236,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
             return
         try:
             self.html.pizza_magic() # must happen after Show
-        except Exception, e:
+        except Exception:
             pass # need on Mac or exceptn survives
         finally: # any initial content
             self.set_output_to_blank()
@@ -258,7 +253,6 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         # get settings
         cc = config_output.get_cc()
         run_ok = self.test_config_ok()
-        self.btn_details.Enable(run_ok)
         if run_ok:
             # set vals and data_label
             self.var_a, unused = self.get_var_a()
@@ -297,8 +291,9 @@ data_label, vals = normal.get_inputs(paired=%(paired)s, var_a=u"%(var_a)s",
                     u"var_label_b": self.var_label_b})
         script_lst.append(u"""
 normal_output = normal.get_normal_output(vals, data_label, add_to_report, 
-    report_name, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
-    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil),
+    report_name, paired=%(paired)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
+    page_break_after=False)""" % {u"paired": paired, 
+                                  u"css_fil": lib.escape_pre_write(css_fil),
                                   u"css_idx": css_idx})
         script_lst.append(u"fil.write(normal_output)")
         return u"\n".join(script_lst)
@@ -320,7 +315,6 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         self.drop_var_b.Enable(self.paired)
         self.setup_vars(var_a=True, var_b=self.paired)
         self.set_output_to_blank()
-        self.btn_details.Enable(False)
         self.set_size()
 
     def get_bmp_blank_hist(self, paired=False):
@@ -360,14 +354,6 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         
     def on_rclick_tables(self, event):
         config_output.ConfigUI.on_rclick_tables(self, event)
-        
-
-
-
-        # update output? sometimes not needed?
-
-
-
         #event.Skip() - don't use or will appear twice in Windows!
     
     def setup_var_a(self, var=None):
@@ -404,20 +390,6 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         var = self.sorted_var_names[idx]
         var_item = self.drop_var_b.GetStringSelection()
         return var, var_item
-          
-    def on_btn_details(self, event):
-        dd = mg.DATADETS_OBJ
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
-        # all the inputs are generated if a successful run btn event
-        data_label, vals = get_inputs(self.paired, self.var_a, self.var_label_a, 
-                                      self.var_b, self.var_label_b)
-        histlbl = u"Histogram of %s\n%s" % (data_label, filt_msg)
-        dlg = charting_pylab.DlgHist(parent=self, vals=vals, 
-                                     var_label=data_label, 
-                                     histlbl=histlbl)
-        dlg.ShowModal()
-        event.Skip()
     
     def on_rclick_var_a(self, event):
         var_a, choice_item = self.get_var_a()
@@ -438,3 +410,4 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
                                          self.var_types, self.val_dics)
         if updated:
             self.setup_var_b(var_b)
+    

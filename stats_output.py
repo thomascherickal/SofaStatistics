@@ -1,18 +1,10 @@
 import cgi
 import numpy as np
 import boomslang
+import pylab
 
 import my_globals as mg
 import lib
-import my_exceptions
-
-try:
-    import wxmpl
-except my_exceptions.MatplotlibBackendException, e:
-    import wx
-    wx.MessageBox(lib.ue(e))
-    
-import pylab # must import after wxmpl so matplotlib.use() is always first
 import charting_pylab
 import core_stats
 import output

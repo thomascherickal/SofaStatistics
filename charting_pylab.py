@@ -4,20 +4,12 @@
 import os
 
 import boomslang
+import pylab
 import wx
 
 import my_globals as mg
 import lib
-import my_exceptions
 import output
-
-try:
-    import wxmpl
-except my_exceptions.MatplotlibBackendException, e:
-    wx.MessageBox(lib.ue(e))
-import pylab # must import after wxmpl so matplotlib.use() (which is in wxmpl) 
-    # is always first
-
 import core_stats
 
 int_imgs_n = 0 # for internal images so always unique
@@ -231,21 +223,3 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     html.append(title_dets_html)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     if debug: print("Just linked to %s" % img_src)
-
-
-class DlgHist(wxmpl.PlotDlg):
-    def __init__(self, parent, vals, var_label, histlbl):
-        wxmpl.PlotDlg.__init__(self, parent, 
-            title=_("Similar to normal distribution curve?"), size=(10.0, 6.0), 
-            dpi=96)
-        btn_ok = wx.Button(self, wx.ID_OK)
-        btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
-        self.sizer.Add(btn_ok, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
-        fig = self.get_figure()
-        config_hist(fig, vals, var_label, histlbl)
-        self.draw()
-        self.SetSizer(self.sizer)
-        self.Fit()
-
-    def on_ok(self, event):
-        self.Destroy()

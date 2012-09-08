@@ -121,8 +121,7 @@ def get_normal_ys(vals, bins):
         and bins.
     """
     debug = False
-    import wxmpl
-    import pylab # must import after wxmpl so matplotlib.use() is always first
+    import pylab
     mu = core_stats.mean(vals)
     sigma = core_stats.stdev(vals)
     if debug: print(bins, mu, sigma)
