@@ -11,7 +11,7 @@ import my_exceptions
 import lib
 import getdata
 try:
-    import psycopg as pg
+    import psycopg2 as pg
 except ImportError, e:
     try:
         import pgdb as pg
