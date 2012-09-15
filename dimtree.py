@@ -517,7 +517,7 @@ class DimTree(object):
                 item, unused = tree.GetFirstChild(selected_ids[0])
                 has_children = True if item else False
             if not has_children:
-                measures = rpt_config[mg.COL_MEASURES_KEY]
+                measures = rpt_config[mg.COL_MEASURES_KEY][:] # copy so don't keep appending to original!
                 if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
                     measures.append(mg.ROWPCT)
         if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM) 
