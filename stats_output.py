@@ -386,13 +386,13 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     footnotes.append((u"\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> U "
         u"is based on the results of matches between "
         u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "
-        u"In each match, the winner is the one with the "
+        u"In each match,<br>the winner is the one with the "
         u"highest \"%(label_ranked)s\" "
-        u"(in a draw, each group gets half a point which is why U can "
+        u"(in a draw, each group gets half a point which is<br>why U can "
         u"sometimes end in .5). "
-        u"The further the number is away from an even "
-        u"result i.e. half the number of possible matches "
-        u"(i.e. half of %(n_a)s x %(n_b)s i.e. %(even_matches)s) "
+        u"The further the number is away from an even result<br>"
+        u" i.e. half the number of possible matches "
+        u"(i.e. half of %(n_a)s x %(n_b)s i.e. %(even_matches)s)<br>"
         u"the more unlikely the difference is by chance "
         u"alone and the more statistically significant it is.</p>") % 
             {u"label_a": label_a.replace(u"%",u"%%"), 

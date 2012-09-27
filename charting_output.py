@@ -1507,7 +1507,7 @@ makechartRenumber%(chart_idx)s = function(){
              u"chart_idx": u"%02d" % chart_idx,})
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                      u"Clust Bar")
+                              u"Clust Bar")
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -2648,7 +2648,7 @@ makechartRenumber00 = function(){
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          item_type=u"Scatterplot")
+                          item_type=u"Boxplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)

@@ -33,6 +33,52 @@ The "minus 3" at the end of this formula is often explained as a correction to
 """
 FISHER_KURTOSIS_ADJUSTMENT = 3.0
 
+def unique(sample):
+    """
+    From pstat.py. Renamed inlist to sample. 
+    -------------------------------------
+    Returns all unique items in the passed list.  If the a list-of-lists
+    is passed, unique LISTS are found (i.e., items in the first dimension are
+    compared).
+    
+    Usage:   unique (sample)
+    Returns: the unique elements (or rows) in sample
+    """
+    uniques = []
+    for item in sample:
+        if item not in uniques:
+            uniques.append(item)
+    return uniques
+
+def mode(sample):
+    """
+    From stats.py. Renamed inlist to sample. 
+    -------------------------------------
+    Returns a list of the modal (most common) score(s) in the passed list. If 
+        there is more than one such score, all are returned. The bin-count for 
+        the mode(s) is also returned.
+
+    Usage:   mode(sample)
+    Returns: bin-count for mode(s), a list of modal value(s)
+    """
+    scores = unique(sample)
+    scores.sort()
+    freq = []
+    for item in scores:
+        freq.append(sample.count(item))
+    maxfreq = max(freq)
+    mode = []
+    stillmore = 1
+    while stillmore:
+        try:
+            indx = freq.index(maxfreq)
+            mode.append(scores[indx])
+            del freq[indx]
+            del scores[indx]
+        except ValueError:
+            stillmore=0
+    return maxfreq, mode
+
 def get_freqs(sample):
     """
     From a given data sample, return a sorted list of values and frequencies.

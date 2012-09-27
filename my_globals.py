@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.2.2"
+VERSION = u"1.2.3"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -60,6 +60,7 @@ COLPCT = _("Col %")
 SUM = _("Sum")
 MEAN = _("Mean")
 MEDIAN = _("Median")
+MODE = _("Mode")
 SUMM_N = u"N" # N used in Summary tables
 STD_DEV = _("Std Dev")
 MIN = _("Min")
@@ -73,7 +74,8 @@ measures_long_lbl_dic = {FREQ: _("Frequency"),
                          COLPCT: _("Column %"),
                          SUM: _("Sum"), 
                          MEAN: _("Mean"),
-                         MEDIAN: _("Median"), 
+                         MEDIAN: _("Median"),
+                         MODE: _("Mode"),
                          SUMM_N: "N",
                          STD_DEV: _("Standard Deviation"),
                          MIN: _("Minimum"),
@@ -94,6 +96,7 @@ ROW_STATS_LBL = _("Row Stats")
 DATA_LIST_LBL = _("Data List")
 TAB_TYPE2LBL = {FREQS: FREQS_LBL, CROSSTAB: CROSSTAB_LBL, 
                 ROW_STATS: ROW_STATS_LBL, DATA_LIST: DATA_LIST_LBL}
+MAX_MODES = 10
 EMPTY_ROW_LBL = u""
 COL_MEASURES_KEY = u"Col measures key"
 ROWPCT_AN_OPTION_KEY = u"Rowpct an option? key"
@@ -119,7 +122,7 @@ RPT_CONFIG = {
                MEASURES_HORIZ_KEY: True,
                DEFAULT_MEASURE_KEY: FREQ,
                QUICK_IF_BELOW_KEY: 1000 if debug else 4000}, # 4000
-    ROW_STATS: {COL_MEASURES_KEY: [MEAN, STD_DEV, MEDIAN, SUMM_N, 
+    ROW_STATS: {COL_MEASURES_KEY: [MEAN, STD_DEV, MEDIAN, MODE, SUMM_N, 
                                    MIN, MAX, RANGE,
                                    LOWER_QUARTILE, UPPER_QUARTILE, IQR, SUM],
                VAR_SUMMARISED_KEY: True,
@@ -162,6 +165,7 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               SUM: u"SUM", 
                               MEAN: u"MEAN",
                               MEDIAN: u"MEDIAN", 
+                              MODE: u"MODE",
                               SUMM_N: u"SUMM_N",
                               STD_DEV: u"STD_DEV",
                               MIN: u"MIN",

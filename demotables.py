@@ -41,20 +41,25 @@ class DemoTable(object):
         into the appropriate row list within row_label_rows_lst before
         concatenating and appending "</tr>".
         """
-        col_term_nodes = tree_col_labels.get_terminal_nodes()
-        row_term_nodes = tree_row_labels.get_terminal_nodes()
-        col_filters_lst = [x.filts for x in col_term_nodes]
-        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        col_tots_lst = [x.is_coltot for x in col_term_nodes]
-        col_measures_lst = [x.measure for x in col_term_nodes]
-        row_filters_lst = [x.filts for x in row_term_nodes]
-        row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        #print("%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
-                           row_filt_flds_lst, col_measures_lst, col_filters_lst, 
-                           col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
-                           data_cells_n, col_term_nodes, css_idx)
+        try:
+            col_term_nodes = tree_col_labels.get_terminal_nodes()
+            row_term_nodes = tree_row_labels.get_terminal_nodes()
+            col_filters_lst = [x.filts for x in col_term_nodes]
+            col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
+            col_tots_lst = [x.is_coltot for x in col_term_nodes]
+            col_measures_lst = [x.measure for x in col_term_nodes]
+            row_filters_lst = [x.filts for x in row_term_nodes]
+            row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
+            data_cells_n = len(row_term_nodes) * len(col_term_nodes)
+            #print("%s data cells in table" % data_cells_n)
+            row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
+                                        row_filt_flds_lst, col_measures_lst, 
+                                        col_filters_lst, col_tots_lst, 
+                                        col_filt_flds_lst, row_label_rows_lst, 
+                                        data_cells_n, col_term_nodes, css_idx)
+        except Exception, e:
+            row_label_rows_lst = [u"<td>Problem getting table output: "
+                                  u"Orig error: %s</td>" % lib.ue(e)]
         return row_label_rows_lst
 
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 

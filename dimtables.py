@@ -520,23 +520,28 @@ class LiveTable(DimTable):
         concatenating and appending "</tr>".
         """
         debug = False
-        col_term_nodes = tree_col_labels.get_terminal_nodes()
-        row_term_nodes = tree_row_labels.get_terminal_nodes()
-        col_filters_lst = [x.filts for x in col_term_nodes]
-        col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
-        col_tots_lst = [x.is_coltot for x in col_term_nodes]
-        col_measures_lst = [x.measure for x in col_term_nodes]
-        row_filters_lst = [x.filts for x in row_term_nodes]
-        if debug: 
-            print(row_filters_lst)
-            print(col_term_nodes)
-        row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
-        data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-        if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
-        row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
-                           row_filt_flds_lst, col_measures_lst, col_filters_lst, 
-                           col_tots_lst, col_filt_flds_lst, row_label_rows_lst, 
-                           data_cells_n, col_term_nodes, css_idx)
+        try:
+            col_term_nodes = tree_col_labels.get_terminal_nodes()
+            row_term_nodes = tree_row_labels.get_terminal_nodes()
+            col_filters_lst = [x.filts for x in col_term_nodes]
+            col_filt_flds_lst = [x.filt_flds for x in col_term_nodes]
+            col_tots_lst = [x.is_coltot for x in col_term_nodes]
+            col_measures_lst = [x.measure for x in col_term_nodes]
+            row_filters_lst = [x.filts for x in row_term_nodes]
+            if debug: 
+                print(row_filters_lst)
+                print(col_term_nodes)
+            row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
+            data_cells_n = len(row_term_nodes) * len(col_term_nodes)
+            if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
+            row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
+                                       row_filt_flds_lst, col_measures_lst, 
+                                       col_filters_lst, col_tots_lst, 
+                                       col_filt_flds_lst, row_label_rows_lst, 
+                                       data_cells_n, col_term_nodes, css_idx)
+        except Exception, e:
+            row_label_rows_lst = [u"<td>Problem getting table output: "
+                                  u"Orig error: %s</td>" % lib.ue(e)]
         return row_label_rows_lst
     
     def get_row_dets(self, css_idx):
@@ -1125,7 +1130,10 @@ class SummTable(LiveTable):
         self.cur.execute(SQL_get_vals)
         val = None
         while True:
-            val = self.cur.fetchone()[0]
+            try:
+                val = self.cur.fetchone()[0]
+            except Exception:
+                raise Exception(u"Unable to get first non-numeric value")
             if debug: print(val)
             if val is not None and not lib.is_basic_num(val):
                 break
@@ -1151,8 +1159,8 @@ class SummTable(LiveTable):
         SQL_get_vals = (u"SELECT %s " % self.quote_obj(col_fld) +
                       u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                        overall_filter))
-        sql_for_raw_only = [mg.MEDIAN, mg.LOWER_QUARTILE, mg.UPPER_QUARTILE,
-                            mg.IQR, mg.STD_DEV]
+        sql_for_raw_only = [mg.MEDIAN, mg.MODE, mg.LOWER_QUARTILE, 
+                            mg.UPPER_QUARTILE, mg.IQR, mg.STD_DEV]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
@@ -1218,6 +1226,25 @@ class SummTable(LiveTable):
                             u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate median for %s."
+                                    % col_fld)
+        elif measure == mg.MODE:
+            try:
+                maxfreq, mode = core_stats.mode(data)
+                n_modes = len(mode)
+                if n_modes > mg.MAX_MODES:
+                    data_val = u"Too many modes to display"
+                else:
+                    mode2show = u", ".join(unicode(x) for x in mode)
+                    data_val = u"%s (N=%s)" % (mode2show, maxfreq)
+            except Exception:
+                bad_val = self.get_non_num_val(SQL_get_vals)
+                if bad_val is not None:
+                    raise Exception(
+                            u"Unable to calculate mode for %s. " % col_fld +
+                            u"The field contains at least one non-numeric " +
+                            u"value: \"%s\"" % bad_val)
+                else:
+                    raise Exception(u"Unable to calculate mode for %s."
                                     % col_fld)
         elif measure == mg.LOWER_QUARTILE:
             try:
