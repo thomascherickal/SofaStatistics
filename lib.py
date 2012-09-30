@@ -25,12 +25,39 @@ import core_stats
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
 def extract_img_path(content, url=False):
+    """
+    IMG_SRC_START -- u"<img src='"
+    """
     idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
     idx_end = content.rindex(mg.IMG_SRC_END)
     img_path = content[idx_start: idx_end]
     if not url:
         img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
+        # and strip off 'file:///' (or file:// as appropriate for os)
+        if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
+            img_path = os.path.join(u"", 
+                                    img_path.split(mg.FILE_URL_START_WIN)[1])
+        elif mg.FILE_URL_START_GEN in img_path:
+            img_path = os.path.join(u"", 
+                                    img_path.split(mg.FILE_URL_START_GEN)[1])
     return img_path
+
+def get_src_dst_preexisting_img(imgs_path, content):
+    """
+    imgs_path -- /home/g/Desktop/SOFA export Sep 30 09-34 AM
+    content -- e.g. <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
+    want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png 
+        (not file:///home ...)
+    and dst to be /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
+    """
+    debug = False
+    img_path = extract_img_path(content, url=False)
+    if debug: print(img_path)
+    src = img_path
+    img_name = os.path.split(img_path)[1]
+    dst = os.path.join(imgs_path, img_name)
+    if debug: print(src, dst)
+    return src, dst
 
 def setup_link(link, link_colour, bg_colour):
     link.SetColours(link=link_colour, visited=link_colour, 
