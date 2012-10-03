@@ -386,7 +386,7 @@ def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes,
     If not checking (e.g. because a pre-tested sample) only do the
         pytime (Excel) and empty string to null conversions.
     If all is OK, will add val to vals. NB val will need to be internally 
-        quoted unless it is a NULL. 
+        quoted unless it is a NULL. Watch for "But I say ""No"" don't I".
     If not, will turn to missing if in faulty2missing_fld_list, otherwise will 
         raise an exception.
     Quote ready for inclusion in SQLite SQL insert query.
@@ -975,9 +975,8 @@ class DlgImportFileSelect(wx.Dialog):
         self.txt_int_name.SetFocus()
         self.align_btns_to_completeness()
         self.btn_import.SetDefault()
-        if downloaded:
-            # start import automatically
-            self.run_import()
+        if downloaded: # start import automatically
+            run_gui_import(self)
         event.Skip()
         
     def on_close(self, event):

@@ -881,10 +881,14 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                        u" only because of size of table - click '%s' for actual"
                        u" results<br>&nbsp;&nbsp;or keep configuring</p>") % 
                                      config_output.RUN_LBL)
-                    idx_body_start = (demo_html.index(mg.BODY_START) + 
-                                      len(mg.BODY_START))
-                    demo_tbl_html = (demo_html[:idx_body_start] + demo_only_msg 
-                                     + u"\n\n" + demo_html[idx_body_start:])
+                    try:
+                        idx_body_start = (demo_html.index(mg.BODY_START) + 
+                                          len(mg.BODY_START))
+                        demo_tbl_html = (demo_html[:idx_body_start] 
+                                         + demo_only_msg 
+                                         + u"\n\n" + demo_html[idx_body_start:])
+                    except ValueError:
+                        demo_tbl_html = demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
         self.html.show_html(demo_tbl_html)

@@ -158,32 +158,64 @@ def get_normal_ys(vals, bins):
     norm_ys = pylab.normpdf(bins, mu, sigma)
     return norm_ys
 
-def quote_val(raw_val, unsafe_internal_quote, safe_internal_quote, 
-              use_double_quotes=True, charset2try=u"utf-8"):
+def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, 
+              pystr_use_double_quotes=True, charset2try=u"utf-8"):
     """
-    Might be a string or a datetime but can't be a number
+    Need to quote a value e.g. for inclusion in an SQL statement.
+    raw_val -- might be a string or a datetime but can't be a number.
+    sql_str_literal_quote -- e.g. ' for SQLite
+    sql_esc_str_literal_quote -- e.g. '' for SQLite
+    pystr_use_double_quotes -- Use double quotes for string declaration 
+        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
+        literal quotes used by the database engine to minimise escaping.
     """
     debug = False
-    try:
+    try: # try to process as date first
         val = raw_val.isoformat()
-    except AttributeError, e:
-        try:
-            try: # escape internal double quotes (already unicode)
-                val = raw_val.replace(unsafe_internal_quote, 
-                                      safe_internal_quote)
+        quoted_val = sql_str_literal_quote + val + sql_str_literal_quote
+    except AttributeError: # now try as string
+        """
+        E.g. val is: Don't say "Hello" like that
+        We need something ready for WHERE myval = 'Don''t say "Hello" like that'
+        So our string declaration ready for insertion into the SQL will need to 
+            be something like:
+        mystr = u"'Don''t say \"Hello\" like that'"
+        Tricky because two levels of escaping ;-). 
+        1) Database engine dependent SQL escaping: The SQL 
+            statement itself has its own escaping of internal quotes. So SQLite 
+            uses ' for quotes and '' to escape them internally.
+        2) Python escaping: We need to create a Python string, and do any 
+            internal escaping relative to that such that the end result when 
+            included in a longer string is correctly escaped SQL. When escaping 
+            the final Python string declaration, must escape relative to that 
+            e.g. myvar = "..."..." needs to be "...\"...". 
+        3) variable declaration of quoted value
+        The overall process is not super hard when clearly understood as having 
+            two steps.
+        """
+        try: # 1) do sql escaping
+            try: # try as if already unicode
+                val = raw_val.replace(sql_str_literal_quote, 
+                                      sql_esc_str_literal_quote)
             except UnicodeDecodeError:
                 if debug: print(repr(raw_val))
                 val = unicode(raw_val, 
-                              charset2try).replace(unsafe_internal_quote, 
-                                                   safe_internal_quote)
+                              charset2try).replace(sql_str_literal_quote, 
+                                                   sql_esc_str_literal_quote)
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
                             u"\nCaused by error: %s" % ue(e))
-    if use_double_quotes:
-        newval = u'"' + val + u'"'
-    else:
-        newval = u"'" + val + u"'"
-    return newval
+        if pystr_use_double_quotes:
+            # 2) do Python escaping
+            pystr_esc_val = val.replace(u'"', u'\"')
+            # 3) variable declaration of quoted value
+            quoted_val = u"%s%s%s" % (sql_str_literal_quote, pystr_esc_val,
+                                      sql_str_literal_quote)
+        else:
+            pystr_esc_val = val.replace(u"'", u"\'")
+            quoted_val = u'%s%s%s' % (sql_str_literal_quote, pystr_esc_val,
+                                      sql_str_literal_quote)
+    return quoted_val
 
 def get_p(p, dp):
     if p < 0.001:
