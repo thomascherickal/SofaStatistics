@@ -24,36 +24,50 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
-def extract_img_path(content, url=False):
+def extract_img_path(content, use_as_url=False):
     """
+    Extract image path from html.
+    use_as_url -- is the path going to be used as a url (if not we need to 
+        unquote it) so the image path we extract can be used by the os e.g. to 
+        copy an image
     IMG_SRC_START -- u"<img src='"
     """
     idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
     idx_end = content.rindex(mg.IMG_SRC_END)
     img_path = content[idx_start: idx_end]
-    if not url:
+    if not use_as_url:
         img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
-        # and strip off 'file:///' (or file:// as appropriate for os)
-        if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
-            img_path = os.path.join(u"", 
-                                    img_path.split(mg.FILE_URL_START_WIN)[1])
-        elif mg.FILE_URL_START_GEN in img_path:
-            img_path = os.path.join(u"", 
-                                    img_path.split(mg.FILE_URL_START_GEN)[1])
+    # strip off 'file:///' (or file:// as appropriate for os)
+    if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
+        img_path = os.path.join(u"", 
+                                img_path.split(mg.FILE_URL_START_WIN)[1])
+    elif mg.FILE_URL_START_GEN in img_path:
+        img_path = os.path.join(u"", 
+                                img_path.split(mg.FILE_URL_START_GEN)[1])
     return img_path
 
-def get_src_dst_preexisting_img(imgs_path, content):
+def get_src_dst_preexisting_img(export_report, imgs_path, content):
     """
-    imgs_path -- /home/g/Desktop/SOFA export Sep 30 09-34 AM
-    content -- e.g. <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
+    export_report -- boolean (cf export output)
+    imgs_path -- 
+    e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM
+    e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images
+    content -- 
+    e.g. export output: <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
+    e.g. export report: <img src='test_exporting_images/000.png'>
     want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png 
         (not file:///home ...)
-    and dst to be /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
+    and dst to be
+    e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
+    e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images/000.png
     """
     debug = False
-    img_path = extract_img_path(content, url=False)
+    img_path = extract_img_path(content, use_as_url=False)
     if debug: print(img_path)
-    src = img_path
+    if export_report: # trim off trailing divider, then split and get first part
+        src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
+    else:
+        src = img_path
     img_name = os.path.split(img_path)[1]
     dst = os.path.join(imgs_path, img_name)
     if debug: print(src, dst)
@@ -71,6 +85,7 @@ def setup_link(link, link_colour, bg_colour):
     link.EnableRollover(True)
     link.SetVisited(True)
     link.UpdateLink(True)
+
 
 class DlgHelp(wx.Dialog):
     def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 

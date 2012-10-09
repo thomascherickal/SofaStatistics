@@ -565,7 +565,7 @@ class StartFrame(wx.Frame):
     
     def set_upgrade_availability(self, new_version):
         """
-        new_version will be empty string or a version number e.g. 1.1.3
+        new_version will be empty string or a version number e.g. 1.2.3
         Upgrade unavailable if nothing newer or if checking prevented or a 
             connection not made.
         """

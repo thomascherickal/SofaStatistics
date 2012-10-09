@@ -139,8 +139,7 @@ RPT_CONFIG = {
                 DEFAULT_MEASURE_KEY: None,
                 QUICK_IF_BELOW_KEY: 750},
   }
-bigger_max_val_len = True
-MAX_VAL_LEN_IN_SQL_CLAUSE = 60 if bigger_max_val_len else 30
+MAX_VAL_LEN_IN_SQL_CLAUSE = 90
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
 ROWDIM = _("row") #double as labels
@@ -503,10 +502,8 @@ MPL_EDGECOLOR = u"white"
 MPL_BGCOLOR = u"#f2f1f0"
 MPL_NORM_LINE_COLOR = u"#736354"
 RPT_SUBFOLDER_SUFFIX = u"_images"
-rpt_subfolder_prefix = os.path.splitext(INT_REPORT_FILE)[0]
-# e.g. /home/g/Documents/sofastats/reports/sofastats_use_only
-INT_IMG_PREFIX_PATH = os.path.join(REPORTS_PATH, rpt_subfolder_prefix)
-# e.g. /home/g/Documents/sofastats/reports/sofastats_use_only_images/
+rpt_subfolder_prefix = os.path.splitext(INT_REPORT_FILE)[0] # e.g. /home/g/Documents/sofastats/reports/sofastats_use_only
+INT_IMG_PREFIX_PATH = os.path.join(REPORTS_PATH, rpt_subfolder_prefix) # e.g. /home/g/Documents/sofastats/reports/sofastats_use_only_images/
 INT_IMG_PATH = INT_IMG_PREFIX_PATH + RPT_SUBFOLDER_SUFFIX
 INT_IMG_ROOT = os.path.join(INT_IMG_PATH, u"_img")
 INT_COPY_IMGS_PATH = os.path.join(INT_PATH, u"delete_after_copy")
