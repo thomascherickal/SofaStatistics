@@ -965,32 +965,24 @@ def add_end_script_code(f):
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
-def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
-    """
-    Runs report and returns bolran_report, and HTML representation of report 
-        (or of the error) for GUI display. Report includes HTML header.
-    add_to_report -- also append result to current report.
-    """
+def generate_script(modules, css_fils, new_has_dojo, inner_script,
+                    tbl_filt_label, tbl_filt):
     debug = False
     verbose = False
-    dd = mg.DATADETS_OBJ
-    cc = config_output.get_cc()
-    # generate script
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
         if debug and verbose: print(css_fils)
         insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, 
                            new_has_dojo)
-        tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
                                inc_divider=False)
         add_end_script_code(f)
         f.close()
     except Exception, e:
-        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to make the script "
-                        u"needed to make the output."
-                        u"\nOrig error: %s</p>" % lib.ue(e))
-    # run script
+        raise Exception(u"Unable to make the script needed to make the output."
+                        u"\nOrig error: %s" % lib.ue(e))
+
+def run_script():
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
         script_txt = f.read()
@@ -999,112 +991,150 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         script = lib.clean_boms(script_txt)    
         script = script[script.index(mg.MAIN_SCRIPT_START):]
     except Exception, e:
-        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read part of script "
-                        u"for execution."
-                        u"\nOrig error: %s</p>" % lib.ue(e))
+        raise Exception(u"Unable to read part of script for execution."
+                        u"\nOrig error: %s" % lib.ue(e))
     try:
         dummy_dic = {}
         exec script in dummy_dic
     except my_exceptions.OutputException, e:
         wx.MessageBox(lib.ue(e))
-        return False, u"<p>Waiting for a report to be run.</p>"
+        raise Exception(u"Waiting for a viable report to be run.")
     except Exception, e:
         print("Unable to run report: %s" % traceback.format_exc())
-        err_content = _(u"<h1>Ooops!</h1>\n<p>Unable to run script to "
-                        u"generate report. Caused by error: %s</p>") % lib.ue(e)
-        if debug:
-            raise
-        return False, err_content
-    # Raw results will have a html header with embedded css referencing relative
-    # background images, and in the body either relative image links (if added 
-    # to report) or absolute images links (if standalone GUI only). 
-    # If it has dojo, will have relative dojo js and css in the header, a 
-    # makeObjects function, also in the header, which only runs from 0 to N
-    # makechartsRenumber0(), and in the body, a function called 
-    # makechartRenumber0, a chart called mychartRenumber0, and a legend called 
-    # legendMychartRenumber0, and makechartsRenumber1 etc.
+        raise Exception(_(u"Unable to run script to generate report. Caused by "
+                          u"error: %s") % lib.ue(e))
+
+def get_raw_results():
+    """
+    Raw results will have a html header with embedded css referencing relative
+        background images, and in the body either relative image links (if added 
+        to report) or absolute images links (if standalone GUI only). 
+    If it has dojo, will have relative dojo js and css in the header, a 
+        makeObjects function, also in the header, which only runs from 0 to N
+        makechartsRenumber0(), and in the body, a function called 
+        makechartRenumber0, a chart called mychartRenumber0, and a legend called 
+        legendMychartRenumber0, and makechartsRenumber1 etc.
+    """
+    debug = False
+    verbose = False
     try:
         with codecs.open(mg.INT_REPORT_PATH, "U", "utf-8") as f:
             raw_results = lib.clean_boms(f.read())
             f.close()
         if debug and verbose: print(raw_results)
-        """
-        Split raw_results so can insert messages about filters etc AFTER the 
-            header.
-        """
-        above_inner_body, inner_body = raw_results.split(mg.BODY_START)
-        source = get_source(dd.db, dd.tbl)
-        filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     except Exception, e:
-        raise Exception(u"<h1>Ooops!</h1>\n<p>Unable to read local copy of "
-                        u"output report."
-                        u"\nOrig error: %s</p>" % lib.ue(e))
+        raise Exception(u"Unable to read local copy of output report."
+                        u"\nOrig error: %s" % lib.ue(e))
+    return raw_results
+
+def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
+                      raw_results):
+    """
+    Append into html file. 
+    Handles source and filter desc internally when making divider between 
+        output.
+    Ignores snippet html header and modifies report header if required.
+    """
+    try:
+        save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
+                       raw_results)
+    except my_exceptions.MalformedHtml, e:
+        raise Exception(_("Problems with the content of the"
+                          u" report you are saving to. Please fix, or delete "
+                          u"report and start again."
+                          u"Caused by error: %s") % lib.ue(e))
+    except Exception, e:
+        raise Exception(u"Problem running report.\n"
+                        u"Caused by error: %s" % lib.ue(e))
+
+def get_abs_content(raw_display_content, add_to_report):
+    """
+    Relative references are good for a portable html file but no good for local
+        display in SOFA or extracting paths suitable for copying images. Need
+        absolute paths.
+    """
+    debug = False
+    verbose = False
+    if debug and verbose:
+        print(u"\nrel\n" + 100*u"*" + u"\n\n" + raw_display_content)
+    css_links_fixed = rel2abs_css_links(raw_display_content)
+    if debug and verbose: 
+        print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_links_fixed)
+    js_fixed = rel2abs_js_links(css_links_fixed)
+    if debug and verbose: 
+        print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
+    ie_js_fixed = rel2abs_extra_js_links(js_fixed)
+    if debug and verbose: 
+        print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
+    abs_content = rel2abs_css_bg_imgs(ie_js_fixed)
+    if debug and verbose: 
+        print(u"\ngui\n" + 100*u"*" + u"\n\n" + abs_content)
     if add_to_report:
-        # Append into html file. 
-        # Handles source and filter desc internally when making divider between 
-        # output.
-        # Ignores snippet html header and modifies report header if required.
-        try:
-            save_to_report(css_fils, source, tbl_filt_label, tbl_filt, 
-                           new_has_dojo, raw_results)
-        except my_exceptions.MalformedHtml, e:
-            wx.MessageBox(_("Problems with the content of the report you are "
-                            "saving to. Please fix, or delete report and start "
-                            "again.\nCaused by error: %s") % lib.ue(e))
-            gui_display_content = u""
-            return False, gui_display_content
-        except Exception, e:
-            wx.MessageBox(u"Problem running report.\nCaused by error: %s" % 
-                          lib.ue(e))
-            gui_display_content = u""
-            return False, gui_display_content
-        # has to deal with local GUI version to display as well
+        # Has to deal with local GUI version to display as well.
         # Make relative image links absolute so GUI viewers can display images.
         # If not add_to_report, already has absolute link to internal imgs.
         # If in real report, will need a relative version for actual report.
         # Make relative js absolute so dojo charts can display.
+        abs_content = rel2abs_rpt_img_links(abs_content)
+        if debug and verbose: 
+            print(u"\nimgs\n" + 100*u"*" + u"\n\n" + abs_content)
+    return abs_content
+
+def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
+    """
+    Runs report and returns bolran_report, and HTML representation of report 
+        (or of the error) for GUI display. Report includes HTML header.
+    add_to_report -- also append result to current report.
+    """
+    debug = False
+    dd = mg.DATADETS_OBJ
+    cc = config_output.get_cc()
+    source = get_source(dd.db, dd.tbl)
+    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+    try:
+        generate_script(modules, css_fils, new_has_dojo, inner_script,
+                        tbl_filt_label, tbl_filt)
+        run_script()
+        raw_results = get_raw_results()
+        if add_to_report:
+            append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, 
+                               new_has_dojo, raw_results)
+        # Split raw_results so can insert messages re filters etc AFTER header
+        above_inner_body, inner_body = raw_results.split(mg.BODY_START)
         try:
+            abs_above_inner_body = get_abs_content(above_inner_body, 
+                                                   add_to_report)
+            abs_inner_body = get_abs_content(inner_body, add_to_report)
+        except Exception, e:
+            if add_to_report:
+                raise Exception(u"Problems getting copy of output to display."
+                                u"\nOrig error: %s" % lib.ue(e))
+            else:
+                raise Exception(u"Problems getting content to display on "
+                                u"screen.\nOrig error: %s" % lib.ue(e))
+        if add_to_report:
             esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
-            rel_display_content = (above_inner_body + mg.BODY_START + 
-                        u"\n<p>Output also saved to '%s'</p>" % esc_rpt_path +  
-                        u"<p>%s</p>" % filt_msg + inner_body)
-            if debug and verbose:
-                print(u"\nrel\n" + 100*u"*" + u"\n\n" + rel_display_content)
-            css_links_fixed = rel2abs_css_links(rel_display_content)
-            if debug and verbose: 
-                print(u"\ncss\n" + 100*u"*" + u"\n\n" + css_links_fixed)
-            imgs_fixed = rel2abs_rpt_img_links(css_links_fixed)
-            if debug and verbose: 
-                print(u"\nimgs\n" + 100*u"*" + u"\n\n" + imgs_fixed)
-            js_fixed = rel2abs_js_links(imgs_fixed)
-            if debug and verbose: 
-                print(u"\njs\n" + 100*u"*" + u"\n\n" + js_fixed)
-            ie_js_fixed = rel2abs_extra_js_links(js_fixed)
-            if debug and verbose: 
-                print(u"\nie\n" + 100*u"*" + u"\n\n" + ie_js_fixed)
-            gui_display_content = rel2abs_css_bg_imgs(ie_js_fixed)
-            if debug and verbose: 
-                print(u"\ngui\n" + 100*u"*" + u"\n\n" + gui_display_content)
-        except Exception, e:
-            raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting copy of "
-                          u"output to display.\nOrig error: %s</p>" % lib.ue(e))
-    else: # standalone internal GUI only - make everything absolute
-        # need to make background css images absolute
-        # need to make css and js links absolute
-        results_with_source = (above_inner_body + mg.BODY_START + source + 
-                               u"<p>%s</p>" % filt_msg + inner_body)
-        try:
-            css_imgs_fixed = rel2abs_css_bg_imgs(results_with_source)
-            css_links_fixed = rel2abs_css_links(css_imgs_fixed)
-            js_fixed = rel2abs_js_links(css_links_fixed)
-            gui_display_content = rel2abs_extra_js_links(js_fixed)
-        except Exception, e:
-            raise Exception(u"<h1>Ooops!</h1>\n<p>Problems getting content to "
-                            u"display on screen."
-                            u"\nOrig error: %s</p>" % lib.ue(e))
+            gui_display_content = (abs_above_inner_body + mg.BODY_START + 
+                                   u"\n<p>Output also saved to '%s'</p>" % 
+                                   esc_rpt_path + u"<p>%s</p>" % filt_msg 
+                                   + abs_inner_body)
+        else:
+            gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
+                                   + u"<p>%s</p>" % filt_msg + abs_inner_body)
+    except Exception, e:
+        return False, u"<h1>Ooops!</h1><p>%s</p>" % lib.ue(e)
     if debug: 
         print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 
                                                gui_display_content))
+    try: # makes it much easier to extract absolurte chart paths for linked 
+            # images (as opposed to SVG/Javascript images (Dojo).
+        with codecs.open(mg.INT_REPORT_PATH, "w", "utf-8") as f:
+            f.write(abs_above_inner_body + mg.BODY_START + abs_inner_body)
+            f.close()
+    except Exception:
+        pass # will stuff up exporting images in some cases but not worth 
+            # halting otherwise-successful analysis.
     return True, gui_display_content
 
 def display_report(parent, str_content, url_load=False):

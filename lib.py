@@ -67,7 +67,7 @@ def get_src_dst_preexisting_img(export_report, imgs_path, content):
     if export_report: # trim off trailing divider, then split and get first part
         src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
     else:
-        src = img_path
+        src = img_path # the run_report process leaves an abs version. How nice!
     img_name = os.path.split(img_path)[1]
     dst = os.path.join(imgs_path, img_name)
     if debug: print(src, dst)
