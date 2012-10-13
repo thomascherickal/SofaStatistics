@@ -40,6 +40,12 @@ NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
                        u"\"%(add2rpt_lbl)s\" ticked) to add output to this "
                        u"report.") % {u"run": RUN_LBL, 
                              u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
+ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
+            u"\"%(report_extras_folder)s\" subfolder into the "
+            u"\"%(rpt_root)s\" folder so your charts and themes"
+            u" can display properly.\n\nCopy the "
+            u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
+
 
 class DlgGetTest(wx.Dialog):
     
@@ -659,40 +665,74 @@ class ConfigUI(object):
         
     def on_open(self, event):
         getdata.open_database(self, event)
-        
+    
+    def has_expected_subfolder(self, rpt_root):
+        # see if has js support etc in subfolder
+        expected_subfolder = os.path.join(rpt_root, mg.REPORT_EXTRAS_FOLDER)
+        return os.path.exists(expected_subfolder)
+    
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
         cc = get_cc()
         dlg_get_file = wx.FileDialog(self, 
-            _("Choose or create a report output file:"), 
-            defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
-            wildcard=_("HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
-            style=wx.SAVE)
+                            _("Choose or create a report output file:"), 
+                            defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
+                            wildcard=_(u"HTML files (*.htm)|*.htm|HTML files "
+                                       u"(*.html)|*.html"),
+                            style=wx.SAVE)
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
+            # not necessary that the report exists, only that its folder is already there
             new_rpt_pth = u"%s" % dlg_get_file.GetPath()
-            new_rpt = os.path.split(new_rpt_pth)[1]
+            new_rpt_root, new_rpt = os.path.split(new_rpt_pth)
+            if not os.path.exists(new_rpt_root): # they hand-wrote a faulty path?
+                wx.MessageBox(_(u"Warning - the folder your report is in "
+                                u"doesn't currently exist."))
+                return
             if self.autoupdate:
                 cc[mg.CURRENT_REPORT_PATH] = new_rpt_pth
             self.txt_report_file.SetValue(new_rpt_pth)
-            wx.MessageBox(_(u"Please note that any SOFA Charts you add "
-                u"to \"%(new_rpt)s\" won't display unless the "
-                u"\"%(report_extras_folder)s\" subfolder is in the same folder "
-                u"as you open \"%(new_rpt)s\" from.") % 
-                {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER, 
-                 u"new_rpt": new_rpt})
+            give_warning = not self.has_expected_subfolder(new_rpt_root)
+            if give_warning:
+                wx.MessageBox(ADD_EXPECTED_SUBFOLDER_MSG % 
+                            {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
+                             u"rpt_root": new_rpt_root, 
+                             u"reports_path": mg.REPORTS_PATH})
         dlg_get_file.Destroy()
     
     def on_btn_export_report(self, event):
         debug = False
+        cc = get_cc()
+        report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
+        if report_missing:
+            try:
+                self.can_run_report # False for Project dialog - can't make a report so no point letting them know they can make one if they want to view something
+            except AttributeError:
+                self.can_run_report = True
+            if self.can_run_report:
+                msg = NO_OUTPUT_YET_MSG
+            else:
+                msg = _("The output file has not been created yet. Nothing to "
+                        "export") # not in a position to make one
+            wx.MessageBox(msg)
+            return
+        # check subfolder there
+        rpt_root = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
+        if not self.has_expected_subfolder(rpt_root):
+            wx.MessageBox(ADD_EXPECTED_SUBFOLDER_MSG % 
+                              {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
+                               u"rpt_root": rpt_root, 
+                               u"reports_path": mg.REPORTS_PATH})
+            return
         try:
             if debug: raise ImportError
             import export_output as export
             cc = get_cc()
-            dlg = export.DlgExportOutput(title=u"Export Report (PDF/Images)", 
-                                       report2export=cc[mg.CURRENT_REPORT_PATH], 
-                                       temp_report_only=False)
+            dlg = export.DlgExportOutput(title=u"Export Report "
+                                         u"(Images/PDF)", 
+                                   report2export=cc[mg.CURRENT_REPORT_PATH], 
+                                   temp_report_only=False)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
@@ -797,16 +837,17 @@ class ConfigUI(object):
         """
         debug = False
         cc = get_cc()
-        if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
+        report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
+        if report_missing:
             try:
-                self.can_run_report
+                self.can_run_report # False for Project dialog - can't make a report so no point letting them know they can make one if they want to view something
             except AttributeError:
                 self.can_run_report = True
             if self.can_run_report:
                 msg = NO_OUTPUT_YET_MSG
             else:
                 msg = _("The output file has not been created yet. Nothing to "
-                        "view")
+                        "view") # not in a position to make one
             wx.MessageBox(msg)
         else:
             url = output.path2url(cc[mg.CURRENT_REPORT_PATH])
