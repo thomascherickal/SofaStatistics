@@ -413,7 +413,8 @@ class ConfigUI(object):
         self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
         
-    def get_szr_output_config(self, panel, readonly=False, report_file=None):
+    def get_szr_output_config(self, panel, readonly=False, report_file=None,
+                              show_view_btn=True, show_export_rpt_btn=True):
         """
         Returns self.szr_output_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
@@ -448,25 +449,30 @@ class ConfigUI(object):
         self.btn_report_path.Enable(not self.readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
                                                 "output file"))
-        self.btn_view = wx.Button(panel, -1, _("View"), size=(60,-1))
-        self.btn_view.SetFont(mg.BTN_FONT)
-        self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
-        self.btn_view.Enable(not self.readonly)
-        self.btn_view.SetToolTipString(_("View selected HTML output file in "
-                                         "your default browser"))
-        self.btn_export_report = wx.Button(panel, -1, _("Export Report"))
-        self.btn_export_report.SetFont(mg.BTN_FONT)
-        self.btn_export_report.Bind(wx.EVT_BUTTON, self.on_btn_export_report)
-        self.btn_export_report.Enable(not self.readonly)
-        self.btn_export_report.SetToolTipString(_(u"Export report as PDF or as "
-                                   u"images ready for reports, slideshows etc"))
+        if show_view_btn:
+            self.btn_view = wx.Button(panel, -1, _("View"), size=(60,-1))
+            self.btn_view.SetFont(mg.BTN_FONT)
+            self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
+            self.btn_view.Enable(not self.readonly)
+            self.btn_view.SetToolTipString(_("View selected HTML output file "
+                                             "in your default browser"))
+        if show_export_rpt_btn:
+            self.btn_export_report = wx.Button(panel, -1, _("Export Report"))
+            self.btn_export_report.SetFont(mg.BTN_FONT)
+            self.btn_export_report.Bind(wx.EVT_BUTTON, 
+                                        self.on_btn_export_report)
+            self.btn_export_report.Enable(not self.readonly)
+            self.btn_export_report.SetToolTipString(_(u"Export report as PDF or"
+                            u" as images ready for reports, slideshows etc"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         szr_output_config.Add(self.btn_run, 0)
         szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
         szr_output_config.Add(self.txt_report_file, 1)
         szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        szr_output_config.Add(self.btn_export_report, 0, wx.LEFT|wx.RIGHT, 5)
+        if show_view_btn:
+            szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
+        if show_export_rpt_btn:
+            szr_output_config.Add(self.btn_export_report, 0, wx.LEFT|wx.RIGHT, 5)
         return szr_output_config
 
     def get_szr_output_display(self, panel, inc_clear=True, idx_style=5):

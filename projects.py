@@ -478,8 +478,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         # CONFIG
         # mixin supplying self.szr_output_config
         self.szr_output_config = self.get_szr_output_config(self.panel_config, 
-                                              readonly=self.readonly, 
-                                              report_file=self.fil_report)
+                            readonly=self.readonly, report_file=self.fil_report, 
+                            show_view_btn=False, show_export_rpt_btn=False)
         btn_var_config = self.get_btn_var_config(self.panel_config)
         self.style_selector = self.get_style_selector(self.panel_config, 
                                            as_list=False, css_file=self.fil_css)
