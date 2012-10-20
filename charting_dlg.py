@@ -16,6 +16,7 @@ CUR_SORT_OPT = mg.SORT_VALUE
 CUR_DATA_OPT = mg.SHOW_FREQ
 SHOW_AVG = False
 ROTATE = False
+MAJOR = False
 # double as labels
 BARS_SORTED = u"bars"
 SLICES_SORTED = u"slices"
@@ -372,6 +373,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.Add(self.rad_line_perc.get_szr(), 0, wx.TOP, 5)
         self.chk_line_avg = self.get_chk_avg(self.panel_line_chart, 
                                              self.on_chk_line_avg)
+        self.chk_line_major_ticks = self.get_chk_major_ticks(self.panel_line_chart)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_avg, 0, wx.TOP, 
                                 self.tickbox_down_by)
@@ -384,6 +386,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
                                 self.tickbox_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP, 
+                                self.tickbox_down_by)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
     
@@ -395,12 +400,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_area_avg = self.get_chk_avg(self.panel_area_chart, 
                                              self.on_chk_area_avg)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
+        self.chk_area_major_ticks = self.get_chk_major_ticks(self.panel_area_chart)
         self.szr_area_chart.Add(self.rad_area_perc.get_szr(), 0, wx.TOP, 5)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_avg, 0, wx.TOP, 
                                 self.tickbox_down_by)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
+                                self.tickbox_down_by)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP, 
                                 self.tickbox_down_by)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
@@ -680,7 +689,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.SetToolTipString(_(u"Rotate x-axis labels?"))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
         return chk
-        
+
+    def get_chk_major_ticks(self, panel):
+        chk = wx.CheckBox(panel, -1, _("Show major labels only?"))
+        chk.SetFont(mg.GEN_FONT)
+        chk.SetValue(MAJOR)
+        chk.SetToolTipString(_(u"Show major labels only?"))
+        chk.Bind(wx.EVT_CHECKBOX, self.on_chk_major_ticks)
+        return chk
+
     def on_rad_sort(self, event):
         debug = False
         global CUR_SORT_OPT
@@ -873,7 +890,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global ROTATE
         chk = event.GetEventObject()
         ROTATE = chk.IsChecked()
-    
+        
+    def on_chk_major_ticks(self, event):
+        global MAJOR
+        chk = event.GetEventObject()
+        MAJOR = chk.IsChecked()
+        
     def on_chk_avg(self, chk, rad):
         global SHOW_AVG
         SHOW_AVG = chk.IsChecked()
@@ -956,6 +978,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_line_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_avg.SetValue(SHOW_AVG)
+        self.chk_line_major_ticks.SetValue(MAJOR)
         enable = not SHOW_AVG
         self.rad_line_perc.Enable(enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -970,6 +993,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.rad_area_perc.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_avg.SetValue(SHOW_AVG)
+        self.chk_area_major_ticks.SetValue(MAJOR)
         enable = not SHOW_AVG
         self.rad_area_perc.Enable(enable)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -1224,6 +1248,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         is_avg = (mg.AVG_KEY in mg.CHART_CONFIG[self.chart_type] and SHOW_AVG)
         is_perc = (CUR_DATA_OPT == mg.SHOW_PERC) and not is_avg
         rotate = u"True" if ROTATE else u"False"
+        major = u"True" if MAJOR else u"False"
         script_lst = []
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
@@ -1294,11 +1319,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                             and self.chk_line_smooth.Enabled
                         else u"False")
             script_lst.append(get_line_chart_script(is_perc, ytitle2use, rotate, 
-                                                    inc_trend, inc_smooth, 
-                                                    css_fil, css_idx))
+                                                   major, inc_trend, inc_smooth, 
+                                                   css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(is_perc, ytitle2use, rotate, 
-                                                    css_fil, css_idx))
+                                                    major, css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
                           else u"False")
@@ -1377,7 +1402,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
            u"css_idx": css_idx}
     return script
 
-def get_line_chart_script(is_perc, ytitle2use, rotate, inc_trend, 
+def get_line_chart_script(is_perc, ytitle2use, rotate, major_ticks, inc_trend, 
                           inc_smooth, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
@@ -1390,20 +1415,23 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt=mg.SORT_VALUE,
-                    rotate=%(rotate)s, is_perc=%(is_perc)s)
+                    sort_opt=mg.SORT_VALUE, rotate=%(rotate)s, 
+                    is_perc=%(is_perc)s, major_ticks=%(major_ticks)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    inc_trend=%(inc_trend)s, inc_smooth=%(inc_smooth)s, 
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
+    major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
+    inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" %
-        {u"is_perc": str(is_perc), u"rotate": rotate, u"xy_titles": xy_titles,
-         u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, 
-         u"css_fil": esc_css_fil, u"css_idx": css_idx})
+                {u"is_perc": str(is_perc), u"rotate": rotate, 
+                 u"major_ticks": major_ticks, 
+                 u"xy_titles": xy_titles, u"inc_trend": inc_trend, 
+                 u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
+                 u"css_idx": css_idx})
     return script
 
-def get_area_chart_script(is_perc, ytitle2use, rotate, css_fil, css_idx):
+def get_area_chart_script(is_perc, ytitle2use, rotate, major_ticks, css_fil, 
+                          css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
@@ -1413,16 +1441,17 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt=mg.SORT_VALUE,
-                    rotate=%(rotate)s, is_perc=%(is_perc)s)
+                    sort_opt=mg.SORT_VALUE, rotate=%(rotate)s, 
+                    is_perc=%(is_perc)s, major_ticks=%(major_ticks)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    css_fil=u"%(css_fil)s", 
+    major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" %
-    {u"dbe": dd.dbe, u"is_perc": str(is_perc), u"rotate": rotate, 
-     u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, u"css_idx": css_idx})
+        {u"dbe": dd.dbe, u"is_perc": str(is_perc), u"rotate": rotate, 
+         u"major_ticks": major_ticks, u"ytitle2use": ytitle2use, 
+         u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 
 def get_histogram_script(inc_normal, css_fil, css_idx):

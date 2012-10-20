@@ -185,7 +185,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(is_perc, is_avg, sort_opt, vals_etc_lst, dp):
+def get_sorted_y_dets(is_perc, is_avg, major_ticks, sort_opt, vals_etc_lst, dp):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -207,11 +207,16 @@ def get_sorted_y_dets(is_perc, is_avg, sort_opt, vals_etc_lst, dp):
         y_val = perc if is_perc else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
-        if is_avg: # don't show percentage
-            sorted_tooltips.append(u"%s" % measure2show)
+        tooltip_dets = []
+        if major_ticks:
+            tooltip_dets.append(u"x-val: %s" % val)
+            tooltip_dets.append(u"y-val: %s" % measure2show)
         else:
-            sorted_tooltips.append(u"%s<br>%s%%" % (measure2show, 
-                                                    round(perc,1)))
+            tooltip_dets.append(u"%s" % measure2show)
+        if not is_avg: # OK to show percentage
+            tooltip_dets.append(u"%s%%" % round(perc,1))
+        tooltip = u"<br>".join(tooltip_dets)
+        sorted_tooltips.append(tooltip)
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
 def get_prestructured_grouped_data(raw_data, fldnames):
@@ -306,11 +311,11 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     output.append_divider(html, title, indiv_title, item_type)
 
 def structure_gen_data(chart_type, raw_data, xlblsdic, 
-                   var_role_avg, var_role_avg_name, var_role_avg_lbls,
-                   var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                   var_role_series, var_role_series_name, var_role_series_lbls,
-                   var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                   sort_opt, dp, rotate=False, is_perc=False):
+                  var_role_avg, var_role_avg_name, var_role_avg_lbls,
+                  var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                  var_role_series, var_role_series_name, var_role_series_lbls,
+                  var_role_charts, var_role_charts_name, var_role_charts_lbls,
+                  sort_opt, dp, rotate=False, is_perc=False, major_ticks=False):
     """
     Structure data for general charts (use different processes preparing data 
         for histograms, scatterplots etc).
@@ -424,8 +429,8 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                                                                 mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, 
              sorted_y_vals, 
-             sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, sort_opt,
-                                                  vals_etc_lst, dp)
+             sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, major_ticks,
+                                                  sort_opt, vals_etc_lst, dp)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -448,7 +453,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls, 
                     var_role_series, var_role_series_name, var_role_series_lbls, 
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt, rotate=False, is_perc=False):
+                    sort_opt, rotate=False, is_perc=False, major_ticks=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
         VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
@@ -496,7 +501,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                    sort_opt, dp, rotate, is_perc)
+                    sort_opt, dp, rotate, is_perc, major_ticks)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
@@ -1052,7 +1057,12 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster, max_lbl_width):
     if debug: print(width, xgap, xfontsize, minor_ticks, init_lbl_shift)
     return width, xgap, xfontsize, minor_ticks, init_lbl_shift
 
-def get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
+def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width, 
+                          series_dets):
+    """
+    major_ticks -- e.g. want to only see the main labels and won't need it to be 
+        so wide.
+    """
     debug = False
     n_cats = len(xaxis_dets)
     n_series = len(series_dets)
@@ -1063,13 +1073,15 @@ def get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
                      + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([n_cats*width_per_cat, width_x_title, MIN_CHART_WIDTH])
+    if major_ticks:
+        width = max(width*0.4, MIN_CHART_WIDTH)
     if n_cats <= 5:
         xfontsize = 10
     elif n_cats > 5:
         xfontsize = 9
     elif n_cats > 10:
         xfontsize = 8
-    minor_ticks = u"true" if n_cats > 8 else u"false"
+    minor_ticks = u"true" if n_cats > 8 and not major_ticks else u"false"
     micro_ticks = u"true" if n_cats > 100 else u"false"
     if debug: print(width, xfontsize, minor_ticks, micro_ticks)
     return width, xfontsize, minor_ticks, micro_ticks
@@ -1671,8 +1683,8 @@ def get_smooth_y_vals(y_vals):
     return smooth_y_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-                     rotate, inc_trend, inc_smooth, css_fil, css_idx, 
-                     page_break_after):
+                     rotate, major_ticks, inc_trend, inc_smooth, css_fil, 
+                     css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1703,9 +1715,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     height += axis_lbl_drop  # compensate for loss of bar display height
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_lbl_len
     (width, xfontsize, 
-     minor_ticks, micro_ticks) = get_linechart_sizings(x_title, xaxis_dets,
-                                                       max_lbl_width, 
-                                                       chart0_series_dets)
+     minor_ticks, micro_ticks) = get_linechart_sizings(major_ticks, x_title, 
+                                                      xaxis_dets, max_lbl_width, 
+                                                      chart0_series_dets)
     init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
     left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
                                                      init_lbl_shift)
@@ -1867,7 +1879,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     return u"".join(html)
     
 def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-                     rotate, css_fil, css_idx, page_break_after):
+                     rotate, major_ticks, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1893,8 +1905,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
     xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
     (width, xfontsize, minor_ticks, 
-     micro_ticks) = get_linechart_sizings(x_title, xaxis_dets, max_lbl_width, 
-                                          chart0_series_dets)
+     micro_ticks) = get_linechart_sizings(major_ticks, x_title, xaxis_dets, 
+                                          max_lbl_width, chart0_series_dets)
     init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
     left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
                                                      init_lbl_shift)
