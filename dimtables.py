@@ -1166,7 +1166,7 @@ class SummTable(LiveTable):
             raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
             if debug: print(raw_vals)
             # SQLite sometimes returns strings even if REAL
-            data = [float(x[0]) for x in raw_vals if x[0]]
+            data = [float(x[0]) for x in raw_vals if x[0] is not None]
             if debug: print(data)
         if measure == mg.MIN:
             SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(col_fld) +
