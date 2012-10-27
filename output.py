@@ -660,7 +660,7 @@ def rel2abs_css_bg_imgs(strhtml):
     """
     Make all css background images work off absolute rather than relative paths.  
     Turn url("sofastats_report_extras/tile.gif"); to 
-         url("/home/g/sofastats/reports/sofastats_report_extras/tile.gif");.
+         url("file:///home/g/Documents/sofastats/reports/sofastats_report_extras/tile.gif");.
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"url(\"%s")
 
@@ -1054,7 +1054,7 @@ def get_abs_content(raw_display_content, add_to_report):
         absolute paths.
     """
     debug = False
-    verbose = False
+    verbose = True
     if debug and verbose:
         print(u"\nrel\n" + 100*u"*" + u"\n\n" + raw_display_content)
     css_links_fixed = rel2abs_css_links(raw_display_content)

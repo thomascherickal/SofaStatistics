@@ -20,7 +20,6 @@ import warnings
 if show_early_steps: print(u"Just imported warnings")
 warnings.simplefilter('ignore', DeprecationWarning)
 warnings.simplefilter('ignore', UserWarning)
-
 import codecs
 if show_early_steps: print(u"Just imported codecs")
 import datetime

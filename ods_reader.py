@@ -371,6 +371,7 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     BTW, XML is a terrible way to store lots of data ;-).
     """
     debug = False
+    verbose = False
     for (key, value) in tbl.attrib.items():
         if key[-5:].endswith("}name"):
             if debug: print("The sheet is named \"%s\"" % value)
@@ -404,7 +405,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
         except Exception, e:
             raise Exception(u"Error getting details from row %s."
                             u"\nCaused by error: %s" % (row_num, lib.ue(e)))
-    if debug: print(datarows)
+    if debug and verbose: print(datarows)
+    if debug: print("Final row_num was %s" % row_num)
     for fldname, type_set, first_mismatch in zip(fldnames, col_type_sets, 
                                                  fld_first_mismatches):
         fldtype = importer.get_best_fldtype(fldname, type_set,
@@ -443,8 +445,8 @@ def add_type_to_coltypes(coltypes, col_idx, coltype):
     except IndexError:
         coltypes.append(set([coltype]))    
 
-def update_types_and_val_dict(col_type_sets, col_idx, fldnames, valdict, 
-                              coltype, val2use):
+def update_types_and_valdict(col_type_sets, col_idx, fldnames, valdict, coltype, 
+                             val2use):
     """
     col_type_sets -- list of sets - each set is coltypes for given col
     """
@@ -456,41 +458,42 @@ def update_types_and_val_dict(col_type_sets, col_idx, fldnames, valdict,
                         u"all the data cells.")
     valdict[fldname] = val2use
 
-def process_cells(attrib_dict, col_type_sets, col_idx, fldnames, valdict, 
-                  coltype, val2use, row_num):
+def process_cells(attrib_dict, col_type_sets, fld_first_mismatches, col_idx, 
+                  fldnames, valdict, coltype, val2use, row_num):
     """
     Process cell (or cells if col repeating) in row. Update types and valdict.
-    Sniff for data type mismatches while looping through rows so can abort 
-        early if needed.
-    Return bolcontinue, col_idx, mismatch to use next.
+    Sniff for data type mismatches to pass back out.
+    Return next col_idx to process.
     """
-    bolcontinue = True
-    first_mismatch = u""
-    for unused in range(get_col_rep(attrib_dict)): # looping through col cells (more than one in this single el if col-repeat)
-        update_types_and_val_dict(col_type_sets, col_idx, fldnames, valdict, 
-                                  coltype, val2use)
-        # sniff for mismatch
-        col_type_set = col_type_sets[col_idx] # guaranteed to be an item there
-            # added by update_types_and_val_dict()
-        if col_type_set and not first_mismatch:
+    # If col is repeated, will loop through multiple times. Usually just once.
+    # This single el is repeated if col-repeat.
+    for unused in range(get_col_rep(attrib_dict)):
+        update_types_and_valdict(col_type_sets, col_idx, fldnames, valdict, 
+                                 coltype, val2use)
+        col_type_set = col_type_sets[col_idx]
+        mismatch_in_col = (fld_first_mismatches[col_idx] is not None) # initialised with Nones
+        if not mismatch_in_col: # sniff for the first (not interested in subsequent)
             main_type_set = col_type_set.copy()
             main_type_set.discard(mg.VAL_EMPTY_STRING)
-            if len(main_type_set) == 2:
+            n_types_in_col = len(main_type_set) # we don't count missing as a separate type
+            if n_types_in_col == 2: # can't all match - now more than one type
                 main_type_set.discard(coltype) # leaving only the expected type
                     # given we have the one just added and the previous which we 
                     # can treat as the expected type.
                 expected_fldtype = list(main_type_set)[0]
-                first_mismatch = (importer.FIRST_MISMATCH_TPL %
+                mismatch_in_col = (importer.FIRST_MISMATCH_TPL %
                                         {u"row": row_num, u"value": val2use, 
                                          u"fldtype": expected_fldtype})
-            elif len(main_type_set) > 2:
-                raise Exception(u"Added too many non missing val col types "
-                                u"without having identified a mismatch.")
-        if col_idx == len(fldnames) - 1:
-            bolcontinue = False
-            break
+                fld_first_mismatches[col_idx] = mismatch_in_col # will never collect mismatch for this col again
+            elif n_types_in_col > 2:
+                raise Exception(u"Should have identified first mismatch when "
+                                u"reached two non-missing col types but here we"
+                                u" are with three. Something must be wrong.")
+        idx_final_col = len(fldnames) - 1
         col_idx += 1
-    return bolcontinue, col_idx, first_mismatch
+        if col_idx > idx_final_col:
+            break
+    return col_idx
 
 def get_val_and_type(attrib_dict, el_det):
     """
@@ -655,49 +658,41 @@ def dets_from_row(fldnames, col_type_sets, fld_first_mismatches, row, row_num):
     if debug and verbose:
         print(row)
         print(tbl_cell_el_dets)
-    col_idx = 0 # NB may be several tbl_cell_el_dets in a single col so can't just enumerate
-    for el_det in tbl_cell_el_dets: # moving across row through col cells
+    col_idx = 0 # Note may be several tbl_cell_el_dets in a single col so can't 
+    # just enumerate. May be incremeneted inside process_cells because of col-repeat
+    for el_det in tbl_cell_el_dets: # moving across row through col cells (Note - some cells span multiple cols if col-repeat)
         attrib_dict = el_det[ATTRIBS] # already streamlined
         # the defaults unless overridden by actual data
         val2use = u""
-        mismatch_col_idx = col_idx # gets incremented inside process_cells()
         if DATE_VAL in attrib_dict:
             coltype = mg.VAL_DATE
             val2use = attrib_dict[DATE_VAL] # take proper date value
                             # e.g. 2010-02-01 rather than orig text of 01/02/10
             if debug: print(val2use)
-            (bolcontinue, col_idx, 
-             mismatch) = process_cells(attrib_dict, col_type_sets, col_idx, 
-                                   fldnames, valdict, coltype, val2use, row_num)
-            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
-                fld_first_mismatches[mismatch_col_idx] = mismatch
-            if not bolcontinue:
-                break
+            # We pass over to process_cells which handle col-repeats. At the end 
+            # of that process we need to know what col_idx we are on. 
+            col_idx = process_cells(attrib_dict, col_type_sets, 
+                                    fld_first_mismatches, col_idx, fldnames, 
+                                    valdict, coltype, val2use, row_num)
         elif VAL_TYPE in attrib_dict:
             coltype = mg.VAL_EMPTY_STRING
             val2use, coltype = get_val_and_type(attrib_dict, el_det)
             if debug: print(val2use)
-            (bolcontinue, col_idx, 
-             mismatch) = process_cells(attrib_dict, col_type_sets, col_idx, 
-                                   fldnames, valdict, coltype, val2use, row_num)
-            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
-                fld_first_mismatches[mismatch_col_idx] = mismatch
-            if not bolcontinue:
-                break
+            col_idx = process_cells(attrib_dict, col_type_sets, 
+                                    fld_first_mismatches, col_idx, fldnames, 
+                                    valdict, coltype, val2use, row_num)
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
             coltype = mg.VAL_EMPTY_STRING
-            (bolcontinue, col_idx, 
-             mismatch) = process_cells(attrib_dict, col_type_sets, col_idx, 
-                                       fldnames, valdict, 
-                                       coltype=mg.VAL_EMPTY_STRING, val2use=u"", 
-                                       row_num=row_num)
-            if mismatch and fld_first_mismatches[mismatch_col_idx] is None:
-                fld_first_mismatches[mismatch_col_idx] = mismatch
-            if not bolcontinue:
-                break
+            col_idx = process_cells(attrib_dict, col_type_sets, 
+                                    fld_first_mismatches, col_idx,fldnames, 
+                                    valdict, coltype=mg.VAL_EMPTY_STRING, 
+                                    val2use=u"", row_num=row_num)
         else:
             pass
+        idx_final_col = len(fldnames) - 1
+        if col_idx > idx_final_col:
+            break
     if debug: 
         print(unicode(valdict))
         print(fld_first_mismatches)

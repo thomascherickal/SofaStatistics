@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -439,6 +439,8 @@ class StartFrame(wx.Frame):
         self.active_proj = mg.DEFAULT_PROJ
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
                                                    fil_name=self.active_proj)
+        print(u"Run on %s" % datetime.datetime.today().isoformat(" ").split(".")[0] 
+              + " " + 20*(u"*"))
         try:
             # trying to actually connect to a database on start up
             mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
