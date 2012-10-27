@@ -364,6 +364,10 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  testing=False):
     """
     Returns fldtypes (dict with field names as keys) and rows (list of dicts).
+    Re: fldtypes, given that there may be data mismatches within fields, need to 
+        get user decision when there is more than one option. Do this by 
+        collecting all types (e.g. date, number) within col and an example of 
+        the first mismatch per col.
     Limited value in further optimising my code. The xml parsing stage takes up 
         most of the time. Using the SAX approach would significantly reduce 
         memory usage but would it save any time overall? Harder code and may 
@@ -371,12 +375,11 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     BTW, XML is a terrible way to store lots of data ;-).
     """
     debug = False
-    verbose = False
     for (key, value) in tbl.attrib.items():
         if key[-5:].endswith("}name"):
             if debug: print("The sheet is named \"%s\"" % value)
     datarows = []
-    col_type_sets = [] # one set per column containing all types
+    col_type_sets = [] # one set per column containing all types in column
     fldtypes = {}
     if debug:
         print("prog_steps_for_xml_steps: %s" % prog_steps_for_xml_steps)
@@ -391,6 +394,11 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     steps_per_item = prog_steps_left/row_n
     if debug: print("Has %s rows including any headers" % row_n)
     fld_first_mismatches = [None,]*len(fldnames) # init
+    """
+    1) Process all rows and cols to get data (datarows), the field types found 
+        in each col (col_type_sets), and information required to enable user to 
+        be confident that there are in fact mismatches (fld_first_mismatches).
+    """
     for row_num, row in enumerate(rows, 1):
         try:
             if has_header and row_num == 1:
@@ -405,8 +413,10 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
         except Exception, e:
             raise Exception(u"Error getting details from row %s."
                             u"\nCaused by error: %s" % (row_num, lib.ue(e)))
-    if debug and verbose: print(datarows)
-    if debug: print("Final row_num was %s" % row_num)
+    """
+    2) Get user decisions on each field where there are potentially more than 
+        one data type.
+    """
     for fldname, type_set, first_mismatch in zip(fldnames, col_type_sets, 
                                                  fld_first_mismatches):
         fldtype = importer.get_best_fldtype(fldname, type_set,
