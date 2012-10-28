@@ -774,6 +774,30 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
                                                  max_items=mg.MAX_CHARTS_IN_SET)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
+    """
+    Set bins for all data at once. If only one histogram, then the perfect 
+        result for that. If multiple histograms, then ensures consistent 
+        bins to enable comparison.
+    If multiple charts, we only handle saw-toothing for the overall data.
+    """
+    SQL_get_combined_vals = u"""SELECT %(var_role_bin)s 
+    FROM %(tbl)s
+    WHERE %(var_role_bin)s IS NOT NULL
+        %(and_tbl_filt)s
+    ORDER BY %(var_role_bin)s""" % sql_dic
+    if debug: print(SQL_get_combined_vals)
+    cur.execute(SQL_get_combined_vals)
+    combined_vals = [x[0] for x in cur.fetchall()]
+    # use nicest bins practical
+    n_bins, lower_limit, upper_limit = lib.get_bins(min(combined_vals), 
+                                                    max(combined_vals))
+    (combined_y_vals, combined_start, 
+     bin_width, unused) = core_stats.histogram(combined_vals, n_bins, 
+                                            defaultreallimits=[lower_limit, 
+                                                               upper_limit])
+    (unused, combined_start, 
+     bin_width) = lib.fix_sawtoothing(combined_vals, n_bins, combined_y_vals, 
+                                      combined_start, bin_width)
     histo_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
         if var_role_charts:
@@ -785,37 +809,39 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
                                                          fld_chart_by_val)
             chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
                                         fld_chart_by_val_lbl)
-        else:
-            and_fld_chart_by_filt = u""
+            # must get y-vals for each chart individually
+            sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
+            SQL_get_vals = u"""SELECT %(var_role_bin)s 
+                FROM %(tbl)s
+                WHERE %(var_role_bin)s IS NOT NULL
+                    %(and_tbl_filt)s %(and_fld_chart_by_filt)s
+                ORDER BY %(var_role_bin)s""" % sql_dic
+            if debug: print(SQL_get_vals)
+            cur.execute(SQL_get_vals)
+            vals = [x[0] for x in cur.fetchall()]
+            if len(vals) < mg.MIN_HISTO_VALS:
+                raise my_exceptions.TooFewValsForDisplay(min_n=mg.MIN_HISTO_VALS)
+            defaultreallimits = [lower_limit, upper_limit]
+            (y_vals, unused, 
+             unused, unused) = core_stats.histogram(vals, n_bins, 
+                                                    defaultreallimits)
+            vals4norm = vals
+        else: # only one chart - combined values are the values we need
+            y_vals = combined_y_vals
+            vals4norm = combined_vals
             chart_by_lbl = None
-        sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
-        SQL_get_vals = u"""SELECT %(var_role_bin)s 
-            FROM %(tbl)s
-            WHERE %(var_role_bin)s IS NOT NULL
-                %(and_tbl_filt)s %(and_fld_chart_by_filt)s
-            ORDER BY %(var_role_bin)s""" % sql_dic
-        if debug: print(SQL_get_vals)
-        cur.execute(SQL_get_vals)
-        vals = [x[0] for x in cur.fetchall()]
-        if len(vals) < mg.MIN_HISTO_VALS:
-            raise my_exceptions.TooFewValsForDisplay(min_n=mg.MIN_HISTO_VALS)
-        # use nicest bins practical
-        n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
-        (y_vals, start, 
-         bin_width, unused) = core_stats.histogram(vals, n_bins, 
-                                                defaultreallimits=[lower_limit, 
-                                                                   upper_limit])
-        y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, 
-                                                       start, bin_width)
-        minval = start
+        # not fixing saw-toothing 
+        minval = combined_start
         # only show as many decimal points as needed
         dp = 0
         while True:
-            if (round(start, dp) != round(start + bin_width, dp)) or dp > 6:
+            if (round(combined_start, dp) 
+                    != round(combined_start + bin_width, dp)) or dp > 6:
                 break
             dp += 1
         bin_ranges = [] # needed for labels
         bins = [] # needed to get y vals for normal dist curve
+        start = combined_start
         for unused in y_vals:
             bin_start = round(start, dp)
             bins.append(bin_start)
@@ -827,7 +853,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
         bin_lbls[-1] = bin_lbls[-1].replace(u"<", u"<=")
         maxval = bin_end
         xaxis_dets = [(x+1, u"") for x in range(n_bins)]
-        norm_ys = list(lib.get_normal_ys(vals, np.array(bins)))
+        norm_ys = list(lib.get_normal_ys(vals4norm, np.array(bins)))
         sum_yval = sum(y_vals)
         sum_norm_ys = sum(norm_ys)
         norm_multiplier = sum_yval/(1.0*sum_norm_ys)
