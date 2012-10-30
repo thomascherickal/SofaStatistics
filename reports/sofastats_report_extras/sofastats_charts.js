@@ -13,7 +13,8 @@ makeBarChart = function(chartname, series, chartconf){
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     /* chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals), shape, x, y, chart, plot, hAxis, eventMask, type, event
@@ -32,7 +33,7 @@ makeBarChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -171,7 +172,8 @@ makeLineChart = function(chartname, series, chartconf){
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     var getTooltip = function(val){
@@ -180,7 +182,7 @@ makeLineChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -256,7 +258,8 @@ makeAreaChart = function(chartname, series, chartconf){
     var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Category";
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
 
@@ -266,7 +269,7 @@ makeAreaChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -340,7 +343,8 @@ makeHistogram = function(chartname, datadets, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "P";
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var incNormal = ("incNormal" in chartconf)? chartconf["incNormal"] : false;
 
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
@@ -349,7 +353,7 @@ makeHistogram = function(chartname, datadets, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -430,7 +434,8 @@ makeScatterplot = function(chartname, series, chartconf){
     var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Variable A";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 0;
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Variable B";
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
 
@@ -440,7 +445,7 @@ makeScatterplot = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -524,7 +529,8 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var leftAxisLabelShift = ("leftAxisLabelShift" in chartconf) ? chartconf["leftAxisLabelShift"] : 0;
+    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
+    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
 
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
@@ -533,7 +539,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: 10+leftAxisLabelShift, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
 
     var sofa_theme = new dc.Theme({
         chart:{

@@ -26,6 +26,7 @@ import output
 AVG_CHAR_WIDTH_PXLS = 6.5
 AVG_LINE_HEIGHT_PXLS = 12
 TXT_WIDTH_WHEN_ROTATED = 4
+DOJO_YTITLE_OFFSET_0 = 45
 CHART_VAL_KEY = u"chart_val_key"
 CHART_SERIES_KEY = u"chart_series_key"
 SERIES_KEY = u"series_key"
@@ -1084,10 +1085,10 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
         xfontsize = 9
     elif n_clusters > 10:
         xfontsize = 8
-    init_lbl_shift = 30 if width > 1200 else 20 # else gets squeezed out
+    init_margin_offset_l = 30 if width > 1200 else 10 # else gets squeezed out
     minor_ticks = u"true" if n_clusters > 8 else u"false"
-    if debug: print(width, xgap, xfontsize, minor_ticks, init_lbl_shift)
-    return width, xgap, xfontsize, minor_ticks, init_lbl_shift
+    if debug: print(width, xgap, xfontsize, minor_ticks, init_margin_offset_l)
+    return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
 def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width, 
                           series_dets):
@@ -1171,31 +1172,34 @@ def get_lbl_dets(xaxis_dets):
         lbl_dets.append(u"{value: %s, text: %s}" % (i, val_lbl))
     return lbl_dets
 
-def adjust_left_axis_lbl_shift(xaxis_dets, rotate, init_left_axis_lbl_shift,
-                               max_y_lbl_len):
+def get_ytitle_offset(xaxis_dets, rotate, max_y_lbl_len):
     """
     Need to shift margin left if wide x-axis (or y-axis) labels to keep y-axis 
-        title close enough to, or far enough away from, y_axis labels.
+        title far enough away from y-axis labels.
     """
-    debug = False
-    left_axis_lbl_shift = init_left_axis_lbl_shift
+    debug = True
+    # 45 is a good total offset with label width of 20
+    ytitle_offset = DOJO_YTITLE_OFFSET_0 - 20
+    
+    
+    
     # x-axis adjustment
     if not rotate:
         try:
             label1_len = len(xaxis_dets[0][1])
             if label1_len > 5:
-                left_axis_lbl_shift = label1_len*-1.3
+                ytitle_offset += label1_len/2.0
         except Exception:
             pass
     # y-axis adjustment
     try:
         max_width_y_labels = AVG_CHAR_WIDTH_PXLS*max_y_lbl_len
-        if max_width_y_labels > 5:
-            left_axis_lbl_shift += max_width_y_labels
+        if debug: print(u"max_width_y_labels: %s" % max_width_y_labels)
+        ytitle_offset += max_width_y_labels
     except Exception:
         pass
-    if debug: print(left_axis_lbl_shift)
-    return left_axis_lbl_shift
+    if debug: print(u"ytitle_offset: %s" % ytitle_offset)
+    return ytitle_offset
 
 def get_ymax(chart_output_dets):
     all_y_vals = []
@@ -1236,6 +1240,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
                    (5, "65+")]
     css_idx -- css index so can apply appropriate css styles
     """
+    debug = True
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1274,24 +1279,25 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     n_clusters = len(chart_output_dets[mg.CHARTS_CHART_DETS][0]\
                      [mg.CHARTS_SERIES_DETS][0][mg.CHARTS_XAXIS_DETS])
     max_x_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
-    (width, xgap, xfontsize, 
-     minor_ticks, init_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
-                                                         n_bars_in_cluster,
-                                                         max_x_lbl_width)
+    (width, xgap, xfontsize, minor_ticks, 
+     init_margin_offset_l) = get_barchart_sizings(x_title, n_clusters, 
+                                                  n_bars_in_cluster,
+                                                  max_x_lbl_width)
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     # following details are same across all charts so look at first
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
     # only one series per chart by design
     series_det = chart0_series_dets[0]
     xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
-                                                  init_lbl_shift, max_y_lbl_len)
+    y_title_offset = get_ytitle_offset(xaxis_dets, rotate, max_y_lbl_len)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.9
         xgap = xgap*0.8
         xfontsize = xfontsize*0.75
-        left_axis_lbl_shift += 20
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
+    width += margin_offset_l
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
@@ -1350,7 +1356,8 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["xTitle"] = \"\";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
+    chartconf["marginOffsetL"] = %(margin_offset_l)s;
     chartconf["xTitle"] = \"%(x_title)s\";
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
@@ -1374,7 +1381,8 @@ makechartRenumber%(chart_idx)s = function(){
              u"major_gridline_colour": major_gridline_colour,
              u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
              u"axis_lbl_rotate": axis_lbl_rotate,
-             u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"y_title_offset": y_title_offset, 
+             u"margin_offset_l": margin_offset_l,
              u"x_title": x_title, u"y_title": y_title, 
              u"tooltip_border_colour": tooltip_border_colour,
              u"connector_style": connector_style, 
@@ -1384,6 +1392,9 @@ makechartRenumber%(chart_idx)s = function(){
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
                               u"Bar Chart")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     """
     zero padding chart_idx so that when we search and replace, and go to 
         replace Renumber1 with Renumber15, we don't change Renumber16 to 
@@ -1407,7 +1418,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
                    (5, "65+")]
     css_idx -- css index so can apply appropriate css styles
     """
-    debug = False
+    debug = True
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
@@ -1441,19 +1452,21 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     n_bars_in_cluster = len(chart0_series_dets)
     n_clusters = len(chart0_series_dets[0][mg.CHARTS_XAXIS_DETS])
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
-    (width, xgap, xfontsize, 
-     minor_ticks, init_lbl_shift) = get_barchart_sizings(x_title, n_clusters, 
+    (width, xgap, xfontsize, minor_ticks, 
+     init_margin_offset_l) = get_barchart_sizings(x_title, n_clusters, 
                                                n_bars_in_cluster, max_lbl_width)
     series_det = chart0_series_dets[0]
     xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
-                                                  init_lbl_shift, max_y_lbl_len)
+    y_title_offset = get_ytitle_offset(xaxis_dets, rotate, max_y_lbl_len)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xgap = xgap*0.8
         xfontsize = xfontsize*0.8
-        left_axis_lbl_shift += 20
+        y_title_offset += 20
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
+    width += margin_offset_l
     series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
                                                       css_fil)
     # loop through charts
@@ -1527,7 +1540,8 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["xTitle"] = \"%(x_title)s\";
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
+    chartconf["marginOffsetL"] = %(margin_offset_l)s;
     chartconf["yTitle"] = \"%(y_title)s\";
     chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
     chartconf["connectorStyle"] = \"%(connector_style)s\";
@@ -1553,7 +1567,8 @@ makechartRenumber%(chart_idx)s = function(){
              u"gridline_width": gridline_width, 
              u"axis_lbl_drop": axis_lbl_drop,
              u"axis_lbl_rotate": axis_lbl_rotate,
-             u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"y_title_offset": y_title_offset,
+             u"margin_offset_l": margin_offset_l,
              u"x_title": x_title, u"y_title": y_title,
              u"tooltip_border_colour": tooltip_border_colour, 
              u"connector_style": connector_style, 
@@ -1563,6 +1578,9 @@ makechartRenumber%(chart_idx)s = function(){
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
                               u"Clust Bar")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -1734,7 +1752,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     chart_output_dets -- see structure_gen_data()
     css_idx -- css index so can apply    
     """
-    debug = False
+    debug = True
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
@@ -1762,14 +1780,15 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      minor_ticks, micro_ticks) = get_linechart_sizings(major_ticks, x_title, 
                                                       xaxis_dets, max_lbl_width, 
                                                       chart0_series_dets)
-    init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
-                                                  init_lbl_shift, max_y_lbl_len)
+    init_margin_offset_l = 20 if width > 1200 else 15 # gets squeezed
+    y_title_offset = get_ytitle_offset(xaxis_dets, rotate, max_y_lbl_len)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xfontsize = xfontsize*0.8
-        left_axis_lbl_shift += 20
+        y_title_offset += 20
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1883,7 +1902,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         chartconf["xTitle"] = "%(x_title)s";
         chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
         chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-        chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+        chartconf["yTitleOffset"] = %(y_title_offset)s;
+        chartconf["marginOffsetL"] = %(margin_offset_l)s;
         chartconf["yTitle"] = "%(y_title)s";
         chartconf["ymax"] = %(ymax)s;
         chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
@@ -1907,7 +1927,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                  u"gridline_width": gridline_width, u"pagebreak": pagebreak,
                  u"axis_lbl_drop": axis_lbl_drop,
                  u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
-                 u"left_axis_lbl_shift": left_axis_lbl_shift,
+                 u"y_title_offset": y_title_offset,
+                 u"margin_offset_l": margin_offset_l,
                  u"x_title": x_title, u"y_title": y_title,
                  u"tooltip_border_colour": tooltip_border_colour,
                  u"connector_style": connector_style, 
@@ -1917,6 +1938,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
                               u"Line Chart")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -1930,6 +1954,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     chart_output_dets -- see structure_gen_data()
     css_idx -- css index so can apply    
     """
+    debug = True
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -1952,14 +1977,15 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     (width, xfontsize, minor_ticks, 
      micro_ticks) = get_linechart_sizings(major_ticks, x_title, xaxis_dets, 
                                           max_lbl_width, chart0_series_dets)
-    init_lbl_shift = 20 if width > 1200 else 15 # gets squeezed
-    left_axis_lbl_shift = adjust_left_axis_lbl_shift(xaxis_dets, rotate,
-                                                  init_lbl_shift, max_y_lbl_len)
+    init_margin_offset_l = 20 if width > 1200 else 15 # gets squeezed
+    y_title_offset = get_ytitle_offset(xaxis_dets, rotate, max_y_lbl_len)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xfontsize = xfontsize*0.8
-        left_axis_lbl_shift += 20
+        y_title_offset += 20
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -2017,7 +2043,8 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["gridBg"] = "%(grid_bg)s";
     chartconf["minorTicks"] = %(minor_ticks)s;
     chartconf["microTicks"] = %(micro_ticks)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
+    chartconf["marginOffsetL"] = %(margin_offset_l)s;
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
@@ -2041,7 +2068,8 @@ makechartRenumber%(chart_idx)s = function(){
              u"width": width, u"height": height, u"xfontsize": xfontsize, 
              u"axis_lbl_font_colour": axis_lbl_font_colour,
              u"major_gridline_colour": major_gridline_colour,
-             u"left_axis_lbl_shift": left_axis_lbl_shift,
+             u"y_title_offset": y_title_offset,
+             u"margin_offset_l": margin_offset_l,
              u"axis_lbl_drop": axis_lbl_drop,
              u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
              u"gridline_width": gridline_width, u"x_title": x_title, 
@@ -2053,6 +2081,9 @@ makechartRenumber%(chart_idx)s = function(){
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
                               u"Area Chart")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -2072,6 +2103,7 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     bin_lbls -- [u"1 to under 2", u"2 to under 3", ...] for tooltips
     css_idx -- css index so can apply    
     """
+    debug = True
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
     multichart = (len(chart_dets) > 1)
@@ -2107,11 +2139,14 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
         n_bins = len(xaxis_dets)
         width = get_histo_sizings(var_lbl, n_bins, minval, maxval)
         xfontsize = 10 if len(xaxis_dets) <= 20 else 8
-        left_axis_lbl_shift = 10 
+        y_title_offset = 10 
         if multichart:
             width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
             xfontsize = xfontsize*0.8
-            left_axis_lbl_shift += 20
+            y_title_offset += 20
+        init_margin_offset_l = 20
+        margin_offset_l = (init_margin_offset_l + y_title_offset 
+                           - DOJO_YTITLE_OFFSET_0)
         html.append(u"""
 <script type="text/javascript">
 
@@ -2146,7 +2181,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["gridlineWidth"] = %(gridline_width)s;
     chartconf["gridBg"] = "%(grid_bg)s";
     chartconf["minorTicks"] = %(minor_ticks)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["yTitle"] = "%(y_title)s";
@@ -2174,7 +2209,7 @@ makechartRenumber%(chart_idx)s = function(){
                u"bin_lbls": bin_labs, u"minval": minval, u"maxval": maxval,
                u"width": width, u"height": height, u"xfontsize": xfontsize, 
                u"var_lbl": var_lbl,
-               u"left_axis_lbl_shift": left_axis_lbl_shift,
+               u"y_title_offset": y_title_offset,
                u"axis_lbl_font_colour": axis_lbl_font_colour,
                u"major_gridline_colour": major_gridline_colour,
                u"gridline_width": gridline_width, 
@@ -2187,6 +2222,9 @@ makechartRenumber%(chart_idx)s = function(){
                u"norm_ys": norm_ys, u"js_inc_normal": js_inc_normal})
         charts_append_divider(html, titles, overall_title, indiv_title, 
                               u"Histogram")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -2249,12 +2287,19 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
                    mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
                    mg.DATA_TUPS: [(1,3),(1,5), ...]}
     """
-    debug = False
+    debug = True
     if multichart:
         width, height = (630, 350)
     else:
         width, height = (700, 385)
-    left_axis_lbl_shift = 10
+    init_margin_offset_l = 10
+    
+    
+    y_title_offset = 45
+    
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
+    
     xfontsize = 10
     all_x = []
     for series_det in series_dets:
@@ -2337,7 +2382,8 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["gridlineWidth"] = %(gridline_width)s;
     chartconf["gridBg"] = \"%(grid_bg)s\";
     chartconf["minorTicks"] = %(minor_ticks)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
+    chartconf["marginOffsetL"] = %(margin_offset_l)s;
     chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
     chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
     chartconf["xTitle"] = "%(x_title)s";
@@ -2368,13 +2414,17 @@ makechartRenumber%(chart_idx)s = function(){
        u"pagebreak": pagebreak,
        u"axis_lbl_font_colour": axis_lbl_font_colour,
        u"major_gridline_colour": major_gridline_colour,
-       u"left_axis_lbl_shift": left_axis_lbl_shift,
+       u"y_title_offset": y_title_offset,
+       u"margin_offset_l": margin_offset_l,
        u"gridline_width": gridline_width, 
        u"axis_lbl_drop": axis_lbl_drop,
        u"tooltip_border_colour": tooltip_border_colour,
        u"connector_style": connector_style, u"outer_bg": outer_bg, 
        u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx, 
        u"minor_ticks": minor_ticks, u"tick_colour": major_gridline_colour})
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
 
 def get_scatterplot_ymin_ymax(scatterplot_dets):
     all_y_vals = []
@@ -2489,7 +2539,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         (one per box).
     css_idx -- css index so can apply
     """
-    debug = False
+    debug = True
     axis_lbl_rotate = -90 if rotate else 0
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -2510,11 +2560,20 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
                                            chart_dets)
     yfontsize = xfontsize
     if width > 1200:
-        left_axis_lbl_shift = 20
+        init_margin_offset_l = 20
     elif len(xaxis_dets) == 1:
-        left_axis_lbl_shift = 20
+        init_margin_offset_l = 20
     else:
-        left_axis_lbl_shift = 10 # gets squeezed
+        init_margin_offset_l = 10 # gets squeezed
+        
+
+    y_title_offset = 45
+
+    margin_offset_l = (init_margin_offset_l + y_title_offset 
+                       - DOJO_YTITLE_OFFSET_0)
+
+
+
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
@@ -2667,7 +2726,8 @@ makechartRenumber00 = function(){
     chartconf["xaxisLabels"] = %(xaxis_lbls)s;
     chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
     chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-    chartconf["leftAxisLabelShift"] = %(left_axis_lbl_shift)s;
+    chartconf["yTitleOffset"] = %(y_title_offset)s;
+    chartconf["marginOffsetL"] = %(margin_offset_l)s;
     chartconf["xmin"] = %(xmin)s;
     chartconf["xmax"] = %(xmax)s;
     chartconf["ymin"] = %(ymin)s;
@@ -2699,13 +2759,17 @@ makechartRenumber00 = function(){
            u"major_gridline_colour": major_gridline_colour,
            u"gridline_width": gridline_width, u"pagebreak": pagebreak,
            u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
-           u"left_axis_lbl_shift": left_axis_lbl_shift,
+           u"y_title_offset": y_title_offset,
+           u"margin_offset_l": margin_offset_l,
            u"axis_lbl_rotate": axis_lbl_rotate,
            u"tooltip_border_colour": tooltip_border_colour,
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
                           item_type=u"Boxplot")
+    if debug: 
+        print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+                                                            margin_offset_l))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
