@@ -182,7 +182,7 @@ makeLineChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop, yTitleOffset: yTitleOffset}});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -269,7 +269,7 @@ makeAreaChart = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -353,7 +353,7 @@ makeHistogram = function(chartname, datadets, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10}, yTitleOffset: yTitleOffset});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -445,7 +445,7 @@ makeScatterplot = function(chartname, series, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: outerChartBorderColour,
@@ -539,7 +539,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     };
 
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}});
+    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
 
     var sofa_theme = new dc.Theme({
         chart:{
