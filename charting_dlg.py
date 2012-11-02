@@ -345,12 +345,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar)
     
     def setup_pie(self):
-        self.szr_pie_chart = wx.BoxSizer(wx.VERTICAL)
+        self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         self.rad_pie_sort = SortOrderOpts(parent=self, 
                                           panel=self.panel_pie_chart, 
                                           sort_item=SLICES_SORTED)
+        self.chk_val_dets = wx.CheckBox(self.panel_pie_chart, -1, 
+                                       _("Show Count and %?"))
+        self.chk_val_dets.SetFont(mg.GEN_FONT)
+        self.chk_val_dets.SetValue(False)
+        self.chk_val_dets.SetToolTipString(_("Show Count and %?"))
         self.szr_pie_chart.Add(self.rad_pie_sort.get_szr(), 0, wx.TOP, 5)
+        self.szr_pie_chart.AddSpacer(10)
+        self.szr_pie_chart.Add(self.chk_val_dets, 0, wx.TOP, 
+                               self.tickbox_down_by)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
     
@@ -434,9 +442,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                        _("Dot borders?"))
         self.chk_borders.SetFont(mg.GEN_FONT)
         self.chk_borders.SetValue(True)
-        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
         self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
                                             "dots?"))
+        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
     
@@ -1310,7 +1318,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             script_lst.append(get_clustered_barchart_script(is_perc, ytitle2use, 
                                                     rotate, css_fil, css_idx))
         elif self.chart_type == mg.PIE_CHART:
-            script_lst.append(get_pie_chart_script(css_fil, css_idx))
+            inc_val_dets = (u"True" if self.chk_val_dets.IsChecked()
+                            else u"False")
+            script_lst.append(get_pie_chart_script(css_fil, css_idx, 
+                                                   inc_val_dets))
         elif self.chart_type == mg.LINE_CHART:
             inc_trend = (u"True" if self.chk_line_trend.IsChecked()
                             and self.chk_line_trend.Enabled
@@ -1385,7 +1396,7 @@ chart_output = charting_output.clustered_barchart_output(titles, subtitles,
            u"css_fil": esc_css_fil, u"css_idx": css_idx}
     return script
 
-def get_pie_chart_script(css_fil, css_idx):
+def get_pie_chart_script(css_fil, css_idx, inc_val_dets):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART, 
@@ -1396,10 +1407,10 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
                     sort_opt="%(sort_opt)s")
 chart_output = charting_output.piechart_output(titles, subtitles,
-            chart_output_dets, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
-            page_break_after=False)
+            chart_output_dets, inc_val_dets=%(inc_val_dets)s, 
+            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx}
+           u"css_idx": css_idx, u"inc_val_dets": inc_val_dets}
     return script
 
 def get_line_chart_script(is_perc, ytitle2use, rotate, major_ticks, inc_trend, 

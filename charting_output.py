@@ -1597,8 +1597,8 @@ makechartRenumber%(chart_idx)s = function(){
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx, 
-                    page_break_after):
+def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets, 
+                    css_fil, css_idx, page_break_after):
     """
     chart_output_dets -- see structure_gen_data()
     """
@@ -1640,11 +1640,12 @@ def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
         xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
-            tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), 
-                                            round((100.0*y_val)/tot_y_vals, 1))
+            slice_pct = round((100.0*y_val)/tot_y_vals, 1)
+            tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), slice_pct)
+            val2show = u"\"%s\"" % tooltip if inc_val_dets else split_lbl
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                     u"\"tooltip\": \"%(tooltip)s\"}" % 
-                    {u"y": y_val, u"text": split_lbl, u"tooltip": tooltip})
+                    {u"y": y_val, u"text": val2show, u"tooltip": tooltip})
         slices_js = (u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) 
                      + u"\n];")
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
