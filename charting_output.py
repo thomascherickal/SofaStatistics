@@ -1606,6 +1606,7 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
     """
     chart_output_dets -- see structure_gen_data()
     """
+    debug = False
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
                                                       css_idx)
@@ -1645,8 +1646,14 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
         idx_val_lbl = 1
         colours_for_this_series = [cat_colours_by_lbl[x[idx_val_lbl]] 
                                    for x in series_det[mg.CHARTS_XAXIS_DETS]]
+        if debug:
+            print(cat_colours_by_lbl) 
+            print(colours_for_this_series)
         xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
+            # supplies ALL slices in combined set, even if 0.0 as "y" val.
+            if y_val == 0:
+                continue
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             slice_pct = round((100.0*y_val)/tot_y_vals, 1)
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), slice_pct)
@@ -2572,6 +2579,7 @@ def get_series_colours_by_lbl(chart_output_dets, css_fil):
 
 def get_cat_colours_by_lbl(chart_output_dets, item_colours):
     # get all lbls in use across all series
+    debug = False
     lbls_in_use = [] # order matters
     for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
         series_det = chart_dets[mg.CHARTS_SERIES_DETS][0] # only one series per chart
@@ -2581,6 +2589,7 @@ def get_cat_colours_by_lbl(chart_output_dets, item_colours):
     cat_colours_by_lbl = {}
     for lbl_in_use, colour2use in zip(lbls_in_use, item_colours):
         cat_colours_by_lbl[lbl_in_use] = colour2use
+    if debug: print(cat_colours_by_lbl)
     return cat_colours_by_lbl
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 

@@ -751,7 +751,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             pass # need on Mac or exception survives
         finally:
             # any initial content
-            html2show = _("<p>Waiting for a report to be run.</p>")
+            html2show = _(u"<p>Waiting for a chart to be run.</p>")
             self.html.show_html(html2show)
 
     def on_btn_help(self, event):

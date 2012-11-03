@@ -998,7 +998,7 @@ def run_script():
         exec script in dummy_dic
     except my_exceptions.OutputException, e:
         wx.MessageBox(lib.ue(e))
-        raise Exception(u"Waiting for a viable report to be run.")
+        raise my_exceptions.NeedViableInput
     except Exception, e:
         print("Unable to run report: %s" % traceback.format_exc())
         raise Exception(_(u"Unable to run script to generate report. Caused by "
@@ -1122,6 +1122,8 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         else:
             gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
                                    + u"<p>%s</p>" % filt_msg + abs_inner_body)
+    except my_exceptions.NeedViableInput, e:
+        return False, u"<p>%s</p>" % lib.ue(e)
     except Exception, e:
         return False, u"<h1>Ooops!</h1><p>%s</p>" % lib.ue(e)
     if debug: 

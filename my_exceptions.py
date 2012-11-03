@@ -75,6 +75,10 @@ class InconsistentFileDate(Exception):
         Exception.__init__(self, _(u"SOFA has detected an inconsistent file "
                               u"date. Is your system date/time set correctly?"))
 
+class NeedViableInput(Exception):
+    def __init__(self):
+        Exception.__init__(self, _(u"Waiting for viable report to be run ..."))
+
 # Output exceptions - trapped as a group in output usually
 class OutputException(Exception):
     pass

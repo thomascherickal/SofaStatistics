@@ -197,7 +197,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         except Exception:
             pass # need on Mac or exceptn survives
         finally: # any initial content
-            html2show = _("<p>Waiting for a report to be run.</p>")
+            html2show = _(u"<p>Waiting for an analysis to be run.</p>")
             self.html.show_html(html2show)
 
     def on_rclick_group_a(self, event):
