@@ -1628,6 +1628,7 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
                                     override_first_highlight=False)
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
     cat_colours_by_lbl = get_cat_colours_by_lbl(chart_output_dets, item_colours)
+    if debug: print(pprint.pformat(cat_colours_by_lbl))
     #slice_colours = item_colours[:30]
     lbl_font_colour = axis_lbl_font_colour
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
@@ -1643,17 +1644,13 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
         # build indiv slice details for this chart
         y_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
         tot_y_vals = sum(y_vals)
-        idx_val_lbl = 1
-        colours_for_this_series = [cat_colours_by_lbl[x[idx_val_lbl]] 
-                                   for x in series_det[mg.CHARTS_XAXIS_DETS]]
-        if debug:
-            print(cat_colours_by_lbl) 
-            print(colours_for_this_series)
         xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
+        colours_for_this_chart = []
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             # supplies ALL slices in combined set, even if 0.0 as "y" val.
-            if y_val == 0:
+            if y_val == 0: # no slice will be shown so leave it out
                 continue
+            colours_for_this_chart.append(cat_colours_by_lbl[val_lbl])
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             slice_pct = round((100.0*y_val)/tot_y_vals, 1)
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), slice_pct)
@@ -1663,6 +1660,9 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                     u"\"tooltip\": \"%(tooltip)s\"}" % 
                     {u"y": y_val, u"text": val2show, u"tooltip": tooltip})
+        if debug:
+            print(cat_colours_by_lbl)
+            print(colours_for_this_chart)
         slices_js = (u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) 
                      + u"\n];")
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
@@ -1700,7 +1700,7 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
-</div>""" % {u"slice_colours": colours_for_this_series, 
+</div>""" % {u"slice_colours": colours_for_this_chart, 
              u"colour_cases": colour_cases, 
              u"width": width, u"height": height, u"radius": radius,
              u"lbl_offset": lbl_offset, u"pagebreak": pagebreak,
@@ -1719,6 +1719,39 @@ makechartRenumber%(chart_idx)s = function(){
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
+
+def get_cat_colours_by_lbl(chart_output_dets, item_colours):
+    # get all lbls in use across all series
+    debug = False
+    lbls_in_use = [] # order matters so we can give first cats the best colours in list (using themed one before DOJO fillers)
+    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
+        series_det = chart_dets[mg.CHARTS_SERIES_DETS][0] # only one series per chart
+        y_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
+        xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
+        for ((unused, val_lbl, unused), y_val) in xy_dets:
+            val_lbl_shown = y_val != 0
+            if val_lbl_shown and val_lbl not in lbls_in_use:
+                lbls_in_use.append(val_lbl)
+    cat_colours_by_lbl = {}
+    for lbl_in_use, colour2use in zip(lbls_in_use, item_colours):
+        cat_colours_by_lbl[lbl_in_use] = colour2use
+    if debug: print(cat_colours_by_lbl)
+    return cat_colours_by_lbl
+
+def get_series_colours_by_lbl(chart_output_dets, css_fil):
+    unused, item_colours, unused = output.get_stats_chart_colours(css_fil)
+    # check every series in every chart to get full list
+    series_colours_by_lbl = {}
+    series_lbls = []
+    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
+        series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
+        for series_det in series_dets:
+            series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
+            if series_lbl not in series_lbls: # can't use set because want to retain order
+                series_lbls.append(series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
+    for i, series_lbl in enumerate(series_lbls):
+        series_colours_by_lbl[series_lbl] = item_colours[i]
+    return series_colours_by_lbl
 
 def get_trend_y_vals(y_vals):
     "Returns values to plot a straight line which fits the y_vals provided"
@@ -2561,36 +2594,6 @@ def get_scatterplot_ymin_ymax(scatterplot_dets):
             all_y_vals += series_det[mg.LIST_Y]
     ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
     return ymin, ymax
-
-def get_series_colours_by_lbl(chart_output_dets, css_fil):
-    unused, item_colours, unused = output.get_stats_chart_colours(css_fil)
-    # check every series in every chart to get full list
-    series_colours_by_lbl = {}
-    series_lbls = []
-    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
-        series_dets = chart_dets[mg.CHARTS_SERIES_DETS]
-        for series_det in series_dets:
-            series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
-            if series_lbl not in series_lbls: # can't use set because want to retain order
-                series_lbls.append(series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
-    for i, series_lbl in enumerate(series_lbls):
-        series_colours_by_lbl[series_lbl] = item_colours[i]
-    return series_colours_by_lbl
-
-def get_cat_colours_by_lbl(chart_output_dets, item_colours):
-    # get all lbls in use across all series
-    debug = False
-    lbls_in_use = [] # order matters
-    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
-        series_det = chart_dets[mg.CHARTS_SERIES_DETS][0] # only one series per chart
-        for unused, val_lbl, unused in series_det[mg.CHARTS_XAXIS_DETS]:
-            if val_lbl not in lbls_in_use:
-                lbls_in_use.append(val_lbl)
-    cat_colours_by_lbl = {}
-    for lbl_in_use, colour2use in zip(lbls_in_use, item_colours):
-        cat_colours_by_lbl[lbl_in_use] = colour2use
-    if debug: print(cat_colours_by_lbl)
-    return cat_colours_by_lbl
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
                        label_x, label_y, add_to_report, report_name, 
