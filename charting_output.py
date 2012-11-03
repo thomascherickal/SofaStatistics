@@ -1626,7 +1626,8 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
                                     override_first_highlight=False)
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
-    slice_colours = item_colours[:30]
+    cat_colours_by_lbl = get_cat_colours_by_lbl(chart_output_dets, item_colours)
+    #slice_colours = item_colours[:30]
     lbl_font_colour = axis_lbl_font_colour
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     slice_fontsize = 14 if len(chart_dets) < 10 else 10
@@ -1641,12 +1642,17 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
         # build indiv slice details for this chart
         y_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
         tot_y_vals = sum(y_vals)
+        idx_val_lbl = 1
+        colours_for_this_series = [cat_colours_by_lbl[x[idx_val_lbl]] 
+                                   for x in series_det[mg.CHARTS_XAXIS_DETS]]
         xy_dets = zip(series_det[mg.CHARTS_XAXIS_DETS], y_vals)
         for ((unused, val_lbl, split_lbl), y_val) in xy_dets:
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             slice_pct = round((100.0*y_val)/tot_y_vals, 1)
             tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), slice_pct)
             val2show = u"\"%s\"" % tooltip if inc_val_dets else split_lbl
+            if mg.PLATFORM == mg.WINDOWS:
+                val2show = val2show.replace(u"<br>", u": ")
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                     u"\"tooltip\": \"%(tooltip)s\"}" % 
                     {u"y": y_val, u"text": val2show, u"tooltip": tooltip})
@@ -1687,7 +1693,8 @@ makechartRenumber%(chart_idx)s = function(){
 <div id="mychartRenumber%(chart_idx)s" 
     style="width: %(width)spx; height: %(height)spx;">
     </div>
-</div>""" % {u"slice_colours": slice_colours, u"colour_cases": colour_cases, 
+</div>""" % {u"slice_colours": colours_for_this_series, 
+             u"colour_cases": colour_cases, 
              u"width": width, u"height": height, u"radius": radius,
              u"lbl_offset": lbl_offset, u"pagebreak": pagebreak,
              u"indiv_title_html": indiv_title_html,
@@ -2355,11 +2362,11 @@ def get_optimal_min_max(axismin, axismax):
         """
         gap = axismin
         boxrange = (axismax - axismin)
-        gap2range = gap/(boxrange*1.0)
-        if gap2range < 0.6:
-            axismin = 0
-        else:
-            axismin = 0.9*axismin
+        try:
+            gap2range = gap/(boxrange*1.0)
+            axismin = 0 if gap2range < 0.6 else 0.9*axismin
+        except ZeroDivisionError:
+            pass
         axismax = 1.1*axismax
     elif axismin <= 0 and axismax <= 0: # both -ve
         """
@@ -2369,11 +2376,11 @@ def get_optimal_min_max(axismin, axismax):
         """
         gap = abs(axismax)
         boxrange = abs(axismax - axismin)
-        gap2range = gap/(boxrange*1.0)
-        if gap2range < 0.6:
-            axismax = 0
-        else:
-            axismax = 0.9*axismax
+        try:
+            gap2range = gap/(boxrange*1.0)
+            axismax = 0 if gap2range < 0.6 else 0.9*axismax
+        except ZeroDivisionError:
+            pass
         axismin = 1.1*axismin
     elif axismin <=0 and axismax >=0: # spanning y-axis (even if all 0s ;-))
         """
@@ -2561,7 +2568,20 @@ def get_series_colours_by_lbl(chart_output_dets, css_fil):
                 series_lbls.append(series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
     for i, series_lbl in enumerate(series_lbls):
         series_colours_by_lbl[series_lbl] = item_colours[i]
-    return series_colours_by_lbl 
+    return series_colours_by_lbl
+
+def get_cat_colours_by_lbl(chart_output_dets, item_colours):
+    # get all lbls in use across all series
+    lbls_in_use = [] # order matters
+    for chart_dets in chart_output_dets[mg.CHARTS_CHART_DETS]:
+        series_det = chart_dets[mg.CHARTS_SERIES_DETS][0] # only one series per chart
+        for unused, val_lbl, unused in series_det[mg.CHARTS_XAXIS_DETS]:
+            if val_lbl not in lbls_in_use:
+                lbls_in_use.append(val_lbl)
+    cat_colours_by_lbl = {}
+    for lbl_in_use, colour2use in zip(lbls_in_use, item_colours):
+        cat_colours_by_lbl[lbl_in_use] = colour2use
+    return cat_colours_by_lbl
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
                        label_x, label_y, add_to_report, report_name, 
@@ -2672,11 +2692,11 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
                                            chart_dets)
     yfontsize = xfontsize
     if width > 1200:
-        init_margin_offset_l = 20
+        init_margin_offset_l = 25
     elif len(xaxis_dets) == 1:
-        init_margin_offset_l = 30
+        init_margin_offset_l = 35
     else:
-        init_margin_offset_l = 10 # gets squeezed
+        init_margin_offset_l = 25 # gets squeezed
     idx_1st_xdets = 0
     idx_xlbl = 1
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
