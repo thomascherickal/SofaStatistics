@@ -414,7 +414,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                                         max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
-                y_lbl_width = len(str(y_val))
+                y_lbl_width = len(str(round(y_val, dp)))
                 if y_lbl_width > max_y_lbl_len:
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
@@ -1046,7 +1046,7 @@ def get_histo_sizings(var_lbl, n_bins, minval, maxval):
     MIN_CHART_WIDTH = 700
     PADDING_PXLS = 5
     AVG_CHAR_WIDTH_PXLS = 10.5 # need more for histograms
-    max_lbl_width = max(len(str(x)) for x in [minval, maxval])
+    max_lbl_width = max(len(str(round(x,0))) for x in [minval, maxval])
     if debug: print(u"max_lbl_width: %s" % max_lbl_width)
     min_bin_width = max(max_lbl_width*AVG_CHAR_WIDTH_PXLS, MIN_PXLS_PER_BAR)
     width_x_title = len(var_lbl)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
@@ -1302,6 +1302,8 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
         xfontsize = xfontsize*0.75
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
+    if rotate:
+        margin_offset_l += 10
     width += margin_offset_l
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
@@ -1471,11 +1473,13 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     ymax = get_ymax(chart_output_dets)
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
+    if rotate:
+        margin_offset_l += 10
     if multichart:
         width = width*0.8
         xgap = xgap*0.8
         xfontsize = xfontsize*0.8
-        margin_offset_l += 10
+        margin_offset_l += 15
     width += margin_offset_l
     series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
                                                       css_fil)
@@ -2304,12 +2308,82 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders,
     html.append(u"</div>")
 
 def get_optimal_min_max(axismin, axismax):
-    axismin *=0.9
-    # use 0 as axismin if possible - if gap small compared with content, use 0
-    gap2content = (1.0*axismin)/(axismax-axismin)
-    if gap2content < 0.6:
-        axismin = 0
-    axismax *=1.1
+    """
+    axismin -- the minimum y value exactly
+    axismax -- the maximum y value exactly
+    Generally, we want box plots to have y-axes starting from just below the 
+        minimum point (e.g. lowest outlier). That is avoid the common case where 
+        we have the y-axis start at 0, and all our values range tightly 
+        together. In which case we will have a series of tiny boxplots up the 
+        top and we won't be able to see the different parts of it e.g. LQ, 
+        median etc.
+    But sometimes the lowest point is not that far above 0, in which case we 
+        should set it to 0. A 0-based axis is preferable unless the values are a 
+        long way away. Going from 0.5-12 is silly. Might as well go from 0-12.
+    3 scenarios:
+    
+    1) min and max are both +ve
+    |   *
+    |
+    -------
+    Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
+        below min point e.g. 0.9*axismin (e.g. lowered from 1.0 to 0.9).
+    No harm if already on 0 (0.9*0=0).
+    Make max 1.1*axismax (e.g. raised from 1.0 to 1.1).
+    
+    2) min and max are -ve
+    -------
+    |   *
+    |
+    Snap max to 0 if gap small rel to range, otherwise make max y-axis just 
+        above max point e.g. 0.9*max (e.g. raised from -1.0 to -0.9).
+    Make min 1.1*axismin (e.g. lowered from -1.0 to -1.1).
+    
+    3) min is -ve and max is +ve
+    |   *
+    -------
+    |   *
+    Make max 1.1*axismax. No harm if 0.
+    Make min 1.1*axismin. No harm if 0.
+    """
+    if axismin >= 0 and axismax >= 0: # both +ve
+        """
+        Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
+        below min point e.g. 0.9*axismin (e.g. lowered from 1.0 to 0.9).
+        No harm if already on 0 (0.9*0=0).
+        Make max 1.1*axismax (e.g. raised from 1.0 to 1.1).
+        """
+        gap = axismin
+        boxrange = (axismax - axismin)
+        gap2range = gap/(boxrange*1.0)
+        if gap2range < 0.6:
+            axismin = 0
+        else:
+            axismin = 0.9*axismin
+        axismax = 1.1*axismax
+    elif axismin <= 0 and axismax <= 0: # both -ve
+        """
+        Snap max to 0 if gap small rel to range, otherwise make max y-axis just 
+        above max point e.g. 0.9*max (e.g. raised from -1.0 to -0.9).
+        Make min 1.1*axismin (e.g. lowered from -1.0 to -1.1).
+        """
+        gap = abs(axismax)
+        boxrange = abs(axismax - axismin)
+        gap2range = gap/(boxrange*1.0)
+        if gap2range < 0.6:
+            axismax = 0
+        else:
+            axismax = 0.9*axismax
+        axismin = 1.1*axismin
+    elif axismin <=0 and axismax >=0: # spanning y-axis (even if all 0s ;-))
+        """
+        Make max 1.1*axismax. No harm if 0.
+        Make min 1.1*axismin. No harm if 0.
+        """
+        axismax = 1*1*axismax
+        axismin = 1.1*axismin
+    else:
+        pass
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
@@ -2334,7 +2408,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
     init_margin_offset_l = 10
     max_y_lbl_len = len(str(round(ymax,0)))
-    x_lbl_len = len(str(xmin))
+    x_lbl_len = len(str(round(xmin,0)))
     max_safe_x_lbl_len_pxls = 90
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate=False) 
@@ -2611,7 +2685,9 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate) 
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)    
+                       - DOJO_YTITLE_OFFSET_0)  
+    if rotate:
+        margin_offset_l += 10  
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
