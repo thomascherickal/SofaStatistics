@@ -127,7 +127,7 @@ class ErrMsgFrame(wx.Frame):
                  "error_msg": error_msg, "mybreak": mybreak, 
                  u"contact": mg.CONTACT})
         wx.MessageBox(error_msg)
-        f = codecs.open(os.path.join(mg.USER_PATH, u"Desktop", err_msg_fname), 
+        f = codecs.open(os.path.join(mg.HOME_PATH, u"Desktop", err_msg_fname), 
                         "w", "utf-8")
         f.write(error_msg)
         f.write(mybreak)
@@ -179,7 +179,7 @@ def check_python_version():
     # Linux installer doesn't have hard-wired site-packages so 2.6 or 2.7 should 
     # work. Other installers have site-packages baked into the exe for their python version
     if (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
-        fixit_file = os.path.join(mg.USER_PATH, u"Desktop", 
+        fixit_file = os.path.join(mg.HOME_PATH, u"Desktop", 
                                   u"how to get SOFA working.txt")
         f = codecs.open(fixit_file, "w", "utf-8")
         div = u"*"*80

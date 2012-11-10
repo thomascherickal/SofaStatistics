@@ -442,13 +442,18 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     title_html = u"<h2>%s</h2>" % title
     html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
-    html.append(u"\n<p>" + _("Two-tailed p value") + \
+    html.append(u"\n<p>" + _("Two-tailed p value") +
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
                      mg.P_EXPLAN_DIFF)
-    html.append(u"\n<p>" + _("Wilcoxon Signed Ranks statistic") + \
-                u": %s</p>" % round(t, dp))
+    html.append(u"\n<p>" + _("Wilcoxon Signed Ranks statistic") +
+                u": %s" % round(t, dp) + 
+                u" <a href='#ft2'><sup>2</sup></a></p>")
+    # http://stat.ethz.ch/R-manual/R-patched/library/stats/html/wilcox.test.html
+    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
+                     u"Different statistics applications will show different "
+                     u"results here depending on the reporting approach taken.")
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Variable") + u"</th>" +
@@ -457,8 +462,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th></tr>")
     html.append(u"\n</thead>\n<tbody>")
-    row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
-        u"<td>%s</td><td>%s</td><td>%s</td></tr>"
+    row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
+               u"<td>%s</td><td>%s</td><td>%s</td></tr>")
     for dic in [dic_a, dic_b]:
         html.append(row_tpl % (dic[mg.STATS_DIC_LBL], 
                                dic[mg.STATS_DIC_N], 

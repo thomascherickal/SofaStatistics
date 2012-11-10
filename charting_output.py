@@ -1303,7 +1303,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
     if rotate:
-        margin_offset_l += 10
+        margin_offset_l += 15
     width += margin_offset_l
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
@@ -1474,7 +1474,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
     if rotate:
-        margin_offset_l += 10
+        margin_offset_l += 15
     if multichart:
         width = width*0.8
         xgap = xgap*0.8

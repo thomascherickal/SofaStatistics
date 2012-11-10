@@ -78,6 +78,8 @@ QUOTES = [
      u"people die past the age of a hundred.", u"George Burns"),
     (u"If we have data, let's look at data. If all we have are opinions, let's "
      u"go with mine.", u"Jim Barksdale"),
+    (u"It is easy to lie with statistics; it is easier to lie without them.", 
+     u"Frederick Mosteller"),
     ]
 
 def get_quote():
