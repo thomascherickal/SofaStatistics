@@ -151,8 +151,15 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
                              cartesian_joiner, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
-    avg_exp = u" AVG(%(var_role_agg)s) " % sql_dic
-    sql_dic[u"val2show"] = avg_exp if is_agg else u" COUNT(*) "
+    if data_show not in mg.AGGREGATE_DATA_SHOW_OPTS:
+        sql_dic[u"val2show"] = u" COUNT(*) "
+    elif data_show == mg.SHOW_AVG:
+        sql_dic[u"val2show"] = u" AVG(%(var_role_agg)s) " % sql_dic
+    elif data_show == mg.SHOW_SUM:
+        sql_dic[u"val2show"] = u" SUM(%(var_role_agg)s) " % sql_dic
+    else:
+        raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
+                        data_show)
     SQL_vals2show = u"""SELECT %(var_role_charts)s
     AS charts,
         %(var_role_series)s
@@ -1061,7 +1068,7 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
     debug = False
     MIN_PXLS_PER_BAR = 30
     MIN_CLUSTER_WIDTH = 60
-    MIN_CHART_WIDTH = 400
+    MIN_CHART_WIDTH = 450
     PADDING_PXLS = 35
     min_width_per_cluster = (MIN_PXLS_PER_BAR*n_bars_in_cluster)
     width_per_cluster = (max([min_width_per_cluster, MIN_CLUSTER_WIDTH,
@@ -1087,7 +1094,7 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
         xfontsize = 9
     elif n_clusters > 10:
         xfontsize = 8
-    init_margin_offset_l = 30 if width > 1200 else 10 # else gets squeezed out
+    init_margin_offset_l = 30 if width > 1200 else 18 # else gets squeezed out e.g. in percent
     minor_ticks = u"true" if n_clusters > 8 else u"false"
     if debug: print(width, xgap, xfontsize, minor_ticks, init_margin_offset_l)
     return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
@@ -1102,7 +1109,7 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
     n_cats = len(xaxis_dets)
     n_series = len(series_dets)
     MIN_PXLS_PER_CAT = 10
-    MIN_CHART_WIDTH = 550 if n_series < 5 else 850 # when vertically squeezed good to have more horizontal room
+    MIN_CHART_WIDTH = 700 if n_series < 5 else 900 # when vertically squeezed good to have more horizontal room
     PADDING_PXLS = 10
     width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)

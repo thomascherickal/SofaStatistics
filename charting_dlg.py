@@ -42,7 +42,7 @@ class ValOpts(config_output.Opts):
             self.rad_opts.SetSelection(idx_data_opt)
             self.rad_opts.SetToolTipString(_(u"Report frequency,percentage, "
                                              u"average, or sum?"))
-            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_rad_val)
+            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_rad_data_show)
         else: # correct layout issue
             bx_perc = wx.StaticBox(panel, -1, group_lbl)
             szr_rad_val = wx.StaticBoxSizer(bx_perc, wx.HORIZONTAL)
@@ -52,22 +52,22 @@ class ValOpts(config_output.Opts):
                                               style=wx.RB_GROUP) # leads
                     current_rad = rad_freq
                     rad_freq.SetFont(mg.GEN_FONT)
-                    rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_val)
+                    rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
                 elif choice == mg.SHOW_PERC:
                     rad_perc = wx.RadioButton(panel, -1, choice)
                     current_rad = rad_perc
                     rad_perc.SetFont(mg.GEN_FONT)
-                    rad_perc.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_val)
+                    rad_perc.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
                 elif choice == mg.SHOW_AVG:
                     rad_avg = wx.RadioButton(panel, -1, choice)
                     current_rad = rad_avg
                     rad_avg.SetFont(mg.GEN_FONT)
-                    rad_avg.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_val)
+                    rad_avg.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
                 elif choice == mg.SHOW_SUM:
                     rad_sum = wx.RadioButton(panel, -1, choice)
                     current_rad = rad_sum
                     rad_sum.SetFont(mg.GEN_FONT)
-                    rad_sum.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_val)
+                    rad_sum.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
                 else:
                     raise Exception(u"Unexpected has perc: %s" % choice)
                 if i == idx_data_opt:
@@ -512,6 +512,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         drop_var4.SetToolTipString(self.variables_rc_msg)
         return drop_var4
 
+    def update_lbl_var1(self, chart_config1):
+        """
+        Used by all chart types, not just those with an aggregate option. So 
+            CUR_DATA_OPT may have been set by another chart type. Need to check 
+            this chart type has an aggregate option as well to know how to get 
+            var lbl.
+        """
+        show_agg, has_agg_config = self.get_agg_dets()
+        if show_agg and has_agg_config:
+            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY][CUR_DATA_OPT]
+        else:
+            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY]
+        try:
+            self.lbl_var1.SetLabel(lbl1) # if not already made, make it (this also means we only make it if not already made)
+        except Exception:
+            self.lbl_var1 = wx.StaticText(self.panel_vars, -1, lbl1)
+            self.lbl_var1.SetFont(mg.LABEL_FONT)
+
     def setup_var_dropdowns(self):
         """
         Makes fresh objects each time (and rebinds etc) because that is the only 
@@ -528,12 +546,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chart_config1 = chart_config[0]
         min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
         inc_drop_select1 = chart_config1[mg.INC_SELECT_KEY]
-        lbl1 = u"%s:" % chart_config1[mg.LBL_KEY]
-        try:
-            self.lbl_var1.SetLabel(lbl1) # if not already made, make it (this also means we only make it if not already made)
-        except Exception:
-            self.lbl_var1 = wx.StaticText(self.panel_vars, -1, lbl1)
-            self.lbl_var1.SetFont(mg.LABEL_FONT)
+        self.update_lbl_var1(chart_config1)
         self.sorted_var_names1 = []
         (items1, 
          idx_sel1) = self.get_items_and_sel_idx(mg.VAR_1_DEFAULT, 
@@ -702,7 +715,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             CUR_SORT_OPT = rad.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
 
-    def on_rad_val(self, event):
+    def on_rad_data_show(self, event):
         debug = False
         global CUR_DATA_OPT
         # http://www.blog.pythonlibrary.org/2011/09/20/...
@@ -716,8 +729,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except AttributeError:
             CUR_DATA_OPT = rad.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ
         if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
-        if CUR_DATA_OPT in mg.AGGREGATE_DATA_SHOW_OPTS:
-            self.setup_var_dropdowns()
+        self.setup_var_dropdowns()
 
     def on_show(self, event):
         if self.exiting:
@@ -861,13 +873,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
     def get_agg_dets(self):
-        show_agg = mg.AGGREGATE_KEY in mg.CHART_CONFIG[self.chart_type]
-        has_agg = CUR_DATA_OPT in mg.AGGREGATE_DATA_SHOW_OPTS
-        return show_agg, has_agg
+        show_agg = CUR_DATA_OPT in mg.AGGREGATE_DATA_SHOW_OPTS
+        has_agg_config = mg.AGGREGATE_KEY in mg.CHART_CONFIG[self.chart_type]
+        return show_agg, has_agg_config
 
     def get_chart_subtype_key(self):
-        show_agg, has_agg = self.get_agg_dets()
-        chart_subtype_key = (mg.AGGREGATE_KEY if show_agg and has_agg
+        show_agg, has_agg_config = self.get_agg_dets()
+        chart_subtype_key = (mg.AGGREGATE_KEY if show_agg and has_agg_config
                              else mg.INDIV_VAL_KEY)
         return chart_subtype_key
 
@@ -1218,7 +1230,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                                     else "False"))
         rptname = lib.escape_pre_write(report_name)
         script_lst.append(u"report_name = u\"%s\"" % rptname)
-        avg_fldlbl = None
+        agg_fldlbl = None
         category_fldname = None
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
@@ -1238,7 +1250,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 val_lbls = self.val_dics.get(var_val, {})
                 script_lst.append(u"%s_lbls = %s" % (var_role, val_lbls)) # e.g. var_role_agg_lbls = {}
             if var_role == mg.VAR_ROLE_AGG:
-                avg_fldlbl = var_name
+                agg_fldlbl = var_name
             if var_role == mg.VAR_ROLE_CATEGORY:
                 category_fldname = var_val
         for expected_var_role in mg.EXPECTED_VAR_ROLE_KEYS:
@@ -1257,10 +1269,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             elif CUR_DATA_OPT == mg.SHOW_PERC:
                 ytitle2use = u"mg.Y_AXIS_PERC_LBL"
             elif CUR_DATA_OPT in (mg.SHOW_AVG, mg.SHOW_SUM):
-                if avg_fldlbl is None:
-                    raise Exception(u"Label for variable being averaged not "
-                                    u"supplied.")
-                ytitle2use = u'u"Mean %s"' % avg_fldlbl
+                if agg_fldlbl is None:
+                    raise Exception(u"Aggregated variable label not supplied.")
+                ytitle2use = (u'u"Mean %s"' % agg_fldlbl 
+                              if CUR_DATA_OPT == mg.SHOW_AVG 
+                              else u'u"Sum of %s"' % agg_fldlbl)
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(get_simple_barchart_script(ytitle2use, rotate, 
                                                          css_fil, css_idx))

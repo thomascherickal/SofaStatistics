@@ -153,9 +153,9 @@ SORT_DECREASING = _(u"Decreasing")
 SORT_NO_OPTS = []
 STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
 SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
-SHOW_FREQ = _(u"Frequency")
+SHOW_FREQ = _(u"Count")
 SHOW_PERC = _(u"Percent")
-SHOW_AVG = _(u"Average")
+SHOW_AVG = _(u"Mean")
 SHOW_SUM = _(u"Sum")
 DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC, SHOW_AVG, SHOW_SUM]
 AGGREGATE_DATA_SHOW_OPTS = [SHOW_AVG, SHOW_SUM]
@@ -530,12 +530,14 @@ VERSION_CHECK_MAJOR = _(u"Only report major upgrades")
 VERSION_CHECK_ALL = _(u"Report any version upgrades")
 VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
                       VERSION_CHECK_ALL]
-CHART_VALUES = _("Values")
-CHART_DESCRIBED = _("Described")
-CHART_BY = _("By")
-CHARTS_CHART_BY = _("Charts By")
-CHART_SERIES_BY = _("Series By")
-CHART_AVERAGED = _("Averaged")
+CHART_VALUES = _(u"Values")
+CHART_DESCRIBED = _(u"Described")
+CHART_BY = _(u"By")
+CHARTS_CHART_BY = _(u"Charts By")
+CHART_SERIES_BY = _(u"Series By")
+CHART_AVERAGED = _(u"Averaged")
+CHART_SUMMED = _(u"Summed")
+DATA_SHOW2_LBL_KEY = {SHOW_AVG: CHART_AVERAGED, SHOW_SUM: CHART_SUMMED}
 Y_AXIS_FREQ_LBL = _("Frequency")
 Y_AXIS_PERC_LBL = _(u"Percentage")
 X_AXIS = _(u"X-axis")
@@ -580,7 +582,7 @@ VAR_ROLE_Y_AXIS = u"var_role_y_axis" # for scatterplots
 CHART_CONFIG = {
     SIMPLE_BARCHART: {
         AGGREGATE_KEY: [
-            {LBL_KEY: CHART_AVERAGED,
+            {LBL_KEY: DATA_SHOW2_LBL_KEY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
@@ -606,7 +608,7 @@ CHART_CONFIG = {
     },
     CLUSTERED_BARCHART: {
         AGGREGATE_KEY: [
-            {LBL_KEY: CHART_AVERAGED,
+            {LBL_KEY: DATA_SHOW2_LBL_KEY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
@@ -652,7 +654,7 @@ CHART_CONFIG = {
     },
     LINE_CHART: {
         AGGREGATE_KEY: [
-            {LBL_KEY: CHART_AVERAGED,
+            {LBL_KEY: DATA_SHOW2_LBL_KEY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
@@ -686,7 +688,7 @@ CHART_CONFIG = {
     },
     AREA_CHART: {
         AGGREGATE_KEY: [
-            {LBL_KEY: CHART_AVERAGED,
+            {LBL_KEY: DATA_SHOW2_LBL_KEY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
