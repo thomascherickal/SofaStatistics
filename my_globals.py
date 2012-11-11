@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.3.0"
+VERSION = u"1.3.1"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -155,7 +155,10 @@ STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
 SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
 SHOW_FREQ = _(u"Frequency")
 SHOW_PERC = _(u"Percent")
-DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC]
+SHOW_AVG = _(u"Average")
+SHOW_SUM = _(u"Sum")
+DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC, SHOW_AVG, SHOW_SUM]
+AGGREGATE_DATA_SHOW_OPTS = [SHOW_AVG, SHOW_SUM]
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: u"FREQ", 
@@ -559,14 +562,14 @@ For each chart type, we need config for avg (if available) and non-avg.
 The config must list drop-down configs in order.
 Each config will need: label, min_data_type, inc_select
 """
-AVG_KEY = u"avg_key"
-NON_AVG_KEY = u"non_avg_key"
+AGGREGATE_KEY = u"aggregate_key"
+INDIV_VAL_KEY = u"indiv_val_key"
 LBL_KEY = u"lbl_key"
 MIN_DATA_TYPE_KEY = u"min_data_type_key"
 INC_SELECT_KEY = u"inc_select_key"
 # what role is each dropdown controlling?
 VAR_ROLE_KEY = u"var_role_key" # all keys must be usable as variable names
-VAR_ROLE_AVG = u"var_role_avg" # the variable being averaged
+VAR_ROLE_AGG = u"var_role_agg" # the variable being aggregated
 VAR_ROLE_BIN = u"var_role_bin" # the variable being binned (histogram)
 VAR_ROLE_DESC = u"var_role_desc" # the variable being described e.g. Boxplots
 VAR_ROLE_CATEGORY = u"var_role_cat" # the var supplying the category - usually x-axis category values
@@ -576,11 +579,11 @@ VAR_ROLE_X_AXIS = u"var_role_x_axis" # for scatterplots
 VAR_ROLE_Y_AXIS = u"var_role_y_axis" # for scatterplots
 CHART_CONFIG = {
     SIMPLE_BARCHART: {
-        AVG_KEY: [
+        AGGREGATE_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
-             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
+             VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -590,7 +593,7 @@ CHART_CONFIG = {
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -602,11 +605,11 @@ CHART_CONFIG = {
             ],
     },
     CLUSTERED_BARCHART: {
-        AVG_KEY: [
+        AGGREGATE_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
-             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
+             VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -620,7 +623,7 @@ CHART_CONFIG = {
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -636,7 +639,7 @@ CHART_CONFIG = {
             ],
     },
     PIE_CHART: {
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -648,11 +651,11 @@ CHART_CONFIG = {
             ],
     },
     LINE_CHART: {
-        AVG_KEY: [
+        AGGREGATE_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
-             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
+             VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -666,7 +669,7 @@ CHART_CONFIG = {
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -682,11 +685,11 @@ CHART_CONFIG = {
             ],
     },
     AREA_CHART: {
-        AVG_KEY: [
+        AGGREGATE_KEY: [
             {LBL_KEY: CHART_AVERAGED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
-             VAR_ROLE_KEY: VAR_ROLE_AVG}, # dropdown 1
+             VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -696,7 +699,7 @@ CHART_CONFIG = {
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
@@ -708,7 +711,7 @@ CHART_CONFIG = {
             ],
     },
     HISTOGRAM: {
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
@@ -720,7 +723,7 @@ CHART_CONFIG = {
             ],
     },
     SCATTERPLOT: {
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: X_AXIS,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
@@ -740,7 +743,7 @@ CHART_CONFIG = {
             ],
     },
     BOXPLOT: {
-        NON_AVG_KEY: [
+        INDIV_VAL_KEY: [
             {LBL_KEY: CHART_DESCRIBED,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
@@ -759,7 +762,7 @@ CHART_CONFIG = {
 # common format - all have categories, all use get_chart-dets() etc.
 GEN_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, LINE_CHART, 
               AREA_CHART]
-EXPECTED_VAR_ROLE_KEYS = [VAR_ROLE_AVG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
+EXPECTED_VAR_ROLE_KEYS = [VAR_ROLE_AGG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
                           VAR_ROLE_CHARTS]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 
     'mistyrose', 'darkolivegreen', 'darkseagreen', 'slategrey', 'tomato', 

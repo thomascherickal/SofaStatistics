@@ -36,14 +36,15 @@ SMOOTHLINE_LBL = u"Smoothed data line"
 
 
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
-                     var_role_avg, var_role_cat, var_role_series, 
-                     var_role_charts):
+                     var_role_agg, var_role_cat, var_role_series, 
+                     var_role_charts, data_show):
     """
     Returns a list of row tuples.
     Each row tuple follows the same templates. Dummy values are used to fill 
         empty fields e.g. series and charts, so that the same structure can be 
         relied upon irrespective of input.
-    Fields - charts, series, cat, vals (either the result of COUNT() or AVG()).
+    Fields - charts, series, cat, vals (either the result of COUNT(), AVG() 
+        or SUM()).
     E.g. data = [(1,1,1,56),
                  (1,1,2,103),
                  (1,1,3,72),
@@ -52,10 +53,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
                  (1,2,3,200),]
     Note - don't use freq as my own field name as it may conflict with freq if 
         selected by user.
-    """
-    debug = False
-    is_avg = (var_role_avg is not None)
-    """
+
     Because it is much easier to understand using an example, imagine the 
         following is our raw data:
         
@@ -94,6 +92,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         values where there are no missing values in any of the other grouping 
         variables (or in the variable being averaged if a chart of averages).
     """
+    debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
@@ -104,16 +103,17 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     # which will keep them in the same group.
     myseries = 1 if not var_role_series else objqtr(var_role_series)
     mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
-    avg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_avg) if is_avg 
+    is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPTS)
+    agg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_agg) if is_agg
                 else u" ") 
     sql_dic = {u"tbl": tbl_quoted,
                u"var_role_charts": mycharts,
                u"var_role_series": myseries,
                u"var_role_cat": mycat,
-               u"var_role_avg": objqtr(var_role_avg),
+               u"var_role_agg": objqtr(var_role_agg),
                u"where_tbl_filt": where_tbl_filt,
                u"and_tbl_filt": and_tbl_filt,
-               u"and_avg_filt": avg_filt}
+               u"and_agg_filt": agg_filt}
     # 1) grouping variables
     SQL_charts = ("""SELECT %(var_role_charts)s 
     AS charts
@@ -122,7 +122,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         AND %(var_role_series)s IS NOT NULL 
         AND %(var_role_cat)s IS NOT NULL
         %(and_tbl_filt)s
-        %(and_avg_filt)s
+        %(and_agg_filt)s
     GROUP BY %(var_role_charts)s""" % sql_dic)
     if debug: print(SQL_charts)
     SQL_series = ("""SELECT %(var_role_series)s 
@@ -132,7 +132,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         AND %(var_role_charts)s IS NOT NULL 
         AND %(var_role_cat)s IS NOT NULL
         %(and_tbl_filt)s
-        %(and_avg_filt)s
+        %(and_agg_filt)s
     GROUP BY %(var_role_series)s""" % sql_dic)
     if debug: print(SQL_series)
     SQL_cat = ("""SELECT %(var_role_cat)s 
@@ -142,7 +142,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         AND %(var_role_charts)s IS NOT NULL 
         AND %(var_role_series)s IS NOT NULL
         %(and_tbl_filt)s
-        %(and_avg_filt)s
+        %(and_agg_filt)s
     GROUP BY %(var_role_cat)s""" % sql_dic)
     if debug: print(SQL_cat)
     SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts %s 
@@ -151,8 +151,8 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
                              cartesian_joiner, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
-    avg_exp = u" AVG(%(var_role_avg)s) " % sql_dic
-    sql_dic[u"val2show"] = avg_exp if is_avg else u" COUNT(*) "
+    avg_exp = u" AVG(%(var_role_agg)s) " % sql_dic
+    sql_dic[u"val2show"] = avg_exp if is_agg else u" COUNT(*) "
     SQL_vals2show = u"""SELECT %(var_role_charts)s
     AS charts,
         %(var_role_series)s
@@ -186,7 +186,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(is_perc, is_avg, major_ticks, sort_opt, vals_etc_lst, dp):
+def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -205,7 +205,7 @@ def get_sorted_y_dets(is_perc, is_avg, major_ticks, sort_opt, vals_etc_lst, dp):
             perc = 0
         else:
             perc = 100*(measure/float(tot_measures))
-        y_val = perc if is_perc else measure
+        y_val = perc if data_show == mg.SHOW_PERC else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
         tooltip_dets = []
@@ -214,7 +214,7 @@ def get_sorted_y_dets(is_perc, is_avg, major_ticks, sort_opt, vals_etc_lst, dp):
             tooltip_dets.append(u"y-val: %s" % measure2show)
         else:
             tooltip_dets.append(u"%s" % measure2show)
-        if not is_avg: # OK to show percentage
+        if data_show not in mg.AGGREGATE_DATA_SHOW_OPTS: # OK to show percentage
             tooltip_dets.append(u"%s%%" % round(perc,1))
         tooltip = u"<br>".join(tooltip_dets)
         sorted_tooltips.append(tooltip)
@@ -279,13 +279,13 @@ def get_prestructured_grouped_data(raw_data, fldnames):
                 same_series_dic[XY_KEY].append((x_val, y_val))
     return prestructure
 
-def get_overall_title(var_role_avg_name, var_role_cat_name, 
+def get_overall_title(var_role_agg_name, var_role_cat_name, 
                       var_role_series_name, var_role_charts_name):
     title_bits = []
-    if var_role_avg_name:
-        title_bits.append(u"Avg %s" % var_role_avg_name)
+    if var_role_agg_name:
+        title_bits.append(u"Avg %s" % var_role_agg_name)
     if var_role_cat_name:
-        if var_role_avg_name:
+        if var_role_agg_name:
             title_bits.append(u"By %s" % var_role_cat_name)
         else:
             title_bits.append(u"%s" % var_role_cat_name)
@@ -312,11 +312,12 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     output.append_divider(html, title, indiv_title, item_type)
 
 def structure_gen_data(chart_type, raw_data, xlblsdic, 
-                  var_role_avg, var_role_avg_name, var_role_avg_lbls,
+                  var_role_agg, var_role_agg_name, var_role_agg_lbls,
                   var_role_cat, var_role_cat_name, var_role_cat_lbls,
                   var_role_series, var_role_series_name, var_role_series_lbls,
                   var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                  sort_opt, dp, rotate=False, is_perc=False, major_ticks=False):
+                  sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ, 
+                  major_ticks=False):
     """
     Structure data for general charts (use different processes preparing data 
         for histograms, scatterplots etc).
@@ -358,7 +359,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     max_y_lbl_len = 0
     max_lbl_lines = 0
     fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
-                var_role_avg_name]
+                var_role_agg_name]
     prestructure = get_prestructured_grouped_data(raw_data, fldnames)
     chart_dets = []
     n_charts = len(prestructure)
@@ -366,7 +367,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                                  max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
-    is_avg = (var_role_avg is not None)
+    is_avg = (var_role_agg is not None)
     if multichart:
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
@@ -435,7 +436,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                                                                 mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, 
              sorted_y_vals, 
-             sorted_tooltips) = get_sorted_y_dets(is_perc, is_avg, major_ticks,
+             sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks,
                                                   sort_opt, vals_etc_lst, dp)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
@@ -445,7 +446,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
-    overall_title = get_overall_title(var_role_avg_name, var_role_cat_name, 
+    overall_title = get_overall_title(var_role_agg_name, var_role_cat_name, 
                                      var_role_series_name, var_role_charts_name)
     chart_output_dets = {mg.CHARTS_OVERALL_TITLE: overall_title,
                          mg.CHARTS_MAX_X_LBL_LEN: max_x_lbl_len,
@@ -456,11 +457,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     return chart_output_dets
 
 def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt, 
-                    var_role_avg, var_role_avg_name, var_role_avg_lbls, 
+                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
                     var_role_cat, var_role_cat_name, var_role_cat_lbls, 
                     var_role_series, var_role_series_name, var_role_series_lbls, 
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt, rotate=False, is_perc=False, major_ticks=False):
+                    sort_opt, rotate=False, data_show=mg.SHOW_FREQ, 
+                    major_ticks=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
         VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
@@ -471,9 +473,9 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         them.
     """
     debug = False
-    is_avg = (var_role_avg is not None)
+    is_agg = (var_role_agg is not None)
     # validate fields supplied (or not)
-    chart_subtype_key = mg.AVG_KEY if is_avg else mg.NON_AVG_KEY
+    chart_subtype_key = mg.AGGREGATE_KEY if is_agg else mg.INDIV_VAL_KEY
     chart_config = mg.CHART_CONFIG[chart_type][chart_subtype_key]
     for var_dets in chart_config: # looping through available dropdowns for chart
         var_role = var_dets[mg.VAR_ROLE_KEY]
@@ -489,8 +491,8 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     xlblsdic = var_role_cat_lbls
     # Get data as per setup
     SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, 
-                                    and_tbl_filt, var_role_avg, var_role_cat, 
-                                    var_role_series, var_role_charts)
+                                    and_tbl_filt, var_role_agg, var_role_cat, 
+                                    var_role_series, var_role_charts, data_show)
     if debug: print(SQL_raw_data)
     try:
         cur.execute(SQL_raw_data)
@@ -502,13 +504,13 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
-    dp = 2 if is_avg else 0
+    dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPTS else 0
     chart_output_dets = structure_gen_data(chart_type, raw_data, xlblsdic, 
-                    var_role_avg, var_role_avg_name, var_role_avg_lbls,
+                    var_role_agg, var_role_agg_name, var_role_agg_lbls,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                    sort_opt, dp, rotate, is_perc, major_ticks)
+                    sort_opt, dp, rotate, data_show, major_ticks)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
