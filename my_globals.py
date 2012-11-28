@@ -764,6 +764,8 @@ CHART_CONFIG = {
 # common format - all have categories, all use get_chart-dets() etc.
 GEN_CHARTS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, PIE_CHART, LINE_CHART, 
               AREA_CHART]
+CHARTS_WITH_YTITLE_OPTIONS = [SIMPLE_BARCHART, CLUSTERED_BARCHART, LINE_CHART, 
+                              AREA_CHART]
 EXPECTED_VAR_ROLE_KEYS = [VAR_ROLE_AGG, VAR_ROLE_CATEGORY, VAR_ROLE_SERIES,
                           VAR_ROLE_CHARTS]
 DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred', 

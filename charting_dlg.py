@@ -1264,6 +1264,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             if category_fldname is None:
                 raise Exception(u"Cannot generate %s script if category field "
                                 u"hasn't been set." % self.chart_type)
+        if self.chart_type in mg.CHARTS_WITH_YTITLE_OPTIONS:
             if CUR_DATA_OPT == mg.SHOW_FREQ:
                 ytitle2use = u"mg.Y_AXIS_FREQ_LBL"
             elif CUR_DATA_OPT == mg.SHOW_PERC:
