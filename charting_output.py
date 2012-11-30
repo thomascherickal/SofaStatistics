@@ -2383,17 +2383,17 @@ def get_optimal_min_max(axismin, axismax):
     |
     -------
     Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
-        below min point e.g. 0.9*axismin (e.g. lowered from 1.0 to 0.9).
-    No harm if already on 0 (0.9*0=0).
-    Make max 1.1*axismax (e.g. raised from 1.0 to 1.1).
+    below min point. Make max y-axis just above the max point. Make the 
+    padding from 0 the lesser of 0.1 of axismin and 0.1 of valrange. The 
+    outer padding can be the lesser of the axismax and 0.1 of valrange.
     
     2) min and max are -ve
     -------
     |   *
     |
     Snap max to 0 if gap small rel to range, otherwise make max y-axis just 
-        above max point e.g. 0.9*max (e.g. raised from -1.0 to -0.9).
-    Make min 1.1*axismin (e.g. lowered from -1.0 to -1.1).
+    above max point. Make min y-axis just below min point. Make the 
+    padding the lesser of 0.1 of gap and 0.1 of valrange.
     
     3) min is -ve and max is +ve
     |   *
@@ -2402,44 +2402,53 @@ def get_optimal_min_max(axismin, axismax):
     Make max 1.1*axismax. No harm if 0.
     Make min 1.1*axismin. No harm if 0.
     """
+    debug = True
+    if debug: print("Orig min max: %s %s" % (axismin, axismax))
     if axismin >= 0 and axismax >= 0: # both +ve
         """
         Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
-        below min point e.g. 0.9*axismin (e.g. lowered from 1.0 to 0.9).
-        No harm if already on 0 (0.9*0=0).
-        Make max 1.1*axismax (e.g. raised from 1.0 to 1.1).
+        below min point. Make max y-axis just above the max point. Make the 
+        padding from 0 the lesser of 0.1 of axismin and 0.1 of valrange. The 
+        outer padding can be the lesser of the axismax and 0.1 of valrange.
         """
         gap = axismin
-        boxrange = (axismax - axismin)
+        valrange = (axismax - axismin)
         try:
-            gap2range = gap/(boxrange*1.0)
-            axismin = 0 if gap2range < 0.6 else 0.9*axismin
+            gap2range = gap/(valrange*1.0)
+            if gap2range < 0.6: # close enough to snap to 0
+                axismin = 0
+            else: # can't just be 0.9 min - e.g. looking at years from 2000-2010 would be 1800 upwards!
+                axismin -= min(0.1*gap, 0.1*valrange) # gap is never 0 and is at least 0.6 of valrange
         except ZeroDivisionError:
             pass
-        axismax = 1.1*axismax
+        axismax += min(0.1*axismax, 0.1*valrange)
     elif axismin <= 0 and axismax <= 0: # both -ve
         """
         Snap max to 0 if gap small rel to range, otherwise make max y-axis just 
-        above max point e.g. 0.9*max (e.g. raised from -1.0 to -0.9).
-        Make min 1.1*axismin (e.g. lowered from -1.0 to -1.1).
+        above max point. Make min y-axis just below min point. Make the 
+        padding the lesser of 0.1 of gap and 0.1 of valrange.
         """
         gap = abs(axismax)
-        boxrange = abs(axismax - axismin)
+        valrange = abs(axismax - axismin)
         try:
-            gap2range = gap/(boxrange*1.0)
-            axismax = 0 if gap2range < 0.6 else 0.9*axismax
+            gap2range = gap/(valrange*1.0)
+            if gap2range < 0.6:
+                axismax = 0
+            else:
+                axismax += min(0.1*gap, 0.1*valrange)
         except ZeroDivisionError:
             pass
-        axismin = 1.1*axismin
+        axismin -= min(0.1*axismin, 0.1*valrange)
     elif axismin <=0 and axismax >=0: # spanning y-axis (even if all 0s ;-))
         """
-        Make max 1.1*axismax. No harm if 0.
-        Make min 1.1*axismin. No harm if 0.
+        Pad max with 0.1*axismax. No harm if 0.
+        Pad min with 0.1*axismin. No harm if 0.
         """
-        axismax = 1*1*axismax
+        axismax = 1.1*axismax
         axismin = 1.1*axismin
     else:
         pass
+    if debug: print("Final axismin: %s; Final axismax %s" % (axismin, axismax))
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
