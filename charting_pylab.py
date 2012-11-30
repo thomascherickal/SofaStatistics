@@ -166,8 +166,8 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
 
 def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets, 
                        label_a, label_b, a_vs_b, line_lst=None, line_lbl=u"", 
-                       ymin=None, ymax=None, dot_colour=None, 
-                       series_colours_by_lbl=None):
+                       xmin=None, xmax=None, ymin=None, ymax=None, 
+                       dot_colour=None, series_colours_by_lbl=None):
     """
     Configure scatterplot with line of best fit.
     Size is set externally.
@@ -187,6 +187,8 @@ def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets,
         marker_edge_colour = line_colour if dot_borders else dot_colour
         pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=label, 
                    markeredgecolor=marker_edge_colour)
+        if xmin is not None and xmax is not None:
+            pylab.xlim(xmin, xmax)
         if ymin is not None and ymax is not None:
             pylab.ylim(ymin, ymax)
         if line_lst is not None:
@@ -204,8 +206,9 @@ def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets,
 def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets, 
                     label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
                     report_name, html, width_inches=7.5, height_inches=4.5, 
-                    line_lst=None, line_lbl=u"", ymin=None, ymax=None,
-                    dot_colour=None, series_colours_by_lbl=None):
+                    line_lst=None, line_lbl=u"", xmin=None, xmax=None, 
+                    ymin=None, ymax=None, dot_colour=None, 
+                    series_colours_by_lbl=None):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
@@ -216,8 +219,8 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
     config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets, 
-                       label_x, label_y, x_vs_y, line_lst, line_lbl, ymin, ymax, 
-                       dot_colour, series_colours_by_lbl)
+                       label_x, label_y, x_vs_y, line_lst, line_lbl, xmin, xmax, 
+                       ymin, ymax, dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)

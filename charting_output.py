@@ -603,7 +603,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                                             max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     else:
         cat_vals = [1,] # the first boxplot is always 1 on the x-axis
-    # init
     ymin = None # init
     ymax = 0
     first_chart_by = True
@@ -631,7 +630,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     (x_val_split_lbl, 
                      actual_lbl_width,
                      n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                             max_width=17, dojo=True, rotate=rotate)
+                                         max_width=17, dojo=True, rotate=rotate)
                     if actual_lbl_width > max_x_lbl_len:
                         max_x_lbl_len = actual_lbl_width
                     if n_lines > max_lbl_lines:
@@ -2345,6 +2344,10 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders,
                          legend, series_dets, series_colours_by_lbl, label_x, 
                          label_y, ymin, ymax, x_vs_y, add_to_report, 
                          report_name, css_fil, pagebreak):
+    """
+    min and max values are supplied for the y-axis because we want consistency 
+        on that between charts. For the x-axis, whatever is best per chart is OK. 
+    """
     (grid_bg, dot_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     if multichart:
@@ -2355,11 +2358,15 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders,
     html.append(u"""<div class=screen-float-only style="margin-right: 10px; 
         margin-top: 0; %(pagebreak)s">""" % {u"pagebreak": pagebreak})
     html.append(indiv_chart_title)
+    all_x = []
+    for series_det in series_dets:
+        all_x.extend(series_det[mg.LIST_X])
+    xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
     charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
                             series_dets, label_x, label_y, x_vs_y, 
                             title_dets_html, add_to_report, report_name, html, 
-                            width_inches, height_inches, ymin=ymin, ymax=ymax,
-                            dot_colour=dot_colours[0], 
+                            width_inches, height_inches, xmin=xmin, xmax=xmax, 
+                            ymin=ymin, ymax=ymax, dot_colour=dot_colours[0], 
                             series_colours_by_lbl=series_colours_by_lbl)
     html.append(u"</div>")
 
@@ -2402,7 +2409,7 @@ def get_optimal_min_max(axismin, axismax):
     Make max 1.1*axismax. No harm if 0.
     Make min 1.1*axismin. No harm if 0.
     """
-    debug = True
+    debug = False
     if debug: print("Orig min max: %s %s" % (axismin, axismax))
     if axismin >= 0 and axismax >= 0: # both +ve
         """
@@ -2456,6 +2463,8 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
                           series_colours_by_lbl, label_x, label_y, ymin, ymax, 
                           css_fil, pagebreak):
     """
+    min and max values are supplied for the y-axis because we want consistency 
+        on that between charts. For the x-axis, whatever is best per chart is OK. 
     series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
                    mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
                    mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
@@ -2471,7 +2480,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     for series_det in series_dets:
         all_x.extend(series_det[mg.LIST_X])
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
-    init_margin_offset_l = 10
+    init_margin_offset_l = 20
     max_y_lbl_len = len(str(round(ymax,0)))
     x_lbl_len = len(str(round(xmin,0)))
     max_safe_x_lbl_len_pxls = 90
@@ -2643,7 +2652,7 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
     html.append(title_dets_html)
     multichart = (len(scatterplot_dets[mg.CHARTS_CHART_DETS]) > 1)
     use_mpl = use_mpl_scatterplots(scatterplot_dets)
-    ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets)
+    ymin, ymax = get_scatterplot_ymin_ymax(scatterplot_dets) # unlike x-axis we require this to be consistent across charts
     legend_lbl = scatterplot_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
     series_colours_by_lbl = get_series_colours_by_lbl(scatterplot_dets, css_fil)
     # loop through charts
