@@ -20,7 +20,8 @@ import importer
 ROWS_TO_SHOW_USER = 10 # need to show enough to choose encoding
 
 ERR_NO_DELIM = u"Could not determine delimiter"
-ERR_NEW_LINE = u"new-line character seen in unquoted field"
+ERR_NEW_LINE_IN_UNQUOTED = u"new-line character seen in unquoted field"
+ERR_NEW_LINE_IN_STRING = u"newline inside string"
 ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
 # Shift Out control character in ASCII 
 """
@@ -43,10 +44,10 @@ class MyDialect(csv.Dialect):
     lineterminator = '\n'
     quoting = csv.QUOTE_MINIMAL
 
-def consolidate_line_seps(str):
+def consolidate_line_seps(mystr):
     for sep in ["\n", "\r", "\r\n"]:
-        str = str.replace(sep, os.linesep)
-    return str
+        mystr = mystr.replace(sep, os.linesep)
+    return mystr
 
 def ok_delimiter(delimiter):
     try:
@@ -212,7 +213,7 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
         lib.safe_end_cursor()
         if lib.ue(e).startswith(ERR_NO_DELIM):
             pass # I'll have to try it myself
-        elif lib.ue(e).startswith(ERR_NEW_LINE):
+        elif lib.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
             fix_text(file_path)
     except Exception, e: # If everything else succeeds don't let this stop things
         pass
@@ -621,7 +622,7 @@ class DlgImportDisplay(wx.Dialog):
                                           dialect=self.dialect)
         except csv.Error, e:
             lib.safe_end_cursor()
-            if lib.ue(e).startswith(ERR_NEW_LINE):
+            if lib.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
                 fix_text(self.file_path)
                 raise my_exceptions.ImportNeededFix
             else:
@@ -630,7 +631,18 @@ class DlgImportDisplay(wx.Dialog):
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        strdata = [x for x in tmp_reader if x] # exclude empty rows
+        try:
+            strdata = []
+            for i, row in enumerate(tmp_reader, 1):
+                if row: # exclude empty rows
+                    strdata.append(row)
+        except csv.Error, e:
+            lib.safe_end_cursor()
+            if lib.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
+                raise Exception(u"Problem with row %s - line break in the "
+                                u"middle of a field." % str(i+1))
+            else:
+                raise
         content, content_height = importer.get_content_dets(strdata)
         return content, content_height
     
@@ -897,6 +909,13 @@ class CsvImporter(importer.FileImporter):
                                       progbar, feedback[mg.NULLED_DOTS],
                                       self.headless)
         except Exception, e:
+            
+            
+            
+            
+            
+            
+            
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
         default_dd.cur.close()
