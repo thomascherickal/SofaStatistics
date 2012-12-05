@@ -730,6 +730,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             CUR_DATA_OPT = rad.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ
         if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
         self.setup_var_dropdowns()
+        self.setup_line_extras()
 
     def on_show(self, event):
         if self.exiting:
