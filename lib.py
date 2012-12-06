@@ -864,6 +864,7 @@ def get_unique_fldnames(existing_fldnames):
     fldnames = []
     prev_fldnames_and_counters = {}
     for i, name in enumerate(existing_fldnames, 1):
+        name = name.replace("\n", "_")
         if name == u"":
             newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
         else:

@@ -270,6 +270,9 @@ class UnicodeCsvReader(object):
     """
     Sometimes preferable to dict reader because doesn't consume first row.
     Dict readers do when field names not supplied.
+    Also copes with duplicate field names rather than returning a dict with one 
+        value per unique field value for the first row (shorter than original 
+        sequence).
     """
     def __init__(self, utf8_encoded_csv_data, dialect=csv.excel, **kwargs):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -317,9 +320,9 @@ class UnicodeCsvReader(object):
 class UnicodeCsvDictReader(object):
     """
     If the fieldnames parameter is omitted, the values in the first row of the 
-        csv file will be used as the fieldnames. Allows duplicates.
+        csv file will be used as the field names. Allows duplicates.
         http://docs.python.org/library/csv.html
-    The first row will be consumed and no longer available.
+    The first row will be consumed and no longer be available.
     """
     def __init__(self, utf8_encoded_csv_data, dialect, fieldnames=None):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
@@ -632,10 +635,13 @@ class DlgImportDisplay(wx.Dialog):
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
         try:
-            strdata = []
-            for i, row in enumerate(tmp_reader, 1):
-                if row: # exclude empty rows
-                    strdata.append(row)
+            i = 0
+            data_lst = list(tmp_reader)
+            strdata = [x for x in data_lst if x]
+            #strdata = []
+            #for i, row in enumerate(tmp_reader, 1):
+            #    if row: # exclude empty rows
+            #        strdata.append(row)
         except csv.Error, e:
             lib.safe_end_cursor()
             if lib.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
@@ -909,13 +915,6 @@ class CsvImporter(importer.FileImporter):
                                       progbar, feedback[mg.NULLED_DOTS],
                                       self.headless)
         except Exception, e:
-            
-            
-            
-            
-            
-            
-            
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
         default_dd.cur.close()
