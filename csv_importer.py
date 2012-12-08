@@ -21,7 +21,11 @@ ROWS_TO_SHOW_USER = 10 # need to show enough to choose encoding
 
 ERR_NO_DELIM = u"Could not determine delimiter"
 ERR_NEW_LINE_IN_UNQUOTED = u"new-line character seen in unquoted field"
-ERR_NEW_LINE_IN_STRING = u"newline inside string"
+ERR_NEW_LINE_IN_STRING = u"newline inside string" #  # Shouldn't happen now I 
+# process complete file in csv2utf8_bytelines() rather than trying to limit to 
+# n lines for sample to display etc. Would sometimes break inside a string.
+# Have to wait for cvs reader stage to be able to reliably tell when a line 
+# break is between lines and not within a field.
 ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
 # Shift Out control character in ASCII 
 """
@@ -80,8 +84,7 @@ def get_possible_encodings(file_path):
     for encoding in encodings:
         if debug: print("About to test encoding: %s" % encoding)
         try:
-            unused = csv2utf8_bytelines(file_path, encoding,
-                                        n_lines=ROWS_TO_SHOW_USER)
+            unused = csv2utf8_bytelines(file_path, encoding)
             possible_encodings.append(encoding)
         except Exception:
             continue
@@ -424,7 +427,7 @@ def get_decoded_unilines(file_path, bom2rem, encoding):
     split_lines = tidied.split("\n")
     return split_lines
     
-def csv2utf8_bytelines(file_path, encoding, n_lines=None, strict=True):
+def csv2utf8_bytelines(file_path, encoding, strict=True):
     """
     The csv module infamously only accepts lines of bytes encoded as utf-8.
     Need to do the escaping of double quotes here so we can deal with a unicode
@@ -455,6 +458,9 @@ def csv2utf8_bytelines(file_path, encoding, n_lines=None, strict=True):
     
     BOM_UTF32_BE = '\x00\x00\xfe\xff'
     BOM64_BE = '\x00\x00\xfe\xff'
+    We used to have the option of limiting the number of lines returned. Buggy 
+        because line breaks can happen inside csv lines. Only safe to restrict 
+        lines once passed through csv readers.
     """
     debug = False
     unilines = []
@@ -475,8 +481,6 @@ def csv2utf8_bytelines(file_path, encoding, n_lines=None, strict=True):
                     if debug: wx.MessageBox(u"Good encoding: %s" % encoding)
                     decoded_unilines = get_decoded_unilines(file_path, bom2rem,
                                                             encoding)
-                    if n_lines is not None:
-                        decoded_unilines = decoded_unilines[:n_lines]
                     unilines.extend(decoded_unilines)
                     break
                 else:
@@ -495,11 +499,8 @@ def csv2utf8_bytelines(file_path, encoding, n_lines=None, strict=True):
         except IOError, e:
             raise Exception(u"Unable to open file for re-encoding. "
                             u"\nCaused by error: %s" % lib.ue(e))
-        for i, line in enumerate(f, 1):
+        for line in f:
             unilines.append(line)
-            if n_lines is not None:
-                if i >= n_lines:
-                    break
     if not unilines:
         raise Exception(u"No lines in CSV to process")
     escaped_unilines = escape_double_quotes_in_uni_lines(unilines)
@@ -606,11 +607,13 @@ class DlgImportDisplay(wx.Dialog):
         """
         For display in GUI dlg - so makes sense to use the encoding the user has 
             selected - whether or not it is a good choice.
+        Have to get whole file even though for this part we only need the first 
+            few lines. No reliable way of breaking into lines pre-csv reader so
+            happens at last step.
         """
         try:
             self.utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path, 
-                                                              self.encoding, 
-                                                  n_lines=ROWS_TO_SHOW_USER)
+                                                              self.encoding)
         except Exception, e:
             msg = (u"Unable to display the first lines of this CSV file using "
                    u"the first selected encoding (%s).\n\nOrig error: %s" % 
@@ -635,13 +638,12 @@ class DlgImportDisplay(wx.Dialog):
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
         try:
-            i = 0
-            data_lst = list(tmp_reader)
-            strdata = [x for x in data_lst if x]
-            #strdata = []
-            #for i, row in enumerate(tmp_reader, 1):
-            #    if row: # exclude empty rows
-            #        strdata.append(row)
+            strdata = []
+            for i, row in enumerate(tmp_reader, 1):
+                if row:  # exclude empty rows
+                    strdata.append(row)
+                    if len(strdata) >= ROWS_TO_SHOW_USER:
+                        break
         except csv.Error, e:
             lib.safe_end_cursor()
             if lib.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
@@ -747,7 +749,7 @@ class CsvImporter(importer.FileImporter):
                       
     def get_sample_with_dets(self):
         """
-        Get correctly encoded data.  Try encoding until get first successful
+        Get correctly encoded data. Try encoding until get first successful
             sample. Give user choice to use it or keep going.
         Also get details -- dialect, encoding, has_header.
         Windows is always trickier - less likely to be utf-8 from the start. 
@@ -767,8 +769,7 @@ class CsvImporter(importer.FileImporter):
             encoding = self.supplied_encoding
             has_header = self.headless_has_header
             utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path,
-                                                         encoding, 
-                                                      n_lines=ROWS_TO_SHOW_USER)
+                                                         encoding)
         else:
             probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
                                                 dialect)
