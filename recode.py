@@ -222,11 +222,14 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
-                    {"col_label": _("From"), "coltype": settings_grid.COL_STR, 
+                    {"col_label": _("FROM original value(s)"), 
+                     "coltype": settings_grid.COL_STR, 
                      "colwidth": 200},
-                    {"col_label": _("To"), "coltype": settings_grid.COL_STR, 
+                    {"col_label": _("TO new value"), 
+                     "coltype": settings_grid.COL_STR, 
                      "colwidth": 200},
-                    {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
+                    {"col_label": _("With LABEL"), 
+                     "coltype": settings_grid.COL_STR, 
                      "colwidth": 200, "empty_ok": True},
                      ]
         grid_size = (640, 250)
@@ -331,18 +334,24 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.SetReturnCode(wx.ID_CANCEL)
 
     def on_help(self, event):
-        rules = _("1. Ranges use the keyword TO e.g. \"150 TO 250\". "
-            "All keywords must be upper case, so \"TO\" will work but \"to\" "
-            "will not.\n\n2. \"MIN\" and \"MAX\" can be used in ranges e.g. "
-            "\"MIN TO 100\", or \"100 TO MAX\". You can even use \"MIN TO MAX\""
-            " if you\n    want to leave out missing values.\n\n3. \"REMAINING\""
-            " and \"MISSING\" are the two remaining keywords you can use\n"
-            "    e.g. if you want all missing values to become 99 you would "
-            "have a line with From as \"MISSING\", and To as 99\n\n4. Only one "
-            "condition is allowed per line. So if you want to recode <=5 and "
-            "10+ to 99 you would have one line with \n\n    \"MIN TO 5\" as "
-            "From and 99 as To \n\n        and another line with\n\n"
-            "    \"10 TO MAX\" as From and 99 as To.")
+        rules = _("""1. If you are trying to recode a range e.g. ages 1-19 into a single age group,
+put 1 TO 19 in the FROM original value(s) column, not 1 in the first column and 19 in the second.
+
+2. Ranges use the keyword TO e.g. "150 TO 250". All keywords must be upper case, so "TO" will work but "to" will not.
+
+3. "MIN" and "MAX" can be used in ranges e.g. "MIN TO 100", or "100 TO MAX". You can even use "MIN TO MAX" if you
+want to leave out missing values.
+
+4. "REMAINING" and "MISSING" are the two remaining keywords you can use
+e.g. if you want all missing values to become 99 you would have a line with From as "MISSING", and To as 99
+
+5. Only one condition is allowed per line. So if you want to recode <=5 and 10+ to 99 you would have one line with
+
+    "MIN TO 5" as From and 99 as To
+
+    and another line with
+
+    "10 TO MAX" as From and 99 as To.""")
         dlg = lib.DlgHelp(parent=self, title=_("Recoding Help"), 
                           guidance_lbl=_("Recoding Rules"), 
                           activity_lbl=u"recoding", guidance=rules, 
