@@ -1051,8 +1051,8 @@ def check_tblname(file_path, tblname, headless):
     return tblname
 
 class DummyProgbar(object):
-    def SetValue(self, unused):
-        pass
+    def SetValue(self, value):
+        print(u"Progress %s ..." % round(value, 2))
 
 class DummyLabel(object):
     def SetLabel(self, unused):

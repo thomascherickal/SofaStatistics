@@ -273,6 +273,10 @@ class DlgVarConfig(wx.Dialog):
 
     def on_ok(self, event):
         """
+        If file doesn't exist, check if folder exists. If so, make file with 
+            required vdt variables initialised. If not, advise user that folder 
+            doesn't exist.
+        If file exists, check it is a valid vdt file.
         Best to prevent storing an invalid vdt file in a project rather than 
             just catching once selected.
         Still have to handle it if corrupted after being set as part of a 
@@ -282,14 +286,30 @@ class DlgVarConfig(wx.Dialog):
             (nothing ;-) plus new item) and stores that.
         """
         entered_vdt_path = self.txt_var_dets_file.GetValue()
-        invalid_msg = lib.get_invalid_var_dets_msg(entered_vdt_path)
-        if not invalid_msg:
-            self.ret_dic[mg.VDT_RET] = entered_vdt_path
+        file_exists = os.path.exists(entered_vdt_path)
+        if file_exists: # exists but is it valid?
+            invalid_msg = lib.get_invalid_var_dets_msg(entered_vdt_path)
+            if not invalid_msg:
+                self.ret_dic[mg.VDT_RET] = entered_vdt_path
+            else:
+                wx.MessageBox(_(u"Unable to use vdt file \"%s\" entered. "
+                                u"Orig error: %s") % (entered_vdt_path, 
+                                                      invalid_msg))
+                self.ret_dic[mg.VDT_RET] = self.initial_vdt
         else:
-            wx.MessageBox(_(u"Unable to use vdt file \"%s\" entered. "
-                            u"Orig error: %s") % (entered_vdt_path, 
-                                                  invalid_msg))
-            self.ret_dic[mg.VDT_RET] = self.initial_vdt
+            foldername, filename = os.path.split(entered_vdt_path)
+            folder_exists = os.path.exists(foldername)
+            if folder_exists:
+                with open(entered_vdt_path, "w") as f:
+                    f.write(u"var_labels={}\nvar_notes={}\nvar_types={}"
+                            u"\nval_dics={}")
+                    f.close()
+                self.ret_dic[mg.VDT_RET] = entered_vdt_path
+            else:
+                wx.MessageBox(_(u"Unable to make vdt file \"%s\" - the \"%s\" "
+                                u"directory doesn't exist.") % (filename, 
+                                                                foldername))
+                self.ret_dic[mg.VDT_RET] = self.initial_vdt
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.

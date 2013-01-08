@@ -297,9 +297,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         return var_a, var_b
         
     def on_btn_var_config(self, event):
-        var_a, var_b = self.get_vars()
         config_output.ConfigUI.on_btn_var_config(self, event)
-        self.setup_groups(var_a, var_b)
+        self.setup_var_dropdowns()        
         self.update_phrase()
         
     def on_group_by_sel(self, event):

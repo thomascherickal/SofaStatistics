@@ -638,6 +638,7 @@ class DlgImportDisplay(wx.Dialog):
             raise Exception(u"Unable to create reader for file. "
                             u"\nCaused by error: %s" % lib.ue(e))
         try:
+            i = 0
             strdata = []
             for i, row in enumerate(tmp_reader, 1):
                 if row:  # exclude empty rows
