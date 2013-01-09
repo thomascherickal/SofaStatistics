@@ -365,11 +365,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show trend line?"))
         self.chk_line_trend.SetFont(mg.GEN_FONT)
-        self.chk_line_trend.SetValue(False)
         self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
         self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Show smoothed data line?"))
-        self.chk_line_smooth.SetValue(False)
         self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
         self.szr_line_chart.Add(self.rad_line_val.get_szr(), 0, wx.TOP, 5)
@@ -380,6 +378,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
                                 self.tickbox_down_by)
+        self.setup_line_extras()
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
                                 self.tickbox_down_by)
@@ -1020,7 +1019,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         show_line_extras = (self.chart_type == mg.LINE_CHART and (
                 (not show_agg # normal and dropdown2 is nothing
                      and self.drop_var2.GetStringSelection() == mg.DROP_SELECT)
-                 or (show_agg # AVG and dropdown3 is nothing
+                 or (show_agg # aggregate and dropdown3 is nothing
                      and self.drop_var3.GetStringSelection() == mg.DROP_SELECT)
             ))
         self.chk_line_trend.Enable(show_line_extras)

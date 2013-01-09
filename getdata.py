@@ -598,8 +598,8 @@ def open_database(parent, event):
                 "index")
         wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
     else:
-        SQL_get_count = (u"""SELECT COUNT(*) FROM %s """ % tblname_qtr(dd.dbe, 
-                                                                       dd.tbl))
+        SQL_get_count = (u"SELECT COUNT(*) FROM %s" % tblname_qtr(dd.dbe, 
+                                                                  dd.tbl))
         try:
             dd.cur.execute(SQL_get_count)
         except Exception, e:
