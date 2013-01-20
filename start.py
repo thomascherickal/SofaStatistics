@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -610,10 +610,11 @@ class StartFrame(wx.Frame):
             self.import_img_offset = -40
             self.report_img_offset = 10
             self.stats_img_offset = 10
-            self.proj_img_offset = -20
             self.help_img_offset = 0
             self.get_started_img_offset = 0
+            self.proj_img_offset = -20
             self.prefs_img_offset = 35
+            self.backup_img_offset = 35
             self.data_img_offset = -30
             self.form_pos_left = mg.HORIZ_OFFSET+5
         else:
@@ -622,10 +623,11 @@ class StartFrame(wx.Frame):
             self.import_img_offset = -10
             self.report_img_offset = 30
             self.stats_img_offset = 30
-            self.proj_img_offset = 30
             self.help_img_offset = 30
             self.get_started_img_offset = 0
+            self.proj_img_offset = 30
             self.prefs_img_offset = 55
+            self.backup_img_offset = 55
             self.data_img_offset = 45
             self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10) 
     
@@ -666,10 +668,6 @@ class StartFrame(wx.Frame):
                                    u"step_by_step.gif")
         self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
                                            reverse=REVERSE)
-        self.bmp_proj = lib.get_bmp(src_img_path=self.proj_sized, 
-                                    reverse=REVERSE)
-        prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
-        self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
         self.bmp_data = lib.get_bmp(src_img_path=self.data_sized, 
                                     reverse=REVERSE)
         imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
@@ -680,6 +678,12 @@ class StartFrame(wx.Frame):
                                      reverse=REVERSE)
         stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
         self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
+        self.bmp_proj = lib.get_bmp(src_img_path=self.proj_sized, 
+                                    reverse=REVERSE)
+        prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
+        self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
+        backup = os.path.join(mg.SCRIPT_PATH, u"images", u"backup.gif")
+        self.bmp_backup = lib.get_bmp(src_img_path=backup, reverse=REVERSE)
         exit_img = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
         self.bmp_exit = lib.get_bmp(src_img_path=exit_img, reverse=REVERSE)
         agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
@@ -794,7 +798,15 @@ class StartFrame(wx.Frame):
                                          pos=(self.btn_right, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
-        # Exit  
+        # Backup
+        bmp_btn_backup = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+                                         _("Run Backup"), btn_font_sz, "white")
+        if REVERSE: bmp_btn_backup = lib.reverse_bmp(bmp_btn_backup)
+        self.btn_backup = wx.BitmapButton(self.panel, -1, bmp_btn_backup, 
+                                         pos=(self.btn_right, g.next()))
+        self.btn_backup.Bind(wx.EVT_BUTTON, self.on_backup_click)
+        self.btn_backup.Bind(wx.EVT_ENTER_WINDOW, self.on_backup_enter)
+        # Exit
         bmp_btn_exit = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
                                               _("Exit"), btn_font_sz, "white")
         if REVERSE: bmp_btn_exit = lib.reverse_bmp(bmp_btn_exit)
@@ -1093,82 +1105,6 @@ class StartFrame(wx.Frame):
                          self.help_text_width, 260)
         panel_dc.DrawLabel(text2draw, myrect)
         event.Skip()
-
-    def on_help_click(self, event):
-        import webbrowser
-        url = u"http://www.sofastatistics.com/help.php"
-        webbrowser.open_new_tab(url)
-        event.Skip()
-
-    def on_help_enter(self, event):
-        panel_dc = wx.ClientDC(self.panel)
-        self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_help, 
-                            self.help_img_left+self.help_img_offset, 
-                            self.help_img_top-25, True)
-        panel_dc.SetTextForeground(self.text_brown)
-        panel_dc.SetFont(self.help_font)
-        txt_help = _(u"Get help on-line, including screen shots and "
-                     u"step-by-step instructions. Connect to the community. "
-                     u"Get direct help from the developer.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, 
-                                                self.max_help_text_width), 
-                    wx.Rect(self.main_left, self.help_text_top, 
-                            self.help_text_width, 260))
-        event.Skip()
-
-    def on_proj_click(self, event):
-        proj_fils = projects.get_projs() # should always be the default present
-        # open proj selection form
-        dlgProj = projselect.DlgProjSelect(self, proj_fils, self.active_proj)
-        dlgProj.ShowModal()
-        event.Skip()
-
-    def on_proj_enter(self, event):
-        panel_dc = wx.ClientDC(self.panel)
-        self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_proj, 
-                            self.help_img_left+self.proj_img_offset, 
-                            self.help_img_top-20, True)
-        panel_dc.SetTextForeground(self.text_brown)
-        panel_dc.SetFont(self.help_font)
-        txt_projs = _("Projects let SOFA know how to connect to your data, "
-                      "what labels to use, your favourite styles etc. The "
-                      "default project is OK to get you started.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, 
-                                                self.max_help_text_width), 
-                    wx.Rect(self.main_left, self.help_text_top, 
-                            self.help_text_width, 260))
-        event.Skip()
-    
-    def on_prefs_click(self, event):
-        import prefs
-        debug = False
-        try:
-            prefs_dic = \
-                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
-                                                fil_name=mg.INT_PREFS_FILE)
-        except Exception:
-            prefs_dic = {}
-        if debug: print(prefs_dic)
-        dlg = prefs.DlgPrefs(parent=self, prefs_dic_in=prefs_dic)
-        dlg.ShowModal()
-        event.Skip()
-    
-    def on_prefs_enter(self, event):
-        panel_dc = wx.ClientDC(self.panel)
-        self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_prefs, 
-                            self.help_img_left+self.prefs_img_offset, 
-                            self.help_img_top-10, True)
-        panel_dc.SetTextForeground(self.text_brown)
-        panel_dc.SetFont(self.help_font)
-        txt_pref = _("Set preferences e.g. format for entering dates")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
-                                                self.max_help_text_width), 
-                    wx.Rect(self.main_left, self.help_text_top, 
-                            self.help_text_width, 260))
-        event.Skip()
         
     def on_data_click(self, event):
         # open proj selection form
@@ -1348,7 +1284,119 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top, 
                                              self.help_text_width, 260))
         event.Skip()
+
+    def on_help_click(self, event):
+        import webbrowser
+        url = u"http://www.sofastatistics.com/help.php"
+        webbrowser.open_new_tab(url)
+        event.Skip()
+
+    def on_help_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_help, 
+                            self.help_img_left+self.help_img_offset, 
+                            self.help_img_top-25, True)
+        panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
+        txt_help = _(u"Get help on-line, including screen shots and "
+                     u"step-by-step instructions. Connect to the community. "
+                     u"Get direct help from the developer.")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
+        event.Skip()
+
+    def on_proj_click(self, event):
+        proj_fils = projects.get_projs() # should always be the default present
+        # open proj selection form
+        dlgProj = projselect.DlgProjSelect(self, proj_fils, self.active_proj)
+        dlgProj.ShowModal()
+        event.Skip()
+
+    def on_proj_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_proj, 
+                            self.help_img_left+self.proj_img_offset, 
+                            self.help_img_top-20, True)
+        panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
+        txt_projs = _("Projects let SOFA know how to connect to your data, "
+                      "what labels to use, your favourite styles etc. The "
+                      "default project is OK to get you started.")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
+        event.Skip()
     
+    def on_prefs_click(self, event):
+        import prefs
+        debug = False
+        try:
+            prefs_dic = \
+                config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
+                                                fil_name=mg.INT_PREFS_FILE)
+        except Exception:
+            prefs_dic = {}
+        if debug: print(prefs_dic)
+        dlg = prefs.DlgPrefs(parent=self, prefs_dic_in=prefs_dic)
+        dlg.ShowModal()
+        event.Skip()
+    
+    def on_prefs_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_prefs, 
+                            self.help_img_left+self.prefs_img_offset, 
+                            self.help_img_top-10, True)
+        panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
+        txt_pref = _("Set preferences e.g. format for entering dates")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
+        event.Skip()
+    
+    def on_backup_click(self, event):
+        debug = False
+        plugin_found = False
+        try:
+            if debug: raise ImportError
+            import backup_sofa as bu
+            plugin_found = True
+        except ImportError:
+            # don't have extension installed (or working)
+            comments = [u"Make it easy to backup your data, variable labels, "
+                        u"and reports"]
+            dlg = config_output.DlgGetExt(label=u"Backup SOFA", 
+                                          comments=comments)
+            dlg.ShowModal()
+        if plugin_found:
+            wx.BeginBusyCursor()
+            msg = bu.run_backup()
+            lib.safe_end_cursor()
+            wx.MessageBox(msg)
+        event.Skip()
+    
+    def on_backup_enter(self, event):
+        panel_dc = wx.ClientDC(self.panel)
+        self.draw_blank_wallpaper(panel_dc)
+        panel_dc.DrawBitmap(self.bmp_backup, 
+                            self.help_img_left+self.backup_img_offset, 
+                            self.help_img_top-10, True)
+        panel_dc.SetTextForeground(self.text_brown)
+        panel_dc.SetFont(self.help_font)
+        txt_backup = _("Backup your data, variable labels, and reports")
+        panel_dc.DrawLabel(lib.get_text_to_draw(txt_backup, 
+                                                self.max_help_text_width), 
+                    wx.Rect(self.main_left, self.help_text_top, 
+                            self.help_text_width, 260))
+        event.Skip()
+            
     def on_exit_click(self, event):
         debug = False
         wx.BeginBusyCursor()

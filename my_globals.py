@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.3.1"
+VERSION = u"1.3.2"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html

@@ -80,6 +80,8 @@ QUOTES = [
      u"go with mine.", u"Jim Barksdale"),
     (u"It is easy to lie with statistics; it is easier to lie without them.", 
      u"Frederick Mosteller"),
+    (u"There are no routine statistical questions, only questionable "
+     u"statistical routines.", u"David Cox"),
     ]
 
 def get_quote():
