@@ -292,9 +292,11 @@ class DlgVarConfig(wx.Dialog):
             if not invalid_msg:
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
-                wx.MessageBox(_(u"Unable to use vdt file \"%s\" entered. "
-                                u"Orig error: %s") % (entered_vdt_path, 
-                                                      invalid_msg))
+                wx.MessageBox(_(u"Unable to use vdt file "
+                                u"\"%(entered_vdt_path)s\" entered. "
+                                u"Orig error: %(invalid_msg)s") % 
+                              {u"entered_vdt_path": entered_vdt_path, 
+                               u"invalid_msg": invalid_msg})
                 self.ret_dic[mg.VDT_RET] = self.initial_vdt
         else:
             foldername, filename = os.path.split(entered_vdt_path)
@@ -306,9 +308,10 @@ class DlgVarConfig(wx.Dialog):
                     f.close()
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
-                wx.MessageBox(_(u"Unable to make vdt file \"%s\" - the \"%s\" "
-                                u"directory doesn't exist.") % (filename, 
-                                                                foldername))
+                wx.MessageBox(_(u"Unable to make vdt file \"%(filename)s\" - "
+                                u"the \"%(foldername)s\" directory doesn't "
+                                u"exist.") % {u"filename": filename, 
+                                              u"foldername": foldername})
                 self.ret_dic[mg.VDT_RET] = self.initial_vdt
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  

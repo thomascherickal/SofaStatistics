@@ -1182,9 +1182,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                         if var_role == mg.VAR_ROLE_CHARTS:
                             continue
                     varlbl = lblctrl.GetLabel().rstrip(u":")
-                    wx.MessageBox(_(u"\"%s\" has a variable selected but the "
-                                    u"previous drop down list \"%s\" does not.") 
-                                  % (varlbl, lbl_with_no_select))
+                    wx.MessageBox(_(u"\"%(varlbl)s\" has a variable selected "
+                        u"but the previous drop down list "
+                        u"\"%(lbl_with_no_select)s\" does not.") % 
+                                  {u"varlbl": varlbl, 
+                                   u"lbl_with_no_select": lbl_with_no_select})
                     return False
         # 2) Excluding No Selections, we have duplicate selections
         selected_lblctrl_vars = [x for x in shown_lblctrl_vars 

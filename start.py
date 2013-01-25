@@ -393,11 +393,11 @@ class DlgFeedback(wx.Dialog):
         txt_invitation = wx.StaticText(self.panel, -1, 
             _(u"Did SOFA meet your needs? Please let us know by answering a "
               u"short survey."
-              u"\n\nYou can answer later by clicking on the \"%s\" link"
+              u"\n\nYou can answer later by clicking on the \"%(link)s\" link"
               u"\ndown the bottom of the main form"
               u"\n\nAnd you are always welcome to email "
-              u"%s - \nespecially to solve any problems.") % (mg.FEEDBACK_LINK, 
-                                                              mg.CONTACT))
+              u"%(contact)s - \nespecially to solve any problems.") % 
+                            {u"link": mg.FEEDBACK_LINK, u"contact": mg.CONTACT})
         self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
@@ -522,8 +522,9 @@ class StartFrame(wx.Frame):
         if show_more_steps: print(u"Passed check for database problems")
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_(u"Please click on \"Enter/Edit Data\" and delete"
-                u" either of these tables if present - \"%s\" and \"%s\"") 
-                % (mg.TMP_TBLNAME, mg.TMP_TBLNAME2))
+                            u" either of these tables if present - "
+                            u"\"%(tbl1)s\" and \"%(tbl2)s\"") % 
+                            {u"tbl1": mg.TMP_TBLNAME, u"tbl2": mg.TMP_TBLNAME2})
         if show_more_steps: print(u"Passed check for having to delete database")
         #try:
         #    wx.CallAfter(lib.check_crack, show_more_steps) # won't stop form load if fails
@@ -1377,7 +1378,10 @@ class StartFrame(wx.Frame):
             dlg.ShowModal()
         if plugin_found:
             wx.BeginBusyCursor()
-            msg = bu.run_backup()
+            try:
+                msg = bu.run_backup()
+            except Exception, e:
+                msg = u"Unable to make backup.\n\nOrig error: %s" % e
             lib.safe_end_cursor()
             wx.MessageBox(msg)
         event.Skip()

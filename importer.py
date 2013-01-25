@@ -1239,7 +1239,6 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 self.progbar.SetValue(0)
                 lib.safe_end_cursor()
                 wx.MessageBox(_(u"Unable to import data\n\nHelp available "
-                                u"at %s\n\nError: %s" % (mg.CONTACT, 
-                                                         lib.ue(e))))
+                        u"at %s\n\n") % mg.CONTACT + u"Error: %s" % lib.ue(e))
     if not headless:
         self.align_btns_to_importing(importing=False)

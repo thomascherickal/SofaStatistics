@@ -85,9 +85,9 @@ class OutputException(Exception):
 
 class CategoryTooLong(OutputException):
     def __init__(self, fldname):
-        OutputException.__init__(self, _(u"The \"%s\" field can't be used as a "
-            u"category. It has values longer than %s.") % (fldname,
-                                                  mg.MAX_VAL_LEN_IN_SQL_CLAUSE))
+        OutputException.__init__(self, _(u"The \"%(fldname)s\" field can't be "
+            u"used as a category. It has values longer than %(max_val)s.") % 
+                {u"fldname": fldname, u"max_val": mg.MAX_VAL_LEN_IN_SQL_CLAUSE})
         
 class TooManyCellsInChiSquare(OutputException):
     def __init__(self):
