@@ -13,6 +13,7 @@ In other cases, however, e.g. box plots, we need to analyse the values to get
 """
 
 import numpy as np
+from operator import itemgetter
 import pprint
 
 import my_globals as mg
@@ -374,7 +375,6 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                                  max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
-    is_avg = (var_role_agg is not None)
     if multichart:
         chart_fldname = var_role_charts_name
         chart_fldlbls = var_role_charts_lbls
@@ -524,7 +524,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
-                    rotate=False):
+                    sort_opt, rotate=False):
     """
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
@@ -597,12 +597,17 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         if debug: print(SQL_cat_vals)
         cur.execute(SQL_cat_vals)
         cat_vals = [x[0] for x in cur.fetchall()]
-        if debug: print(cat_vals)
-        if len(cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
+        # sort appropriately
+        cat_vals_and_lbls = [(x, var_role_cat_lbls.get(x, x)) for x in cat_vals]
+        if sort_opt == mg.SORT_LBL:
+            cat_vals_and_lbls.sort(key=itemgetter(1))
+        sorted_cat_vals = [x[0] for x in cat_vals_and_lbls]
+        if debug: print(sorted_cat_vals)
+        if len(sorted_cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
             raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
                                             max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     else:
-        cat_vals = [1,] # the first boxplot is always 1 on the x-axis
+        sorted_cat_vals = [1,] # the first boxplot is always 1 on the x-axis
     ymin = None # init
     ymax = 0
     first_chart_by = True
@@ -622,7 +627,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         sql_dic[u"and_series_val_filt"] = and_series_val_filt
         # time to get the boxplot information for the series
         boxdet_series = []
-        for i, cat_val in enumerate(cat_vals, 1): # e.g. "Mt Albert Grammar", 
+        for i, cat_val in enumerate(sorted_cat_vals, 1): # e.g. "Mt Albert Grammar", 
                 # "Epsom Girls Grammar", "Hebron Christian College", ...
             if var_role_cat:
                 if first_chart_by: # build xaxis_dets once

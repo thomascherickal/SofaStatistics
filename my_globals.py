@@ -12,9 +12,9 @@ import wx
 # It doesn't do any local importing at all until the last line, where it imports
 # config (used for initial config plus re-config).
 
-debug = False
+debug = True
 
-VERSION = u"1.3.2"
+VERSION = u"1.3.3"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -153,6 +153,7 @@ SORT_DECREASING = _(u"Decreasing")
 SORT_NO_OPTS = []
 STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
 SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
+BOX_PLOT_SORT_OPTS = [SORT_VALUE, SORT_LBL]
 SHOW_FREQ = _(u"Count")
 SHOW_PERC = _(u"Percent")
 SHOW_AVG = _(u"Mean")

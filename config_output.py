@@ -103,7 +103,6 @@ class DlgGetExt(wx.Dialog):
         szr.Layout()
 
     def on_btn_get_ext(self, event):
-        import webbrowser
         webbrowser.open_new_tab(url=self.link)
         event.Skip()
         
@@ -161,47 +160,7 @@ def path2style(path):
     if style == u"":
         raise Exception("Problem stripping style out of path (%s)" % path)
     return style
-
-
-class Opts(object):
-
-    def GetSelection(self):
-        debug = False
-        try:
-            return self.rad_opts.GetSelection()
-        except AttributeError:
-            for idx, szr_item in enumerate(self.rad_opts.GetChildren()):
-                rad = szr_item.GetWindow()
-                if debug: print(u"Item %s with value of %s" % (idx, 
-                                                               rad.GetValue()))
-                if rad.GetValue():
-                    return idx
-            return None
-        
-    def SetSelection(self, idx):
-        try:
-            return self.rad_opts.SetSelection(idx)
-        except AttributeError:
-            self.rad_opts.GetChildren()[idx].GetWindow().SetValue(True)
-            
-    def Enable(self, enable=True):
-        """
-        If the object can be enabled/disabled do that. If not, assume it is a 
-            sizer containing widgets needing to be individually enabled etc.
-        """
-        try:
-            self.rad_opts.Enable(enable)
-        except AttributeError:
-            for szr_item in self.rad_opts.GetChildren():
-                szr_item.GetWindow().Enable(enable)
-            
-    def get_szr(self):
-        """
-        Use this when inserting into a sizer (expects a sizer or widget not this 
-            object.
-        """
-        return self.rad_opts
-
+    
 
 class DlgVarConfig(wx.Dialog):
     """

@@ -399,7 +399,8 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
                 # will not be found using an SQL query
                 raise Exception(u"%s is not a suitable value for use as a "
                                 u"category" % val2use)
-            clause = u"%s %s %s" % (objqtr(fldname), dbe_gte, repr(val).strip(u"L"))
+            clause = u"%s %s %s" % (objqtr(fldname), dbe_gte, 
+                                    repr(val).strip(u"L"))
         else:
             clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte, 
                                                      objqtr, valqtr)

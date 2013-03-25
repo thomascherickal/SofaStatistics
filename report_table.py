@@ -221,7 +221,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                                      self.on_chk_first_as_label)
         self.enable_raw_display_opts(enable=False)
         self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1, 
-                                                _("Show % symbol?"))
+                                                _("Show percent symbol?"))
         self.chk_show_perc_symbol.SetFont(mg.GEN_FONT)
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
                                        self.on_chk_show_perc_symbol)

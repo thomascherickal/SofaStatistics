@@ -582,6 +582,7 @@ class StartFrame(wx.Frame):
         # layout "constants"
         self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
         #self.tight_layout = True # for testing
+        #wx.MessageBox("Change tight_layout back")
         self.tight_height_drop = 24
         self.tight_width_drop = 57
         if not self.tight_layout:
@@ -817,14 +818,16 @@ class StartFrame(wx.Frame):
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.StockCursor(wx.CURSOR_HAND)
-            self.btn_help.SetCursor(hand)
-            self.btn_proj.SetCursor(hand)
-            self.btn_prefs.SetCursor(hand)
+            self.btn_get_started.SetCursor(hand)
             self.btn_data.SetCursor(hand)
             self.btn_import.SetCursor(hand)
             self.btn_tables.SetCursor(hand)
             self.btn_charts.SetCursor(hand)
             self.btn_statistics.SetCursor(hand)
+            self.btn_help.SetCursor(hand)
+            self.btn_proj.SetCursor(hand)
+            self.btn_prefs.SetCursor(hand)
+            self.btn_backup.SetCursor(hand)
             self.btn_exit.SetCursor(hand)
     
     def setup_links(self, new_version):
@@ -1394,7 +1397,8 @@ class StartFrame(wx.Frame):
                             self.help_img_top-10, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt_backup = _("Backup your data, variable labels, and reports")
+        txt_backup = _(u"Backup your data, reports, and variable and project "
+                       u"details")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_backup, 
                                                 self.max_help_text_width), 
                     wx.Rect(self.main_left, self.help_text_top, 
@@ -1412,6 +1416,7 @@ class StartFrame(wx.Frame):
             os.remove(delme)
         lib.safe_end_cursor()
         #LOCAL_PATH_SETUP_NEEDED = True # testing
+        #wx.MessageBox("Change me too!")
         if LOCAL_PATH_SETUP_NEEDED: # if first use, pop up on way out
             dlg = DlgFeedback(self)
             dlg.ShowModal()

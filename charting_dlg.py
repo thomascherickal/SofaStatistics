@@ -18,112 +18,20 @@ ROTATE = False
 MAJOR = False
 # double as labels
 BARS_SORTED = u"bars"
+CLUSTERS_SORTED = u"clusters"
 SLICES_SORTED = u"slices"
+GROUPS_SORTED = u"groups"
 
 """
 If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE and will thus 
     be sorted by values not labels and order of values determined by GROUP BY
     in database engine used. See specifics in, for example, 
     get_line_chart_script().
-The opts classes are required because of a bug in Mac when displaying radio 
-    button groups with a font size smaller than the system font. Have to build a 
-    collection of individual widgets myself.
+Value dropdowns have to be built fresh each time the data source changes because
+    in Linux the process of changing the values list dynamically is far too slow 
+    when a non-system font is chosen. Much, much quicker to build a fresh one 
+    each time with the new list as the initial value.
 """
-
-class ValOpts(config_output.Opts):
-    
-    def __init__(self, parent, panel):
-        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        group_lbl = _(u"Data reported")
-        if not config_output.IS_MAC:
-            self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
-                                        choices=mg.DATA_SHOW_OPTS, size=(-1,50))
-            self.rad_opts.SetFont(mg.GEN_FONT)
-            self.rad_opts.SetSelection(idx_data_opt)
-            self.rad_opts.SetToolTipString(_(u"Report frequency,percentage, "
-                                             u"average, or sum?"))
-            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_rad_data_show)
-        else: # correct layout issue
-            bx_perc = wx.StaticBox(panel, -1, group_lbl)
-            szr_rad_val = wx.StaticBoxSizer(bx_perc, wx.HORIZONTAL)
-            for i, choice in enumerate(mg.DATA_SHOW_OPTS):
-                if choice == mg.SHOW_FREQ:
-                    rad_freq = wx.RadioButton(panel, -1, choice, 
-                                              style=wx.RB_GROUP) # leads
-                    current_rad = rad_freq
-                    rad_freq.SetFont(mg.GEN_FONT)
-                    rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
-                elif choice == mg.SHOW_PERC:
-                    rad_perc = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_perc
-                    rad_perc.SetFont(mg.GEN_FONT)
-                    rad_perc.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
-                elif choice == mg.SHOW_AVG:
-                    rad_avg = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_avg
-                    rad_avg.SetFont(mg.GEN_FONT)
-                    rad_avg.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
-                elif choice == mg.SHOW_SUM:
-                    rad_sum = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_sum
-                    rad_sum.SetFont(mg.GEN_FONT)
-                    rad_sum.Bind(wx.EVT_RADIOBUTTON, parent.on_rad_data_show)
-                else:
-                    raise Exception(u"Unexpected has perc: %s" % choice)
-                if i == idx_data_opt:
-                    current_rad.SetValue(True)
-                szr_rad_val.Add(current_rad, 0, wx.RIGHT, 5)
-            self.rad_opts = szr_rad_val
-            
-
-class SortOrderOpts(config_output.Opts):
-    
-    def __init__(self, parent, panel, sort_item):
-        group_lbl = _(u"Sort order of %s" % sort_item)
-        idx_current_sort_opt = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
-        if not config_output.IS_MAC:
-            self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
-                                        choices=mg.STD_SORT_OPTS, size=(-1,50))
-            self.rad_opts.SetFont(mg.GEN_FONT)
-            self.rad_opts.SetSelection(idx_current_sort_opt)
-            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_rad_sort)
-        else:
-            bx_sort_order = wx.StaticBox(panel, -1, group_lbl)
-            szr_rad_sort = wx.StaticBoxSizer(bx_sort_order, wx.HORIZONTAL)
-            # have to bind to different evt handlers so we can know what was called
-            for i, choice in enumerate(mg.STD_SORT_OPTS):
-                if choice == mg.SORT_VALUE:
-                    rad_sort_none = wx.RadioButton(panel, -1, choice, 
-                                                   style=wx.RB_GROUP) # leads
-                    current_rad = rad_sort_none
-                    rad_sort_none.SetFont(mg.GEN_FONT)
-                    rad_sort_none.Bind(wx.EVT_RADIOBUTTON, 
-                                       parent.on_rad_sort)
-                elif choice == mg.SORT_LBL:
-                    rad_sort_lbl = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_sort_lbl
-                    rad_sort_lbl.SetFont(mg.GEN_FONT)
-                    rad_sort_lbl.Bind(wx.EVT_RADIOBUTTON, 
-                                      parent.on_rad_sort)
-                elif choice == mg.SORT_INCREASING:
-                    rad_sort_inc = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_sort_inc
-                    rad_sort_inc.SetFont(mg.GEN_FONT)
-                    rad_sort_inc.Bind(wx.EVT_RADIOBUTTON, 
-                                      parent.on_rad_sort)
-                elif choice == mg.SORT_DECREASING:
-                    rad_sort_dec = wx.RadioButton(panel, -1, choice)
-                    current_rad = rad_sort_dec
-                    rad_sort_dec.SetFont(mg.GEN_FONT)
-                    rad_sort_dec.Bind(wx.EVT_RADIOBUTTON, 
-                                      parent.on_rad_sort)
-                else:
-                    raise Exception(u"Unexpected sort order: %s" % choice)
-                if i == idx_current_sort_opt:
-                    current_rad.SetValue(True)
-                szr_rad_sort.Add(current_rad, 0, wx.RIGHT, 5)
-            self.rad_opts = szr_rad_sort
-
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
@@ -209,7 +117,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if mg.PLATFORM == mg.WINDOWS:
             self.tickbox_down_by = 25 # to line up with a combo
         elif mg.PLATFORM == mg.LINUX:
-            self.tickbox_down_by = 21
+            self.tickbox_down_by = 10
         else:
             self.tickbox_down_by = 25
         # setup charts
@@ -308,18 +216,43 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
                      height_init=myheight)
     
+    def get_drop_val_opts(self, panel):
+        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPTS, 
+                              size=(90,-1))
+        drop_opts.SetFont(mg.GEN_FONT)
+        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        drop_opts.SetSelection(idx_data_opt)
+        drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_val)
+        drop_opts.SetToolTipString(u"Report frequency, percentage, average, or "
+                                   u"sum?")
+        return drop_opts
+    
+    def get_drop_sort_opts(self, panel, choices=mg.STD_SORT_OPTS):
+        drop_opts = wx.Choice(panel, -1, choices=choices, size=(100,-1))
+        drop_opts.SetFont(mg.GEN_FONT)
+        idx_current_sort_opt = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+        drop_opts.SetSelection(idx_current_sort_opt)
+        drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_sort)
+        drop_opts.SetToolTipString(_(u"Sort order for categories"))
+        return drop_opts
+    
     def setup_simple_bar(self):
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        self.rad_bar_val = ValOpts(parent=self, panel=self.panel_bar_chart)
-        self.rad_bar_sort = SortOrderOpts(parent=self, 
-                                          panel=self.panel_bar_chart, 
-                                          sort_item=BARS_SORTED)
+        lbl_val = wx.StaticText(self.panel_bar_chart, -1, 
+                                  _(u"Data\nreported:"))
+        lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_bar_val = self.get_drop_val_opts(self.panel_bar_chart)
+        lbl_sort = wx.StaticText(self.panel_bar_chart, -1, 
+                                 _(u"Sort order\nof %s:") % BARS_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_bar_sort = self.get_drop_sort_opts(self.panel_bar_chart)
         self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
-            
-        self.szr_bar_chart.Add(self.rad_bar_val.get_szr(), 0, wx.TOP|
-                               wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.rad_bar_sort.get_szr(), 0, wx.TOP, 5)
+        self.szr_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_bar_chart.Add(self.drop_bar_val, 0, wx.TOP, 5)
+        self.szr_bar_chart.AddSpacer(10)
+        self.szr_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_bar_chart.Add(self.drop_bar_sort, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
         self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
                                self.tickbox_down_by)
@@ -329,10 +262,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_clust_bar(self):
         self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_clust_bar = wx.Panel(self.panel_mid)
-        self.rad_clust_val = ValOpts(parent=self, panel=self.panel_clust_bar)
+        lbl_val = wx.StaticText(self.panel_clust_bar, -1, 
+                                  _(u"Data\nreported:"))
+        lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_clust_val = self.get_drop_val_opts(self.panel_clust_bar)
+        lbl_sort = wx.StaticText(self.panel_clust_bar, -1, 
+                                 _(u"Sort order\nof %s:") % CLUSTERS_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
-        self.szr_clust_bar_chart.Add(self.rad_clust_val.get_szr(), 0, 
-                                     wx.TOP, 5)
+        self.szr_clust_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_clust_bar_chart.Add(self.drop_clust_val, 0, wx.TOP, 5)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_clust_bar_chart.Add(self.drop_clust_sort, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
         self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
                                      self.tickbox_down_by)
@@ -342,15 +285,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_pie(self):
         self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
-        self.rad_pie_sort = SortOrderOpts(parent=self, 
-                                          panel=self.panel_pie_chart, 
-                                          sort_item=SLICES_SORTED)
+        lbl_sort = wx.StaticText(self.panel_pie_chart, -1, 
+                                 _(u"Sort order\nof %s:") % SLICES_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_pie_sort = self.get_drop_sort_opts(self.panel_pie_chart)
         self.chk_val_dets = wx.CheckBox(self.panel_pie_chart, -1, 
                                        _("Show Count and %?"))
         self.chk_val_dets.SetFont(mg.GEN_FONT)
         self.chk_val_dets.SetValue(False)
         self.chk_val_dets.SetToolTipString(_("Show Count and %?"))
-        self.szr_pie_chart.Add(self.rad_pie_sort.get_szr(), 0, wx.TOP, 5)
+        self.szr_pie_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_pie_chart.Add(self.drop_pie_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_pie_chart.AddSpacer(10)
         self.szr_pie_chart.Add(self.chk_val_dets, 0, wx.TOP, 
                                self.tickbox_down_by)
@@ -360,18 +305,30 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_line(self):
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        self.rad_line_val = ValOpts(parent=self, panel=self.panel_line_chart)
+        lbl_val = wx.StaticText(self.panel_line_chart, -1, 
+                                  _(u"Data\nreported:"))
+        lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_line_val = self.get_drop_val_opts(self.panel_line_chart)
+        lbl_sort = wx.StaticText(self.panel_line_chart, -1, 
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart)
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Show trend line?"))
+                                         _("Trend line?"))
         self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
         self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Show smoothed data line?"))
+                                         _("Smoothed data line?"))
         self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
-        self.szr_line_chart.Add(self.rad_line_val.get_szr(), 0, wx.TOP, 5)
-        self.chk_line_major_ticks = self.get_chk_major_ticks(self.panel_line_chart)
+        self.szr_line_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_line_chart.Add(self.drop_line_val, 0, wx.TOP, 5)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_line_chart.Add(self.drop_line_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.chk_line_major_ticks = \
+                                 self.get_chk_major_ticks(self.panel_line_chart)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
                                 self.tickbox_down_by)
@@ -391,10 +348,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_area(self):
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        self.rad_area_val = ValOpts(parent=self, panel=self.panel_area_chart)
+        lbl_val = wx.StaticText(self.panel_area_chart, -1, 
+                                  _(u"Data\nreported:"))
+        lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_area_val = self.get_drop_val_opts(self.panel_area_chart)
+        lbl_sort = wx.StaticText(self.panel_area_chart, -1, 
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_area_sort = self.get_drop_sort_opts(self.panel_area_chart)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
         self.chk_area_major_ticks = self.get_chk_major_ticks(self.panel_area_chart)
-        self.szr_area_chart.Add(self.rad_area_val.get_szr(), 0, wx.TOP, 5)
+        self.szr_area_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_area_chart.Add(self.drop_area_val, 0, wx.TOP, 5)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_area_chart.Add(self.drop_area_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
                                 self.tickbox_down_by)
@@ -433,15 +401,22 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_boxplot(self):
         self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_boxplot = wx.Panel(self.panel_mid)
+        lbl_sort = wx.StaticText(self.panel_boxplot, -1, 
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+        lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_box_sort = self.get_drop_sort_opts(self.panel_boxplot, 
+                                                  choices=mg.BOX_PLOT_SORT_OPTS)
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
-        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, 
-                             wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.szr_boxplot.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_boxplot.Add(self.drop_box_sort, 0, wx.TOP, 5)
+        self.szr_boxplot.AddSpacer(10)
+        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.TOP|wx.BOTTOM, 10)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
     
     def get_fresh_drop_var1(self, items, idx_sel):
         """
-        Must make fresh to get performant display even with lots of items in a 
+        Must make fresh to get performant display when lots of items in a 
             non-system font on Linux.
         """
         try:
@@ -694,41 +669,41 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return chk
 
     def get_chk_major_ticks(self, panel):
-        chk = wx.CheckBox(panel, -1, _("Show major labels only?"))
+        chk = wx.CheckBox(panel, -1, _("Major labels only?"))
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(MAJOR)
         chk.SetToolTipString(_(u"Show major labels only?"))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_major_ticks)
         return chk
 
-    def on_rad_sort(self, event):
+    def on_drop_sort(self, event):
         debug = False
         global CUR_SORT_OPT
-        rad = event.GetEventObject()
+        drop = event.GetEventObject()
         try:
-            idx_sel = rad.GetSelection()
+            idx_sel = drop.GetSelection()
             CUR_SORT_OPT = mg.STD_SORT_OPTS[idx_sel]
         except IndexError:
             pass
         except AttributeError:
-            CUR_SORT_OPT = rad.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE
+            CUR_SORT_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE
         if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
 
-    def on_rad_data_show(self, event):
+    def on_drop_val(self, event):
         debug = False
         global CUR_DATA_OPT
         # http://www.blog.pythonlibrary.org/2011/09/20/...
         # ... wxpython-binding-multiple-widgets-to-the-same-handler/
-        rad = event.GetEventObject()
+        drop = event.GetEventObject()
         try:
-            idx_sel = rad.GetSelection()
+            idx_sel = drop.GetSelection()
             CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
         except IndexError:
             pass
         except AttributeError:
-            CUR_DATA_OPT = rad.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ
+            CUR_DATA_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ
         if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
-        self.setup_var_dropdowns()
+        self.setup_var_dropdowns() # e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
 
     def on_show(self, event):
@@ -921,8 +896,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_bar_chart
         btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
-        self.rad_bar_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
-        self.rad_bar_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_bar_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_bar_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_simple_bar_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
@@ -932,7 +907,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_clust_bar
         btn_bmp_sel = self.bmp_btn_clust_bar_sel
         panel = self.panel_clust_bar
-        self.rad_clust_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_clust_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_clust_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
@@ -942,7 +918,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_pie_chart
         btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
-        self.rad_pie_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        self.drop_pie_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_line_chart(self, event):
@@ -951,7 +927,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        self.rad_line_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_line_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_line_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -963,7 +940,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        self.rad_area_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_area_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
+        self.drop_area_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -985,12 +963,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_boxplot(self, event):
+        global CUR_SORT_OPT
         self.chart_type = mg.BOXPLOT
         btn = self.btn_boxplot
         btn_bmp = self.bmp_btn_boxplot
         btn_bmp_sel = self.bmp_btn_boxplot_sel
         panel = self.panel_boxplot
         self.chk_boxplot_rotate.SetValue(ROTATE)
+        try:
+            idx_sel = mg.BOX_PLOT_SORT_OPTS.index(CUR_SORT_OPT)
+        except ValueError: # doesn't have increasing, or decreasing
+            CUR_SORT_OPT = mg.SORT_VALUE
+            idx_sel = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+        self.drop_box_sort.SetSelection(idx_sel)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_run(self, event):
@@ -1355,7 +1340,7 @@ chart_output = charting_output.clustered_barchart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)    
-    """ % {u"sort_opt": mg.SORT_VALUE, u"data_show": CUR_DATA_OPT, 
+    """ % {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
            u"ytitle2use": ytitle2use, u"rotate": rotate, 
            u"css_fil": esc_css_fil, u"css_idx": css_idx}
     return script
@@ -1390,7 +1375,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt=mg.SORT_VALUE, rotate=%(rotate)s, 
+                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
                     data_show="%(data_show)s", major_ticks=%(major_ticks)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
@@ -1398,8 +1383,8 @@ chart_output = charting_output.linechart_output(titles, subtitles,
     major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
     inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" %
-                {u"data_show": CUR_DATA_OPT, u"rotate": rotate, 
-                 u"major_ticks": major_ticks, 
+                {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
+                 u"rotate": rotate, u"major_ticks": major_ticks, 
                  u"xy_titles": xy_titles, u"inc_trend": inc_trend, 
                  u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
                  u"css_idx": css_idx})
@@ -1415,7 +1400,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt=mg.SORT_VALUE, rotate=%(rotate)s, 
+                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
                     data_show="%(data_show)s", major_ticks=%(major_ticks)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
@@ -1423,9 +1408,10 @@ chart_output = charting_output.areachart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" %
-        {u"dbe": dd.dbe, u"data_show": CUR_DATA_OPT, u"rotate": rotate, 
-         u"major_ticks": major_ticks, u"ytitle2use": ytitle2use, 
-         u"css_fil": esc_css_fil, u"css_idx": css_idx})
+        {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
+         u"rotate": rotate, u"major_ticks": major_ticks, 
+         u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, 
+         u"css_idx": css_idx})
     return script
 
 def get_histogram_script(inc_normal, css_fil, css_idx):
@@ -1474,7 +1460,7 @@ def get_boxplot_script(rotate, css_fil, css_idx):
                     var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
-                    rotate=%(rotate)s)
+                    sort_opt="%(sort_opt)s", rotate=%(rotate)s)
 x_title = var_role_cat_name if var_role_cat_name else u""
 y_title = var_role_desc_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
@@ -1482,6 +1468,6 @@ chart_output = charting_output.boxplot_output(titles, subtitles,
             xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets, 
             xmin, xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"rotate": rotate, 
-           u"css_idx": css_idx}
+    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"sort_opt": CUR_SORT_OPT, 
+           u"rotate": rotate, u"css_idx": css_idx}
     return script
