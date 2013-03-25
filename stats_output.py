@@ -712,6 +712,14 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
                             add_to_report, report_name, html):
     # NB list_obs is bs within a and we need the other way around
     debug = False
+    #width = 7 
+    n_clusters = len(val_labels_b)
+    if n_clusters < 8:
+        width = 7
+        height = None # allow height to be set by golden ratio
+    else:
+        width = n_clusters*1.5
+        height = 4.5
     rows_n = len(lst_obs)/val_labels_b_n
     cols_n = val_labels_b_n
     bs_in_as = np.array(lst_obs).reshape(rows_n, cols_n)
@@ -737,7 +745,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
     plot.setTitle(title)
     plot.setTitleProperties(title_overrides)
-    plot.setDimensions(7) # allow height to be set by golden ratio
+    plot.setDimensions(width, height)
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
@@ -756,7 +764,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
     plot.setTitle(title)
     plot.setTitleProperties(title_overrides)
-    plot.setDimensions(7) # allow height to be set by golden ratio
+    plot.setDimensions(width, height)
     plot.hasLegend(columns=val_labels_b_n, location="lower left")
     plot.setAxesLabelSize(11)
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))

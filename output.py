@@ -695,7 +695,7 @@ def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     return div
 
 def get_source(db, tblname):
-    full_datestamp = u"\n# on %s" % lib.get_unicode_datestamp()
+    full_datestamp = u"on %s" % lib.get_unicode_datestamp()
     source = u"\n<p>From %s.%s %s</p>" % (db, tblname, full_datestamp)
     return source
 

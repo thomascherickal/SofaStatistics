@@ -182,6 +182,8 @@ def process_fldnames(raw_names, headless=False):
         if debug: print(raw_names)
         names = []
         for raw_name in raw_names:
+            if len(raw_name) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                raise my_exceptions.CategoryTooLong(raw_name)
             if not isinstance(raw_name, unicode):
                 try:
                     raw_name = raw_name.decode("utf-8")

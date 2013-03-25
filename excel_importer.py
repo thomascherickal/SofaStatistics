@@ -98,7 +98,9 @@ class ExcelImporter(importer.FileImporter):
                 fldname = (raw_fldname if isinstance(raw_fldname, basestring) 
                                        else unicode(raw_fldname))
                 orig_fldnames.append(fldname)
-            fldnames = lib.get_unique_fldnames(orig_fldnames)
+            
+            fldnames = importer.process_fldnames(orig_fldnames, 
+                                                 headless=self.headless)
         else:
             # numbered is OK
             fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x 
@@ -186,7 +188,7 @@ class ExcelImporter(importer.FileImporter):
         if not has_rows:
             raise Exception(u"No data to import")
         return fldtypes, sample_data 
-    
+
     def import_content(self, progbar, import_status, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 

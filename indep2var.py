@@ -3,14 +3,12 @@
 import locale
 
 import wx
-import wx.html
 
 import my_globals as mg
 import lib
 import getdata
 import config_output
 import full_html
-import output
 import projects
 
 def get_range_idxs(vals, val_a, val_b):
@@ -599,14 +597,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             except TypeError:
                 self.gp_vals_sorted.append(val2list)
             n_vals = len(self.gp_vals_sorted)
-            if n_vals == 20:
+            if n_vals == mg.MAX_GROUPS4DROPDOWN:
                 break
-        if n_vals == 20:
+        if n_vals == mg.MAX_GROUPS4DROPDOWN:
             if high_n_recs:
-                chop_warning = _("Showing first 20 groups in\n"
-                                 " in first %s rows") % strn
+                chop_warning = _("Showing first 20 groups in\n in first "
+                                 "%s rows") % (mg.MAX_GROUPS4DROPDOWN, strn)
             else:
-                chop_warning =_("Showing first 20 unique groups")
+                chop_warning =_("Showing first %s unique groups" % 
+                                mg.MAX_GROUPS4DROPDOWN)
         elif n_vals == 0:
             chop_warning = u""
         else:

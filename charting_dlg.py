@@ -115,11 +115,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             bx_charts.SetToolTipString(_("Make chart"))
         # Chart Settings
         if mg.PLATFORM == mg.WINDOWS:
-            self.tickbox_down_by = 25 # to line up with a combo
+            self.tickbox_down_by = 10 # to line up with a combo
         elif mg.PLATFORM == mg.LINUX:
             self.tickbox_down_by = 10
         else:
-            self.tickbox_down_by = 25
+            self.tickbox_down_by = 10
         # setup charts
         self.setup_simple_bar()
         self.setup_clust_bar()
