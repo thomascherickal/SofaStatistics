@@ -80,8 +80,12 @@ makeBarChart = function(chartname, series, chartconf){
                     max: chartconf["ymax"],
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
+    mychart.addPlot("grid", {type: "Grid",
+                    hMajorLines: true,
+                    hMinorLines: false,
+                    vMajorLines: false,
+                    vMinorLines: false });
     mychart.addPlot("default", {type: "ClusteredColumns", gap: chartconf["xgap"], shadows: {dx: 12, dy: 12}});
-    mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
         mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);

@@ -97,7 +97,12 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     return u"\n".join(html)
 
 
-class RptTypeOpts(config_output.Opts):
+class RptTypeOpts(object):
+    """
+    Required because of a bug in Mac when displaying radio button groups with a 
+        font size smaller than the system font. Have to build a collection of 
+        individual widgets myself.
+    """
     
     def __init__(self, parent, panel):
         group_lbl = _("Table Type")
@@ -134,6 +139,43 @@ class RptTypeOpts(config_output.Opts):
             szr_rad_rpt_type.Add(self.rad_data_list, 0, wx.LEFT, 5)
             self.rad_opts = szr_rad_rpt_type
 
+    def GetSelection(self):
+        debug = False
+        try:
+            return self.rad_opts.GetSelection()
+        except AttributeError:
+            for idx, szr_item in enumerate(self.rad_opts.GetChildren()):
+                rad = szr_item.GetWindow()
+                if debug: print(u"Item %s with value of %s" % (idx, 
+                                                               rad.GetValue()))
+                if rad.GetValue():
+                    return idx
+            return None
+        
+    def SetSelection(self, idx):
+        try:
+            return self.rad_opts.SetSelection(idx)
+        except AttributeError:
+            self.rad_opts.GetChildren()[idx].GetWindow().SetValue(True)
+            
+    def Enable(self, enable=True):
+        """
+        If the object can be enabled/disabled do that. If not, assume it is a 
+            sizer containing widgets needing to be individually enabled etc.
+        """
+        try:
+            self.rad_opts.Enable(enable)
+        except AttributeError:
+            for szr_item in self.rad_opts.GetChildren():
+                szr_item.GetWindow().Enable(enable)
+            
+    def get_szr(self):
+        """
+        Use this when inserting into a sizer (expects a sizer or widget not this 
+            object.
+        """
+        return self.rad_opts
+    
 
 class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     """
