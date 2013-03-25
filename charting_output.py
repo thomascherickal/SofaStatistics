@@ -207,7 +207,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
     sorted_tooltips = []
     measures = [x[idx_measure] for x in vals_etc_lst]
     tot_measures = sum(measures)
-    for val, measure, lbl, lbl_split in vals_etc_lst:
+    for val, measure, lbl, lbl_split, barlbl in vals_etc_lst:
         sorted_xaxis_dets.append((val, lbl, lbl_split))
         if tot_measures == 0:
             perc = 0
@@ -216,7 +216,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
         y_val = perc if data_show == mg.SHOW_PERC else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
-        tooltip_dets = []
+        tooltip_dets = [barlbl,] if barlbl else []
         if major_ticks:
             tooltip_dets.append(u"x-val: %s" % val)
             tooltip_dets.append(u"y-val: %s" % measure2show)
@@ -427,8 +427,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
                     max_lbl_lines = n_lines
+                if chart_type == mg.CLUSTERED_BARCHART:
+                    barlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
+                else:
+                    barlbl = None
                 vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
-                                     x_val_split_lbl))
+                                     x_val_split_lbl, barlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
                 if n_cats > mg.MAX_CLUSTERS:
@@ -443,7 +447,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                                                                 mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, 
              sorted_y_vals, 
-             sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks,
+             sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
                                                   sort_opt, vals_etc_lst, dp)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
@@ -1242,8 +1246,8 @@ def get_indiv_title(multichart, chart_det):
     return indiv_title, indiv_title_html
 
 def simple_barchart_output(titles, subtitles, x_title, y_title, 
-                           chart_output_dets, rotate, css_idx, css_fil, 
-                           page_break_after):
+                           chart_output_dets, rotate, show_borders, css_idx, 
+                           css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1318,6 +1322,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     if rotate:
         margin_offset_l += 15
     width += margin_offset_l
+    stroke_width = stroke_width if show_borders else 0
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
@@ -1427,8 +1432,8 @@ makechartRenumber%(chart_idx)s = function(){
     return u"".join(html)
 
 def clustered_barchart_output(titles, subtitles, x_title, y_title, 
-                              chart_output_dets, rotate, css_idx, css_fil, 
-                              page_break_after):
+                              chart_output_dets, rotate, show_borders, css_idx, 
+                              css_fil, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1496,6 +1501,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     width += margin_offset_l
     series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
                                                       css_fil)
+    stroke_width = stroke_width if show_borders else 0
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -2176,7 +2182,8 @@ makechartRenumber%(chart_idx)s = function(){
     return u"".join(html)
 
 def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets, 
-                     inc_normal, css_fil, css_idx, page_break_after=False):
+                     inc_normal, show_borders, css_fil, css_idx, 
+                     page_break_after=False):
     """
     See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
@@ -2225,6 +2232,8 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
                                        max_safe_x_lbl_len_pxls, rotate=False)    
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
+    normal_stroke_width = 2*stroke_width # normal stroke needed even if border strokes not
+    stroke_width = stroke_width if show_borders else 0
     for chart_idx, chart_det in enumerate(chart_dets):
         minval = chart_det[mg.CHART_MINVAL]
         maxval = chart_det[mg.CHART_MAXVAL]
@@ -2243,7 +2252,6 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
         if multichart:
             width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
             xfontsize = xfontsize*0.8
-
         html.append(u"""
 <script type="text/javascript">
 
@@ -2301,7 +2309,7 @@ makechartRenumber%(chart_idx)s = function(){
 </div>
         """ % {u"indiv_title_html": indiv_title_html,
                u"stroke_width": stroke_width, 
-               u"normal_stroke_width": stroke_width*2, u"fill": fill,
+               u"normal_stroke_width": normal_stroke_width, u"fill": fill,
                u"colour_cases": colour_cases,
                u"xaxis_lbls": xaxis_lbls, u"y_vals": u"%s" % y_vals,
                u"bin_lbls": bin_labs, u"minval": minval, u"maxval": maxval,
@@ -2345,7 +2353,7 @@ def use_mpl_scatterplots(scatterplot_dets):
     use_mpl = len(chart_data_tups) > mg.MAX_POINTS_DOJO_SCATTERPLOT
     return use_mpl
             
-def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders, 
+def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders, 
                          legend, series_dets, series_colours_by_lbl, label_x, 
                          label_y, ymin, ymax, x_vs_y, add_to_report, 
                          report_name, css_fil, pagebreak):
@@ -2367,7 +2375,7 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, dot_borders,
     for series_det in series_dets:
         all_x.extend(series_det[mg.LIST_X])
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
-    charting_pylab.add_scatterplot(grid_bg, dot_borders, line_colour, 
+    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
                             series_dets, label_x, label_y, x_vs_y, 
                             title_dets_html, add_to_report, report_name, html, 
                             width_inches, height_inches, xmin=xmin, xmax=xmax, 
@@ -2464,7 +2472,7 @@ def get_optimal_min_max(axismin, axismax):
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
-                          dot_borders, legend, series_dets, 
+                          show_borders, legend, series_dets, 
                           series_colours_by_lbl, label_x, label_y, ymin, ymax, 
                           css_fil, pagebreak):
     """
@@ -2521,7 +2529,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         # Can't have white for scatterplots because always a white outer background
         axis_lbl_font_colour = (axis_lbl_font_colour
                               if axis_lbl_font_colour != u"white" else u"black")
-        stroke_width = stroke_width if dot_borders else 0 
+        stroke_width = stroke_width if show_borders else 0
         outer_bg = (u"" if outer_bg == u""
                     else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
         single_colour = True
@@ -2629,7 +2637,7 @@ def get_scatterplot_ymin_ymax(scatterplot_dets):
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
                        label_x, label_y, add_to_report, report_name, 
-                       dot_borders, css_fil, css_idx, page_break_after=False):
+                       show_borders, css_fil, css_idx, page_break_after=False):
     """
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                         mg.CHARTS_CHART_DETS: chart_dets}
@@ -2678,13 +2686,13 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         if use_mpl:
             make_mpl_scatterplot(multichart, html, indiv_title_html, 
-                                 dot_borders, legend, series_dets, 
+                                 show_borders, legend, series_dets, 
                                  series_colours_by_lbl, label_x, label_y, ymin, 
                                  ymax, x_vs_y, add_to_report, report_name, 
                                  css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_title_html, dot_borders, legend, 
+                                  indiv_title_html, show_borders, legend, 
                                   series_dets, series_colours_by_lbl, label_x, 
                                   label_y, ymin, ymax, css_fil, pagebreak)
         charts_append_divider(html, titles, overall_title, indiv_title, 

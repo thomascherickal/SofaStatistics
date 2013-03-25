@@ -164,7 +164,7 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                        fontsize=7, rotation=270)
 
-def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets, 
+def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
                        label_a, label_b, a_vs_b, line_lst=None, line_lbl=u"", 
                        xmin=None, xmax=None, ymin=None, ymax=None, 
                        dot_colour=None, series_colours_by_lbl=None):
@@ -184,7 +184,7 @@ def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets,
         label = (series_lbl if multiseries else a_vs_b)
         if multiseries:
             dot_colour = series_colours_by_lbl[series_lbl]
-        marker_edge_colour = line_colour if dot_borders else dot_colour
+        marker_edge_colour = line_colour if show_borders else dot_colour
         pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=label, 
                    markeredgecolor=marker_edge_colour)
         if xmin is not None and xmax is not None:
@@ -203,7 +203,7 @@ def config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets,
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
                    fontsize=7, rotation=270)
 
-def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets, 
+def add_scatterplot(grid_bg, show_borders, line_colour, series_dets, 
                     label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
                     report_name, html, width_inches=7.5, height_inches=4.5, 
                     line_lst=None, line_lbl=u"", xmin=None, xmax=None, 
@@ -218,7 +218,7 @@ def add_scatterplot(grid_bg, dot_borders, line_colour, series_dets,
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
-    config_scatterplot(grid_bg, dot_borders, line_colour, fig, series_dets, 
+    config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
                        label_x, label_y, x_vs_y, line_lst, line_lbl, xmin, xmax, 
                        ymin, ymax, dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig

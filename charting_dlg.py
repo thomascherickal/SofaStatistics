@@ -223,8 +223,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
         drop_opts.SetSelection(idx_data_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_val)
-        drop_opts.SetToolTipString(u"Report frequency, percentage, average, or "
-                                   u"sum?")
+        drop_opts.SetToolTipString(u"Report count(frequency), percentage, "
+                                   u"average, or sum?")
         return drop_opts
     
     def get_drop_sort_opts(self, panel, choices=mg.STD_SORT_OPTS):
@@ -248,6 +248,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_bar_sort = self.get_drop_sort_opts(self.panel_bar_chart)
         self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
+        self.chk_bar_borders = wx.CheckBox(self.panel_bar_chart, -1, 
+                                           _("Bar borders?"))
+        self.chk_bar_borders.SetFont(mg.GEN_FONT)
+        self.chk_bar_borders.SetValue(False)
+        self.chk_bar_borders.SetToolTipString(_("Show borders around bars?"))
         self.szr_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_bar_chart.Add(self.drop_bar_val, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
@@ -255,6 +260,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_bar_chart.Add(self.drop_bar_sort, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
         self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
+                               self.tickbox_down_by)
+        self.szr_bar_chart.AddSpacer(10)
+        self.szr_bar_chart.Add(self.chk_bar_borders, 0, wx.TOP, 
                                self.tickbox_down_by)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
@@ -271,6 +279,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
+        self.chk_clust_borders = wx.CheckBox(self.panel_clust_bar, -1, 
+                                             _("Bar borders?"))
+        self.chk_clust_borders.SetFont(mg.GEN_FONT)
+        self.chk_clust_borders.SetValue(False)
+        self.chk_clust_borders.SetToolTipString(_("Show borders around bars?"))
         self.szr_clust_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_clust_bar_chart.Add(self.drop_clust_val, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
@@ -278,6 +291,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_clust_bar_chart.Add(self.drop_clust_sort, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
         self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
+                                     self.tickbox_down_by)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.szr_clust_bar_chart.Add(self.chk_clust_borders, 0, wx.TOP, 
                                      self.tickbox_down_by)
         self.panel_clust_bar.SetSizer(self.szr_clust_bar_chart)
         self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar)
@@ -373,28 +389,36 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
     
     def setup_histogram(self):
-        self.szr_histogram = wx.BoxSizer(wx.VERTICAL)
+        self.szr_histogram = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_histogram = wx.Panel(self.panel_mid)
         self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
                                            _("Show normal curve?"))
         self.chk_show_normal.SetFont(mg.GEN_FONT)
         self.chk_show_normal.SetValue(False)
         self.chk_show_normal.SetToolTipString(_(u"Show normal curve?"))
+        self.chk_hist_borders = wx.CheckBox(self.panel_histogram, -1, 
+                                             _("Bar borders?"))
+        self.chk_hist_borders.SetFont(mg.GEN_FONT)
+        self.chk_hist_borders.SetValue(True)
+        self.chk_hist_borders.SetToolTipString(_("Show borders around bars?"))
         self.szr_histogram.Add(self.chk_show_normal, 0, 
                                wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.szr_histogram.AddSpacer(10)
+        self.szr_histogram.Add(self.chk_hist_borders, 0, wx.TOP, 
+                               self.tickbox_down_by)
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
     
     def setup_scatterplot(self):
         self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_scatterplot = wx.Panel(self.panel_mid)
-        self.chk_borders = wx.CheckBox(self.panel_scatterplot, -1, 
+        self.chk_dot_borders = wx.CheckBox(self.panel_scatterplot, -1, 
                                        _("Dot borders?"))
-        self.chk_borders.SetFont(mg.GEN_FONT)
-        self.chk_borders.SetValue(True)
-        self.chk_borders.SetToolTipString(_("Show borders around scatterplot "
-                                            "dots?"))
-        self.szr_scatterplot.Add(self.chk_borders, 0, wx.TOP|wx.BOTTOM, 10)
+        self.chk_dot_borders.SetFont(mg.GEN_FONT)
+        self.chk_dot_borders.SetValue(True)
+        self.chk_dot_borders.SetToolTipString(_("Show borders around "
+                                              "scatterplot dots?"))
+        self.szr_scatterplot.Add(self.chk_dot_borders, 0, wx.TOP|wx.BOTTOM, 10)
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
     
@@ -1264,10 +1288,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                               else u'u"Sum of %s"' % agg_fldlbl)
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(get_simple_barchart_script(ytitle2use, rotate, 
-                                                         css_fil, css_idx))
+                                  show_borders=self.chk_bar_borders.IsChecked(), 
+                                  css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(get_clustered_barchart_script(ytitle2use, rotate, 
-                                                            css_fil, css_idx))
+                                show_borders=self.chk_clust_borders.IsChecked(), 
+                                css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.PIE_CHART:
             inc_val_dets = (u"True" if self.chk_val_dets.IsChecked()
                             else u"False")
@@ -1289,17 +1315,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
                           else u"False")
-            script_lst.append(get_histogram_script(inc_normal, css_fil, 
-                                                   css_idx))
+            script_lst.append(get_histogram_script(inc_normal, 
+                                 show_borders=self.chk_hist_borders.IsChecked(), 
+                                 css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(get_scatterplot_script(css_fil, css_idx, 
-                                       dot_border=self.chk_borders.IsChecked()))
+                                 show_borders=self.chk_dot_borders.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             script_lst.append(get_boxplot_script(rotate, css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
 
-def get_simple_barchart_script(ytitle2use, rotate, css_fil, css_idx):
+def get_simple_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
+                               css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
@@ -1315,14 +1343,16 @@ x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
-    page_break_after=False)
+    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
            u"ytitle2use": ytitle2use, u"rotate": rotate,
-           u"css_fil": esc_css_fil, u"css_idx": css_idx}
+           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
+           u"css_idx": css_idx}
     return script
 
-def get_clustered_barchart_script(ytitle2use, rotate, css_fil, css_idx):
+def get_clustered_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
+                                  css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
@@ -1338,11 +1368,12 @@ x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.clustered_barchart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    css_fil=u"%(css_fil)s", 
+    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)    
     """ % {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
            u"ytitle2use": ytitle2use, u"rotate": rotate, 
-           u"css_fil": esc_css_fil, u"css_idx": css_idx}
+           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
+           u"css_idx": css_idx}
     return script
 
 def get_pie_chart_script(css_fil, css_idx, inc_val_dets):
@@ -1414,7 +1445,7 @@ chart_output = charting_output.areachart_output(titles, subtitles,
          u"css_idx": css_idx})
     return script
 
-def get_histogram_script(inc_normal, css_fil, css_idx):
+def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = u"""
@@ -1425,12 +1456,14 @@ def get_histogram_script(inc_normal, css_fil, css_idx):
                                           var_role_charts_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
         var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
-        css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, u"css_fil": esc_css_fil, 
+         show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
+         css_idx=%(css_idx)s, page_break_after=False)
+    """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, 
+           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
            u"css_idx": css_idx}
     return script
 
-def get_scatterplot_script(css_fil, css_idx, dot_border):
+def get_scatterplot_script(css_fil, css_idx, show_borders):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = u"""
@@ -1443,10 +1476,10 @@ def get_scatterplot_script(css_fil, css_idx, dot_border):
             unique=True)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
     overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
-    add_to_report, report_name, %(dot_border)s, css_fil=u"%(css_fil)s", 
+    add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
-           u"dot_border": dot_border}
+           u"show_borders": show_borders}
     return script
 
 def get_boxplot_script(rotate, css_fil, css_idx):
