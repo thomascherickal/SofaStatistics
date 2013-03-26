@@ -82,6 +82,8 @@ QUOTES = [
      u"Frederick Mosteller"),
     (u"There are no routine statistical questions, only questionable "
      u"statistical routines.", u"David Cox"),
+    (u"Surely, God loves the .06 nearly as much as the .05", 
+     u"Rosnow and Rosenthal"),
     ]
 
 def get_quote():

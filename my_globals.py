@@ -43,6 +43,7 @@ STATS_DIC_MEAN = u"mean"
 STATS_DIC_SD = u"sd"
 STATS_DIC_MIN = u"min"
 STATS_DIC_MAX = u"max"
+STATS_DIC_CI = u"confidence_interval"
 DF = _("Degrees of Freedom (df)")
 P_EXPLAN_DIFF = (u"If p is small, "
             u"e.g. less than 0.01, or 0.001, you can assume the result is "

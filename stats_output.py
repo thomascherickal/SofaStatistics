@@ -26,6 +26,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_TBL_HDR_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_HDR_FTNOTE, 
                                                    css_idx)
+    CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
     footnotes = []
     html = []
     title = _(u"Results of ANOVA test of average %(avg)s for groups from"
@@ -50,13 +51,22 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
                      mg.P_EXPLAN_DIFF)
     html.append(u"\n</thead>\n<tbody>")
-    html.append(u"\n<tr><td>" + _("Between") +
-                u"</td><td>%s</td><td>%s</td>" % (round(ssbn, dp), dfbn))
-    html.append(u"<td>%s</td><td>%s</td><td>%s</td></tr>" %
-                (round(mean_squ_bn, dp), round(F, dp), lib.get_p(p, dp)))
+    tpl = "%%.%sf" % dp
+    html.append(u"\n<tr><td>" + _("Between") + u"</td>"
+                u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
+                (tpl % round(ssbn, dp)) +
+                u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % dfbn)
+    html.append(u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
+                (tpl % round(mean_squ_bn, dp)) +
+                u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
+                (tpl % round(F, dp)) +
+                u"<td>%s</td></tr>" % lib.get_p(p, dp))
     html.append(u"\n<tr><td>" + _("Within") +
-                u"</td><td>%s</td><td>%s</td>" % (round(sswn, dp), dfwn))
-    html.append(u"<td>%s</td><td></td><td></td></tr>" % round(mean_squ_wn, dp))
+                u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
+                (tpl % round(sswn, dp)) +
+                u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" %  dfwn)
+    html.append(u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
+                (tpl % round(mean_squ_wn, dp)) + u"<td></td><td></td></tr>")
     html.append(u"\n</tbody>\n</table>\n")
     try:
         unused, p_sim = core_stats.sim_variance(samples, threshold=0.01)
@@ -73,25 +83,32 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append(u"\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
             u"</th>" +
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
-        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>")
+            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
+            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("CI 95%") + 
+            u"<a class='%s" % CSS_TBL_HDR_FTNOTE 
+            + u"' href='#ft3'><sup>3</sup></a></th>")
     # footnote 3
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> We are 95%% certain "
+        "that the true value of the mean is within this interval. But it could "
+        "still lie anywhere outside of those bounds.</p>")
+    # footnote 4
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + 
                 _("Standard Deviation") + u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
-                "' href='#ft3'><sup>3</sup></a></th></th>")
+                "' href='#ft4'><sup>4</sup></a></th>")
     footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
                      "Deviation measures the spread of values.</p>")
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
-    # footnotes 4,5,6
+    # footnotes 5,6,7
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
-                u"<a class='%s' href='#ft4'><sup>4</sup></a></th>" % 
+                u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" % 
                 CSS_TBL_HDR_FTNOTE)
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Skew") + 
-                u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" %
+                u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
                 CSS_TBL_HDR_FTNOTE)
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
-                u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
+                u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" %
                 CSS_TBL_HDR_FTNOTE)
     html.append(u"</tr>")
     footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
@@ -108,18 +125,33 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
               "though.</p>"),
         )    
     html.append(u"\n</thead>\n<tbody>")
-    row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + \
-               u"%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
-               u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>")
+    row_tpl = (u"\n<tr>"
+               u"<td class='%s'>" % CSS_LBL + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     dic_sample_tups = zip(dics, samples)
     for dic, sample in dic_sample_tups:
-        results = (dic["label"], dic["n"], round(dic["mean"], dp), 
-                   round(dic["sd"], dp), dic["min"], dic["max"])
+        results = (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+                   round(dic[mg.STATS_DIC_MEAN], dp), 
+                   "%s - %s" % (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
+                                tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
+                   tpl % round(dic[mg.STATS_DIC_SD], dp), 
+                   dic[mg.STATS_DIC_MIN], 
+                   dic[mg.STATS_DIC_MAX])
         try:
             (unused, p_arr, cskew, 
              unused, ckurtosis, unused) = core_stats.normaltest(sample)
-            results += (round(ckurtosis, dp), round(cskew, dp), 
-                        lib.get_p(p_arr[0], dp))
+            kurt = tpl % round(ckurtosis, dp)
+            skew = tpl % round(cskew, dp)
+            overall_p = lib.get_p(p_arr[0], dp)
+            results += (kurt, skew, overall_p)
         except Exception:
             results += (_("Unable to calculate kurtosis"), 
                         _("Unable to calculate skew"),
@@ -162,20 +194,20 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
 def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
                         dp, indep, css_idx, html):
     """
-    Footnotes are autonumbered at end.  The links to them will need numbering 
+    Footnotes are autonumbered at end. The links to them will need numbering 
         though.
     """
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_TBL_HDR_FTNOTE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_HDR_FTNOTE, 
                                                    css_idx)
+    CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
     footnotes = []
     if indep:
         title = (_(u"Results of Independent Samples t-test of average "
                    u"\"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"") %
                                 {"avg": label_avg, "a": dic_a[mg.STATS_DIC_LBL], 
                                  "b": dic_b[mg.STATS_DIC_LBL]})
-        
     else:
         title = (_("Results of Paired Samples t-test of \"%(a)s\" vs \"%(b)s\"") 
                  % {"a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
@@ -207,30 +239,36 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("CI 95%")  + 
+            u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
+            u"' href='#ft%s'><sup>%s</sup></a></th>" % (next_ft, next_ft) +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Standard Deviation") +
             u"<a class='%s' href='#ft%s'><sup>%s</sup></a></th>" % 
-            (CSS_TBL_HDR_FTNOTE, next_ft, next_ft) +
+            (CSS_TBL_HDR_FTNOTE, next_ft+1, next_ft+1) +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
+    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> We are 95%% certain "
+        "that the true value of the mean is within this interval. But it could "
+        "still lie anywhere outside of those bounds.</p>")
     footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
                      "Deviation measures the spread of values.</p>")
     if indep:
-        # if here, always 4,5,6
+        # if here, always 5,6,7
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
-                    u"<a class='%s' href='#ft4'><sup>4</sup></a></th>" % 
+                    u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" % 
                     CSS_TBL_HDR_FTNOTE)
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Skew") + 
-                    u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" %
+                    u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
                     CSS_TBL_HDR_FTNOTE)
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
-                    u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
+                    u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" %
                     CSS_TBL_HDR_FTNOTE)
         footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
             _("Kurtosis measures the peakedness or flatness of values.  "
                   "Between -1 and 1 is probably great. Between -2 and 2 is "
                   "probably good.</p>"),
               "\n<p><a id='ft%s'></a><sup>%s</sup> " +
-            _("Skew measures the lopsidedness of values.  Between -1 and 1 is "
+            _("Skew measures the lopsidedness of values. Between -1 and 1 is "
                   "probably great. Between -2 and 2 is probably good.</p>"),
               "\n<p><a id='ft%s'></a><sup>%s</sup> " +
             _("This provides a single measure of normality. If p is small, e.g."
@@ -238,24 +276,43 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                   "is not strictly normal.  Note - it may be normal enough "
                   "though.</p>"),
             )
+    tpl = "%%.%sf" % dp
     html.append(u"</tr>")
     html.append(u"\n</thead>\n<tbody>")
     if indep:
-        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
-            u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td><td>%s</td>"
-            "<td>%s</td><td>%s</td></tr>")
+        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     else:
-        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
-            u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>")
+        row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+                   u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     for dic, sample in [(dic_a, sample_a), (dic_b, sample_b)]:
-        results = (dic["label"], dic["n"], round(dic["mean"], dp), 
-                  round(dic["sd"], dp), dic["min"], dic["max"])
+        results = (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+                   round(dic[mg.STATS_DIC_MEAN], dp), 
+                   "%s - %s" % (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
+                                tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
+                   tpl % round(dic[mg.STATS_DIC_SD], dp), 
+                   dic[mg.STATS_DIC_MIN], dic[mg.STATS_DIC_MAX])
         if indep:
             try:
-                unused, p_arr, cskew, unused, ckurtosis, unused = \
-                        core_stats.normaltest(sample)
-                results += (round(ckurtosis, dp), round(cskew, dp), 
-                            round(p_arr[0], dp))
+                (unused, p_arr, cskew, unused, 
+                 ckurtosis, unused) = core_stats.normaltest(sample)
+                kurt = tpl % round(ckurtosis, dp)
+                skew = tpl % round(cskew, dp)
+                overall_p = lib.get_p(p_arr[0], dp)
+                results += (kurt, skew, overall_p)
             except Exception:
                 results += (_("Unable to calculate kurtosis"), 
                             _("Unable to calculate skew"),
@@ -285,8 +342,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     output.append_divider(html, title, indiv_title=u"")
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
                    (u"b", sample_b, dic_b["label"])]
-    for chart_idx, sample_det in enumerate(sample_dets):
-        unused, sample, histlbl = sample_det
+    for unused, sample, histlbl in sample_dets:
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 

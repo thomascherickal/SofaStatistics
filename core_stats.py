@@ -8,7 +8,6 @@ import decimal
 import math
 from types import IntType, FloatType, ListType, TupleType
 import numpy as np
-
 import my_globals as mg
 import lib
 import my_exceptions
@@ -16,6 +15,8 @@ import getdata
 
 D = decimal.Decimal
 decimal.getcontext().prec = 200
+
+
 
 """
 Don't use dd - this and any other modules we wish to run as a standalone script 
@@ -480,6 +481,32 @@ def anova_orig(lst_samples, lst_labels, high=False):
     print("using orig with F: %s" % F)
     return p, F, dics, sswn, dfwn, msw, ssbn, dfbn, msb
 
+def get_se(n, mysd):
+    """
+    Assumed that mymean and mysd have been created using same high setting.
+    """
+    debug = False
+    denom = math.sqrt(n)
+    if debug: print(mysd, denom)
+    se = mysd/denom
+    return se
+
+def get_ci95(sample=None, mymean=None, mysd=None, n=None):
+    if sample is None and (n is None or mymean is None or mysd is None):
+        raise Exception("Unable to calculate confidence interval without either"
+                        " a sample or all of n, mean, and sd.")
+    n = n if n is not None else len(sample)
+    mymean = mymean if mymean is not None else mean(sample, high=False)
+    mysd = mysd if mysd is not None else stdev(sample, high=False)
+    if n < 30:
+        print(u"Using sample sd instead of population sd even though n < 30. "
+              u"May not be reliable.")
+    se = get_se(n, mysd)
+    diff = 1.96*se
+    lower95 = mymean - diff
+    upper95 = mymean + diff
+    return (lower95, upper95)
+
 def anova(samples, labels, high=True):
     """
     From NIST algorithm used for their ANOVA tests.
@@ -495,12 +522,16 @@ def anova(samples, labels, high=True):
     for i in range(n_samples):
         sample = samples[i]
         label = labels[i]
+        mymean = mean(sample, high)
+        mysd = stdev(sample, high)
+        ci95 = get_ci95(sample, mymean, mysd)
         dics.append({mg.STATS_DIC_LBL: label, 
                      mg.STATS_DIC_N: sample_ns[i], 
-                     mg.STATS_DIC_MEAN: mean(sample, high), 
-                     mg.STATS_DIC_SD: stdev(sample, high), 
+                     mg.STATS_DIC_MEAN: mymean, 
+                     mg.STATS_DIC_SD: mysd, 
                      mg.STATS_DIC_MIN: min(sample), 
-                     mg.STATS_DIC_MAX: max(sample)})
+                     mg.STATS_DIC_MAX: max(sample),
+                     mg.STATS_DIC_CI: ci95})
     if high: # inflate
         # if to 1 decimal point will push from float to integer (reduce errors)
         inflated_samples = []
@@ -646,7 +677,7 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     Returns t, p, dic_a, dic_b, df (p is the two-tailed probability)
     
     use_orig_var = use original (flawed) approach to sd and var.  Needed for 
-        unit testing against stats.py.  Sort of like matching bug for bug ;-).
+        unit testing against stats.py. Sort of like matching bug for bug ;-).
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO INDEPENDENT samples of
     scores a, and b.  From Numerical Recipes, p.483.
@@ -676,12 +707,16 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
     min_b = min(sample_b)
     max_a = max(sample_a)
     max_b = max(sample_b)
+    ci95_a = get_ci95(sample_a, mean_a, sd_a)
+    ci95_b = get_ci95(sample_b, mean_b, sd_b)
     dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n_a, 
              mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
-             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a,
+             mg.STATS_DIC_CI: ci95_a}
     dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n_b, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
-             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
+             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b,
+             mg.STATS_DIC_CI: ci95_b}
     return t, p, dic_a, dic_b, df
 
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
@@ -721,12 +756,16 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     max_b = max(sample_b)
     sd_a = math.sqrt(var_a)
     sd_b = math.sqrt(var_b)
+    ci95_a = get_ci95(sample_a, mean_a, sd_a)
+    ci95_b = get_ci95(sample_b, mean_b, sd_b)
     dic_a = {mg.STATS_DIC_LBL: label_a, mg.STATS_DIC_N: n, 
              mg.STATS_DIC_MEAN: mean_a, mg.STATS_DIC_SD: sd_a, 
-             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a}
+             mg.STATS_DIC_MIN: min_a, mg.STATS_DIC_MAX: max_a,
+             mg.STATS_DIC_CI: ci95_a}
     dic_b = {mg.STATS_DIC_LBL: label_b, mg.STATS_DIC_N: n, 
              mg.STATS_DIC_MEAN: mean_b, mg.STATS_DIC_SD: sd_b, 
-             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b}
+             mg.STATS_DIC_MIN: min_b, mg.STATS_DIC_MAX: max_b,
+             mg.STATS_DIC_CI: ci95_b}
     return t, p, dic_a, dic_b, df, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):

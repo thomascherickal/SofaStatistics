@@ -1,4 +1,6 @@
-
+/*
+Details on ticks etc http://www.ibm.com/developerworks/web/library/wa-moredojocharts/
+*/
 makeBarChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
     var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;

@@ -24,6 +24,13 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def formatnum(num):
+    try:
+        formatted = "{:,}".format(num)
+    except ValueError:
+        formatted = num
+    return formatted
+
 def extract_img_path(content, use_as_url=False):
     """
     Extract image path from html.
