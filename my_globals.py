@@ -45,12 +45,28 @@ STATS_DIC_MIN = u"min"
 STATS_DIC_MAX = u"max"
 STATS_DIC_CI = u"confidence_interval"
 DF = _("Degrees of Freedom (df)")
-P_EXPLAN_DIFF = (u"If p is small, "
-            u"e.g. less than 0.01, or 0.001, you can assume the result is "
-            u"statistically significant i.e. there is a difference.")
-P_EXPLAN_REL = (u"If p is small, "
-            u"e.g. less than 0.01, or 0.001, you can assume the result is "
-            u"statistically significant i.e. there is a relationship.")
+P_EXPLAN_DIFF = (u"If p is small, e.g. less than 0.01, or 0.001, you can assume"
+     u" the result is statistically significant i.e. there is a difference "
+     u"between at least two groups. Note: a statistically significant "
+     u"difference may not necessarily be of any practical significance.")
+P_EXPLAN_REL = (u"If p is small, e.g. less than 0.01, or 0.001, you can assume "
+    u"the result is statistically significant i.e. there is a relationship. "
+    u"Note: a statistically significant difference may not necessarily be of "
+    u"any practical significance.")
+OBRIEN_EXPLAN = (u"If the value is small, e.g. less than 0.01, or 0.001, you "
+    u"can assume there is a difference in variance.")
+STD_DEV_EXPLAN = (u"Standard Deviation measures the spread of values.")
+NORMALITY_MEASURE_EXPLAN = (u"This provides a single measure of normality. If p"
+    u" is small, e.g. less than 0.01, or 0.001, you can assume the distribution"
+    u" is not strictly normal. Note - it may be normal enough though.")
+KURT_EXPLAN = (u"Kurtosis measures the peakedness or flatness of values. "
+   u" Between -2 and 2 means kurtosis is unlikely to be a problem. Between -1 "
+   u"and 1 means kurtosis is quite unlikely to be a problem.")
+SKEW_EXPLAN = (u"Skew measures the lopsidedness of values. "
+   u" Between -2 and 2 means skew is unlikely to be a problem. Between -1 "
+   u"and 1 means skew is quite unlikely to be a problem.")
+CI_EXPLAN = (u"We are 95%% certain that the true value of the mean is within "
+    u"this interval. But it could still lie anywhere outside of those bounds.")
 # stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
 # Making tables ******************************************************

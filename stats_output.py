@@ -10,10 +10,19 @@ import core_stats
 import output
 
 """
-Output doesn't include the calculation of any values.  These are in discrete
+Output doesn't include the calculation of any values. These are in discrete
     functions in core_stats, amenable to unit testing.
-No html header or footer added here.  Just some body content.    
+No html header or footer added here. Just some body content.    
 """
+
+def add_footnote(footnotes, content):
+    footnotes.append("\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> %s"
+                     u"</p>" % content)
+
+def add_footnotes(footnotes, html):
+    for i, footnote in enumerate(footnotes):
+        next_ft = i + 1
+        html.append(footnote % {u"ftnum": next_ft})
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
                  mean_squ_bn, label_a, label_b, label_avg, add_to_report,
@@ -48,8 +57,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR +
                 u"p<a class='%s' href='#ft1'><sup>1</sup></a></th></tr>" %
                 CSS_TBL_HDR_FTNOTE)
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_DIFF)
+    add_footnote(footnotes, content=mg.P_EXPLAN_DIFF)
     html.append(u"\n</thead>\n<tbody>")
     tpl = "%%.%sf" % dp
     html.append(u"\n<tr><td>" + _("Between") + u"</td>"
@@ -76,9 +84,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     # footnote 2
     html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
                 + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If the value is"
-        " small, e.g. less than 0.01, or 0.001, you can assume there is a "
-        "difference in variance.</p>")
+    add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
     html.append(u"\n\n<h3>" + _("Group summary details") + u"</h3>")
     html.append(u"\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
@@ -89,15 +95,12 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             u"<a class='%s" % CSS_TBL_HDR_FTNOTE 
             + u"' href='#ft3'><sup>3</sup></a></th>")
     # footnote 3
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> We are 95%% certain "
-        "that the true value of the mean is within this interval. But it could "
-        "still lie anywhere outside of those bounds.</p>")
+    add_footnote(footnotes, content=mg.CI_EXPLAN)
     # footnote 4
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + 
                 _("Standard Deviation") + u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
                 "' href='#ft4'><sup>4</sup></a></th>")
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
-                     "Deviation measures the spread of values.</p>")
+    add_footnote(footnotes, content=mg.STD_DEV_EXPLAN)
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
     # footnotes 5,6,7
@@ -111,19 +114,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                 u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" %
                 CSS_TBL_HDR_FTNOTE)
     html.append(u"</tr>")
-    footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
-        _("Kurtosis measures the peakedness or flatness of values.  "
-              "Between -1 and 1 is probably great. Between -2 and 2 is "
-              "probably good.</p>"),
-          "\n<p><a id='ft%s'></a><sup>%s</sup> " +
-        _("Skew measures the lopsidedness of values.  Between -1 and 1 is "
-              "probably great. Between -2 and 2 is probably good.</p>"),
-          "\n<p><a id='ft%s'></a><sup>%s</sup> " +
-        _("This provides a single measure of normality. If p is small, e.g."
-              " less than 0.01, or 0.001, you can assume the distribution "
-              "is not strictly normal.  Note - it may be normal enough "
-              "though.</p>"),
-        )    
+    add_footnote(footnotes, content=mg.KURT_EXPLAN)
+    add_footnote(footnotes, content=mg.SKEW_EXPLAN)
+    add_footnote(footnotes, content=mg.NORMALITY_MEASURE_EXPLAN)
     html.append(u"\n</thead>\n<tbody>")
     row_tpl = (u"\n<tr>"
                u"<td class='%s'>" % CSS_LBL + u"%s</td>" +
@@ -159,9 +152,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                         )
         html.append(row_tpl % results)
     html.append(u"\n</tbody>\n</table>\n")
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)    
     output.append_divider(html, title, indiv_title=u"")
     for dic_sample_tup in dic_sample_tups:
         dic, sample = dic_sample_tup
@@ -216,8 +207,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_DIFF)
+    add_footnote(footnotes, content=mg.P_EXPLAN_DIFF)
     html.append(u"\n<p>" + _("t statistic") + u": %s</p>" % round(t, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     if indep:
@@ -230,9 +220,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         # always footnote 2 if present
         html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
                     + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
-        footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> If the value is"
-            " small, e.g. less than 0.01, or 0.001, you can assume there is a "
-            "difference in variance.</p>")
+        add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     next_ft = len(footnotes) + 1
     html.append(u"\n<tr>" + \
@@ -247,11 +235,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
             (CSS_TBL_HDR_FTNOTE, next_ft+1, next_ft+1) +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> We are 95%% certain "
-        "that the true value of the mean is within this interval. But it could "
-        "still lie anywhere outside of those bounds.</p>")
-    footnotes.append("\n<p><a id='ft%s'></a><sup>%s</sup> Standard "
-                     "Deviation measures the spread of values.</p>")
+    add_footnote(footnotes, content=mg.CI_EXPLAN)
+    add_footnote(footnotes, content=mg.STD_DEV_EXPLAN)
     if indep:
         # if here, always 5,6,7
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
@@ -263,19 +248,9 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
                     u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" %
                     CSS_TBL_HDR_FTNOTE)
-        footnotes += ("\n<p><a id='ft%s'></a><sup>%s</sup> " +
-            _("Kurtosis measures the peakedness or flatness of values.  "
-                  "Between -1 and 1 is probably great. Between -2 and 2 is "
-                  "probably good.</p>"),
-              "\n<p><a id='ft%s'></a><sup>%s</sup> " +
-            _("Skew measures the lopsidedness of values. Between -1 and 1 is "
-                  "probably great. Between -2 and 2 is probably good.</p>"),
-              "\n<p><a id='ft%s'></a><sup>%s</sup> " +
-            _("This provides a single measure of normality. If p is small, e.g."
-                  " less than 0.01, or 0.001, you can assume the distribution "
-                  "is not strictly normal.  Note - it may be normal enough "
-                  "though.</p>"),
-            )
+        add_footnote(footnotes, content=mg.KURT_EXPLAN)
+        add_footnote(footnotes, content=mg.SKEW_EXPLAN)
+        add_footnote(footnotes, content=mg.NORMALITY_MEASURE_EXPLAN)
     tpl = "%%.%sf" % dp
     html.append(u"</tr>")
     html.append(u"\n</thead>\n<tbody>")
@@ -322,9 +297,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         html.append(row_tpl % results)
     html.append(u"\n</tbody>\n</table>\n")
     html.append("\n<hr class='ftnote-line'>")
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     return title
 
 def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
@@ -433,23 +406,21 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     html.append(u"\n<p>" + _("Two-tailed p value") \
                 + u": %s" % lib.get_p(p*2, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%(ftnum)s'></a>"
-                     "<sup>%%(ftnum)s</sup> %s</p>" % mg.P_EXPLAN_DIFF)
+    add_footnote(footnotes, content=mg.P_EXPLAN_DIFF)
     # always footnote 2
     html.append(u"\n<p>" + _("U statistic") +
                 u": %s <a href='#ft2'><sup>2</sup></a></p>" % round(u, dp))
     html.append(u"\n<p>z: %s</p>" % round(z, dp))
-    footnotes.append((u"\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> U "
-        u"is based on the results of matches between "
-        u"the \"%(label_a)s\" and \"%(label_b)s\" groups. "
+    add_footnote(footnotes, content=(u"U is based on the results of matches "
+        u"between the \"%(label_a)s\" and \"%(label_b)s\" groups. "
         u"In each match,<br>the winner is the one with the "
         u"highest \"%(label_ranked)s\" "
         u"(in a draw, each group gets half a point which is<br>why U can "
         u"sometimes end in .5). "
         u"The further the number is away from an even result<br>"
         u" i.e. half the number of possible matches "
-        u"(i.e. half of %(n_a)s x %(n_b)s i.e. %(even_matches)s)<br>"
-        u"the more unlikely the difference is by chance "
+        u"(i.e. half of %(n_a)s x %(n_b)s in this case i.e. %(even_matches)s)"
+        u"<br>the more unlikely the difference is by chance "
         u"alone and the more statistically significant it is.</p>") % 
             {u"label_a": label_a.replace(u"%",u"%%"), 
              u"label_b": label_b.replace(u"%",u"%%"), u"n_a": n_a, 
@@ -474,9 +445,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>\n")
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % {u"ftnum": next_ft})
+    add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -501,15 +470,14 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     html.append(u"\n<p>" + _("Two-tailed p value") +
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
-                     mg.P_EXPLAN_DIFF)
+    add_footnote(footnotes, content=mg.P_EXPLAN_DIFF)
     html.append(u"\n<p>" + _("Wilcoxon Signed Ranks statistic") +
                 u": %s" % round(t, dp) + 
                 u" <a href='#ft2'><sup>2</sup></a></p>")
     # http://stat.ethz.ch/R-manual/R-patched/library/stats/html/wilcox.test.html
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
-                     u"Different statistics applications will show different "
-                     u"results here depending on the reporting approach taken.")
+    add_footnote(footnotes, content=u"Different statistics applications will "
+        u"show different results here depending on the reporting approach "
+        u"taken.")
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Variable") + u"</th>" +
@@ -527,9 +495,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>\n")
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     output.append_divider(html, title, indiv_title=u"")
@@ -552,16 +518,14 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html.append(u"\n<p>" + _("Two-tailed p value") + \
                 u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append(u"\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_REL)
+    add_footnote(footnotes, content=mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Pearson's R statistic") +
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     html.append(u"<p>Linear Regression Details: "
                 u"<a href='#ft2'><sup>2</sup></a></p>")
-    footnotes.append(u"\n<p><a id='ft%s'></a><sup>%s</sup>"
-        u"Always look at the scatter plot when interpreting the linear "
-        u"regression line.</p>")
+    add_footnote(footnotes, content=u"Always look at the scatter plot when "
+                 u"interpreting the linear regression line.</p>")
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     output.append_divider(html, title, indiv_title=u"")
@@ -582,9 +546,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                                    report_name, html, line_lst=line_lst, 
                                    line_lbl=u"Regression line", 
                                    dot_colour=dot_colours[0])
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -606,8 +568,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" %
-                     mg.P_EXPLAN_REL)
+    add_footnote(footnotes, content=mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
                 u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
@@ -622,9 +583,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
                                    series_dets, label_x, label_y, x_vs_y, 
                                    title_dets_html, add_to_report, 
                                    report_name, html, dot_colour=dot_colours[0])
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -664,8 +623,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_REL)  
+    add_footnote(footnotes, content=mg.P_EXPLAN_REL)  
     html.append(u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" %
                 round(chi, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
@@ -735,9 +693,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
                 round(min_count, dp))
     html.append(u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" %
                 round(perc_cells_lt_5, 1))
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
@@ -851,8 +807,7 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
                 u" <a href='#ft1'><sup>1</sup></a></p>")
-    footnotes.append("\n<p><a id='ft%%s'></a><sup>%%s</sup> %s</p>" % \
-                     mg.P_EXPLAN_DIFF) 
+    add_footnote(footnotes, content=mg.P_EXPLAN_DIFF) 
     html.append("\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
                                                                 round(h, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
@@ -873,9 +828,7 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody></table>")
-    for i, footnote in enumerate(footnotes):
-        next_ft = i + 1
-        html.append(footnote % (next_ft, next_ft))
+    add_footnotes(footnotes, html)
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
                     CSS_PAGE_BREAK_BEFORE)
