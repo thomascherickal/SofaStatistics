@@ -194,11 +194,18 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
+def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
+                      multiseries):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
     """
+    if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPTS:
+        raise Exception("Sorting by anything other than val or lbl fails if "
+            "a multiseries chart because sorting by increasing or decreasing is"
+            " based on data for the category _across_ series e.g. total for the"
+            " male gender category across all age group series whereas this "
+            "function sorts within a series only.")
     idx_measure = 1
     idx_lbl = 2
     lib.sort_value_lbls(sort_opt, vals_etc_lst, idx_measure, idx_lbl)
@@ -207,7 +214,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
     sorted_tooltips = []
     measures = [x[idx_measure] for x in vals_etc_lst]
     tot_measures = sum(measures)
-    for val, measure, lbl, lbl_split, barlbl in vals_etc_lst:
+    for val, measure, lbl, lbl_split, itemlbl in vals_etc_lst:
         sorted_xaxis_dets.append((val, lbl, lbl_split))
         if tot_measures == 0:
             perc = 0
@@ -216,7 +223,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp):
         y_val = perc if data_show == mg.SHOW_PERC else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
-        tooltip_dets = [barlbl,] if barlbl else []
+        tooltip_dets = [itemlbl,] if itemlbl else []
         if major_ticks:
             tooltip_dets.append(u"x-val: %s" % val)
             tooltip_dets.append(u"y-val: %s" % measure2show)
@@ -427,12 +434,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
                     max_lbl_lines = n_lines
-                if chart_type == mg.CLUSTERED_BARCHART:
-                    barlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
+                if multiseries: #chart_type == mg.CLUSTERED_BARCHART:
+                    itemlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
                 else:
-                    barlbl = None
+                    itemlbl = None
                 vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
-                                     x_val_split_lbl, barlbl))
+                                     x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
                 if n_cats > mg.MAX_CLUSTERS:
@@ -448,7 +455,8 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
             (sorted_xaxis_dets, 
              sorted_y_vals, 
              sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
-                                                  sort_opt, vals_etc_lst, dp)
+                                                  sort_opt, vals_etc_lst, dp,
+                                                  multiseries)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -586,7 +594,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         series_vals = [None,] # Got to have something to loop through ;-)
     # 2) Get all cat vals needed for x-axis i.e. all those appearing in any rows 
     # where all fields are non-missing.
-    if var_role_cat:
+    if var_role_cat: # might just be a single box e.g. a box for age overall
         and_series_filt = (u"" if not var_role_series 
                            else " AND %(var_role_series)s IS NOT NULL " % 
                            sql_dic)
@@ -634,8 +642,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         for i, cat_val in enumerate(sorted_cat_vals, 1): # e.g. "Mt Albert Grammar", 
                 # "Epsom Girls Grammar", "Hebron Christian College", ...
             if var_role_cat:
+                x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
                 if first_chart_by: # build xaxis_dets once
-                    x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
+                    
                     (x_val_split_lbl, 
                      actual_lbl_width,
                      n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
@@ -685,7 +694,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                            mg.CHART_BOXPLOT_MEDIAN: None,
                            mg.CHART_BOXPLOT_UBOX: None,
                            mg.CHART_BOXPLOT_UWHISKER: None,
-                           mg.CHART_BOXPLOT_OUTLIERS: None}
+                           mg.CHART_BOXPLOT_OUTLIERS: None,
+                           mg.CHART_BOXPLOT_INDIV_LBL: None}
             else:
                 any_displayed_boxes = True
                 iqr = ubox-lbox
@@ -703,6 +713,11 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     ymax = max_measure
                 outliers = [round(x, 2) for x in vals2desc 
                             if x < lwhisker or x > uwhisker]
+                lblbits = []
+                if var_role_cat:
+                    lblbits.append(x_val_lbl)
+                if legend_lbl:
+                    lblbits.append(legend_lbl)
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                            mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
                            mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
@@ -710,7 +725,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                            mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
                            mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
                            mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
-                           mg.CHART_BOXPLOT_OUTLIERS: outliers}
+                           mg.CHART_BOXPLOT_OUTLIERS: outliers,
+                           mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
             boxdet_series.append(box_dic)
         title_bits = []
         title_bits.append(var_role_desc_name)
@@ -2862,7 +2878,8 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
                                  %(median)s: %(median_val)s, 
                                  %(ubox)s: %(ubox_val)s, 
                                  %(uwhisker)s: %(uwhisker_val)s, 
-                                 %(outliers)s: %(outliers_val)s}
+                                 %(outliers)s: %(outliers_val)s},
+                  indiv_boxlbl: "%(indiv_boxlbl)s"
                  }
               }""" % {u"unique_name": unique_name, u"series_idx": series_idx,
                         u"boxdets_idx": boxdet_idx, u"offset": offset,
@@ -2878,6 +2895,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
                         u"uwhisker_val": boxdet[mg.CHART_BOXPLOT_UWHISKER],
                         u"outliers": mg.CHART_BOXPLOT_OUTLIERS, 
                         u"outliers_val": boxdet[mg.CHART_BOXPLOT_OUTLIERS],
+                        u"indiv_boxlbl": boxdet[mg.CHART_BOXPLOT_INDIV_LBL]
                         })
         series_js.append(u",\n".join(box_js))            
         series_js.append(u"        ];") # close series list

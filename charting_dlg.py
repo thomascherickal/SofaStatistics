@@ -277,7 +277,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_sort = wx.StaticText(self.panel_clust_bar, -1, 
                                  _(u"Sort order\nof %s:") % CLUSTERS_SORTED)
         lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar)
+        self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar,
+                                             choices=mg.SORT_VAL_AND_LABEL_OPTS)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
         self.chk_clust_borders = wx.CheckBox(self.panel_clust_bar, -1, 
                                              _("Bar borders?"))
@@ -328,7 +329,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_sort = wx.StaticText(self.panel_line_chart, -1, 
                                  _(u"Sort order\nof %s:") % GROUPS_SORTED)
         lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart)
+        self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart,
+                                             choices=mg.SORT_VAL_AND_LABEL_OPTS)
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Trend line?"))
@@ -429,7 +431,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                  _(u"Sort order\nof %s:") % GROUPS_SORTED)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_box_sort = self.get_drop_sort_opts(self.panel_boxplot, 
-                                                  choices=mg.BOX_PLOT_SORT_OPTS)
+                                            choices=mg.SORT_VAL_AND_LABEL_OPTS)
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
         self.szr_boxplot.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_boxplot.Add(self.drop_box_sort, 0, wx.TOP, 5)
@@ -926,13 +928,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_clustered_bar_chart(self, event):
+        global CUR_SORT_OPT
         self.chart_type = mg.CLUSTERED_BARCHART
         btn = self.btn_clust_bar
         btn_bmp = self.bmp_btn_clust_bar
         btn_bmp_sel = self.bmp_btn_clust_bar_sel
         panel = self.panel_clust_bar
-        self.drop_clust_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
-        self.drop_clust_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        try:
+            idx_sel = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+        except ValueError: # doesn't have increasing, or decreasing
+            CUR_SORT_OPT = mg.SORT_VALUE
+            idx_sel = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+        self.drop_clust_val.SetSelection(idx_sel)
+        self.drop_clust_sort.SetSelection(idx_sel)
         self.chk_clust_bar_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
@@ -946,13 +954,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_line_chart(self, event):
+        global CUR_SORT_OPT
         self.chart_type = mg.LINE_CHART
         btn = self.btn_line_chart
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        self.drop_line_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
-        self.drop_line_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        try:
+            idx_sel = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+        except ValueError: # doesn't have increasing, or decreasing
+            CUR_SORT_OPT = mg.SORT_VALUE
+            idx_sel = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+        self.drop_line_val.SetSelection(idx_sel)
+        self.drop_line_sort.SetSelection(idx_sel)
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -964,8 +978,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        self.drop_area_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
-        self.drop_area_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        idx_sel = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+        self.drop_area_val.SetSelection(idx_sel)
+        self.drop_area_sort.SetSelection(idx_sel)
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -993,13 +1008,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_boxplot
         btn_bmp_sel = self.bmp_btn_boxplot_sel
         panel = self.panel_boxplot
-        self.chk_boxplot_rotate.SetValue(ROTATE)
         try:
-            idx_sel = mg.BOX_PLOT_SORT_OPTS.index(CUR_SORT_OPT)
+            idx_sel = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
         except ValueError: # doesn't have increasing, or decreasing
             CUR_SORT_OPT = mg.SORT_VALUE
             idx_sel = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
         self.drop_box_sort.SetSelection(idx_sel)
+        self.chk_boxplot_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         
     def on_btn_run(self, event):

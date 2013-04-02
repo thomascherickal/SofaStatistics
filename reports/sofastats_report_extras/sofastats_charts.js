@@ -538,7 +538,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
     var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-
+    
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         return val.y;
