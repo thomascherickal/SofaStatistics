@@ -1114,10 +1114,10 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
         xgap = 4
     if n_clusters <= 5:
         xfontsize = 10
-    elif n_clusters > 5:
-        xfontsize = 9
     elif n_clusters > 10:
         xfontsize = 8
+    else:
+        xfontsize = 9
     init_margin_offset_l = 30 if width > 1200 else 18 # else gets squeezed out e.g. in percent
     minor_ticks = u"true" if n_clusters > 8 else u"false"
     if debug: print(width, xgap, xfontsize, minor_ticks, init_margin_offset_l)
@@ -1134,7 +1134,7 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
     n_series = len(series_dets)
     MIN_PXLS_PER_CAT = 10
     MIN_CHART_WIDTH = 700 if n_series < 5 else 900 # when vertically squeezed good to have more horizontal room
-    PADDING_PXLS = 10
+    PADDING_PXLS = 15
     width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
@@ -1143,10 +1143,10 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
         width = max(width*0.4, MIN_CHART_WIDTH)
     if n_cats <= 5:
         xfontsize = 10
-    elif n_cats > 5:
-        xfontsize = 9
     elif n_cats > 10:
         xfontsize = 8
+    else:
+        xfontsize = 9
     minor_ticks = u"true" if n_cats > 8 and not major_ticks else u"false"
     micro_ticks = u"true" if n_cats > 100 else u"false"
     if debug: print(width, xfontsize, minor_ticks, micro_ticks)
@@ -1167,10 +1167,10 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     minor_ticks = u"true" if n_cats > 10 else u"false"
     if n_cats <= 5:
         xfontsize = 10
-    elif n_cats > 5:
-        xfontsize = 9
     elif n_cats > 10:
         xfontsize = 8
+    else:
+        xfontsize = 9
     if debug: print(width, xfontsize)
     return width, xfontsize, minor_ticks
 
@@ -1886,8 +1886,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate)
     if multichart:
-        width = width*0.8
-        xfontsize = xfontsize*0.8
+        width = width*0.9
+        xfontsize = xfontsize*0.9
         init_margin_offset_l += 10
     margin_offset_l = (init_margin_offset_l + y_title_offset 
                        - DOJO_YTITLE_OFFSET_0)
