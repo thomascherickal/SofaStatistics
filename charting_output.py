@@ -1134,7 +1134,7 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
     n_series = len(series_dets)
     MIN_PXLS_PER_CAT = 10
     MIN_CHART_WIDTH = 700 if n_series < 5 else 900 # when vertically squeezed good to have more horizontal room
-    PADDING_PXLS = 15
+    PADDING_PXLS = 20 if n_cats < 8 else 25
     width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
                      + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
