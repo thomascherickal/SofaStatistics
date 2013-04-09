@@ -3,7 +3,7 @@
 
 from __future__ import print_function
 import os
-import wx
+import wx #@UnusedImport
 import wx.html
 
 import my_globals as mg
@@ -182,8 +182,6 @@ def process_fldnames(raw_names, headless=False):
         if debug: print(raw_names)
         names = []
         for raw_name in raw_names:
-            if len(raw_name) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
-                raise my_exceptions.CategoryTooLong(raw_name)
             if not isinstance(raw_name, unicode):
                 try:
                     raw_name = raw_name.decode("utf-8")
@@ -191,6 +189,9 @@ def process_fldnames(raw_names, headless=False):
                     raise Exception(u"Unable to process raw field name."
                                     u"\nCaused by error: %s" % lib.ue(e))
             name = raw_name.replace(u" ", u"_")
+            if len(name) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+                # just truncate - let the get_unique_fldnames function handle the shortened names as it normally would
+                name = name[:mg.MAX_VAL_LEN_IN_SQL_CLAUSE-mg.FLDNAME_ZFILL] # Got to leave some room for what get_unique_fldnames() appends
             names.append(name)
             if mg.SOFA_ID in names:
                 raise Exception(_(u"%s is a reserved field name.") % mg.SOFA_ID)

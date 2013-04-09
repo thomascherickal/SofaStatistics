@@ -8,7 +8,7 @@ import csv
 import locale
 import os
 import pprint
-import wx
+import wx #@UnusedImport
 import wx.html
 
 import my_globals as mg
@@ -691,11 +691,11 @@ class CsvImporter(importer.FileImporter):
         self.ext = u"CSV"
         
     def assess_sample(self, reader, progbar, steps_per_item, import_status, 
-                      comma_delimiter, faulty2missing_fld_list):
+                      comma_delimiter, faulty2missing_fld_list, ok_fldnames):
         """
         Assess data sample to identify field types based on values in fields.
         If a field has mixed data types will define as string.
-        Returns ok_fldnames, fldtypes, sample_data.
+        Returns fldtypes, sample_data.
         fldtypes - dict with original (uncorrected) field names as keys and 
             field types as values.
         sample_data - list of dicts containing the first rows of data 
@@ -728,7 +728,6 @@ class CsvImporter(importer.FileImporter):
             if i == i2break:
                 break
         fldtypes = []
-        ok_fldnames = lib.get_unique_fldnames(reader.fieldnames)
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header,
                                     ok_fldname, ok_fldnames, 
@@ -738,7 +737,7 @@ class CsvImporter(importer.FileImporter):
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not bolhas_rows:
             raise Exception(u"No data to import")
-        return ok_fldnames, fldtypes, sample_data
+        return fldtypes, sample_data
     
     def get_avg_row_size(self, tmp_reader):
         """
@@ -897,10 +896,10 @@ class CsvImporter(importer.FileImporter):
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         try:
-            (ok_fldnames, fldtypes, 
+            (fldtypes, 
              sample_data) = self.assess_sample(reader, progbar, steps_per_item, 
-                                               import_status, comma_delimiter, 
-                                               faulty2missing_fld_list)
+                                           import_status, comma_delimiter, 
+                                           faulty2missing_fld_list, ok_fldnames)
             # NB reader will be at position ready to access records after sample
             data = sample_data + list(reader) # must be a list not a reader or 
                 # can't start again from start of data (e.g. if correction made)

@@ -159,7 +159,7 @@ class ExcelImporter(importer.FileImporter):
         debug = False
         has_rows = False
         sample_data = []
-        ok_fldnames = self.get_ok_fldnames(wksheet)
+        #ok_fldnames = self.get_ok_fldnames(wksheet)
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
             if row_idx % 50 == 0:
@@ -222,9 +222,10 @@ class ExcelImporter(importer.FileImporter):
         if debug: 
             print("steps_per_item: %s" % steps_per_item)
             print("About to assess data sample")
-        fldtypes, sample_data = self.assess_sample(wkbook, wksheet, 
-                                        ok_fldnames, progbar, steps_per_item, 
-                                        import_status, faulty2missing_fld_list)
+        (fldtypes, 
+         sample_data) = self.assess_sample(wkbook, wksheet, ok_fldnames, 
+                                         progbar, steps_per_item, import_status, 
+                                         faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
             print(fldtypes)

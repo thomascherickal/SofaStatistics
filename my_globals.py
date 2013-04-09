@@ -12,9 +12,9 @@ import wx
 # It doesn't do any local importing at all until the last line, where it imports
 # config (used for initial config plus re-config).
 
-debug = True
+debug = False
 
-VERSION = u"1.3.3"
+VERSION = u"1.3.4"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -123,7 +123,6 @@ DEFAULT_MEASURE_KEY = u"default_measure_key"
 NEEDS_ROWS_KEY = u"needs_row_key"
 QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
     # live demo output if table has less than this records
-debug = False
 RPT_CONFIG = {
     FREQS: {COL_MEASURES_KEY: [FREQ, COLPCT], 
             VAR_SUMMARISED_KEY: False,
@@ -449,8 +448,9 @@ DBE_PLUGINS = [(DBE_SQLITE, u"dbe_sqlite"),
                (DBE_PGSQL, u"dbe_postgresql"),
                ]
 FLDNAME_START = u"var"
-NEXT_FLDNAME_TEMPLATE = FLDNAME_START + u"%03i"
-NEXT_VARIANT_FLDNAME_TEMPLATE = u"%s%03i"
+FLDNAME_ZFILL = 3
+NEXT_FLDNAME_TEMPLATE = FLDNAME_START + u"%%0%si" % FLDNAME_ZFILL
+NEXT_VARIANT_FLDNAME_TEMPLATE = u"%%s%%0%si" % FLDNAME_ZFILL
 # importer
 VAL_NUMERIC = u"numeric value"
 VAL_DATE = u"datetime value"
