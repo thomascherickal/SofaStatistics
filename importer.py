@@ -26,6 +26,41 @@ FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
 ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
 
+class DummyProgbar(object):
+    def SetValue(self, value):
+        print(u"Progress %s ..." % round(value, 2))
+
+class DummyLabel(object):
+    def SetLabel(self, unused):
+        pass
+
+class DummyImporter(object):    
+    def __init__(self):
+        self.progbar = DummyProgbar()
+        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
+        # running script can check on it.
+        self.lbl_feedback = DummyLabel()
+        
+def run_gui_import(self):
+    run_import(self)
+    
+def run_headless_import(file_path, tblname, headless_has_header, 
+                        supplied_encoding=None):
+    """
+    Usage:
+    file_path = "/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx" #csvfiles/percent_names.csv"
+    tblname = "headless_yeah_baby"
+    headless_has_header = True
+    supplied_encoding = "utf-8"
+    importer.run_headless_import(file_path, tblname, headless_has_header, 
+                                 supplied_encoding)
+    """
+    dummy_importer = DummyImporter()
+    run_import(dummy_importer, headless=True, file_path=file_path, 
+               tblname=tblname, headless_has_header=headless_has_header,
+               supplied_encoding=supplied_encoding)
+
+
 class DlgFixMismatch(wx.Dialog):
     # weird bugs when using stdbtndialog here and calling dlg multiple times
     # actual cause not known but buggy original had a setup_btns method
@@ -1052,31 +1087,6 @@ def check_tblname(file_path, tblname, headless):
             elif ret == wx.YES:
                 pass # use name (overwrite orig)
     return tblname
-
-class DummyProgbar(object):
-    def SetValue(self, value):
-        print(u"Progress %s ..." % round(value, 2))
-
-class DummyLabel(object):
-    def SetLabel(self, unused):
-        pass      
-
-class DummyImporter(object):    
-    def __init__(self):
-        self.progbar = DummyProgbar()
-        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
-        # running script can check on it.
-        self.lbl_feedback = DummyLabel()
-        
-def run_gui_import(self):
-    run_import(self)
-    
-def run_headless_import(file_path, tblname, headless_has_header, 
-                        supplied_encoding=None):
-    dummy_importer = DummyImporter()
-    run_import(dummy_importer, headless=True, file_path=file_path, 
-               tblname=tblname, headless_has_header=headless_has_header,
-               supplied_encoding=supplied_encoding)
 
 def run_import(self, headless=False, file_path=None, tblname=None, 
                headless_has_header=True, supplied_encoding=None):

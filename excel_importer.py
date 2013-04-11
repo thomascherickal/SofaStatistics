@@ -24,7 +24,7 @@ class ExcelImporter(importer.FileImporter):
                  headless_has_header):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
                                        headless, headless_has_header)
-        self.ext = u"XLS"
+        self.ext = u"XLS/XLSX"
     
     def has_header_row(self, row1_types, row2_types):
         """

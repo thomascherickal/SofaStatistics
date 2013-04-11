@@ -954,11 +954,11 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         %(fld_y_axis)s
     AS y
     FROM %(tbl)s
-    WHERE charts IS NOT NULL 
-        AND series IS NOT NULL 
+    WHERE %(var_role_charts)s IS NOT NULL 
+        AND %(var_role_series)s IS NOT NULL 
         %(and_xy_filt)s
         %(and_tbl_filt)s
-    GROUP BY charts, series""" % sql_dic)
+    GROUP BY %(var_role_charts)s, %(var_role_series)s""" % sql_dic)
     if unique:
         SQL_get_xy_pairs += u", %(fld_x_axis)s, %(fld_y_axis)s" % sql_dic
     if debug: print(SQL_get_xy_pairs)
@@ -2244,7 +2244,7 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     idx_xlbl = 1
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
     ymax = max(yvals)
-    max_y_lbl_len = len(str(round(ymax,0)))
+    max_y_lbl_len = len(str(int(ymax)))
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate=False)    
@@ -2511,9 +2511,9 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     for series_det in series_dets:
         all_x.extend(series_det[mg.LIST_X])
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
-    init_margin_offset_l = 20
-    max_y_lbl_len = len(str(round(ymax,0)))
-    x_lbl_len = len(str(round(xmin,0)))
+    init_margin_offset_l = 25
+    max_y_lbl_len = len(str(int(ymax)))
+    x_lbl_len = len(str(int(xmin)))
     max_safe_x_lbl_len_pxls = 90
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate=False) 
@@ -2770,7 +2770,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     idx_1st_xdets = 0
     idx_xlbl = 1
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
-    max_y_lbl_len = len(str(round(ymax,0)))
+    max_y_lbl_len = len(str(int(ymax)))
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
                                        max_safe_x_lbl_len_pxls, rotate) 
