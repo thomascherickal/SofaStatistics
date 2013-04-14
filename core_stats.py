@@ -16,8 +16,6 @@ import getdata
 D = decimal.Decimal
 decimal.getcontext().prec = 200
 
-
-
 """
 Don't use dd - this and any other modules we wish to run as a standalone script 
 must have dbe, db etc explicitly fed in. If the script is built by the GUI, the
@@ -481,28 +479,52 @@ def anova_orig(lst_samples, lst_labels, high=False):
     print("using orig with F: %s" % F)
     return p, F, dics, sswn, dfwn, msw, ssbn, dfbn, msb
 
-def get_se(n, mysd):
+def has_decimal_type_mix(numbers):
     """
-    Assumed that mymean and mysd have been created using same high setting.
+    Some operators support mix of Decimal and other numeric types (e.g. <, >)
+        but others don't e.g. /. So we sometimes need to know if there is a mix.
     """
+    decimal_type_mix = [type(x) == 'decimal.Decimal' for x in numbers]
+    is_mixed = len(set(decimal_type_mix)) > 1
+    return is_mixed
+
+def get_se(n, mysd, high=True):
     debug = False
     denom = math.sqrt(n)
+    if high:
+        denom = D(denom)
     if debug: print(mysd, denom)
+    if has_decimal_type_mix(numbers=(mysd, denom)):
+        raise Exception("Cannot mix decimals and other numbers for division "
+                        "when calculating SE")
     se = mysd/denom
     return se
 
-def get_ci95(sample=None, mymean=None, mysd=None, n=None):
+def get_ci95(sample=None, mymean=None, mysd=None, n=None, high=True):
     if sample is None and (n is None or mymean is None or mysd is None):
         raise Exception("Unable to calculate confidence interval without either"
                         " a sample or all of n, mean, and sd.")
-    n = n if n is not None else len(sample)
-    mymean = mymean if mymean is not None else mean(sample, high=False)
-    mysd = mysd if mysd is not None else stdev(sample, high=False)
-    if n < 30:
+    if n is None:
+        n = len(sample)
+        if high:
+            n = D(n)
+    mymean = mymean if mymean is not None else mean(sample, high)
+    mysd = mysd if mysd is not None else stdev(sample, high)
+    if has_decimal_type_mix(numbers=(mymean, mysd, n)):
+        raise Exception("Cannot mix decimals and other numbers for some "
+                        "calculations e.g. division")
+    if n < 30: # ok for mix decimals and non-dec
         print(u"Using sample sd instead of population sd even though n < 30. "
               u"May not be reliable.")
-    se = get_se(n, mysd)
-    diff = 1.96*se
+    se = get_se(n, mysd, high)
+    sds = 1.96
+    if high:
+        sds = D(sds)
+    diff = sds*se
+    if has_decimal_type_mix(numbers=(mymean,diff)):
+        raise Exception("Cannot mix decimals and other numbers for some "
+                        "calculations e.g. addition and subtraction when "
+                        "calculating CI lower and upper bounds")
     lower95 = mymean - diff
     upper95 = mymean + diff
     return (lower95, upper95)
@@ -524,7 +546,7 @@ def anova(samples, labels, high=True):
         label = labels[i]
         mymean = mean(sample, high)
         mysd = stdev(sample, high)
-        ci95 = get_ci95(sample, mymean, mysd)
+        ci95 = get_ci95(sample, mymean, mysd, n=None, high=high)
         dics.append({mg.STATS_DIC_LBL: label, 
                      mg.STATS_DIC_N: sample_ns[i], 
                      mg.STATS_DIC_MEAN: mymean, 
