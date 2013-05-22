@@ -1179,7 +1179,7 @@ def setup_highlights(colour_mappings, single_colour,
     """
     If single colour in chart, only need one highlight defined.
     If default style and multiple series, redefine highlight for first. 
-        Basically a hack so the default chart has a highlight which looks good in   
+        Basically a hack so the default chart has a highlight which looks good.   
     """
     colour_cases_list = []
     for i, mappings in enumerate(colour_mappings):

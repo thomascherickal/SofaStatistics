@@ -500,7 +500,7 @@ def get_se(n, mysd, high=True):
     se = mysd/denom
     return se
 
-def get_ci95(sample=None, mymean=None, mysd=None, n=None, high=True):
+def get_ci95(sample=None, mymean=None, mysd=None, n=None, high=False):
     if sample is None and (n is None or mymean is None or mysd is None):
         raise Exception("Unable to calculate confidence interval without either"
                         " a sample or all of n, mean, and sd.")

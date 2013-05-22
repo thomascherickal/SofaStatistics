@@ -296,6 +296,18 @@ def get_init_settings_data(default_dd, tblname):
 
 # syntax
 
+def get_val2float_func(dbe):
+    """
+    Get appropriate syntax to force value to be treated as a float rather than 
+        an integer e.g. to ensure correct calculation of mean.
+    """
+    try:
+        val2float = mg.DBE_MODULES[dbe].val2float
+    except Exception:
+        def val2float(val):
+            return val
+    return val2float 
+
 def get_cartesian_joiner(dbe):
     """
     Get appropriate syntax to cartesian join entities.
@@ -595,8 +607,8 @@ def open_database(parent, event):
     debug = False
     dd = mg.DATADETS_OBJ
     if not dd.has_unique:
-        msg = _("Table \"%s\" cannot be opened because it lacks a unique "
-                "index")
+        msg = _(u"Table \"%s\" cannot be opened because it lacks a unique "
+                u"index. You can still use it for analysis though.")
         wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
     else:
         SQL_get_count = (u"SELECT COUNT(*) FROM %s" % tblname_qtr(dd.dbe, 

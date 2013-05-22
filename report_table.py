@@ -727,7 +727,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 u"first_label": first_label})
         if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
-            script_lst.append(u"max_cells = 5000")
+            script_lst.append(u"max_cells = %s" % mg.MAX_CELLS_IN_REPORT_TABLE)
             script_lst.append(u"if tab_test.get_cell_n_ok("
                               u"max_cells=max_cells):")
             script_lst.append(u"    "

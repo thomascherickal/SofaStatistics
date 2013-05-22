@@ -1211,9 +1211,11 @@ class SummTable(LiveTable):
             except Exception:
                 raise Exception(u"Unable to calculate sum of %s." % col_fld)
         elif measure == mg.MEAN:
-            SQL_get_mean = u"SELECT AVG(%s) " % self.quote_obj(col_fld) + \
-                u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
-                                 overall_filter)
+            val2float = getdata.get_val2float_func(self.dbe)
+            SQL_get_mean = u"""SELECT AVG(%s) 
+                    FROM %s %s""" % (val2float(self.quote_obj(col_fld)),
+                                     getdata.tblname_qtr(self.dbe, self.tbl), 
+                                     overall_filter)
             try:
                 self.cur.execute(SQL_get_mean)
                 data_val = dp2_tpl % round(self.cur.fetchone()[0],2)

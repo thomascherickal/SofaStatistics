@@ -6,8 +6,8 @@
 # (2.8) - and select OK. NB DAO must be done separately from ADO etc.
 
 from __future__ import print_function
-import adodbapi
-import win32com.client
+import adodbapi #@UnresolvedImport
+import win32com.client #@UnresolvedImport
 
 import wx
 import pprint
@@ -35,6 +35,9 @@ def quote_val(raw_val, charset2try="iso-8859-1"):
     return lib.quote_val(raw_val, sql_str_literal_quote=u"'", 
                          sql_esc_str_literal_quote=u"''", 
                          pystr_use_double_quotes=True, charset2try=charset2try)
+
+def val2float(raw_val):
+    return u"cast(%s as float)" % raw_val
 
 def get_summable(clause):
     return u"CASE WHEN %s THEN 1 ELSE 0 END" % clause
@@ -166,7 +169,7 @@ def get_tbls(cur, db):
     alltables = cat.Tables
     tbls = []
     for tab in alltables:
-        if tab.Type == "TABLE":
+        if tab.Type in ("TABLE", "VIEW"):
             tbls.append(tab.Name)
     cat = None
     return tbls
@@ -177,7 +180,7 @@ def has_tbls(cur, db):
     cat.ActiveConnection = cur.adoconn
     alltables = cat.Tables
     for tab in alltables:
-        if tab.Type == "TABLE":
+        if tab.Type in ("TABLE", "VIEW"):
             return True
     return False
             

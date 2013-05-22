@@ -155,6 +155,7 @@ RPT_CONFIG = {
                 DEFAULT_MEASURE_KEY: None,
                 QUICK_IF_BELOW_KEY: 750},
   }
+MAX_CELLS_IN_REPORT_TABLE = 100000 if debug else 5000
 MAX_VAL_LEN_IN_SQL_CLAUSE = 90
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
