@@ -39,18 +39,23 @@ def extract_img_path(content, use_as_url=False):
         copy an image
     IMG_SRC_START -- u"<img src='"
     """
+    debug = False
     idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
+    if debug: print(u"extract_img_path\n%s" % content)
     idx_end = content.rindex(mg.IMG_SRC_END)
     img_path = content[idx_start: idx_end]
+    if debug: 
+        print(u"idx_end: %s" % idx_end)
+        print(u"img_path: %s" % img_path)
     if not use_as_url:
         img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
+        if debug: print(u"not use_as_url img_path:\n%s" % img_path)
     # strip off 'file:///' (or file:// as appropriate for os)
     if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
-        img_path = os.path.join(u"", 
-                                img_path.split(mg.FILE_URL_START_WIN)[1])
+        img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_WIN)[1])
     elif mg.FILE_URL_START_GEN in img_path:
-        img_path = os.path.join(u"", 
-                                img_path.split(mg.FILE_URL_START_GEN)[1])
+        img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_GEN)[1])
+    if debug: print(u"Final img_path:\n%s" % img_path)
     return img_path
 
 def get_src_dst_preexisting_img(export_report, imgs_path, content):
@@ -70,14 +75,16 @@ def get_src_dst_preexisting_img(export_report, imgs_path, content):
     """
     debug = False
     img_path = extract_img_path(content, use_as_url=False)
-    if debug: print(img_path)
+    if debug: print(u"get_src_dst_preexisting_img\nimg_path:\n%s\n" % img_path)
     if export_report: # trim off trailing divider, then split and get first part
         src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
     else:
         src = img_path # the run_report process leaves an abs version. How nice!
+    if debug: print(u"src:\n%s\n" % src)
     img_name = os.path.split(img_path)[1]
+    if debug: print(u"img_path:\n%s\n" % img_path)
     dst = os.path.join(imgs_path, img_name)
-    if debug: print(src, dst)
+    if debug: print(u"dst:\n%s\n" % dst)
     return src, dst
 
 def setup_link(link, link_colour, bg_colour):

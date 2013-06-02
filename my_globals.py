@@ -195,6 +195,7 @@ script_export_measures_dic = {FREQ: u"FREQ",
                               UPPER_QUARTILE: u"UPPER_QUARTILE",
                               IQR: u"IQR",
                               }
+GROUPING_PLACEHOLDER = 1
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 
 # html_title, html_post_title etc was deemed an even worse approach ;-)

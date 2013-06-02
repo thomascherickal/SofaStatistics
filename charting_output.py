@@ -93,48 +93,57 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         values where there are no missing values in any of the other grouping 
         variables (or in the variable being averaged if a chart of averages).
     """
-    debug = False
+    debug = True
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
         raise Exception(u"All general charts require a category variable to be "
                         u"identified")
-    mycat = objqtr(var_role_cat)
-    # Series and charts are optional so we need to autofill them with something 
-    # which will keep them in the same group.
-    myseries = 1 if not var_role_series else objqtr(var_role_series)
-    mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
     is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPTS)
     agg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_agg) if is_agg
-                else u" ") 
+                else u" ")
     sql_dic = {u"tbl": tbl_quoted,
-               u"var_role_charts": mycharts,
-               u"var_role_series": myseries,
-               u"var_role_cat": mycat,
+               u"var_role_cat": objqtr(var_role_cat),
                u"var_role_agg": objqtr(var_role_agg),
                u"where_tbl_filt": where_tbl_filt,
                u"and_tbl_filt": and_tbl_filt,
                u"and_agg_filt": agg_filt}
+    # Series and charts are optional so we need to autofill them with something 
+    #     which will keep them in the same group.
+    if var_role_charts:
+        sql_dic[u"var_role_charts"] = objqtr(var_role_charts)
+    else:
+        sql_dic[u"var_role_charts"] = mg.GROUPING_PLACEHOLDER
+    if var_role_series:
+        sql_dic[u"var_role_series"] = objqtr(var_role_series)
+    else:
+        sql_dic[u"var_role_series"] = mg.GROUPING_PLACEHOLDER
     # 1) grouping variables
-    SQL_charts = ("""SELECT %(var_role_charts)s 
-    AS charts
-    FROM %(tbl)s
-    WHERE %(var_role_charts)s IS NOT NULL 
-        AND %(var_role_series)s IS NOT NULL 
-        AND %(var_role_cat)s IS NOT NULL
-        %(and_tbl_filt)s
-        %(and_agg_filt)s
-    GROUP BY %(var_role_charts)s""" % sql_dic)
+    if var_role_charts:
+        SQL_charts = ("""SELECT %(var_role_charts)s 
+        AS charts
+        FROM %(tbl)s
+        WHERE %(var_role_charts)s IS NOT NULL 
+            AND %(var_role_series)s IS NOT NULL 
+            AND %(var_role_cat)s IS NOT NULL
+            %(and_tbl_filt)s
+            %(and_agg_filt)s
+        GROUP BY %(var_role_charts)s""" % sql_dic)
+    else:
+        SQL_charts = u"SELECT 1 AS charts"
     if debug: print(SQL_charts)
-    SQL_series = ("""SELECT %(var_role_series)s 
-    AS series
-    FROM %(tbl)s
-    WHERE %(var_role_series)s IS NOT NULL 
-        AND %(var_role_charts)s IS NOT NULL 
-        AND %(var_role_cat)s IS NOT NULL
-        %(and_tbl_filt)s
-        %(and_agg_filt)s
-    GROUP BY %(var_role_series)s""" % sql_dic)
+    if var_role_series:
+        SQL_series = ("""SELECT %(var_role_series)s 
+        AS series
+        FROM %(tbl)s
+        WHERE %(var_role_series)s IS NOT NULL 
+            AND %(var_role_charts)s IS NOT NULL 
+            AND %(var_role_cat)s IS NOT NULL
+            %(and_tbl_filt)s
+            %(and_agg_filt)s
+        GROUP BY %(var_role_series)s""" % sql_dic)
+    else:
+        SQL_series = u"SELECT 1 AS series"
     if debug: print(SQL_series)
     SQL_cat = ("""SELECT %(var_role_cat)s 
     AS cat
@@ -161,6 +170,12 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     else:
         raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
                         data_show)
+    groupby_vars = []
+    if var_role_charts: groupby_vars.append(objqtr(var_role_charts))
+    if var_role_series: groupby_vars.append(objqtr(var_role_series))
+    groupby_vars.append(objqtr(var_role_cat))
+    sql_dic[u"groupby_charts_series_cats"] = (u" GROUP BY " 
+                                              + u", ".join(groupby_vars))
     SQL_vals2show = u"""SELECT %(var_role_charts)s
     AS charts,
         %(var_role_series)s
@@ -171,9 +186,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     AS val2show
     FROM %(tbl)s
     %(where_tbl_filt)s
-    GROUP BY %(var_role_charts)s, 
-        %(var_role_series)s, 
-        %(var_role_cat)s""" % sql_dic
+    %(groupby_charts_series_cats)s""" % sql_dic
     if debug: print(u"SQL_vals2show:\n%s" % SQL_vals2show)
     # 3) Put all group by vars on left side of join with measures by those 
     # grouping vars.
@@ -922,7 +935,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     """
     unique -- unique x-y pairs only
     """
-    debug = False
+    debug = True
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     fld_x_axis = objqtr(var_role_x_axis)
@@ -931,19 +944,23 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
                                                                  fld_y_axis))
     where_xy_filt = (xy_filt_tpl % u"WHERE")
     and_xy_filt = (xy_filt_tpl % u"AND")
-    # Series and charts are optional so we need to autofill them with something 
-    # which will keep them in the same group.
-    myseries = 1 if not var_role_series else objqtr(var_role_series)
-    mycharts = 1 if not var_role_charts else objqtr(var_role_charts)
     sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
-               u"var_role_charts": mycharts,
-               u"var_role_series": myseries,
                u"fld_x_axis": objqtr(var_role_x_axis),
                u"fld_y_axis": objqtr(var_role_y_axis),
                u"where_tbl_filt": where_tbl_filt,
                u"and_tbl_filt": and_tbl_filt,
                u"where_xy_filt": where_xy_filt,
                u"and_xy_filt": and_xy_filt,}
+    # Series and charts are optional so we need to autofill them with something 
+    # which will keep them in the same group.
+    if var_role_charts:
+        sql_dic[u"var_role_charts"] = objqtr(var_role_charts)
+    else:
+        sql_dic[u"var_role_charts"] = mg.GROUPING_PLACEHOLDER
+    if var_role_series:
+        sql_dic[u"var_role_series"] = objqtr(var_role_series)
+    else:
+        sql_dic[u"var_role_series"] = mg.GROUPING_PLACEHOLDER
     # only want rows where all variables are not null
     SQL_get_xy_pairs = (u"""SELECT %(var_role_charts)s 
     AS charts,
@@ -958,9 +975,14 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         AND %(var_role_series)s IS NOT NULL 
         %(and_xy_filt)s
         %(and_tbl_filt)s
-    GROUP BY %(var_role_charts)s, %(var_role_series)s""" % sql_dic)
+    """ % sql_dic)
     if unique:
-        SQL_get_xy_pairs += u", %(fld_x_axis)s, %(fld_y_axis)s" % sql_dic
+        groupby_vars = []
+        if var_role_charts: groupby_vars.append(objqtr(var_role_charts))
+        if var_role_series: groupby_vars.append(objqtr(var_role_series))
+        groupby_vars.append(sql_dic[u"fld_x_axis"])
+        groupby_vars.append(sql_dic[u"fld_y_axis"])
+        SQL_get_xy_pairs += (u" GROUP BY " + u", ".join(groupby_vars))
     if debug: print(SQL_get_xy_pairs)
     cur.execute(SQL_get_xy_pairs)
     raw_data = cur.fetchall()
