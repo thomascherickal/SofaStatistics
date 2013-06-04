@@ -15,6 +15,7 @@ In other cases, however, e.g. box plots, we need to analyse the values to get
 import numpy as np
 from operator import itemgetter
 import pprint
+import wx
 
 import my_globals as mg
 import lib
@@ -93,7 +94,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         values where there are no missing values in any of the other grouping 
         variables (or in the variable being averaged if a chart of averages).
     """
-    debug = True
+    debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
@@ -392,7 +393,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
-        raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
+        if wx.MessageBox(_(u"This output will have %s charts and may not "
+               u"display properly. Do you wish to make it anyway?") % 
+                         n_charts, 
+               caption=_("HIGH NUMBER OF CHARTS"), 
+               style=wx.YES_NO) == wx.NO:
+            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
                                                  max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     if multichart:
@@ -401,10 +407,20 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     else: # clustered, line - can have multiple series without being multi-chart
         chart_fldname = None
         chart_fldlbls = {}
+    allow_exceed_max_clusters = False
+    allow_exceed_max_series = False
     for chart_dic in prestructure:
         series = chart_dic[CHART_SERIES_KEY]
-        if len(series) > mg.MAX_CHART_SERIES:
-            raise my_exceptions.TooManySeriesInChart(mg.MAX_CHART_SERIES)
+        n_series = len(series)
+        if n_series > mg.MAX_CHART_SERIES and not allow_exceed_max_series:
+            if wx.MessageBox(_(u"This chart will have %s series and may not "
+                   u"display properly. Do you wish to make it anyway?") % 
+                             n_series, 
+                   caption=_("HIGH NUMBER OF SERIES"), 
+                   style=wx.YES_NO) == wx.NO:
+                raise my_exceptions.TooManySeriesInChart(mg.MAX_CHART_SERIES)
+            else:
+                allow_exceed_max_series = True
         multiseries = (len(series) > 1)
         """
         chart_dic = {CHART_VAL_KEY: 1, 
@@ -455,21 +471,32 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                                      x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
-                if n_cats > mg.MAX_CLUSTERS:
-                    raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
-                                                                mg.MAX_CLUSTERS)
+                if n_cats > mg.MAX_CLUSTERS and not allow_exceed_max_clusters:
+                    if wx.MessageBox(_(u"This chart will have %s clusters by "
+                           u"%s and may not display properly. Do you wish to "
+                           u"make it anyway?") % (n_cats, var_role_cat), 
+                           caption=_("HIGH NUMBER OF CLUSTERS"), 
+                           style=wx.YES_NO) == wx.NO:
+                        raise my_exceptions.TooManyValsInChartSeries(
+                                                  var_role_cat, mg.MAX_CLUSTERS)
+                    else:
+                        allow_exceed_max_clusters = True
             elif chart_type == mg.PIE_CHART:
                 if n_cats > mg.MAX_PIE_SLICES:
                     raise my_exceptions.TooManySlicesInPieChart
             else:
                 if n_cats > mg.MAX_CATS_GEN:
-                    raise my_exceptions.TooManyValsInChartSeries(var_role_cat, 
-                                                                mg.MAX_CATS_GEN)
-            (sorted_xaxis_dets, 
-             sorted_y_vals, 
-             sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
-                                                  sort_opt, vals_etc_lst, dp,
-                                                  multiseries)
+                    if wx.MessageBox(_(u"This chart will have %s %s categories "
+                           u"and may not display properly. Do you wish to make "
+                           u"it anyway?") % (n_cats, var_role_cat), 
+                           caption=_("HIGH NUMBER OF CATEGORIES"), 
+                           style=wx.YES_NO) == wx.NO:
+                        raise my_exceptions.TooManyValsInChartSeries(
+                                                  var_role_cat, mg.MAX_CATS_GEN)
+            (sorted_xaxis_dets, sorted_y_vals, 
+                sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
+                                                     sort_opt, vals_etc_lst, dp,
+                                                     multiseries)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -600,9 +627,15 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         cur.execute(SQL_series_vals)
         series_vals = [x[0] for x in cur.fetchall()]
         if debug: print(series_vals)
-        if len(series_vals) > mg.MAX_SERIES_IN_BOXPLOT:
-            max_items = mg.MAX_SERIES_IN_BOXPLOT
-            raise my_exceptions.TooManySeriesInChart(max_items)
+        n_boxplot_series = len(series_vals)
+        if n_boxplot_series > mg.MAX_SERIES_IN_BOXPLOT:
+            if wx.MessageBox(_(u"This chart will have %s %s series "
+                   u"and may not display properly. Do you wish to make "
+                   u"it anyway?") % (n_boxplot_series, var_role_cat), 
+                   caption=_("HIGH NUMBER OF SERIES"), 
+                   style=wx.YES_NO) == wx.NO:
+                raise my_exceptions.TooManySeriesInChart(
+                                                    mg.MAX_SERIES_IN_BOXPLOT)
     else:
         series_vals = [None,] # Got to have something to loop through ;-)
     # 2) Get all cat vals needed for x-axis i.e. all those appearing in any rows 
@@ -628,8 +661,14 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
             cat_vals_and_lbls.sort(key=itemgetter(1))
         sorted_cat_vals = [x[0] for x in cat_vals_and_lbls]
         if debug: print(sorted_cat_vals)
-        if len(sorted_cat_vals) > mg.MAX_BOXPLOTS_IN_SERIES:
-            raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
+        n_boxplots = len(sorted_cat_vals)
+        if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
+            if wx.MessageBox(_(u"This chart will have %s series by "
+                   u"%s and may not display properly. Do you wish to "
+                   u"make it anyway?") % (n_boxplots, var_role_cat), 
+                   caption=_("HIGH NUMBER OF SERIES"), 
+                   style=wx.YES_NO) == wx.NO:
+                raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
                                             max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     else:
         sorted_cat_vals = [1,] # the first boxplot is always 1 on the x-axis
@@ -935,7 +974,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     """
     unique -- unique x-y pairs only
     """
-    debug = True
+    debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     fld_x_axis = objqtr(var_role_x_axis)
@@ -1807,7 +1846,11 @@ def get_series_colours_by_lbl(chart_output_dets, css_fil):
             if series_lbl not in series_lbls: # can't use set because want to retain order
                 series_lbls.append(series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
     for i, series_lbl in enumerate(series_lbls):
-        series_colours_by_lbl[series_lbl] = item_colours[i]
+        try:
+            series_colours_by_lbl[series_lbl] = item_colours[i]
+        except IndexError:
+            raise Exception(u"Unable to cope with need for that many different"
+                            u" colours.")
     return series_colours_by_lbl
 
 def get_trend_y_vals(y_vals):
