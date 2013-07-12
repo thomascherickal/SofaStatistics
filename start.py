@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -82,7 +82,7 @@ import my_globals as mg
 if show_early_steps: print(u"Imported my_globals successfully.")
 import lib
 if show_early_steps: print(u"Imported lib successfully.")
-import my_exceptions
+import my_exceptions #@UnusedImport
 if show_early_steps: print(u"Imported my_exceptions successfully.")
 import config_globals
 if show_early_steps: print(u"Imported config_globals successfully.")
@@ -1058,7 +1058,7 @@ class StartFrame(wx.Frame):
                                 self.form_height-58, True)
             # make default db if not already there
             def_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
-            con = sqlite.connect(def_db)
+            con = sqlite.connect(def_db) #@UndefinedVariable
             con.close()
             panel_dc.DrawBitmap(self.blank_proj_strip, self.main_left, 218, 
                                 False)

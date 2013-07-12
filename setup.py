@@ -22,19 +22,19 @@ warnings.simplefilter('ignore', DeprecationWarning)
 warnings.simplefilter('ignore', UserWarning)
 import codecs
 if show_early_steps: print(u"Just imported codecs")
-import datetime
+import datetime #@UnusedImport
 if show_early_steps: print(u"Just imported datetime")
 import gettext
 if show_early_steps: print(u"Just imported gettext")
-import glob
+import glob #@UnusedImport
 if show_early_steps: print(u"Just imported glob")
 import os
 if show_early_steps: print(u"Just imported os")
-import platform
+import platform #@UnusedImport
 if show_early_steps: print(u"Just imported platform")
 import shutil
 if show_early_steps: print(u"Just imported shutil")
-import sqlite3 as sqlite
+import sqlite3 as sqlite #@UnusedImport
 if show_early_steps: print(u"Just imported sqlite3")
 import sys
 if show_early_steps: print(u"Just imported sys")
@@ -87,7 +87,7 @@ except Exception, e:
     raise Exception(msg)
 try:
     import lib
-    import config_globals
+    import config_globals #@UnusedImport
     import my_exceptions
 except Exception, e:
     msg = u"Problem with first round of local importing. %s" % \
@@ -134,7 +134,6 @@ class ErrMsgFrame(wx.Frame):
         f.write(traceback.format_exc())
         f.close()
         self.Destroy()
-        import sys
         sys.exit()
         
 
@@ -609,18 +608,18 @@ def setup_folders():
 # local importing
 try:
     about = u"config_output"
-    import config_output # actually uses proj dict and connects to sofa_db. Thus
+    import config_output  #@UnusedImport actually uses proj dict and connects to sofa_db. Thus
         # can't rely on wx.msgboxes etc because wx.App not up yet
     about = u"full_html"
     import full_html
     about = u"getdata"
-    import getdata
+    import getdata #@UnusedImport
     about = u"projects"
-    import projects
+    import projects #@UnusedImport
     about = u"projselect"
-    import projselect
+    import projselect #@UnusedImport
     about = u"quotes"
-    import quotes
+    import quotes #@UnusedImport
 except my_exceptions.ComtypesException, e:
     msgapp = ErrMsgApp(lib.ue(e))
 except my_exceptions.InconsistentFileDate, e:

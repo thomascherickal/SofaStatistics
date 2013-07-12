@@ -69,7 +69,7 @@ placeholder = u"%s"
 left_obj_quote = u"\""
 right_obj_quote = u"\""
 gte_not_equals = u"!="
-cartesian_joiner = u" JOIN "
+cartesian_joiner = u" CROSS JOIN "
 
 def quote_obj(raw_val):
     return u'%s%s%s' % (left_obj_quote, raw_val, right_obj_quote)

@@ -1,9 +1,8 @@
-#from pysqlite2 import dbapi2 as sqlite
 import sqlite3 as sqlite
 import os
 import pprint
 import re
-import wx
+import wx #@UnusedImport
 import wx.grid
 
 import my_globals as mg
@@ -12,7 +11,7 @@ import my_exceptions
 import getdata
 import settings_grid
 
-Row = sqlite.Row # needed for making cursor return dicts
+Row = sqlite.Row # @UndefinedVariable - needed for making cursor return dicts
 
 DEFAULT_DB = u"sqlite_default_db"
 DEFAULT_TBL = u"sqlite_default_tbl"
@@ -89,7 +88,7 @@ def get_con(con_dets, db, add_checks=False):
         raise Exception(u"No connections for SQLite database \"%s\"" % db)
     # able to actually connect to database?
     try:
-        con = sqlite.connect(**con_dets_sqlite_db)
+        con = sqlite.connect(**con_dets_sqlite_db) #@UndefinedVariable
     except Exception, e:
         # failure because still pointing to dev path?
         if u"/home/g/Documents/sofastats" in sqlite_con_dets_str:
@@ -466,7 +465,7 @@ def valid_fldnames(fldnames, block_sz=50):
 def valid_fldnames_block(block):
     debug = False
     default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, u"sofa_tmp")
-    con = sqlite.connect(default_db)
+    con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
     valid = True
@@ -511,7 +510,7 @@ def valid_name(name, is_tblname=True):
     if name == u"":
         return False
     default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, u"sofa_tmp")
-    con = sqlite.connect(default_db)
+    con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
     valid = True

@@ -6,10 +6,9 @@
 # (2.8) - and select OK. NB DAO must be done separately from ADO etc.
 
 from __future__ import print_function
-import adodbapi
-import os
+import adodbapi #@UnresolvedImport
 import pprint
-import win32com.client
+import win32com.client #@UnresolvedImport
 import wx
 
 import my_globals as mg

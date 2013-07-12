@@ -95,6 +95,10 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         variables (or in the variable being averaged if a chart of averages).
     """
     debug = False
+    if dbe == mg.DBE_MS_ACCESS:
+        raise Exception(u"Unable to run charts from MS Access due to "
+            u"limitations of Access cf other databases. One option is to export"
+            u" to a spreadsheet from Access and then import into SOFA. Sorry!")
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
@@ -193,10 +197,12 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     # grouping vars.
     sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
     sql_dic[u"SQL_vals2show"] = SQL_vals2show
+    sql_dic[u"get_val2show"] = (mg.DBE_MODULES[dbe].if_clause % 
+                                       (u"val2show IS NULL", u"0", u"val2show"))
     SQL_get_raw_data = """SELECT qrygrouping_vars.charts, 
     qrygrouping_vars.series, 
     qrygrouping_vars.cat,
-        CASE WHEN val2show IS NULL THEN 0 ELSE val2show END 
+        %(get_val2show)s 
     AS val
     FROM (%(SQL_group_by_vars)s) AS qrygrouping_vars 
     LEFT JOIN (%(SQL_vals2show)s) AS qryvals2show

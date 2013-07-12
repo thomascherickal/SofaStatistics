@@ -9,13 +9,13 @@ import pprint
 import my_globals as mg
 if mg.PLATFORM == mg.MAC:
     try:
-        import pymysql as mysql #@UnresolvedImport easier to get working on a Mac
+        import pymysql as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
     except Exception, e:
         raise Exception(u"Contact the developer (%s) for "
                         u"specific advice on how to use SOFA with MySQL on a "
                         u"Mac." % mg.CONTACT)
 else:
-    import MySQLdb as mysql
+    import MySQLdb as mysql #@Import redefinition
 import my_exceptions
 import lib
 
