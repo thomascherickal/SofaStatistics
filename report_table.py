@@ -2,9 +2,8 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-import codecs
 import locale
-import wx
+import wx #@UnusedImport
 import wx.gizmos
 
 import my_globals as mg
@@ -985,10 +984,11 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         if live_demo:
             runlbl2use = config_output.ADD2RPT_LBL
             mg.ADD2RPT = True
-            self.chk_add_to_report.Show(False)
+            self.chk_add_to_report.Show(False) # The button itself can handle this
         else:
             runlbl2use = config_output.RUN_LBL
             self.chk_add_to_report.Show(True)
+            self.panel_with_add2report.Layout()
             if self.chk_add_to_report.Enabled:
                 mg.ADD2RPT = self.chk_add_to_report.IsChecked()
         if not self.btn_run.IsEnabled():

@@ -405,6 +405,7 @@ class ConfigUI(object):
         report_file -- usually just want what is stored to global but when in 
             project dialog need to have option of taking from proj file.
         """
+        self.panel_with_add2report = panel
         cc = get_cc()
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))

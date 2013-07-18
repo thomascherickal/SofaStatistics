@@ -2,8 +2,11 @@ from __future__ import print_function
 from __future__ import division # so 5/2 = 2.5 not 2 !
 
 """
+http://www.cubrid.org/wiki_apis/entry/cubrid-odbc-driver-installation-instructions
 sudo service cubrid start demodb
+sudo cubrid broker start
 sudo service cubrid stop
+csql demodb
 """
 
 import os
@@ -73,8 +76,8 @@ def get_con_cur_for_db(con_dets_cubrid, db):
                                               con_dets_cubrid["passwd"])
         con = cubrid.connect(con_url)
     except Exception, e:
-        raise Exception(u"Unable to connect to CUBRID db. "
-                        u"\nCaused by error: %s" % lib.ue(e))
+        raise Exception(u"Unable to connect to CUBRID db using %s. "
+                        u"\nCaused by error: %s" % (con_url, lib.ue(e)))
     cur = con.cursor() # must return tuples not dics
     return con, cur
 
