@@ -996,6 +996,8 @@ def run_script():
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_MS_ACCESS:
         orig_projdic = dd.proj_dic
+        orig_db = dd.db
+        orig_tbl = dd.tbl
         dd.con.close() # close it - or else have to wait till it times out and closes self before script will get data back ;-)
     try:
         dummy_dic = {}
@@ -1008,7 +1010,9 @@ def run_script():
         raise Exception(_(u"Unable to run script to generate report. Caused by "
                           u"error: %s") % lib.ue(e))
     finally:
-        if dd.dbe == mg.DBE_MS_ACCESS: dd.set_proj_dic(orig_projdic)
+        if dd.dbe == mg.DBE_MS_ACCESS: 
+            dd.set_proj_dic(orig_projdic)
+            dd.set_dbe(dbe=mg.DBE_MS_ACCESS, db=orig_db, tbl=orig_tbl)
 
 def get_raw_results():
     """

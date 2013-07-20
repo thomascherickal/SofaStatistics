@@ -4,7 +4,10 @@ from __future__ import division # so 5/2 = 2.5 not 2 !
 """
 http://www.cubrid.org/wiki_apis/entry/cubrid-odbc-driver-installation-instructions
 sudo service cubrid start demodb
-sudo cubrid broker start
+
+sudo su -s $SHELL cubrid 
+cubrid broker start
+
 sudo service cubrid stop
 csql demodb
 """

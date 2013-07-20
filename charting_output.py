@@ -95,11 +95,6 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         variables (or in the variable being averaged if a chart of averages).
     """
     debug = False
-    if dbe == mg.DBE_MS_ACCESS:
-        raise Exception(u"Unable to run charts from MS Access due to "
-            u"limitations of Access compared with other databases. One option "
-            u"is to export to a spreadsheet from Access and then import into "
-            u"SOFA. Sorry!")
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
@@ -136,7 +131,10 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
             %(and_agg_filt)s
         GROUP BY %(var_role_charts)s""" % sql_dic)
     else:
-        SQL_charts = u"SELECT 1 AS charts"
+        if dbe == mg.DBE_MS_ACCESS: # one can't touch Access without getting a few warts ;-)
+            SQL_charts = u"SELECT TOP 1 1 AS charts FROM %(tbl)s" % sql_dic
+        else:
+            SQL_charts = u"SELECT 1 AS charts"
     if debug: print(SQL_charts)
     if var_role_series:
         SQL_series = ("""SELECT %(var_role_series)s 
@@ -149,7 +147,10 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
             %(and_agg_filt)s
         GROUP BY %(var_role_series)s""" % sql_dic)
     else:
-        SQL_series = u"SELECT 1 AS series"
+        if dbe == mg.DBE_MS_ACCESS:
+            SQL_series = u"SELECT TOP 1 1 AS series FROM %(tbl)s" % sql_dic
+        else:
+            SQL_series = u"SELECT 1 AS series"
     if debug: print(SQL_series)
     SQL_cat = ("""SELECT %(var_role_cat)s 
     AS cat

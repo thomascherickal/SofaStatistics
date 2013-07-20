@@ -28,7 +28,7 @@ if_clause = u"IIF(%s, %s, %s)"
 placeholder = u"?"
 left_obj_quote = u"["
 right_obj_quote = u"]"
-cartesian_joiner = u" JOIN "
+cartesian_joiner = u", "
 
 # http://ask.metafilter.com/38350/ ...
 # ... How-does-not-equal-translate-into-Access-Language
