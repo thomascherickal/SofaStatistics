@@ -955,8 +955,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(u"\nidxs = dbe_resources[mg.DBE_IDXS]")
     f.write(u"\nhas_unique = dbe_resources[mg.DBE_HAS_UNIQUE]")
     f.write(u"\n%s" % inner_script)
-    # f.write(u"\ncon.close()") # closes the whole thing and not just for this 
-    # script ;-)
+    f.write(u"\ncon.close()")
 
 def add_end_script_code(f):
     "Add ending code to script. NB leaves open file."
@@ -964,6 +963,7 @@ def add_end_script_code(f):
             u"-"*(65 - len(mg.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
+
 
 def generate_script(modules, css_fils, new_has_dojo, inner_script,
                     tbl_filt_label, tbl_filt):
@@ -993,6 +993,10 @@ def run_script():
     except Exception, e:
         raise Exception(u"Unable to read part of script for execution."
                         u"\nOrig error: %s" % lib.ue(e))
+    dd = mg.DATADETS_OBJ
+    if dd.dbe == mg.DBE_MS_ACCESS:
+        orig_projdic = dd.proj_dic
+        dd.con.close() # close it - or else have to wait till it times out and closes self before script will get data back ;-)
     try:
         dummy_dic = {}
         exec script in dummy_dic
@@ -1003,6 +1007,8 @@ def run_script():
         print("Unable to run report: %s" % traceback.format_exc())
         raise Exception(_(u"Unable to run script to generate report. Caused by "
                           u"error: %s") % lib.ue(e))
+    finally:
+        if dd.dbe == mg.DBE_MS_ACCESS: dd.set_proj_dic(orig_projdic)
 
 def get_raw_results():
     """

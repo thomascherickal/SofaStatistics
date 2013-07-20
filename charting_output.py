@@ -97,8 +97,9 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     debug = False
     if dbe == mg.DBE_MS_ACCESS:
         raise Exception(u"Unable to run charts from MS Access due to "
-            u"limitations of Access cf other databases. One option is to export"
-            u" to a spreadsheet from Access and then import into SOFA. Sorry!")
+            u"limitations of Access compared with other databases. One option "
+            u"is to export to a spreadsheet from Access and then import into "
+            u"SOFA. Sorry!")
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
     if not var_role_cat:
