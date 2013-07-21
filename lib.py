@@ -39,10 +39,10 @@ def extract_img_path(content, use_as_url=False):
         copy an image
     IMG_SRC_START -- u"<img src='"
     """
-    debug = False
+    debug = True
     idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
     if debug: print(u"extract_img_path\n%s" % content)
-    idx_end = content.rindex(mg.IMG_SRC_END)
+    idx_end = content.index(mg.IMG_SRC_END)
     img_path = content[idx_start: idx_end]
     if debug: 
         print(u"idx_end: %s" % idx_end)
