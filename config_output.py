@@ -735,10 +735,14 @@ class ConfigUI(object):
         debug = False
         try:
             if debug: raise ImportError
+            try:
+                self.update_demo_display() # so mg.INT_REPORT_PATH includes the latest title
+            except AttributeError:
+                pass
             import export_output as export
             dlg = export.DlgExportOutput(title=u"Export Output (PDF/Images)", 
-                                       report2export=mg.INT_REPORT_PATH, 
-                                       temp_report_only=True)
+                                         report2export=mg.INT_REPORT_PATH, 
+                                         temp_report_only=True)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)

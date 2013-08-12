@@ -40,11 +40,23 @@ The initial snippet also has all the js it needs for dojo in the html header as
     well as its special css.  There is no obstacle to linking to these resources 
     rather than embedding them so they are linked.
 
-
 When being added to an html report, the header is completely removed and 
     replaced.
 
+HTML output is used in different places with different needs. Which all adds
+complexity, unfortunately.
 
+1) GUI display
+2) When adding to an existing html report
+3) When turning most recent output displayed in GUI into a PDF
+
+Issues:
+
+* Include or exclude title content. Leave title out when just displaying on the
+GUI. As title or subtitle typed in, just change that part of the html rather 
+than recalculating everything fresh. Stops flicker or other changes when using 
+random data (when too many records to just use real data).
+* Absolute or relative image pathways (GUI requires absolute). Export output?
 """
 
 from __future__ import print_function
@@ -1132,6 +1144,11 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         else:
             gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
                                    + u"<p>%s</p>" % filt_msg + abs_inner_body)
+        
+        
+        print(abs_inner_body)
+        
+        
     except my_exceptions.NeedViableInput, e:
         return False, u"<p>%s</p>" % lib.ue(e)
     except Exception, e:
@@ -1139,7 +1156,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     if debug: 
         print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 
                                                gui_display_content))
-    try: # makes it much easier to extract absolurte chart paths for linked 
+    try: # makes it much easier to extract absolute chart paths for linked 
             # images (as opposed to SVG/Javascript images (Dojo).
         with codecs.open(mg.INT_REPORT_PATH, "w", "utf-8") as f:
             f.write(abs_above_inner_body + mg.BODY_START + abs_inner_body)

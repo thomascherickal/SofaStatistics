@@ -60,8 +60,7 @@ class ExcelImporter(importer.FileImporter):
             wkbook = xlrd.open_workbook(self.file_path) # , encoding_override="cp1252"
             wksheet = wkbook.sheet_by_index(0)
             strdata = []
-            nrows = wksheet.nrows
-            for rowx in range(nrows):
+            for rowx in range(wksheet.nrows):
                 rowtypes = wksheet.row_types(rowx)
                 if rowx == 0:
                     row1_types = rowtypes

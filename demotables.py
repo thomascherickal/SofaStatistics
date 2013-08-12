@@ -103,7 +103,9 @@ class DemoTable(object):
         return row_label_rows_lst
 
     def get_demo_html(self, css_idx):
-        "Get demo HTML for table"
+        """
+        Get demo HTML for table.
+        """
         debug = False
         cc = config_output.get_cc()
         # sort titles out first
