@@ -21,15 +21,14 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
     def __init__(self, title):
         cc = config_output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(mg.HORIZ_OFFSET,0), 
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+            pos=(mg.HORIZ_OFFSET,0), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
+            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|\
+            wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
-                               "output", "stats_output"]
+            "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True # btn_expand
         (self.var_labels, self.var_notes, 
@@ -49,8 +48,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
+        hide_db = (len(projects.get_projs()) < 2)
         (self.szr_data, 
-         self.szr_output_config) = self.get_gen_config_szrs(self.panel) # mixin
+         self.szr_output_config) = self.get_gen_config_szrs(self.panel, 
+                                                            hide_db=hide_db) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_display = self.get_szr_output_display(self.panel,

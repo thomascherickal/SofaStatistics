@@ -178,7 +178,8 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_idx_in_szr = 3
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel) # mixin
+        hide_db = (len(projects.get_projs()) < 2)
+        self.szr_data = self.get_szr_data(self.panel, hide_db=hide_db) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.bx_vars = wx.StaticBox(self.panel, -1, self.varbox_label_unpaired)

@@ -83,7 +83,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data) # mixin
+        hide_db = (len(projects.get_projs()) < 2)
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
         self.panel_data.SetSizer(self.szr_data)
         self.szr_output_config = self.get_szr_output_config(self.panel_bottom) 
         self.drop_tbls_szr = self.szr_data

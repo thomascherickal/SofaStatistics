@@ -9,6 +9,7 @@ import config_output
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
+import projects
 import table_config
 
 
@@ -16,8 +17,8 @@ class DlgDataSelect(wx.Dialog):
     def __init__(self, parent, proj_name):
         title = _("Data in \"%s\" Project") % proj_name
         wx.Dialog.__init__(self, parent=parent, title=title, 
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,-1))
+            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
+            pos=(mg.HORIZ_OFFSET+100,-1))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -26,10 +27,10 @@ class DlgDataSelect(wx.Dialog):
         wx.BeginBusyCursor()
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         lbl_choose = wx.StaticText(self.panel, -1, 
-                                  _("Choose an existing data table ..."), 
-                                  size=(480,20))
+            _("Choose an existing data table ..."), size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-                                                   fil_name=proj_name)
+            fil_name=proj_name)
+        hide_db = (len(projects.get_projs()) < 2)
         config_output.update_var_dets(dlg=self)
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
@@ -57,9 +58,13 @@ class DlgDataSelect(wx.Dialog):
                                                         self.panel, default_dbs)
         self.szr_data.AddGrowableCol(1, 1)      
         lbl_dbs = wx.StaticText(self.panel, -1, _("Databases:"))
-        lbl_dbs.SetFont(mg.LABEL_FONT)        
-        self.szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
-        self.szr_data.Add(self.drop_dbs, 1, wx.GROW)     
+        lbl_dbs.SetFont(mg.LABEL_FONT)
+        if not hide_db:
+            self.szr_data.Add(lbl_dbs, 0, wx.RIGHT, 5)
+            self.szr_data.Add(self.drop_dbs, 1, wx.GROW)
+        else:
+            lbl_dbs.Hide()
+            self.drop_dbs.Hide()
         lbl_tbls = wx.StaticText(self.panel, -1, _("Data tables:"))
         lbl_tbls.SetFont(mg.LABEL_FONT)
         self.szr_data.Add(lbl_tbls, 0, wx.RIGHT, 5)
@@ -74,8 +79,9 @@ class DlgDataSelect(wx.Dialog):
         szr_existing.Add(self.szr_data, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
-        lbl_new = wx.StaticText(self.panel, -1, _("... or add a new data table "
-                                                "to the default SOFA database"))
+        lbl_new_extra = u"" if hide_db else _(u" to the default SOFA database")
+        lbl_new = wx.StaticText(self.panel, -1, _("... or add a new data table") 
+            + lbl_new_extra)
         btn_new = wx.Button(self.panel, wx.ID_NEW)
         btn_new.Bind(wx.EVT_BUTTON, self.on_new)
         szr_new.Add(lbl_new, 1, wx.GROW|wx.ALL, 10)
@@ -124,8 +130,7 @@ class DlgDataSelect(wx.Dialog):
         "Set tables dropdown items and select item according to dd.tbl"
         parent = self
         parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
-                                                       parent.drop_tbls_szr, 
-                                                       parent.drop_tbls_panel)
+            parent.drop_tbls_szr, parent.drop_tbls_panel)
     
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
@@ -141,11 +146,10 @@ class DlgDataSelect(wx.Dialog):
         """
         dd = mg.DATADETS_OBJ
         if wx.MessageBox(_("Do you wish to delete \"%s\"?") % dd.tbl, 
-                           caption=_("DELETE"), 
-                           style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
+            caption=_("DELETE"), style=wx.YES_NO|wx.NO_DEFAULT) == wx.YES:
             try:
                 dd.cur.execute("DROP TABLE IF EXISTS %s" % 
-                               getdata.tblname_qtr(dd.dbe, dd.tbl))
+                    getdata.tblname_qtr(dd.dbe, dd.tbl))
                 dd.con.commit()
                 dd.set_db(dd.db) # refresh tbls downwards
                 self.reset_tbl_dropdown()

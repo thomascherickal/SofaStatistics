@@ -11,6 +11,7 @@ import config_globals
 import lib
 import getdata
 import output
+#import projects
 import traceback
 #import filtselect # prevent circular import (inherits from Dlg not loaded yet)
 import webbrowser
@@ -328,7 +329,7 @@ class ConfigUI(object):
         self.script_file = None
         self.rows_n = self.get_rows_n()
 
-    def get_gen_config_szrs(self, panel, readonly=False):
+    def get_gen_config_szrs(self, panel, readonly=False, hide_db=True):
         """
         Returns self.szr_data, self.szr_output_config (reports and css) complete 
             with widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
@@ -336,11 +337,11 @@ class ConfigUI(object):
             Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         """
-        self.szr_data = self.get_szr_data(panel, readonly)
+        self.szr_data = self.get_szr_data(panel, readonly, hide_db)
         self.szr_output_config = self.get_szr_output_config(panel, readonly)
         return self.szr_data, self.szr_output_config
         
-    def get_szr_data(self, panel, readonly=False):
+    def get_szr_data(self, panel, readonly=False, hide_db=True):
         """
         Returns self.szr_data complete with widgets. dd is updated.
         Widgets include dropdowns for database and tables.
@@ -385,8 +386,12 @@ class ConfigUI(object):
         btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
         btn_var_config = self.get_btn_var_config(panel) # also needed by projects but not as part of bundle
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
-        self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
-        self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
+        if not hide_db:
+            self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
+            self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
+        else:
+            lbl_databases.Hide()
+            self.drop_dbs.Hide()
         self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
         self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.chk_readonly, 0, wx.RIGHT, 10)
@@ -674,7 +679,7 @@ class ConfigUI(object):
         if dlg_get_file.ShowModal() == wx.ID_OK:
             # not necessary that the report exists, only that its folder is already there
             new_rpt_pth = u"%s" % dlg_get_file.GetPath()
-            new_rpt_root, new_rpt = os.path.split(new_rpt_pth)
+            new_rpt_root, new_rpt = os.path.split(new_rpt_pth) #@UnusedVariable
             if not os.path.exists(new_rpt_root): # they hand-wrote a faulty path?
                 wx.MessageBox(_(u"Warning - the folder your report is in "
                                 u"doesn't currently exist."))

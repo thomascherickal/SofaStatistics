@@ -82,7 +82,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_tbls_idx_in_szr = 3
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data) # mixin
+        hide_db = (len(projects.get_projs()) < 2)
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         # variables

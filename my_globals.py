@@ -12,7 +12,7 @@ import wx
 # It doesn't do any local importing at all until the last line, where it imports
 # config (used for initial config plus re-config).
 
-debug = False
+debug = True
 
 VERSION = u"1.3.5"
 ATTRIBUTION = u"sofastatistics.com"
