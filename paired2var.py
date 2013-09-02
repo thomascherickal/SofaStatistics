@@ -48,10 +48,9 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        hide_db = (len(projects.get_projs()) < 2)
         (self.szr_data, 
          self.szr_output_config) = self.get_gen_config_szrs(self.panel, 
-                                                            hide_db=hide_db) # mixin
+                                                hide_db=projects.get_hide_db()) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_display = self.get_szr_output_display(self.panel,

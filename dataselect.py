@@ -30,7 +30,7 @@ class DlgDataSelect(wx.Dialog):
             _("Choose an existing data table ..."), size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
             fil_name=proj_name)
-        hide_db = (len(projects.get_projs()) < 2)
+        hide_db = projects.get_hide_db()
         config_output.update_var_dets(dlg=self)
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)

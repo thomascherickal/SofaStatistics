@@ -25,6 +25,9 @@ def get_projs():
     proj_fils.sort()
     return proj_fils
 
+def get_hide_db():
+    return (len(get_projs()) < 2)
+
 def get_proj_notes(fil_proj, proj_dic):
     """
     Read the proj file and extract the notes part.

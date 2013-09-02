@@ -389,10 +389,11 @@ class ConfigUI(object):
         if not hide_db:
             self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
             self.szr_data.Add(self.drop_dbs, 0, wx.RIGHT, 10)
+            self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
         else:
             lbl_databases.Hide()
             self.drop_dbs.Hide()
-        self.szr_data.Add(lbl_tables, 0, wx.RIGHT, 5)
+            self.szr_data.Add(lbl_tables, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.chk_readonly, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.btn_open, 0, wx.RIGHT, 10)
