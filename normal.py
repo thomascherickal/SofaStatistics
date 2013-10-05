@@ -55,7 +55,7 @@ def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
     return data_label, vals
 
 def get_normal_output(vals, data_label, add_to_report, report_name,
-                      paired, css_fil, css_idx, page_break_after=False):
+        paired, css_fil, css_idx, page_break_after=False):
     html = []
     # normality test (includes both kurtosis and skew)
     n_vals = len(vals)
@@ -117,18 +117,18 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     histlbl = u"Histogram of differences" if paired else None
     try:
         charting_pylab.config_hist(fig, vals, data_label, histlbl, 
-                                   thumbnail=False, grid_bg=grid_bg, 
-                                   bar_colour=item_colours[0], 
-                                   line_colour=line_colour, inc_attrib=True)
+            thumbnail=False, grid_bg=grid_bg, bar_colour=item_colours[0], 
+            line_colour=line_colour, inc_attrib=True)
     except Exception, e:
         raise my_exceptions.OutputException(u"Unable to produce histogram. "
-                                            u"Reason: %s" % lib.ue(e))
+            u"Reason: %s" % lib.ue(e))
     output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
-                            ext=mg.RPT_SUBFOLDER_SUFFIX)
+        ext=mg.RPT_SUBFOLDER_SUFFIX)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                             save_func=pylab.savefig, dpi=100)
-    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
-                               mg.IMG_SRC_END))
+        save_func=pylab.savefig, dpi=100)
+    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+    output.append_divider(html, title=u"Histogram", 
+        indiv_title="Normality check histogram")
     normal_output = u"\n".join(html)
     return normal_output
 
@@ -136,11 +136,11 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
 class DlgNormality(wx.Dialog, config_output.ConfigUI):
     
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
-        wx.Dialog.__init__(self, parent=parent, title=_("Normal Data?"),
-                           size=(1024,600), 
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+        self.title = _("Normal Data?")
+        wx.Dialog.__init__(self, parent=parent, title=self.title, 
+            size=(1024,600), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
+            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
+            wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         self.output_modules = ["my_globals as mg", "output", "getdata", "normal"]
         self.exiting = False
@@ -190,19 +190,18 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         self.lbl_desc = wx.StaticText(self.panel, -1, self.desc_label_unpaired)
         self.szr_desc.Add(self.lbl_desc, 0, wx.ALL, 10)
         self.rad_paired = wx.RadioBox(self.panel, -1, u"", 
-                                      choices=paired_choices, size=(-1,45),
-                                      style=wx.RA_SPECIFY_COLS)
+            choices=paired_choices, size=(-1,45), style=wx.RA_SPECIFY_COLS)
         self.rad_paired.SetStringSelection(_("Single"))
         self.rad_paired.Bind(wx.EVT_RADIOBOX, self.on_rad_paired)
         szr_vars.Add(self.rad_paired, 0)
         self.drop_var_a = wx.Choice(self.panel, -1, size=(300, -1))
         self.drop_var_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_a)
         self.drop_var_a.SetToolTipString(_("Right click variable to view/edit "
-                                         "details"))
+            "details"))
         self.drop_var_b = wx.Choice(self.panel, -1, size=(300, -1))
         self.drop_var_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_b)
         self.drop_var_b.SetToolTipString(_("Right click variable to "
-                                              "view/edit details"))
+            "view/edit details"))
         self.drop_var_b.Enable(False)
         self.setup_vars(var_a=True, var_b=False)
         szr_vars.Add(self.drop_var_a, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
@@ -210,9 +209,9 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
         self.szr_output_config = self.get_szr_output_config(self.panel) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel, 
-                                        inc_clear=False, idx_style=4) # mixin
+            inc_clear=False, idx_style=4) # mixin
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
-                                       size=(200,myheight))
+            size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -258,19 +257,18 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
             # set vals and data_label
             self.var_a, unused = self.get_var_a()
             self.var_label_a = lib.get_item_label(item_labels=self.var_labels, 
-                                                  item_val=self.var_a)
+                item_val=self.var_a)
             if self.paired:
                 self.var_b, unused = self.get_var_b()
                 self.var_label_b = lib.get_item_label(
-                                                    item_labels=self.var_labels, 
-                                                    item_val=self.var_b)
+                    item_labels=self.var_labels, item_val=self.var_b)
             else:
                 self.var_b = None
                 self.var_label_b = u""
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 
-                             cc[mg.CURRENT_REPORT_PATH]]
+                cc[mg.CURRENT_REPORT_PATH]]
             config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
-                                              new_has_dojo=True)
+                new_has_dojo=True)
 
     def get_script(self, css_idx, css_fil, report_name):
         "Build script from inputs"
@@ -278,31 +276,29 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         script_lst = []
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
-                          else "False"))
+            else "False"))
         script_lst.append(u"report_name = u\"%s\"" %
-                          lib.escape_pre_write(report_name))
+            lib.escape_pre_write(report_name))
         paired = u"True" if self.paired else u"False"
         script_lst.append(u"""
 data_label, vals = normal.get_inputs(paired=%(paired)s, var_a=u"%(var_a)s", 
     var_label_a=u"%(var_label_a)s", var_b=%(var_b)s, 
     var_label_b=u"%(var_label_b)s")""" % {u"paired": paired, 
-                    u"var_a": self.var_a, 
-                    u"var_label_a": self.var_label_a,
-                    u"var_b": u"\"%s\"" % self.var_b if self.var_b else u"None", 
-                    u"var_label_b": self.var_label_b})
+            u"var_a": self.var_a, u"var_label_a": self.var_label_a,
+            u"var_b": u"\"%s\"" % self.var_b if self.var_b else u"None", 
+            u"var_label_b": self.var_label_b})
         script_lst.append(u"""
 normal_output = normal.get_normal_output(vals, data_label, add_to_report, 
     report_name, paired=%(paired)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" % {u"paired": paired, 
-                                  u"css_fil": lib.escape_pre_write(css_fil),
-                                  u"css_idx": css_idx})
+            u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(normal_output)")
         return u"\n".join(script_lst)
 
     def set_size(self):
         horiz_padding = 15 if mg.PLATFORM == mg.MAC else 10
         lib.set_size(window=self, szr_lst=self.szr_lst, height_init=560, 
-                     horiz_padding=horiz_padding)
+            horiz_padding=horiz_padding)
 
     def on_rad_paired(self, event):
         "Respond to selection of single/paired"
@@ -325,17 +321,17 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         msg_font_sz = 10
         reverse = lib.mustreverse()
         lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white", 
-                               left=20, top=20)
+            left=20, top=20)
         if reverse: bmp_blank_hist = lib.reverse_bmp(bmp_blank_hist)
         return bmp_blank_hist
         
     def set_output_to_blank(self):
         if self.paired:
             msg = _("Select two variables and click Check button to see results"
-                    " of normality test")
+                " of normality test")
         else:
             msg = _("Select a variable and click Check button to see results of"
-                    " normality test")
+                " normality test")
         self.html.show_html("<p>%s</p>" % msg)
 
     def on_ok(self, event):
@@ -365,9 +361,9 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         
     def setup_vars(self, var_a=True, var_b=True, var=None):
         var_names = projects.get_approp_var_names(self.var_types,
-                                                min_data_type=mg.VAR_TYPE_QUANT)
+            min_data_type=mg.VAR_TYPE_QUANT)
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
-                                    dic_labels=self.var_labels, vals=var_names)
+            dic_labels=self.var_labels, vals=var_names)
         if var_a:
             self.drop_var_a.SetItems(var_choices)
             idx_a = self.sorted_var_names.index(var) if var else 0
@@ -395,20 +391,18 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
     def on_rclick_var_a(self, event):
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
-                                         item_val=var_a)
+            item_val=var_a)
         updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_a(var_a)
     
     def on_rclick_var_b(self, event):
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
-                                         item_val=var_b)
+            item_val=var_b)
         updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_b(var_b)
     

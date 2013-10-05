@@ -60,6 +60,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
                                "output", "stats_output"]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+        self.title = title
         self.takes_range = takes_range
         self.url_load = True # btn_expand
         (self.var_labels, self.var_notes, 

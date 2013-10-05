@@ -87,9 +87,10 @@ def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     return imgs_path
 
 def append_divider(html, title, indiv_title=u"", item_type=u""):
+    "Must immediately follow image or table item that it refers to."
     item_title = get_item_title(title, indiv_title, item_type)
     html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
-                                    mg.OUTPUT_ITEM_DIVIDER))
+        mg.OUTPUT_ITEM_DIVIDER))
 
 def get_part_dets(part, ideal):
     len_part = min(len(part), ideal)
@@ -976,7 +977,6 @@ def add_end_script_code(f):
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
-
 def generate_script(modules, css_fils, new_has_dojo, inner_script,
                     tbl_filt_label, tbl_filt):
     debug = False
@@ -1144,11 +1144,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         else:
             gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
                                    + u"<p>%s</p>" % filt_msg + abs_inner_body)
-        
-        
-        print(abs_inner_body)
-        
-        
+        if debug: print(abs_inner_body)
     except my_exceptions.NeedViableInput, e:
         return False, u"<p>%s</p>" % lib.ue(e)
     except Exception, e:

@@ -25,7 +25,7 @@ When the form is shown for the first time on Windows versions, a warning is
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -483,7 +483,7 @@ class StartFrame(wx.Frame):
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
-        self.txtWelcome = _("Welcome to SOFA Statistics. Hovering the mouse "
+        self.txtWelcome = _(u"Welcome to SOFA Statistics. Hovering the mouse "
                             "over the buttons lets you see what you can do.")
         if mg.PLATFORM == mg.MAC:
             self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
@@ -573,8 +573,8 @@ class StartFrame(wx.Frame):
             connection not made.
         """
         try:
-            self.upgrade_available = lib.version_a_is_newer(version_a=new_version, 
-                                                           version_b=mg.VERSION)
+            self.upgrade_available = lib.version_a_is_newer(
+                version_a=new_version, version_b=mg.VERSION)
         except Exception, e:
             self.upgrade_available = False
     

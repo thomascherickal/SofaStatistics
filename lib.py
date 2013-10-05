@@ -41,8 +41,9 @@ def extract_img_path(content, use_as_url=False):
     """
     debug = False
     idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
-    if debug: print(u"extract_img_path\n%s" % content)
-    idx_end = content.index(mg.IMG_SRC_END)
+    if debug: print(u"\n\n\nextract_img_path\n%s" % content)
+    content_after_start = content[idx_start:]
+    idx_end = content_after_start.index(mg.IMG_SRC_END) + idx_start
     img_path = content[idx_start: idx_end]
     if debug: 
         print(u"idx_end: %s" % idx_end)

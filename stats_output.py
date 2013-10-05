@@ -161,25 +161,25 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         # histogram
         # http://www.scipy.org/Cookbook/Matplotlib/LaTeX_Examples
         charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
-                                  ytick_labelsize=8)
+            ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
         (grid_bg, item_colours, 
             line_colour) = output.get_stats_chart_colours(css_fil)
         try:
-            charting_pylab.config_hist(fig, sample, label_avg, histlbl, 
-                                   False, grid_bg, item_colours[0], line_colour)
+            charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
+                grid_bg, item_colours[0], line_colour)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                               save_func=pylab.savefig, dpi=100)
+                save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
-                                       mg.IMG_SRC_END))
+                mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                        (histlbl, lib.ue(e)))
+                (histlbl, lib.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 

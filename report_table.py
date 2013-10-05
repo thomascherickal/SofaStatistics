@@ -189,8 +189,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         debug = False
         self.exiting = False
         cc = config_output.get_cc()
-        wx.Dialog.__init__(self, parent=None, id=-1, 
-                       title=_("Make Report Table"), 
+        self.title = _("Make Report Table")
+        wx.Dialog.__init__(self, parent=None, id=-1, title=self.title, 
                        pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
                        style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|
                        wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
@@ -324,13 +324,10 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
         self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
-                                     txt_subtitles=self.txt_subtitles,
-                                     tab_type=mg.FREQS, # the default
-                                     colroot=self.colroot, rowroot=self.rowroot, 
-                                     rowtree=self.rowtree, coltree=self.coltree, 
-                                     col_no_vars_item=self.col_no_vars_item, 
-                                     var_labels=self.var_labels, 
-                                     val_dics=self.val_dics)
+            txt_subtitles=self.txt_subtitles, tab_type=mg.FREQS, # the default
+            colroot=self.colroot, rowroot=self.rowroot, rowtree=self.rowtree, 
+            coltree=self.coltree, col_no_vars_item=self.col_no_vars_item, 
+            var_labels=self.var_labels, val_dics=self.val_dics)
         # freqs tbl is default
         self.setup_row_btns()
         self.setup_col_btns()

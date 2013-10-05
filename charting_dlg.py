@@ -55,6 +55,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                    wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         self.exiting = False
+        self.title = title
         self.SetFont(mg.GEN_FONT)
         cc = config_output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 

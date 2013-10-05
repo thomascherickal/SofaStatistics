@@ -771,8 +771,8 @@ class ConfigUI(object):
                 for. http://wxpython-users.1045709.n5.nabble.com/...
                 ...Going-crazy-with-copy-paste-problem-td2365276.html
             """
-            wx.MessageBox(_(u"Finished. Note - don't close this form before "
-                            u"pasting the output or it won't work."))
+            wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
+                u"pasting the output or it won't work." % self.title))
         except ImportError:
             # don't have extension installed (or working)
             comments = [u"Make it easy to copy and paste images ready to ",
