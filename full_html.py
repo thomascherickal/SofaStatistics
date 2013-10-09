@@ -43,11 +43,11 @@ else:
                 raise Exception(_(u"Problem importing wx.lib.iewin.") +
                             u"\nCaused by errors:\n\n%s" % lib.ue(e))
         
-        class FullHTML(ie.IEHtmlWindow):
+        class FullHTML(ie.IEHtmlWindow): #@UndefinedVariable
         
             def __init__(self, panel, parent, size):
-                ie.IEHtmlWindow.__init__(self, panel, -1, size=wx.Size(size[0], 
-                                                                       size[1]))
+                ie.IEHtmlWindow.__init__(self, panel, -1, #@UndefinedVariable 
+                    size=wx.Size(size[0], size[1]))
             
             def back2forwards_slashes(self, mystr):
                 """
@@ -90,7 +90,7 @@ else:
     elif mg.PLATFORM == mg.LINUX:
         # http://wiki.wxpython.org/wxGTKWebKit
         import gobject
-        gobject.threads_init()
+        gobject.threads_init() #@UndefinedVariable
         import pygtk
         pygtk.require('2.0')
         import gtk.gdk
@@ -113,7 +113,7 @@ else:
                 debug = False
                 whdl = self.GetHandle() # only works if parent is shown
                 if debug: print(whdl) # 0 if not shown so will fail
-                window = gtk.gdk.window_lookup(whdl)
+                window = gtk.gdk.window_lookup(whdl) #@UndefinedVariable
                 self.pizza = pizza = window.get_user_data()
                 self.scrolled_window = scrolled_window = pizza.parent
                 scrolled_window.remove(pizza)

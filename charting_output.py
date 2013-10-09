@@ -842,9 +842,31 @@ def get_uwhisker(raw_uwhisker, ubox, measure_vals):
         uwhisker = ubox
     return uwhisker
 
+def get_histo_dp(combined_start, bin_width):
+    """
+    Only show as many decimal points as needed.
+    
+    E.g. if starts at 1 and bin width is 1 then we only need 0 dp. If bin width 
+    is 0.5 then we need 1 dp. If bin width is 0.01 we need 2 dp.
+    
+    There are not enough dps if the bin_width, or the start value are changed by 
+    rounding themselves to that dp.
+    
+    combined_start -- if multiple histograms (e.g. one per country) we want to 
+    share the same bins. So what is the start for all of them combined?
+    """
+    dp = 0
+    while True:
+        enough = (round(bin_width, dp) == bin_width 
+            and round(combined_start, dp) == combined_start)
+        if enough or dp > 6:
+            break
+        dp += 1
+    return dp
+
 def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, 
-                   var_role_bin_name, var_role_charts, var_role_charts_name, 
-                   var_role_charts_lbls):
+        var_role_bin_name, var_role_charts, var_role_charts_name, 
+        var_role_charts_lbls):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
@@ -859,9 +881,9 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     objqtr = getdata.get_obj_quoter_func(dbe)
     unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     sql_dic = {u"var_role_charts": objqtr(var_role_charts), 
-               u"var_role_bin": objqtr(var_role_bin),
-               u"and_tbl_filt": and_tbl_filt, 
-               u"tbl": getdata.tblname_qtr(dbe, tbl)}
+       u"var_role_bin": objqtr(var_role_bin),
+       u"and_tbl_filt": and_tbl_filt, 
+       u"tbl": getdata.tblname_qtr(dbe, tbl)}
     if var_role_charts:
         SQL_fld_chart_by_vals = u"""SELECT %(var_role_charts)s 
             FROM %(tbl)s 
@@ -871,7 +893,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
         fld_chart_by_vals = [x[0] for x in cur.fetchall()]
         if len(fld_chart_by_vals) > mg.MAX_CHARTS_IN_SET:
             raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                                 max_items=mg.MAX_CHARTS_IN_SET)
+                max_items=mg.MAX_CHARTS_IN_SET)
     else:
         fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
     """
@@ -890,11 +912,10 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     combined_vals = [x[0] for x in cur.fetchall()]
     # use nicest bins practical
     n_bins, lower_limit, upper_limit = lib.get_bins(min(combined_vals), 
-                                                    max(combined_vals))
+        max(combined_vals))
     (combined_y_vals, combined_start, 
      bin_width, unused) = core_stats.histogram(combined_vals, n_bins, 
-                                            defaultreallimits=[lower_limit, 
-                                                               upper_limit])
+                                   defaultreallimits=[lower_limit, upper_limit])
     (unused, combined_start, 
      bin_width) = lib.fix_sawtoothing(combined_vals, n_bins, combined_y_vals, 
                                       combined_start, bin_width)
@@ -902,11 +923,10 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     for fld_chart_by_val in fld_chart_by_vals:
         if var_role_charts:
             filt = getdata.make_fld_val_clause(dbe, flds, 
-                                               fldname=var_role_charts, 
-                                               val=fld_chart_by_val)
+                fldname=var_role_charts, val=fld_chart_by_val)
             and_fld_chart_by_filt = u" and %s" % filt
             fld_chart_by_val_lbl = var_role_charts_lbls.get(fld_chart_by_val, 
-                                                         fld_chart_by_val)
+                fld_chart_by_val)
             # must get y-vals for each chart individually
             sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
             SQL_get_vals = u"""SELECT %(var_role_bin)s 
@@ -924,20 +944,14 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
              unused) = core_stats.histogram(vals, n_bins, defaultreallimits)
             vals4norm = vals
             chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
-                                        fld_chart_by_val_lbl)
+                fld_chart_by_val_lbl)
         else: # only one chart - combined values are the values we need
             y_vals = combined_y_vals
             vals4norm = combined_vals
             chart_by_lbl = None
         # not fixing saw-toothing 
         minval = combined_start
-        # only show as many decimal points as needed
-        dp = 0
-        while True:
-            if (round(combined_start, dp) 
-                    != round(combined_start + bin_width, dp)) or dp > 6:
-                break
-            dp += 1
+        dp = get_histo_dp(combined_start, bin_width) # only show as many decimal points as needed
         bin_ranges = [] # needed for labels
         bins = [] # needed to get y vals for normal dist curve
         start = combined_start
@@ -948,7 +962,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
             start = bin_end
             bin_ranges.append((bin_start, bin_end))
         bin_lbls = [_(u"%(lower)s to < %(upper)s") % 
-                     {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
+            {u"lower": x[0], u"upper": x[1]} for x in bin_ranges]
         bin_lbls[-1] = bin_lbls[-1].replace(u"<", u"<=")
         maxval = bin_end
         xaxis_dets = [(x+1, u"") for x in range(n_bins)]
@@ -2273,8 +2287,7 @@ makechartRenumber%(chart_idx)s = function(){
     return u"".join(html)
 
 def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets, 
-                     inc_normal, show_borders, css_fil, css_idx, 
-                     page_break_after=False):
+        inc_normal, show_borders, css_fil, css_idx, page_break_after=False):
     """
     See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this then
     titles -- list of title lines correct styles
@@ -2288,26 +2301,25 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     multichart = (len(chart_dets) > 1)
     html = []
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     height = 300 if multichart else 350
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        gridline_width, stroke_width, tooltip_border_colour, colour_mappings, 
+        connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
-                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
+        and single_colour)
     colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
+        override_first_highlight)
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
     fill = item_colours[0]
     js_inc_normal = u"true" if inc_normal else u"false"
-    
     init_margin_offset_l = 25
     yvals = []
     for chart_det in chart_dets:
@@ -2320,9 +2332,9 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     max_y_lbl_len = len(str(int(ymax)))
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate=False)    
+        max_safe_x_lbl_len_pxls, rotate=False)    
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     normal_stroke_width = 2*stroke_width # normal stroke needed even if border strokes not
     stroke_width = stroke_width if show_borders else 0
     for chart_idx, chart_det in enumerate(chart_dets):
@@ -2419,14 +2431,14 @@ makechartRenumber%(chart_idx)s = function(){
                u"tick_colour": major_gridline_colour, 
                u"norm_ys": norm_ys, u"js_inc_normal": js_inc_normal})
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                              u"Histogram")
+            u"Histogram")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def use_mpl_scatterplots(scatterplot_dets):

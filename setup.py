@@ -544,8 +544,7 @@ def setup_folders():
                 store_version(mg.LOCAL_PATH)
         except Exception, e:
             raise Exception(u"Unable to make local sofa folders in \"%s.\""
-                            % mg.LOCAL_PATH +
-                            u"\nCaused by error: %s" % lib.ue(e))
+                % mg.LOCAL_PATH + u"\nCaused by error: %s" % lib.ue(e))
         run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
         # 2) Modify existing local SOFA folder if version change require it
         existing_local = not local_path_setup_needed
