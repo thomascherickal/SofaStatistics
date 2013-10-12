@@ -20,7 +20,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         eg2 = _("For example, do male or female tutors get different rating "
             "scores from students?")
         eg3 = _("Or do IT graduates have a different income in their first "
-        " year in the workforce compared with law graduates?")
+            "year in the workforce compared with law graduates?")
         return eg1, eg2, eg3
     
     def update_phrase(self):

@@ -11,6 +11,20 @@ import getdata
 import config_output
 import settings_grid
 
+def valid_proj(subfolder, proj_filname):
+    settings_path = os.path.join(mg.LOCAL_PATH, subfolder, proj_filname)
+    try:
+        with codecs.open(settings_path, "U", encoding="utf-8") as f:
+            f.close()
+            valid_proj = True
+    except IOError:
+        valid_proj = False
+    return valid_proj
+
+def filname2projname(filname):
+    projname = filname[:-len(mg.PROJ_EXT)]
+    return projname
+
 def get_projs():
     """
     NB includes .proj at end.
@@ -21,7 +35,7 @@ def get_projs():
     May need unicode results so always provide a unicode path. 
     """
     proj_fils = os.listdir(os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER))
-    proj_fils = [x for x in proj_fils if x.endswith(u".proj")]
+    proj_fils = [x for x in proj_fils if x.endswith(mg.PROJ_EXT)]
     proj_fils.sort()
     return proj_fils
 
@@ -385,9 +399,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)
         self.panel_top.SetBackgroundColour(wx.Colour(205, 217, 215))
-        self.scroll_con_dets = wx.PyScrolledWindow(self, 
-                                        size=(900, 350), # need for Windows
-                                        style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
+        self.scroll_con_dets = wx.PyScrolledWindow(self, size=(900, 350), # need for Windows
+            style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_con_dets.SetScrollRate(10,10) # gives it the scroll bars
         self.panel_config = wx.Panel(self)
         self.panel_config.SetBackgroundColour(wx.Colour(205, 217, 215))
@@ -402,7 +415,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         self.new = (fil_proj is None)
         self.set_defaults(fil_proj)
         self.set_extra_dets(vdt_file=self.fil_var_dets, 
-                            script_file=self.script_file) # so opens proj settings
+            script_file=self.script_file) # so opens proj settings
         getdata.set_con_det_defaults(self)
         # misc
         lblfont = wx.Font(9, wx.SWISS, wx.NORMAL, wx.BOLD)
@@ -411,12 +424,12 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         lbl_name = wx.StaticText(self.panel_top, -1, _("Project Name:"))
         lbl_name.SetFont(lblfont)
         self.txt_name = wx.TextCtrl(self.panel_top, -1, self.proj_name, 
-                                   size=(200, -1))
+            size=(200, -1))
         self.txt_name.Enable(not self.readonly)
         lbl_proj_notes = wx.StaticText(self.panel_top, -1, _("Notes:"))
         lbl_proj_notes.SetFont(lblfont)
         self.txt_proj_notes = wx.TextCtrl(self.panel_top, -1, self.proj_notes,
-                                          style=wx.TE_MULTILINE)
+            style=wx.TE_MULTILINE)
         self.txt_proj_notes.Enable(not self.readonly)
         szr_desc = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc_left = wx.BoxSizer(wx.VERTICAL)
@@ -441,20 +454,20 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         szr_desc.Add(szr_desc_right, 1, wx.GROW)
         # DATA CONNECTIONS
         lbl_data_con_dets = wx.StaticText(self.panel_top, -1, 
-                                        _("How to connect to my data:"))
+            _("How to connect to my data:"))
         lbl_data_con_dets.SetFont(lblfont)
         # default dbe
         lbl_default_dbe = wx.StaticText(self.scroll_con_dets, -1, 
-                                       _("Default Database Engine:"))
+            _("Default Database Engine:"))
         lbl_default_dbe.SetFont(lblfont)
         self.drop_default_dbe = wx.Choice(self.scroll_con_dets, -1, 
-                                         choices=mg.DBES)
+            choices=mg.DBES)
         sel_dbe_id = mg.DBES.index(self.default_dbe)
         self.drop_default_dbe.SetSelection(sel_dbe_id)
         self.drop_default_dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
         self.drop_default_dbe.Enable(not self.readonly)
         lbl_scroll_down = wx.StaticText(self.scroll_con_dets, -1, 
-                    _("(scroll down for details of all your database engines)"))
+            _("(scroll down for details of all your database engines)"))
         # default dbe
         szr_default_dbe = wx.BoxSizer(wx.HORIZONTAL)
         szr_default_dbe.Add(lbl_default_dbe, 0, wx.LEFT|wx.RIGHT, 5)
@@ -473,19 +486,19 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         # CON DETS
         self.szr_con_dets.Add(szr_default_dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         getdata.set_data_con_gui(parent=self, readonly=self.readonly, 
-                                 scroll=self.scroll_con_dets, 
-                                 szr=self.szr_con_dets, lblfont=lblfont)
+            scroll=self.scroll_con_dets, szr=self.szr_con_dets, lblfont=lblfont)
         self.scroll_con_dets.SetSizer(self.szr_con_dets)
         # NEVER SetSizeHints or else grows beyond size!!!!
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         # CONFIG
         # mixin supplying self.szr_output_config
         self.szr_output_config = self.get_szr_output_config(self.panel_config, 
-                            readonly=self.readonly, report_file=self.fil_report, 
-                            show_view_btn=False, show_export_rpt_btn=False)
+            readonly=self.readonly, report_file=self.fil_report, 
+            show_run_btn=False, show_add_btn=False, show_view_btn=False, 
+            show_export_rpt_btn=False)
         btn_var_config = self.get_btn_var_config(self.panel_config)
         self.style_selector = self.get_style_selector(self.panel_config, 
-                                           as_list=False, css_file=self.fil_css)
+            as_list=False, css_file=self.fil_css)
         self.szr_output_config.Add(btn_var_config, 0, wx.LEFT|wx.RIGHT, 5) # normally part of data but we need it here so
         self.szr_output_config.Add(self.style_selector, 0, wx.LEFT|wx.RIGHT, 5) # normally part of output szr but need it here
         self.szr_config_outer.Add(self.szr_output_config, 0, wx.GROW|wx.ALL, 10)
@@ -497,8 +510,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         self.szr_bottom.SetSizeHints(self.panel_bottom)
         # FINAL # NB any ratio changes must work in multiple OSs
         self.szr.Add(self.panel_top, 0, wx.GROW)
-        self.szr.Add(self.scroll_con_dets, 3, 
-                     wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        self.szr.Add(self.scroll_con_dets, 3, wx.GROW|wx.LEFT|wx.BOTTOM|
+            wx.RIGHT, 10)
         self.szr.Add(self.panel_config, 0, wx.GROW)
         self.szr.Add(self.panel_bottom, 0, wx.GROW)
         self.SetAutoLayout(True)
@@ -536,7 +549,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         except AttributeError:
             # make empty labels file if necessary
             fil_default_var_dets = os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER, 
-                                                mg.DEFAULT_VDTS)
+                mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 f = codecs.open(fil_default_var_dets, "w", "utf-8")
                 f.write(u"# add variable details here")
@@ -546,7 +559,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             self.fil_css
         except AttributeError:
             self.fil_css = os.path.join(mg.LOCAL_PATH, mg.CSS_FOLDER, 
-                                        mg.DEFAULT_STYLE)
+                mg.DEFAULT_STYLE)
         try:            
             self.fil_report
         except AttributeError:
@@ -555,7 +568,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             self.fil_script
         except AttributeError:
             self.fil_script = os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER, 
-                                           mg.DEFAULT_SCRIPT)
+                mg.DEFAULT_SCRIPT)
         try:
             self.default_dbe
         except AttributeError:
@@ -586,7 +599,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                                               u"err": lib.ue(e)})
             raise
         try:
-            self.proj_name = fil_proj[:-5]
+            self.proj_name = filname2projname(fil_proj)
         except Exception, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
                             "Use %(def_proj)s for reference.") % 
@@ -654,8 +667,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         ret_dic = config_output.ConfigUI.on_btn_var_config(self, event)
         self.vdt_file = ret_dic[mg.VDT_RET]
         self.set_extra_dets(vdt_file=self.vdt_file, 
-                            script_file=self.script_file) # so opens proj 
-            # settings with these same settings even if not saved yet.
+            script_file=self.script_file) # so opens proj settings with these same settings even if not saved yet.
 
     def on_btn_help(self, event):
         """
@@ -670,12 +682,12 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
     def on_delete(self, event):
         proj_name = self.txt_name.GetValue()
         if wx.MessageBox(_("Deleting a project cannot be undone. Do you want "
-                           "to delete the \"%s\" project?") % proj_name, 
-                style=wx.YES|wx.NO|wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
+            "to delete the \"%s\" project?") % proj_name, style=wx.YES|wx.NO|
+            wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
             fil_to_delete = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
-                                   "%s.proj" % self.txt_name.GetValue())
+                "%s%s" % (self.txt_name.GetValue(), mg.PROJ_EXT))
             #print(fil_to_delete) # debug
             os.remove(fil_to_delete)
         except Exception:
@@ -698,20 +710,20 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         # get the data (separated for easier debugging)
         proj_name = self.txt_name.GetValue()
         if self.readonly:
-            self.parent.store_proj_name(u"%s.proj" % proj_name)
+            self.parent.store_proj_name(u"%s%s" % (proj_name, mg.PROJ_EXT))
         else:
             if proj_name == mg.EMPTY_PROJ_NAME:
                 wx.MessageBox(_("Please provide a project name"))
                 self.txt_name.SetFocus()
                 return
-            elif proj_name == mg.DEFAULT_PROJ[:-5]:
+            elif proj_name == filname2projname(mg.DEFAULT_PROJ):
                 wx.MessageBox(_("You cannot use the default project name"))
                 self.txt_name.SetFocus()
                 return
             try:
-                self.parent.store_proj_name(u"%s.proj" % proj_name)
+                self.parent.store_proj_name(u"%s%s" % (proj_name, mg.PROJ_EXT))
             except Exception:
-                print(u"Failed to change to %s.proj" % proj_name)
+                print(u"Failed to change to %s%s" % (proj_name, mg.PROJ_EXT))
                 pass # Only needed if returning to projselect form so OK to fail otherwise.
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
@@ -740,8 +752,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                       " file.") % default_dbe)
                 return
             # write the data
-            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s.proj" 
-                                    % proj_name)
+            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s%s" % 
+                (proj_name, mg.PROJ_EXT))
             # In Windows, MySQL.proj and mysql.proj are the same in the file 
             # system - if already a file with same name, delete it first
             # otherwise will write to mysql.proj when saving MySQL.proj.

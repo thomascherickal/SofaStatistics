@@ -849,8 +849,8 @@ def get_histo_dp(combined_start, bin_width):
     E.g. if starts at 1 and bin width is 1 then we only need 0 dp. If bin width 
     is 0.5 then we need 1 dp. If bin width is 0.01 we need 2 dp.
     
-    There are not enough dps if the bin_width, or the start value are changed by 
-    rounding themselves to that dp.
+    There are not enough dps if the bin_width, or the start value, are changed 
+    by rounding themselves to that dp.
     
     combined_start -- if multiple histograms (e.g. one per country) we want to 
     share the same bins. So what is the start for all of them combined?
@@ -910,6 +910,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     if debug: print(SQL_get_combined_vals)
     cur.execute(SQL_get_combined_vals)
     combined_vals = [x[0] for x in cur.fetchall()]
+    if not combined_vals:
+        raise Exception(u"No data to make histogram with.")
     # use nicest bins practical
     n_bins, lower_limit, upper_limit = lib.get_bins(min(combined_vals), 
         max(combined_vals))

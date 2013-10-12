@@ -402,7 +402,8 @@ class ConfigUI(object):
         return self.szr_data
         
     def get_szr_output_config(self, panel, readonly=False, report_file=None,
-                              show_view_btn=True, show_export_rpt_btn=True):
+            show_run_btn=True, show_add_btn=True, show_view_btn=True, 
+            show_export_rpt_btn=True):
         """
         Returns self.szr_output_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
@@ -414,14 +415,18 @@ class ConfigUI(object):
         self.panel_with_add2report = panel
         cc = get_cc()
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
-        self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))
-        self.btn_run.SetFont(mg.BTN_FONT)
-        self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
-        self.btn_run.SetToolTipString(_("Run report and show results"))
-        self.chk_add_to_report = wx.CheckBox(panel, -1, ADD2_RPT_LBL)
-        self.chk_add_to_report.SetFont(mg.GEN_FONT)
-        self.chk_add_to_report.SetValue(mg.ADD2RPT)
-        self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, self.on_chk_add_to_report)
+        if show_run_btn:
+            self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))
+            self.btn_run.SetFont(mg.BTN_FONT)
+            self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
+            self.btn_run.SetToolTipString(_("Run report and show results"))
+        if show_add_btn:
+            self.chk_add_to_report = wx.CheckBox(panel, -1, ADD2_RPT_LBL)
+            self.chk_add_to_report.SetFont(mg.GEN_FONT)
+            self.chk_add_to_report.SetValue(mg.ADD2RPT)
+            self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, 
+                self.on_chk_add_to_report)
+        
         self.readonly = readonly
         browse = _("Browse")
         if not report_file:
@@ -454,8 +459,11 @@ class ConfigUI(object):
             self.btn_export_report.SetToolTipString(_(u"Export report as PDF or"
                             u" as images ready for reports, slideshows etc"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
-        szr_output_config.Add(self.btn_run, 0)
-        szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
+        if show_run_btn:
+            szr_output_config.Add(self.btn_run, 0)
+        if show_add_btn:
+            szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 
+                10)
         szr_output_config.Add(self.txt_report_file, 1)
         szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         if show_view_btn:
@@ -565,7 +573,10 @@ class ConfigUI(object):
         return ret_dic
 
     def on_chk_add_to_report(self, event):
-        mg.ADD2RPT = self.chk_add_to_report.IsChecked()
+        try:
+            mg.ADD2RPT = self.chk_add_to_report.IsChecked()
+        except Exception:
+            pass
 
     def get_titles(self):
         """

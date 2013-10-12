@@ -287,6 +287,7 @@ PROJ_FIL_SCRIPT = u"fil_script"
 PROJ_CON_DETS = "con_dets"
 PROJ_DEFAULT_DBS = "default_dbs"
 
+PROJ_EXT = u".proj"
 PROJ_DBE = u"default_dbe"
 PROJ_DEFAULT_TBLS = u"default_tbls"
 DEFAULT_PROJ = u"default.proj"

@@ -13,9 +13,8 @@ import projects
 class DlgProjSelect(wx.Dialog):
     def __init__(self, parent, projs, proj):
         wx.Dialog.__init__(self, parent=parent, title=_("Projects"),
-                           size=wx.DefaultSize, 
-                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+200,-1))
+            size=wx.DefaultSize, style=wx.RESIZE_BORDER|wx.CAPTION|
+            wx.SYSTEM_MENU, pos=(mg.HORIZ_OFFSET+200,-1))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.projs = projs
@@ -39,8 +38,7 @@ class DlgProjSelect(wx.Dialog):
         lbl_desc = wx.StaticText(self.panel, -1, _("Description:"))
         self.get_notes(fil_proj=self.projs[idx_proj])
         self.txt_proj_notes = wx.TextCtrl(self.panel, -1, self.proj_notes,
-                                          style=wx.TE_MULTILINE|wx.TE_READONLY, 
-                                          size=(400,90))
+            style=wx.TE_MULTILINE|wx.TE_READONLY, size=(400,90))
         self.setup_btns()
         szr_main.Add(szr_main_inner, 1, wx.GROW|wx.ALL, 10)
         szr_main_inner.Add(lbl_proj, 0, wx.BOTTOM, 5)
@@ -85,21 +83,21 @@ class DlgProjSelect(wx.Dialog):
         except SyntaxError, e:
             wx.MessageBox(\
                 _(u"Syntax error in project file \"%(fil_proj)s\"."
-                  u"\n\nDetails: %s") % {u"fil_proj": fil_proj,
-                                         u"err": unicode(e)})
+                u"\n\nDetails: %s") % {u"fil_proj": fil_proj, 
+                u"err": unicode(e)})
             raise
         except Exception, e:
             wx.MessageBox(\
                 _(u"Error processing project file \"%(fil_proj)s\"."
-                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                                              u"err": unicode(e)})
+                u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                u"err": unicode(e)})
             raise
         # must always be stored, even if only ""
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
         except Exception, e:
             wx.MessageBox(_("Please check %s for errors. Use the default "
-                            "project file for reference.") % fil_proj)
+                "project file for reference.") % fil_proj)
             raise
     
     def on_proj_select(self, event):
@@ -118,10 +116,10 @@ class DlgProjSelect(wx.Dialog):
         fil_proj = self.projs[self.drop_projs.GetSelection()]
         try:
             dlgProj = projects.DlgProject(parent=self, readonly=readonly,
-                                          fil_proj=fil_proj)
+                fil_proj=fil_proj)
         except Exception, e:
             wx.MessageBox(u"Unable to open project dialog for %s. "
-                          u"Orig error: %s" % (fil_proj, lib.ue(e)))
+                u"Orig error: %s" % (fil_proj, lib.ue(e)))
             return
         # refresh projects list and display accordingly
         ret = dlgProj.ShowModal()
@@ -158,7 +156,7 @@ class DlgProjSelect(wx.Dialog):
         proj_sel_id = self.drop_projs.GetSelection()
         fil_proj = self.projs[proj_sel_id]
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-                                                   fil_name=fil_proj)
+            fil_name=fil_proj)
         try:
             wx.BeginBusyCursor()
             dic2restore = dd.proj_dic
@@ -167,14 +165,14 @@ class DlgProjSelect(wx.Dialog):
             cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
             cc[mg.CURRENT_CSS_PATH] = proj_dic[mg.PROJ_FIL_CSS]
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
-            proj_name = fil_proj[:-5] # might not be a sensible ...proj file
+            proj_name = projects.filname2projname(fil_proj) # might not be a sensible ...proj file
             self.parent.set_proj_lbl(proj_name)
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                 u"check name of file and its contents using %(def_proj)s as "
                 u"example.\nCaused by error: %(err)s") % 
-                          {u"def_proj": mg.DEFAULT_PROJ, u"err": lib.ue(e)})
+                {u"def_proj": mg.DEFAULT_PROJ, u"err": lib.ue(e)})
             return
         lib.safe_end_cursor()
         self.Destroy()
