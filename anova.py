@@ -104,10 +104,12 @@ if len(samples) < 2:
         script_lst.append(u'label_a = u"""%s"""' % label_a)
         script_lst.append(u'label_b = u"""%s"""' % label_b)
         script_lst.append(u'label_avg = u"""%s"""' % label_avg)
+        
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
                           lib.escape_pre_write(report_name))
+        
         high = self.rad_precision.GetValue()
         script_lst.append(u"""
 (p, F, dics, sswn, dfwn, mean_squ_wn, 

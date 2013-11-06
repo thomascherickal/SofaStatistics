@@ -170,19 +170,17 @@ class DlgVarConfig(wx.Dialog):
     """
     def __init__(self, parent, readonly, ret_dic, vdt_file=None):
         cc = get_cc()
-        wx.Dialog.__init__(self, parent=parent, 
-                           title=_(u"Select variable details file with labels "
-                                   u"etc appropriate to your data"), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,100))
+        wx.Dialog.__init__(self, parent=parent, title=_(u"Select variable "
+            u"details file with labels etc appropriate to your data"), 
+            style=wx.CAPTION|wx.SYSTEM_MENU, pos=(mg.HORIZ_OFFSET+100,100))
         self.parent = parent
         self.panel = wx.Panel(self)
         self.ret_dic = ret_dic
         bx_var_config = wx.StaticBox(self.panel, -1, 
-                                     _("Variable config from ... "))
+            _("Variable config from ... "))
         self.initial_vdt = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
         self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, self.initial_vdt, 
-                                             size=(500,-1))
+            size=(500,-1))
         self.txt_var_dets_file.Enable(not readonly)
         # Data config details
         browse = _("Browse")
@@ -190,7 +188,7 @@ class DlgVarConfig(wx.Dialog):
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btn_var_dets_path.Enable(not readonly)
         self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
-                                                  "config file"))
+            "config file"))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # Variables
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
@@ -252,11 +250,10 @@ class DlgVarConfig(wx.Dialog):
             if not invalid_msg:
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
-                wx.MessageBox(_(u"Unable to use vdt file "
-                                u"\"%(entered_vdt_path)s\" entered. "
-                                u"Orig error: %(invalid_msg)s") % 
-                              {u"entered_vdt_path": entered_vdt_path, 
-                               u"invalid_msg": invalid_msg})
+                wx.MessageBox(_(u"Unable to use vdt file \"%(entered_vdt_path)s"
+                    u"\" entered. Orig error: %(invalid_msg)s") % 
+                    {u"entered_vdt_path": entered_vdt_path, 
+                    u"invalid_msg": invalid_msg})
                 self.ret_dic[mg.VDT_RET] = self.initial_vdt
         else:
             foldername, filename = os.path.split(entered_vdt_path)
@@ -567,7 +564,7 @@ class ConfigUI(object):
         dlg = DlgVarConfig(self, self.readonly, ret_dic, self.vdt_file)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
-            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]
+            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET] # main place this gets set
             update_var_dets(dlg=self)
         dlg.Destroy()
         return ret_dic
@@ -720,25 +717,23 @@ class ConfigUI(object):
                 msg = NO_OUTPUT_YET_MSG
             else:
                 msg = _("The output file has not been created yet. Nothing to "
-                        "export") # not in a position to make one
+                    "export") # not in a position to make one
             wx.MessageBox(msg)
             return
         # check subfolder there
         rpt_root = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
         if not self.has_expected_subfolder(rpt_root):
             wx.MessageBox(ADD_EXPECTED_SUBFOLDER_MSG % 
-                              {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
-                               u"rpt_root": rpt_root, 
-                               u"reports_path": mg.REPORTS_PATH})
+                {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
+                u"rpt_root": rpt_root, u"reports_path": mg.REPORTS_PATH})
             return
         try:
             if debug: raise ImportError
             import export_output as export
             cc = get_cc()
             dlg = export.DlgExportOutput(title=u"Export Report "
-                                         u"(Images/PDF)", 
-                                   report2export=cc[mg.CURRENT_REPORT_PATH], 
-                                   temp_report_only=False)
+                u"(Images/PDF)", report2export=cc[mg.CURRENT_REPORT_PATH], 
+                temp_report_only=False)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
@@ -758,14 +753,13 @@ class ConfigUI(object):
                 pass
             import export_output as export
             dlg = export.DlgExportOutput(title=u"Export Output (PDF/Images)", 
-                                         report2export=mg.INT_REPORT_PATH, 
-                                         temp_report_only=True)
+                report2export=mg.INT_REPORT_PATH, temp_report_only=True)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
             comments = [u"Make it easy to share output as PDFs ",
-                        u"or export high-quality images ready to ",
-                        u"put into documents or slideshows"]
+                u"or export high-quality images ready to ",
+                u"put into documents or slideshows"]
             dlg = DlgGetExt(label=u"Export Output", comments=comments)
             dlg.ShowModal()
     

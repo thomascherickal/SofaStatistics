@@ -43,9 +43,9 @@ class ExcelImporter(importer.FileImporter):
         str_type = xlrd.XL_CELL_TEXT
         empty_type = xlrd.XL_CELL_EMPTY
         non_str_types = [xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
-                         xlrd.XL_CELL_NUMBER] # ignore EMPTY and ERROR
+            xlrd.XL_CELL_NUMBER] # ignore EMPTY and ERROR
         return importer.has_header_row(row1_types, row2_types, str_type, 
-                                       empty_type, non_str_types)
+            empty_type, non_str_types)
     
     def get_params(self):
         """
@@ -69,6 +69,10 @@ class ExcelImporter(importer.FileImporter):
                 newrow = []
                 for colx in range(wksheet.ncols):
                     rawval = wksheet.cell_value(rowx, colx)
+                    try:
+                        rawval = rawval.strip()
+                    except AttributeError:
+                        pass
                     val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
                     newrow.append(val2show)
                 strdata.append(newrow)
@@ -79,7 +83,7 @@ class ExcelImporter(importer.FileImporter):
             except Exception:
                 prob_has_hdr = False
             dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, strdata,
-                                                 prob_has_hdr)
+                prob_has_hdr)
             ret = dlg.ShowModal()
             if debug: print(unicode(ret))
             if ret == wx.ID_CANCEL:
@@ -95,15 +99,14 @@ class ExcelImporter(importer.FileImporter):
             for col_idx in range(wksheet.ncols):
                 raw_fldname = wksheet.cell_value(rowx=0, colx=col_idx)
                 fldname = (raw_fldname if isinstance(raw_fldname, basestring) 
-                                       else unicode(raw_fldname))
+                    else unicode(raw_fldname))
                 orig_fldnames.append(fldname)
-            
             fldnames = importer.process_fldnames(orig_fldnames, 
-                                                 headless=self.headless)
+                headless=self.headless)
         else:
             # numbered is OK
             fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x 
-                        in range(wksheet.ncols)]
+                in range(wksheet.ncols)]
         return fldnames
     
     def getval2use(self, wkbook, coltype, rawval):
@@ -121,7 +124,7 @@ class ExcelImporter(importer.FileImporter):
         else:
             cellval = rawval
         val2use = (cellval if isinstance(cellval, basestring) 
-                           else unicode(cellval))
+            else unicode(cellval))
         return val2use
             
     def get_rowdict(self, rowx, wkbook, wksheet, fldnames):
@@ -131,11 +134,14 @@ class ExcelImporter(importer.FileImporter):
         for colx in range(wksheet.ncols):
             rawval = rawrowvals[colx]
             try:
+                rawval = rawval.strip()
+            except AttributeError:
+                pass
+            try:
                 val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
             except Exception, e:
                 raise Exception(u"Problem with value in field \"%s\", row %s. "
-                                u"Orig error: %s" % (fldnames[colx], rowx+1, 
-                                                     lib.ue(e)))
+                    u"Orig error: %s" % (fldnames[colx], rowx+1, lib.ue(e)))
             rowvals.append(val2use)
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
@@ -180,8 +186,7 @@ class ExcelImporter(importer.FileImporter):
         fldtypes = []
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header, 
-                                                  ok_fldname, ok_fldnames,
-                                                  faulty2missing_fld_list)
+                ok_fldname, ok_fldnames, faulty2missing_fld_list)
             fldtypes.append(fldtype)            
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not has_rows:
@@ -213,7 +218,7 @@ class ExcelImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to read spreadsheet."
-                            u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
         sample_n = min(ROWS_TO_SAMPLE, n_datarows)
         items_n = n_datarows + sample_n
@@ -223,8 +228,7 @@ class ExcelImporter(importer.FileImporter):
             print("About to assess data sample")
         (fldtypes, 
          sample_data) = self.assess_sample(wkbook, wksheet, ok_fldnames, 
-                                         progbar, steps_per_item, import_status, 
-                                         faulty2missing_fld_list)
+                progbar, steps_per_item, import_status, faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
             print(fldtypes)
@@ -233,7 +237,7 @@ class ExcelImporter(importer.FileImporter):
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows: # iterates through data rows only
             data.append(self.get_rowdict(row_idx, wkbook, wksheet, 
-                                         ok_fldnames))
+                ok_fldnames))
             row_idx += 1
         gauge_start = steps_per_item*sample_n
         try:
@@ -243,9 +247,8 @@ class ExcelImporter(importer.FileImporter):
                 ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
                 steps_per_item, gauge_start)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                                      self.tblname, self.file_path,
-                                      progbar, feedback[mg.NULLED_DOTS],
-                                      self.headless)
+                self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],
+                self.headless)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

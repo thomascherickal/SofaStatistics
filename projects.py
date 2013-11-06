@@ -212,8 +212,7 @@ class DlgListVars(wx.Dialog):
     def __init__(self, var_labels, var_notes, var_types, val_dics, updated):
         "updated -- empty set - add True to 'return' updated True"
         wx.Dialog.__init__(self, None, title=_("Variable Details"),
-                           size=(500,600), 
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
+            size=(500,600), style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.var_labels = var_labels
         self.var_notes = var_notes
@@ -245,14 +244,13 @@ class DlgListVars(wx.Dialog):
             event.Skip()
             return
         var_label = lib.get_item_label(item_labels=self.var_labels, 
-                                       item_val=var_name)
+            item_val=var_name)
         if debug:
             dd = mg.DATADETS_OBJ
             print(var_name)
             pprint.pprint(dd.flds)
-        updated = set_var_props(choice_item, var_name, var_label,
-                                self.var_labels, self.var_notes, self.var_types, 
-                                self.val_dics)
+        updated = set_var_props(choice_item, var_name, var_label, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             event.Skip()
             self.setup_vars()
@@ -665,7 +663,11 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
 
     def on_btn_var_config(self, event):
         ret_dic = config_output.ConfigUI.on_btn_var_config(self, event)
-        self.vdt_file = ret_dic[mg.VDT_RET]
+        if ret_dic:
+            self.vdt_file = ret_dic[mg.VDT_RET]
+        else: # cancelled presumably
+            cc = config_output.get_cc()
+            self.vdt_file = cc[mg.CURRENT_VDTS_PATH] 
         self.set_extra_dets(vdt_file=self.vdt_file, 
             script_file=self.script_file) # so opens proj settings with these same settings even if not saved yet.
 
