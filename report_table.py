@@ -234,8 +234,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_cols = wx.BoxSizer(wx.VERTICAL)
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_html = wx.BoxSizer(wx.VERTICAL)
-        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
-        self.szr_output_display = self.get_szr_output_display(self.panel) # mixin
+        self.szr_output_display = self.get_szr_output_display(self.panel, 
+            idx_style=2) # mixin
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         # title details
@@ -243,12 +243,12 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
         self.txt_titles = wx.TextCtrl(self.panel, -1, size=(250,title_height), 
-                                      style=wx.TE_MULTILINE)
+            style=wx.TE_MULTILINE)
         self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
         lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel, -1,size=(250,title_height), 
-                                         style=wx.TE_MULTILINE)
+            style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
         # table type. NB max indiv width sets width for all items in Win or OSX
         self.rad_opts = RptTypeOpts(parent=self, panel=self.panel)
@@ -258,16 +258,16 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.chk_totals_row.SetFont(mg.GEN_FONT)
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
         self.chk_first_as_label = wx.CheckBox(self.panel, -1, 
-                                              _("First col as label?"))
+            _("First col as label?"))
         self.chk_first_as_label.SetFont(mg.GEN_FONT)
         self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, 
-                                     self.on_chk_first_as_label)
+            self.on_chk_first_as_label)
         self.enable_raw_display_opts(enable=False)
         self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1, 
-                                                _("Show percent symbol?"))
+            _("Show percent symbol?"))
         self.chk_show_perc_symbol.SetFont(mg.GEN_FONT)
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
-                                       self.on_chk_show_perc_symbol)
+            self.on_chk_show_perc_symbol)
         has_perc = not mg.RPT_CONFIG[self.tab_type][mg.VAR_SUMMARISED_KEY]
         self.enable_show_perc_symbol_opt(enable=has_perc)
         self.chk_show_perc_symbol.SetValue(True) # True is default
@@ -307,10 +307,10 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
-                          self.on_row_item_activated)
+            self.on_row_item_activated)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_row_item_rclick)
         self.rowtree.SetToolTipString(_("Right click variables to view/edit "
-                                        "details"))
+            "details"))
         self.rowroot = self.setup_dim_tree(self.rowtree)
         self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
@@ -318,7 +318,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                           self.on_col_item_activated)
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
         self.coltree.SetToolTipString(_("Right click variables to view/edit "
-                                        "details"))
+            "details"))
         self.colroot = self.setup_dim_tree(self.coltree)
         # setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -345,7 +345,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             myheight = min_height + ((mg.MAX_HEIGHT-grow_from)*0.2)
         myheight = 350 if myheight > 350 else myheight
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
-                                       size=(200,myheight))
+            size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -359,7 +359,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             szr_tab_type.Add(self.rad_opts, 0, wx.LEFT|wx.RIGHT, 10)
         except TypeError:
             szr_tab_type.Add(self.rad_opts.get_szr(), 0, 
-                             wx.LEFT|wx.RIGHT, 10)
+                wx.LEFT|wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
@@ -387,11 +387,8 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_trees.Add(szr_rows, 1, wx.GROW|wx.RIGHT, 2)
         szr_trees.Add(szr_cols, 1, wx.GROW|wx.LEFT, 2)
         szr_html.Add(self.html, 1, wx.GROW)
-        szr_bottom_left.Add(self.szr_output_config, 0, 
-                            wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szr_bottom_left.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.RIGHT, 10)
+        szr_bottom.Add(szr_html, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.RIGHT, 5)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
@@ -401,10 +398,12 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         szr_main.Add(szr_tab_type, 0, wx.BOTTOM, 5)
         szr_main.Add(szr_trees, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|
-                     wx.BOTTOM, 10)
-        szr_main.Add(szr_bottom, 2, wx.GROW|wx.BOTTOM, 10)
+            wx.BOTTOM, 10)
+        szr_main.Add(self.szr_output_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(szr_bottom, 2, wx.GROW|wx.TOP|wx.BOTTOM, 5)
         self.panel.SetSizer(szr_main)
-        szr_lst = [szr_top, szr_tab_type, szr_trees, szr_titles, szr_bottom]
+        szr_lst = [szr_top, szr_tab_type, szr_trees, szr_titles, 
+            self.szr_output_config, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def on_show(self, event):

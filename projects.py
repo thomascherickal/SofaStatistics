@@ -493,7 +493,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         self.szr_output_config = self.get_szr_output_config(self.panel_config, 
             readonly=self.readonly, report_file=self.fil_report, 
             show_run_btn=False, show_add_btn=False, show_view_btn=False, 
-            show_export_rpt_btn=False)
+            show_export_options=False)
         btn_var_config = self.get_btn_var_config(self.panel_config)
         self.style_selector = self.get_style_selector(self.panel_config, 
             as_list=False, css_file=self.fil_css)

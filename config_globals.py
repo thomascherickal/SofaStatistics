@@ -217,6 +217,7 @@ def set_fonts():
     font_size = 11 if mg.PLATFORM == mg.MAC else 9
     mg.LABEL_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.BOLD)
     mg.BTN_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.NORMAL)
+    mg.BTN_BOLD_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.BOLD)
     mg.GEN_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
 def set_DEFAULT_LEVEL(ignore_prefs=False):

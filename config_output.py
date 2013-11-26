@@ -33,8 +33,8 @@ IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC
           else (mg.PLATFORM == mg.MAC))
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-ADD2_RPT_LBL = _("Add to%sreport") % label_divider
-RUN_LBL = _("Show Results") if mg.PLATFORM == mg.MAC else _("Show\nResults")
+ADD2_RPT_LBL = _("Also add{}to report").format(label_divider)
+RUN_LBL = _("Show Results")
 ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
                else _("Add to\nReport"))
 NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
@@ -325,6 +325,8 @@ class ConfigUI(object):
         self.vdt_file = None
         self.script_file = None
         self.rows_n = self.get_rows_n()
+        self.export_output_enabled = False
+        self.copy_output_enabled = False
 
     def get_gen_config_szrs(self, panel, readonly=False, hide_db=True):
         """
@@ -397,10 +399,10 @@ class ConfigUI(object):
         self.szr_data.Add(btn_filter, 0, wx.RIGHT, 10)
         self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
-        
+
     def get_szr_output_config(self, panel, readonly=False, report_file=None,
             show_run_btn=True, show_add_btn=True, show_view_btn=True, 
-            show_export_rpt_btn=True):
+            show_export_options=True):
         """
         Returns self.szr_output_config (reports and css) complete with widgets.
         Widgets include textboxes plus Browse buttons for output and style.
@@ -413,7 +415,7 @@ class ConfigUI(object):
         cc = get_cc()
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         if show_run_btn:
-            self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(120,-1))
+            self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(170,-1))
             self.btn_run.SetFont(mg.BTN_FONT)
             self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
             self.btn_run.SetToolTipString(_("Run report and show results"))
@@ -423,73 +425,81 @@ class ConfigUI(object):
             self.chk_add_to_report.SetValue(mg.ADD2RPT)
             self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, 
                 self.on_chk_add_to_report)
-        
         self.readonly = readonly
         browse = _("Browse")
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
+        szr_html_report = wx.BoxSizer(wx.HORIZONTAL)
+        szr_html_report_left = wx.BoxSizer(wx.VERTICAL)
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
-                                           size=(300,-1))
+            size=(300,-1))
         self.txt_report_file.SetFont(mg.GEN_FONT)
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
-                                  self.on_report_file_lost_focus)
+            self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not self.readonly)
         self.btn_report_path = wx.Button(panel, -1, browse, size=(60,-1))
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
         self.btn_report_path.SetToolTipString(_("Select or create an HTML "
-                                                "output file"))
+            "output file"))
         if show_view_btn:
-            self.btn_view = wx.Button(panel, -1, _("View"), size=(60,-1))
+            self.btn_view = wx.Button(panel, -1, _("View Report"), size=(-1,25))
             self.btn_view.SetFont(mg.BTN_FONT)
             self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
             self.btn_view.Enable(not self.readonly)
             self.btn_view.SetToolTipString(_("View selected HTML output file "
-                                             "in your default browser"))
-        if show_export_rpt_btn:
-            self.btn_export_report = wx.Button(panel, -1, _("Export Report"))
-            self.btn_export_report.SetFont(mg.BTN_FONT)
-            self.btn_export_report.Bind(wx.EVT_BUTTON, 
-                                        self.on_btn_export_report)
-            self.btn_export_report.Enable(not self.readonly)
-            self.btn_export_report.SetToolTipString(_(u"Export report as PDF or"
-                            u" as images ready for reports, slideshows etc"))
+                "in your default browser"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         if show_run_btn:
-            szr_output_config.Add(self.btn_run, 0)
+            szr_output_config.Add(self.btn_run, 0, wx.GROW)
         if show_add_btn:
-            szr_output_config.Add(self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 
-                10)
-        szr_output_config.Add(self.txt_report_file, 1)
-        szr_output_config.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+            szr_output_config.Add(self.chk_add_to_report, 0, 
+                wx.LEFT|wx.RIGHT, 10)
+        szr_html_report_left.Add(self.txt_report_file, 0, wx.GROW)
         if show_view_btn:
-            szr_output_config.Add(self.btn_view, 0, wx.LEFT|wx.RIGHT, 5)
-        if show_export_rpt_btn:
-            szr_output_config.Add(self.btn_export_report, 0, wx.LEFT|wx.RIGHT, 5)
+            szr_html_report_left.Add(self.btn_view, 0, wx.ALIGN_RIGHT)
+        szr_html_report.Add(szr_html_report_left, 1)
+        szr_html_report.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
+        szr_output_config.Add(szr_html_report, 3)
+        if show_export_options:
+            export_choice_items = [_("Report as Images/PDF"), 
+                _("Current Output as Images/PDF"), 
+                _("Copy current output ready to paste"),
+                # _("Tabular output to spreadsheet"),
+                # _("Tabular report items to spreadsheet"),
+                ]
+            self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
+            self.drop_export.Enable(not self.readonly)
+            self.drop_export.SetToolTipString(_(u"Export report as PDF or"
+                u" as images ready for reports, slideshows etc"))
+            lbl_export = wx.StaticText(panel, -1, _("Export:"))
+            lbl_export.SetFont(mg.LABEL_FONT)
+            vln = wx.StaticLine(panel, -1, style=wx.LI_VERTICAL)
+            vln.SetSize((30,30))
+            szr_export = wx.BoxSizer(wx.VERTICAL)
+            szr_export_upper = wx.BoxSizer(wx.HORIZONTAL)
+            self.btn_export = wx.Button(panel, -1, _("Export"), size=(-1,25))
+            self.btn_export.SetFont(mg.BTN_FONT)
+            self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
+            self.btn_export.SetToolTipString(_("Export output as per selection"))
+            szr_output_config.Add(vln, 0, wx.GROW)
+            szr_export_upper.Add(lbl_export, 0, wx.TOP|wx.LEFT, 5)
+            szr_export_upper.Add(self.drop_export, 0, wx.LEFT, 5)
+            szr_export.Add(szr_export_upper, 0, wx.GROW)
+            szr_export.Add(self.btn_export, 0, wx.ALIGN_RIGHT)
+            szr_output_config.Add(szr_export, 0)
         return szr_output_config
 
-    def get_szr_output_display(self, panel, inc_clear=True, idx_style=5):
+    def get_szr_output_display(self, panel, inc_clear=True, idx_style=2):
         # main
         self.style_selector = self.get_style_selector(panel)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.SetFont(mg.BTN_FONT)
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
         self.btn_expand.SetToolTipString(_(u"Open displayed output in own "
-                                           u"window"))
+            u"window"))
         self.btn_expand.Enable(False)
-        self.btn_export_output = wx.Button(panel, -1, _("Export Output"))
-        self.btn_export_output.SetFont(mg.BTN_FONT)
-        self.btn_export_output.Bind(wx.EVT_BUTTON, self.on_btn_export_output)
-        self.btn_export_output.SetToolTipString(_(u"Export displayed output as "
-                         u"PDF or as images ready for reports, slideshows etc"))
-        self.btn_export_output.Enable(False)
-        self.btn_copy_output = wx.Button(panel, -1, _("Copy Output"))
-        self.btn_copy_output.SetFont(mg.BTN_FONT)
-        self.btn_copy_output.Bind(wx.EVT_BUTTON, self.on_btn_copy_output)
-        self.btn_copy_output.SetToolTipString(_(u"Copy displayed output to "
-                                         u"clipboard as images ready to paste"))
-        self.btn_copy_output.Enable(False)
         if inc_clear:
             self.btn_clear = wx.Button(panel, -1, _("Clear"))
             self.btn_clear.SetFont(mg.BTN_FONT)
@@ -499,25 +509,20 @@ class ConfigUI(object):
         self.btn_close.SetFont(mg.BTN_FONT)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         # add to sizer
-        szr_output_display = wx.FlexGridSizer(rows=7, cols=1, hgap=5, vgap=5)
+        szr_output_display = wx.FlexGridSizer(rows=4, cols=1, hgap=5, vgap=5)
         szr_output_display.AddGrowableRow(idx_style,2) # idx, propn
         szr_output_display.AddGrowableCol(0,1) # idx, propn
         # only relevant if surrounding sizer stretched vertically enough by its 
         # content.
-        szr_output_display.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 5)
         szr_output_display.Add(self.btn_expand, 0, wx.GROW|wx.ALIGN_RIGHT|
-                               wx.ALIGN_TOP)
-        szr_output_display.Add(self.btn_export_output, 0, 
-                               wx.GROW|wx.ALIGN_RIGHT|wx.ALIGN_TOP)
-        szr_output_display.Add(self.btn_copy_output, 0, 
-                               wx.GROW|wx.ALIGN_RIGHT|wx.ALIGN_TOP)
+            wx.ALIGN_TOP)
         if inc_clear:
             szr_output_display.Add(self.btn_clear, 0, wx.GROW|wx.ALIGN_RIGHT)
-        szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 10)
+        szr_output_display.Add(self.style_selector, 1, wx.GROW|wx.BOTTOM, 5)
         # close
         szr_output_display.Add(self.btn_close, 0, wx.GROW|wx.ALIGN_RIGHT)
         return szr_output_display
-    
+
     def get_style_selector(self, panel, as_list=True, css_file=None):
         debug = False
         cc = get_cc()
@@ -616,9 +621,8 @@ class ConfigUI(object):
         if rows_n > 250000:
             strn = locale.format('%d', rows_n, True)
             if wx.MessageBox(_("The underlying data table has %s rows. "
-                               "Do you wish to run this analysis?") % strn, 
-                               caption=_("LARGE DATA TABLE"), 
-                               style=wx.YES_NO) == wx.NO:
+                    "Do you wish to run this analysis?") % strn,
+                    caption=_("LARGE DATA TABLE"), style=wx.YES_NO) == wx.NO:
                 too_long = True
         return too_long
 
@@ -679,11 +683,10 @@ class ConfigUI(object):
         "Open dialog and takes the report file selected (if any)"
         cc = get_cc()
         dlg_get_file = wx.FileDialog(self, 
-                            _("Choose or create a report output file:"), 
-                            defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
-                            wildcard=_(u"HTML files (*.htm)|*.htm|HTML files "
-                                       u"(*.html)|*.html"),
-                            style=wx.SAVE)
+            _("Choose or create a report output file:"), 
+            defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
+            wildcard=_(u"HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
+            style=wx.SAVE)
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             # not necessary that the report exists, only that its folder is already there
@@ -691,7 +694,7 @@ class ConfigUI(object):
             new_rpt_root, new_rpt = os.path.split(new_rpt_pth) #@UnusedVariable
             if not os.path.exists(new_rpt_root): # they hand-wrote a faulty path?
                 wx.MessageBox(_(u"Warning - the folder your report is in "
-                                u"doesn't currently exist."))
+                    u"doesn't currently exist."))
                 return
             if self.autoupdate:
                 cc[mg.CURRENT_REPORT_PATH] = new_rpt_pth
@@ -699,11 +702,29 @@ class ConfigUI(object):
             give_warning = not self.has_expected_subfolder(new_rpt_root)
             if give_warning:
                 wx.MessageBox(ADD_EXPECTED_SUBFOLDER_MSG % 
-                            {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
-                             u"rpt_root": new_rpt_root, 
-                             u"reports_path": mg.REPORTS_PATH})
+                    {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
+                     u"rpt_root": new_rpt_root, 
+                     u"reports_path": mg.REPORTS_PATH})
         dlg_get_file.Destroy()
-    
+
+    def on_btn_export(self, event):
+        idx_export_sel = self.drop_export.GetSelection()
+        if idx_export_sel == 0:
+            self.on_btn_export_report(event)
+        elif idx_export_sel == 1:
+            if self.export_output_enabled:
+                self.on_btn_export_output(event)
+            else:
+                wx.MessageBox(u"Unable to export output")
+        elif idx_export_sel == 2:
+            if self.copy_output_enabled:
+                self.on_btn_copy_output(event)
+            else:
+                wx.MessageBox(u"Unable to copy output")
+        else:
+            raise Exception(u"Unexpected export selection: {}".format(
+                idx_export_sel))
+
     def on_btn_export_report(self, event):
         debug = False
         cc = get_cc()
@@ -821,17 +842,16 @@ class ConfigUI(object):
 
     def align_export_btns(self, enable_btns):
         self.btn_expand.Enable(enable_btns)
-        self.btn_export_output.Enable(enable_btns)
-        self.btn_copy_output.Enable(enable_btns)
+        self.export_output_enabled = enable_btns
+        self.copy_output_enabled = enable_btns
 
     def on_btn_run(self, event, get_script_args, new_has_dojo=False):
         try:
             self.run_report(get_script_args, new_has_dojo)
         except my_exceptions.MissingCss, e:    
-            lib.update_local_display(self.html, _("Please check the CSS "
-                                             "file exists or set another. "
-                                             "Caused by error: %s") % lib.ue(e), 
-                                             wrap_text=True)
+            lib.update_local_display(self.html, _("Please check the CSS file "
+                "exists or set another. Caused by error: %s") % lib.ue(e), 
+                wrap_text=True)
             lib.safe_end_cursor()
         event.Skip()
         

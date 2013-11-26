@@ -209,7 +209,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
         self.szr_output_config = self.get_szr_output_config(self.panel) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel, 
-            inc_clear=False, idx_style=4) # mixin
+            inc_clear=False, idx_style=1) # mixin
         self.html = full_html.FullHTML(panel=self.panel, parent=self, 
             size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
@@ -217,19 +217,18 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_lower = wx.BoxSizer(wx.HORIZONTAL)
-        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
-        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW|wx.BOTTOM, 2)
-        szr_bottom_left.Add(self.html, 1, wx.GROW)
-        szr_lower.Add(szr_bottom_left, 1, wx.GROW)
+        szr_lower.Add(self.html, 1, wx.GROW)
         szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         szr_main.Add(self.szr_desc, 0, wx.ALL, 10)
         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_vars, 0, wx.ALL, 10)
+        szr_main.Add(self.szr_output_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_lower, 1, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         #szr_std_btns.Insert(0, self.szr_level, wx.ALIGN_LEFT|wx.ALL, 10)
         self.panel.SetSizer(szr_main)
-        self.szr_lst = [self.szr_desc, self.szr_data, szr_vars, szr_lower]
-        self.set_size()
+        self.szr_lst = [self.szr_desc, self.szr_data, szr_vars, 
+            self.szr_output_config, szr_lower]
+        lib.set_size(window=self, szr_lst=self.szr_lst, width_init=1024)
 
     def on_show(self, event):
         if self.exiting:

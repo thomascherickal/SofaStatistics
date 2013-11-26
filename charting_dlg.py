@@ -49,17 +49,16 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # can't use indep2var.DlgIndep2VarConfig - too many differences
         # so must init everything manually here
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                   pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
-                   style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
-                   wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
-                   wx.CAPTION|wx.CLIP_CHILDREN)
+            pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
+            |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_output.ConfigUI.__init__(self, autoupdate=True)
         self.exiting = False
         self.title = title
         self.SetFont(mg.GEN_FONT)
         cc = config_output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 
-                               "charting_output", "output", "getdata"]
+            "charting_output", "output", "getdata"]
         global CUR_DATA_OPT
         CUR_DATA_OPT = mg.SHOW_FREQ
         self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
@@ -134,9 +133,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # Hide all panels except default. Display and layout then hide.
         # Prevents flicker on change later.
         panels2hide = [self.panel_clust_bar, self.panel_pie_chart,
-                       self.panel_line_chart, self.panel_area_chart,
-                       self.panel_histogram, self.panel_scatterplot, 
-                       self.panel_boxplot]
+            self.panel_line_chart, self.panel_area_chart, self.panel_histogram, 
+            self.panel_scatterplot, self.panel_boxplot]
         check = True
         for panel2hide in panels2hide:
             self.szr_mid.Add(panel2hide, 0, wx.GROW)
@@ -156,43 +154,40 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_mid.SetSizeHints(self.panel_mid)
         # Bottom panel
         self.panel_bottom = wx.Panel(self)
-        szr_titles = wx.BoxSizer(wx.HORIZONTAL)
-        szr_lower = wx.BoxSizer(wx.HORIZONTAL)
-        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
-        # titles, subtitles
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
+        szr_titles = wx.BoxSizer(wx.HORIZONTAL)
+        self.szr_output_config = self.get_szr_output_config(self.panel_bottom) # mixin
+        szr_lower = wx.BoxSizer(wx.HORIZONTAL)
+        # titles, subtitles
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
         self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, 
-                                      size=(250,title_height), 
-                                      style=wx.TE_MULTILINE)
+            size=(250,title_height), style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, 
-                                         size=(250,title_height), 
-                                         style=wx.TE_MULTILINE)
+            size=(250,title_height), style=wx.TE_MULTILINE)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_subtitles, 1)
-        self.szr_output_config = self.get_szr_output_config(self.panel_bottom) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
-                                        inc_clear=False, idx_style=4) # mixin
+            inc_clear=False, idx_style=1) # mixin
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
-                                       size=(200, 150))
+            size=(200, 150))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
-        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW|wx.BOTTOM, 2)
-        szr_bottom_left.Add(self.html, 1, wx.GROW)
-        szr_lower.Add(szr_bottom_left, 1, wx.GROW)
-        szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         self.szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|
-                            wx.BOTTOM, 10)
+            wx.BOTTOM, 10)
+        self.szr_bottom.Add(self.szr_output_config, 0, 
+            wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        szr_lower.Add(self.html, 1, wx.GROW)
+        szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         self.szr_bottom.Add(szr_lower, 2, wx.GROW|wx.LEFT|wx.RIGHT|
-                            wx.BOTTOM, 10)
+            wx.BOTTOM|wx.TOP, 10)
         self.add_other_var_opts()
         self.panel_bottom.SetSizer(self.szr_bottom)
         self.szr_bottom.SetSizeHints(self.panel_bottom)
@@ -200,23 +195,23 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
-                              static_box_gap)
+                static_box_gap)
         self.szr_main.Add(self.panel_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
-                              static_box_gap)
+                static_box_gap)
         self.szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 
-                              static_box_gap)
+                static_box_gap)
         self.szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr_main)
         szr_lst = [self.szr_help_data, self.szr_vars, self.szr_mid, 
-                   self.szr_bottom]
+            self.szr_bottom] # each has a panel of its own
         lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
-                     height_init=myheight)
+            height_init=myheight)
     
     def get_drop_val_opts(self, panel):
         drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPTS, 

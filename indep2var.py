@@ -91,7 +91,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
-                                                inc_clear=False, idx_style=4)
+                                                inc_clear=False, idx_style=1)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
@@ -161,8 +161,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_vars.Add(szr_vars_top, 0)      
         szr_vars.Add(szr_vars_bottom, 0, wx.GROW)
         self.panel_vars.SetSizer(szr_vars)
-        szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
-        szr_bottom_left = wx.BoxSizer(wx.VERTICAL)
+        szr_bottom = wx.BoxSizer(wx.VERTICAL)
+        szr_lower = wx.BoxSizer(wx.HORIZONTAL)
         if mg.MAX_HEIGHT <= 620:
             myheight = 130
         elif mg.MAX_HEIGHT <= 820:
@@ -172,17 +172,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         if mg.PLATFORM == mg.MAC:
             myheight = myheight*0.3
         self.html = full_html.FullHTML(panel=self.panel_bottom, parent=self, 
-                                       size=(200,myheight))
+            size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
-        szr_bottom_left.Add(self.szr_output_config, 0, wx.GROW)
-        szr_bottom_left.Add(self.html, 1, wx.GROW|wx.BOTTOM, 5)
-        #self.szr_level = self.get_szr_level(self.panel) # mixin
-        #szr_bottom_left.Add(self.szr_level, 0)
-        szr_bottom.Add(szr_bottom_left, 1, wx.GROW)
-        szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
+        szr_lower.Add(self.html, 1, wx.GROW)
+        szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
+        szr_bottom.Add(self.szr_output_config, 0, wx.GROW)
+        szr_bottom.Add(szr_lower, 1, wx.GROW|wx.TOP, 10)
         self.panel_bottom.SetSizer(szr_bottom)
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
         if static_box_gap:
@@ -200,8 +198,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
-        szr_main.Add(self.panel_bottom, 1, wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 
-                     10)
+        szr_main.Add(self.panel_bottom, 1, 
+            wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.set_size(window=self, szr_lst=szr_lst)
