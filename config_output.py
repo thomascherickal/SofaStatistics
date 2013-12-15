@@ -33,19 +33,15 @@ IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC
           else (mg.PLATFORM == mg.MAC))
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-ADD2_RPT_LBL = _("Also add{}to report").format(label_divider)
+ADD2_RPT_LBL = _("Also add%sto report") % label_divider
 RUN_LBL = _("Show Results")
-ADD2RPT_LBL = (_("Add to Report") if mg.PLATFORM == mg.MAC 
-               else _("Add to\nReport"))
 NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
-                       u"\"%(add2rpt_lbl)s\" ticked) to add output to this "
-                       u"report.") % {u"run": RUN_LBL, 
-                             u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
+    u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
+    {u"run": RUN_LBL, u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
 ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
-            u"\"%(report_extras_folder)s\" subfolder into the "
-            u"\"%(rpt_root)s\" folder so your charts and themes"
-            u" can display properly.\n\nCopy the "
-            u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
+    u"\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
+    u"so your charts and themes can display properly.\n\nCopy the "
+    u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
 
 
 class DlgGetTest(wx.Dialog):
@@ -266,9 +262,8 @@ class DlgVarConfig(wx.Dialog):
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
                 wx.MessageBox(_(u"Unable to make vdt file \"%(filename)s\" - "
-                                u"the \"%(foldername)s\" directory doesn't "
-                                u"exist.") % {u"filename": filename, 
-                                              u"foldername": foldername})
+                    u"the \"%(foldername)s\" directory doesn't exist.") % 
+                    {u"filename": filename, u"foldername": foldername})
                 self.ret_dic[mg.VDT_RET] = self.initial_vdt
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
@@ -437,7 +432,7 @@ class ConfigUI(object):
         self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
             self.on_report_file_lost_focus)
         self.txt_report_file.Enable(not self.readonly)
-        self.btn_report_path = wx.Button(panel, -1, browse, size=(60,-1))
+        self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
@@ -473,6 +468,7 @@ class ConfigUI(object):
             self.drop_export.Enable(not self.readonly)
             self.drop_export.SetToolTipString(_(u"Export report as PDF or"
                 u" as images ready for reports, slideshows etc"))
+            self.drop_export.SetSelection(0)
             lbl_export = wx.StaticText(panel, -1, _("Export:"))
             lbl_export.SetFont(mg.LABEL_FONT)
             vln = wx.StaticLine(panel, -1, style=wx.LI_VERTICAL)
@@ -710,22 +706,22 @@ class ConfigUI(object):
     def on_btn_export(self, event):
         idx_export_sel = self.drop_export.GetSelection()
         if idx_export_sel == 0:
-            self.on_btn_export_report(event)
+            self.on_sel_export_report(event)
         elif idx_export_sel == 1:
             if self.export_output_enabled:
-                self.on_btn_export_output(event)
+                self.on_sel_export_output(event)
             else:
                 wx.MessageBox(u"Unable to export output")
         elif idx_export_sel == 2:
             if self.copy_output_enabled:
-                self.on_btn_copy_output(event)
+                self.on_sel_copy_output(event)
             else:
                 wx.MessageBox(u"Unable to copy output")
         else:
             raise Exception(u"Unexpected export selection: {}".format(
                 idx_export_sel))
 
-    def on_btn_export_report(self, event):
+    def on_sel_export_report(self, event):
         debug = False
         cc = get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
@@ -764,7 +760,7 @@ class ConfigUI(object):
             dlg = DlgGetExt(label=u"Export Report", comments=comments)
             dlg.ShowModal()
         
-    def on_btn_export_output(self, event):
+    def on_sel_export_output(self, event):
         debug = False
         try:
             if debug: raise ImportError
@@ -784,7 +780,7 @@ class ConfigUI(object):
             dlg = DlgGetExt(label=u"Export Output", comments=comments)
             dlg.ShowModal()
     
-    def on_btn_copy_output(self, event):
+    def on_sel_copy_output(self, event):
         debug = False
         wx.BeginBusyCursor()
         try:
@@ -801,6 +797,7 @@ class ConfigUI(object):
                 u"pasting the output or it won't work." % self.title))
         except ImportError:
             # don't have extension installed (or working)
+            lib.safe_end_cursor()
             comments = [u"Make it easy to copy and paste images ready to ",
                         u"edit and put into documents or slideshows"]
             dlg = DlgGetExt(label=u"Copy Output to Clipboard As Images", 

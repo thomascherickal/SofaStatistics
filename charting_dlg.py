@@ -1466,9 +1466,8 @@ def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
     script = u"""
 (overall_title, 
  chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
-                                          var_role_bin, var_role_bin_name, 
-                                          var_role_charts, var_role_charts_name, 
-                                          var_role_charts_lbls)
+                    var_role_bin, var_role_bin_name, var_role_charts, 
+                    var_role_charts_name, var_role_charts_lbls)
 chart_output = charting_output.histogram_output(titles, subtitles, 
         var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
          show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 

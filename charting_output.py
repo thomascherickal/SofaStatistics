@@ -921,6 +921,9 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     (unused, combined_start, 
      bin_width) = lib.fix_sawtoothing(combined_vals, n_bins, combined_y_vals, 
                                       combined_start, bin_width)
+    # put any temporary hack overrides for combined_start, bin_width below here**************
+    #combined_start = 100 # or whatever the starting number for the bins should be
+    #bin_width = 10 # or whatever the width of the bins should be
     histo_dets = []
     for fld_chart_by_val in fld_chart_by_vals:
         if var_role_charts:

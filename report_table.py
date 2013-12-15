@@ -980,7 +980,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         """
         ready2run, unused = self.table_config_ok(silent=True)
         if live_demo:
-            runlbl2use = config_output.ADD2RPT_LBL
+            runlbl2use = config_output.ADD2_RPT_LBL
             mg.ADD2RPT = True
             self.chk_add_to_report.Show(False) # The button itself can handle this
         else:
