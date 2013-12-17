@@ -480,11 +480,12 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
                 if n_cats > mg.MAX_CLUSTERS and not allow_exceed_max_clusters:
-                    if wx.MessageBox(_(u"This chart will have %s clusters by "
-                           u"%s and may not display properly. Do you wish to "
-                           u"make it anyway?") % (n_cats, var_role_cat), 
-                           caption=_("HIGH NUMBER OF CLUSTERS"), 
-                           style=wx.YES_NO) == wx.NO:
+                    if wx.MessageBox(_(u"This chart will have %(n_cats)s "
+                            u"clusters by %(var_role_cat)s and may not display "
+                            u"properly. Do you wish to make it anyway?") % 
+                            {"n_cats": n_cats, "var_role_cat": var_role_cat}, 
+                            caption=_("HIGH NUMBER OF CLUSTERS"), 
+                            style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
                                                   var_role_cat, mg.MAX_CLUSTERS)
                     else:
@@ -494,13 +495,14 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                     raise my_exceptions.TooManySlicesInPieChart
             else:
                 if n_cats > mg.MAX_CATS_GEN:
-                    if wx.MessageBox(_(u"This chart will have %s %s categories "
-                           u"and may not display properly. Do you wish to make "
-                           u"it anyway?") % (n_cats, var_role_cat), 
+                    if wx.MessageBox(_(u"This chart will have %(n_cats)s "
+                            u"%(var_role_cat)s categories and may not display "
+                            u"properly. Do you wish to make it anyway?") % 
+                            {"n_cats": n_cats, "var_role_cat": var_role_cat}, 
                            caption=_("HIGH NUMBER OF CATEGORIES"), 
                            style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
-                                                  var_role_cat, mg.MAX_CATS_GEN)
+                            var_role_cat, mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, sorted_y_vals, 
                 sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
                                                      sort_opt, vals_etc_lst, dp,
@@ -637,21 +639,22 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         if debug: print(series_vals)
         n_boxplot_series = len(series_vals)
         if n_boxplot_series > mg.MAX_SERIES_IN_BOXPLOT:
-            if wx.MessageBox(_(u"This chart will have %s %s series "
-                   u"and may not display properly. Do you wish to make "
-                   u"it anyway?") % (n_boxplot_series, var_role_cat), 
-                   caption=_("HIGH NUMBER OF SERIES"), 
-                   style=wx.YES_NO) == wx.NO:
+            if wx.MessageBox(_(u"This chart will have %(n_boxplot_series)s "
+                    u"%(var_role_cat)s series and may not display properly. Do "
+                    u"you wish to make it anyway?") % 
+                    {"n_boxplot_series": n_boxplot_series, 
+                     "var_role_cat": var_role_cat}, 
+                    caption=_("HIGH NUMBER OF SERIES"), 
+                    style=wx.YES_NO) == wx.NO:
                 raise my_exceptions.TooManySeriesInChart(
-                                                    mg.MAX_SERIES_IN_BOXPLOT)
+                    mg.MAX_SERIES_IN_BOXPLOT)
     else:
         series_vals = [None,] # Got to have something to loop through ;-)
     # 2) Get all cat vals needed for x-axis i.e. all those appearing in any rows 
     # where all fields are non-missing.
     if var_role_cat: # might just be a single box e.g. a box for age overall
         and_series_filt = (u"" if not var_role_series 
-                           else " AND %(var_role_series)s IS NOT NULL " % 
-                           sql_dic)
+            else " AND %(var_role_series)s IS NOT NULL " % sql_dic)
         sql_dic[u"and_series_filt"] = and_series_filt
         SQL_cat_vals = """SELECT %(var_role_cat)s
             FROM %(tbl)s 
@@ -671,13 +674,14 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         if debug: print(sorted_cat_vals)
         n_boxplots = len(sorted_cat_vals)
         if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
-            if wx.MessageBox(_(u"This chart will have %s series by "
-                   u"%s and may not display properly. Do you wish to "
-                   u"make it anyway?") % (n_boxplots, var_role_cat), 
-                   caption=_("HIGH NUMBER OF SERIES"), 
-                   style=wx.YES_NO) == wx.NO:
+            if wx.MessageBox(_(u"This chart will have %(n_boxplots)s series by "
+                    u"%(var_role_cat)s and may not display properly. Do you "
+                    u"wish to make it anyway?") % {"n_boxplots": n_boxplots, 
+                    "var_role_cat": var_role_cat},
+                    caption=_("HIGH NUMBER OF SERIES"), 
+                    style=wx.YES_NO) == wx.NO:
                 raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
-                                            max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
+                    max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     else:
         sorted_cat_vals = [1,] # the first boxplot is always 1 on the x-axis
     ymin = None # init
