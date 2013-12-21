@@ -38,8 +38,8 @@ SMOOTHLINE_LBL = u"Smoothed data line"
 
 
 def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
-                     var_role_agg, var_role_cat, var_role_series, 
-                     var_role_charts, data_show):
+         var_role_agg, var_role_cat, var_role_series, 
+         var_role_charts, data_show):
     """
     Returns a list of row tuples.
     Each row tuple follows the same templates. Dummy values are used to fill 
@@ -217,7 +217,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     return SQL_get_raw_data
 
 def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
-                      multiseries):
+        multiseries):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -317,7 +317,7 @@ def get_prestructured_grouped_data(raw_data, fldnames):
     return prestructure
 
 def get_overall_title(var_role_agg_name, var_role_cat_name, 
-                      var_role_series_name, var_role_charts_name):
+        var_role_series_name, var_role_charts_name):
     title_bits = []
     if var_role_agg_name:
         title_bits.append(u"Avg %s" % var_role_agg_name)
@@ -333,7 +333,7 @@ def get_overall_title(var_role_agg_name, var_role_cat_name,
     return u" ".join(title_bits)
 
 def get_overall_title_scatterplot(var_role_x_axis_name, var_role_y_axis_name, 
-                                  var_role_series_name, var_role_charts_name):
+        var_role_series_name, var_role_charts_name):
     title_bits = []
     title_bits.append(u"%s vs %s" % (var_role_x_axis_name, 
                                      var_role_y_axis_name))
@@ -349,12 +349,11 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     output.append_divider(html, title, indiv_title, item_type)
 
 def structure_gen_data(chart_type, raw_data, xlblsdic, 
-                  var_role_agg, var_role_agg_name, var_role_agg_lbls,
-                  var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                  var_role_series, var_role_series_name, var_role_series_lbls,
-                  var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                  sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ, 
-                  major_ticks=False):
+        var_role_agg, var_role_agg_name, var_role_agg_lbls,
+        var_role_cat, var_role_cat_name, var_role_cat_lbls,
+        var_role_series, var_role_series_name, var_role_series_lbls,
+        var_role_charts, var_role_charts_name, var_role_charts_lbls,
+        sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ, major_ticks=False):
     """
     Structure data for general charts (use different processes preparing data 
         for histograms, scatterplots etc).
@@ -396,18 +395,16 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
     max_y_lbl_len = 0
     max_lbl_lines = 0
     fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
-                var_role_agg_name]
+        var_role_agg_name]
     prestructure = get_prestructured_grouped_data(raw_data, fldnames)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
         if wx.MessageBox(_(u"This output will have %s charts and may not "
-               u"display properly. Do you wish to make it anyway?") % 
-                         n_charts, 
-               caption=_("HIGH NUMBER OF CHARTS"), 
-               style=wx.YES_NO) == wx.NO:
+                u"display properly. Do you wish to make it anyway?") % n_charts, 
+                caption=_("HIGH NUMBER OF CHARTS"), style=wx.YES_NO) == wx.NO:
             raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                                 max_items=mg.MAX_CHARTS_IN_SET)
+                max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     if multichart:
         chart_fldname = var_role_charts_name
@@ -422,10 +419,9 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         n_series = len(series)
         if n_series > mg.MAX_CHART_SERIES and not allow_exceed_max_series:
             if wx.MessageBox(_(u"This chart will have %s series and may not "
-                   u"display properly. Do you wish to make it anyway?") % 
-                             n_series, 
-                   caption=_("HIGH NUMBER OF SERIES"), 
-                   style=wx.YES_NO) == wx.NO:
+                    u"display properly. Do you wish to make it anyway?") % 
+                    n_series, caption=_("HIGH NUMBER OF SERIES"), 
+                    style=wx.YES_NO) == wx.NO:
                 raise my_exceptions.TooManySeriesInChart(mg.MAX_CHART_SERIES)
             else:
                 allow_exceed_max_series = True
@@ -452,7 +448,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
             series_val = series_dic[SERIES_KEY]
             if multiseries:
                 legend_lbl = var_role_series_lbls.get(series_val, 
-                                                      unicode(series_val))
+                    unicode(series_val))
             else:
                 legend_lbl = None
             # process xy vals
@@ -463,7 +459,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                 (x_val_split_lbl,
                  actual_lbl_width,
                  n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                        max_width=17, dojo=True, rotate=rotate)
+                    max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
                 y_lbl_width = len(str(round(y_val, dp)))
@@ -476,7 +472,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                 else:
                     itemlbl = None
                 vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
-                                     x_val_split_lbl, itemlbl))
+                    x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
                 if n_cats > mg.MAX_CLUSTERS and not allow_exceed_max_clusters:
@@ -487,7 +483,7 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                             caption=_("HIGH NUMBER OF CLUSTERS"), 
                             style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
-                                                  var_role_cat, mg.MAX_CLUSTERS)
+                            var_role_cat, mg.MAX_CLUSTERS)
                     else:
                         allow_exceed_max_clusters = True
             elif chart_type == mg.PIE_CHART:
@@ -499,14 +495,13 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                             u"%(var_role_cat)s categories and may not display "
                             u"properly. Do you wish to make it anyway?") % 
                             {"n_cats": n_cats, "var_role_cat": var_role_cat}, 
-                           caption=_("HIGH NUMBER OF CATEGORIES"), 
-                           style=wx.YES_NO) == wx.NO:
+                            caption=_("HIGH NUMBER OF CATEGORIES"), 
+                            style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
                             var_role_cat, mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, sorted_y_vals, 
                 sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
-                                                     sort_opt, vals_etc_lst, dp,
-                                                     multiseries)
+                            sort_opt, vals_etc_lst, dp, multiseries)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -516,22 +511,21 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
     overall_title = get_overall_title(var_role_agg_name, var_role_cat_name, 
-                                     var_role_series_name, var_role_charts_name)
+        var_role_series_name, var_role_charts_name)
     chart_output_dets = {mg.CHARTS_OVERALL_TITLE: overall_title,
-                         mg.CHARTS_MAX_X_LBL_LEN: max_x_lbl_len,
-                         mg.CHARTS_MAX_Y_LBL_LEN: max_y_lbl_len,
-                         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines,
-                         mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
-                         mg.CHARTS_CHART_DETS: chart_dets}
+        mg.CHARTS_MAX_X_LBL_LEN: max_x_lbl_len, 
+        mg.CHARTS_MAX_Y_LBL_LEN: max_y_lbl_len, 
+        mg.CHARTS_MAX_LBL_LINES: max_lbl_lines,
+        mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
+        mg.CHARTS_CHART_DETS: chart_dets}
     return chart_output_dets
 
 def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls, 
-                    var_role_series, var_role_series_name, var_role_series_lbls, 
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt, rotate=False, data_show=mg.SHOW_FREQ, 
-                    major_ticks=False):
+        var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+        var_role_cat, var_role_cat_name, var_role_cat_lbls, 
+        var_role_series, var_role_series_name, var_role_series_lbls, 
+        var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+        sort_opt, rotate=False, data_show=mg.SHOW_FREQ, major_ticks=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
         VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
@@ -553,21 +547,21 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         role_missing = matching_input_var is None
         if role_missing and not allows_missing:
             raise Exception(u"The required field %s is missing for the %s "
-                            u"chart type." % (var_role, chart_type))
+                u"chart type." % (var_role, chart_type))
     # misc
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     xlblsdic = var_role_cat_lbls
     # Get data as per setup
     SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, 
-                                    and_tbl_filt, var_role_agg, var_role_cat, 
-                                    var_role_series, var_role_charts, data_show)
+        and_tbl_filt, var_role_agg, var_role_cat, var_role_series, 
+        var_role_charts, data_show)
     if debug: print(SQL_raw_data)
     try:
         cur.execute(SQL_raw_data)
     except Exception, e:
         raise Exception(u"Unable to get raw data for chart. Orig error: %s" % 
-                        lib.ue(e))
+            lib.ue(e))
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     if not raw_data:
@@ -575,18 +569,18 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     # restructure and return data
     dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPTS else 0
     chart_output_dets = structure_gen_data(chart_type, raw_data, xlblsdic, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls,
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls,
-                    sort_opt, dp, rotate, data_show, major_ticks)
+        var_role_agg, var_role_agg_name, var_role_agg_lbls,
+        var_role_cat, var_role_cat_name, var_role_cat_lbls,
+        var_role_series, var_role_series_name, var_role_series_lbls,
+        var_role_charts, var_role_charts_name, var_role_charts_lbls,
+        sort_opt, dp, rotate, data_show, major_ticks)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    sort_opt, rotate=False):
+        var_role_cat, var_role_cat_name, var_role_cat_lbls,
+        var_role_series, var_role_series_name, var_role_series_lbls, sort_opt, 
+        rotate=False):
     """
     NB can't just use group by SQL to get results - need upper and lower 
         quartiles etc and we have to work on the raw values to achieve this. We
@@ -618,11 +612,11 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     max_x_lbl_len = 0
     max_lbl_lines = 0
     sql_dic = {u"var_role_cat": objqtr(var_role_cat), 
-               u"var_role_series": objqtr(var_role_series), 
-               u"var_role_desc": objqtr(var_role_desc),
-               u"where_tbl_filt": where_tbl_filt, 
-               u"and_tbl_filt": and_tbl_filt, 
-               u"tbl": getdata.tblname_qtr(dbe, tbl)}
+        u"var_role_series": objqtr(var_role_series), 
+        u"var_role_desc": objqtr(var_role_desc),
+        u"where_tbl_filt": where_tbl_filt, 
+        u"and_tbl_filt": and_tbl_filt, 
+        u"tbl": getdata.tblname_qtr(dbe, tbl)}
     # 1) Get all series vals appearing in any rows where all fields are 
     # non-missing.
     if var_role_series:
@@ -678,7 +672,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     u"%(var_role_cat)s and may not display properly. Do you "
                     u"wish to make it anyway?") % {"n_boxplots": n_boxplots, 
                     "var_role_cat": var_role_cat},
-                    caption=_("HIGH NUMBER OF SERIES"), 
+                    caption=_("HIGH NUMBER OF SERIES"),
                     style=wx.YES_NO) == wx.NO:
                 raise my_exceptions.TooManyBoxplotsInSeries(var_role_cat_name, 
                     max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
@@ -692,10 +686,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     for series_val in series_vals: # e.g. "Boys" and "Girls"
         if series_val is not None:
             legend_lbl = var_role_series_lbls.get(series_val, 
-                                                  unicode(series_val))
+                unicode(series_val))
             series_val_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
-                                                       fldname=var_role_series, 
-                                                       val=series_val)
+                fldname=var_role_series, val=series_val)
             and_series_val_filt = u" AND %s" % series_val_filt
         else:
             legend_lbl = None
@@ -708,11 +701,10 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
             if var_role_cat:
                 x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
                 if first_chart_by: # build xaxis_dets once
-                    
                     (x_val_split_lbl, 
                      actual_lbl_width,
                      n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                                         max_width=17, dojo=True, rotate=rotate)
+                        max_width=17, dojo=True, rotate=rotate)
                     if actual_lbl_width > max_x_lbl_len:
                         max_x_lbl_len = actual_lbl_width
                     if n_lines > max_lbl_lines:
@@ -720,8 +712,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
                 # Now see if any desc values for particular series_val and cat_val
                 and_cat_val_filt = u" AND %s" % getdata.make_fld_val_clause(dbe, 
-                                                  dd.flds, fldname=var_role_cat, 
-                                                  val=cat_val)
+                    dd.flds, fldname=var_role_cat, val=cat_val)
             else:
                 xaxis_dets.append((i, u"''", "''"))
                 and_cat_val_filt = u""
@@ -747,19 +738,19 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                 line_vals = set([round(lbox,5), round(median,5), round(ubox,5)])
                 enough_diff = (len(line_vals) == 3)
                 if debug: print("%s, %s %s %s %s" % (enough_vals, enough_diff, 
-                                                     lbox, median, ubox))
+                    lbox, median, ubox))
             boxplot_display = enough_vals and enough_diff
             if not boxplot_display:
                 any_missing_boxes = True
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
-                           mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                           mg.CHART_BOXPLOT_LWHISKER: None,
-                           mg.CHART_BOXPLOT_LBOX: None,
-                           mg.CHART_BOXPLOT_MEDIAN: None,
-                           mg.CHART_BOXPLOT_UBOX: None,
-                           mg.CHART_BOXPLOT_UWHISKER: None,
-                           mg.CHART_BOXPLOT_OUTLIERS: None,
-                           mg.CHART_BOXPLOT_INDIV_LBL: None}
+                    mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                    mg.CHART_BOXPLOT_LWHISKER: None,
+                    mg.CHART_BOXPLOT_LBOX: None,
+                    mg.CHART_BOXPLOT_MEDIAN: None,
+                    mg.CHART_BOXPLOT_UBOX: None,
+                    mg.CHART_BOXPLOT_UWHISKER: None,
+                    mg.CHART_BOXPLOT_OUTLIERS: None,
+                    mg.CHART_BOXPLOT_INDIV_LBL: None}
             else:
                 any_displayed_boxes = True
                 iqr = ubox-lbox
@@ -776,21 +767,21 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                 if max_measure > ymax:
                     ymax = max_measure
                 outliers = [round(x, 2) for x in vals2desc 
-                            if x < lwhisker or x > uwhisker]
+                    if x < lwhisker or x > uwhisker]
                 lblbits = []
                 if var_role_cat:
                     lblbits.append(x_val_lbl)
                 if legend_lbl:
                     lblbits.append(legend_lbl)
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
-                           mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                           mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
-                           mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
-                           mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
-                           mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
-                           mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
-                           mg.CHART_BOXPLOT_OUTLIERS: outliers,
-                           mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
+                    mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                    mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
+                    mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
+                    mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
+                    mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
+                    mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
+                    mg.CHART_BOXPLOT_OUTLIERS: outliers,
+                    mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
             boxdet_series.append(box_dic)
         title_bits = []
         title_bits.append(var_role_desc_name)
@@ -799,7 +790,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
             title_bits.append(u"By %s" % var_role_series_name)
         overall_title = u" ".join(title_bits)
         series_dic = {mg.CHART_SERIES_LBL: legend_lbl, 
-                      mg.CHART_BOXDETS: boxdet_series}
+            mg.CHART_BOXDETS: boxdet_series}
         chart_dets.append(series_dic)
         first_chart_by = False
     if not any_displayed_boxes:
@@ -810,7 +801,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
     #xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
     return (xaxis_dets, xmin, xmax, ymin, ymax, max_x_lbl_len, max_lbl_lines,
-            overall_title, chart_dets, any_missing_boxes)
+        overall_title, chart_dets, any_missing_boxes)
 
 def get_lwhisker(raw_lwhisker, lbox, measure_vals):
     """
@@ -921,10 +912,10 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
         max(combined_vals))
     (combined_y_vals, combined_start, 
      bin_width, unused) = core_stats.histogram(combined_vals, n_bins, 
-                                   defaultreallimits=[lower_limit, upper_limit])
+        defaultreallimits=[lower_limit, upper_limit])
     (unused, combined_start, 
      bin_width) = lib.fix_sawtoothing(combined_vals, n_bins, combined_y_vals, 
-                                      combined_start, bin_width)
+        combined_start, bin_width)
     # put any temporary hack overrides for combined_start, bin_width below here**************
     #combined_start = 100 # or whatever the starting number for the bins should be
     #bin_width = 10 # or whatever the width of the bins should be
@@ -987,21 +978,21 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
             title_bits.append(u"By %s" % var_role_charts_name)
         overall_title = u" ".join(title_bits)    
         histo_dic = {mg.CHARTS_CHART_LBL: chart_by_lbl,
-                     mg.CHARTS_XAXIS_DETS: xaxis_dets,
-                     mg.CHARTS_SERIES_Y_VALS: y_vals,
-                     mg.CHART_NORMAL_Y_VALS: norm_ys,
-                     mg.CHART_MINVAL: minval,
-                     mg.CHART_MAXVAL: maxval,
-                     mg.CHART_BIN_LBLS: bin_lbls}
+            mg.CHARTS_XAXIS_DETS: xaxis_dets,
+            mg.CHARTS_SERIES_Y_VALS: y_vals,
+            mg.CHART_NORMAL_Y_VALS: norm_ys,
+            mg.CHART_MINVAL: minval,
+            mg.CHART_MAXVAL: maxval,
+            mg.CHART_BIN_LBLS: bin_lbls}
         histo_dets.append(histo_dic)
     return overall_title, histo_dets
 
 def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, 
-                    var_role_x_axis, var_role_x_axis_name, 
-                    var_role_y_axis, var_role_y_axis_name, 
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    unique=True):
+        var_role_x_axis, var_role_x_axis_name, 
+        var_role_y_axis, var_role_y_axis_name, 
+        var_role_series, var_role_series_name, var_role_series_lbls,
+        var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+        unique=True):
     """
     unique -- unique x-y pairs only
     """
@@ -1011,16 +1002,14 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     fld_x_axis = objqtr(var_role_x_axis)
     fld_y_axis = objqtr(var_role_y_axis)
     xy_filt_tpl = (u" %%s %s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis, 
-                                                                 fld_y_axis))
+        fld_y_axis))
     where_xy_filt = (xy_filt_tpl % u"WHERE")
     and_xy_filt = (xy_filt_tpl % u"AND")
     sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl), 
-               u"fld_x_axis": objqtr(var_role_x_axis),
-               u"fld_y_axis": objqtr(var_role_y_axis),
-               u"where_tbl_filt": where_tbl_filt,
-               u"and_tbl_filt": and_tbl_filt,
-               u"where_xy_filt": where_xy_filt,
-               u"and_xy_filt": and_xy_filt,}
+        u"fld_x_axis": objqtr(var_role_x_axis),
+        u"fld_y_axis": objqtr(var_role_y_axis),
+        u"where_tbl_filt": where_tbl_filt, u"and_tbl_filt": and_tbl_filt,
+        u"where_xy_filt": where_xy_filt, u"and_xy_filt": and_xy_filt,}
     # Series and charts are optional so we need to autofill them with something 
     # which will keep them in the same group.
     if var_role_charts:
@@ -1059,13 +1048,13 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
     fldnames = [sql_dic[u"var_role_charts"], sql_dic[u"var_role_series"], 
-                sql_dic[u"fld_x_axis"], sql_dic[u"fld_y_axis"]]
+        sql_dic[u"fld_x_axis"], sql_dic[u"fld_y_axis"]]
     prestructure = get_prestructured_grouped_data(raw_data, fldnames)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
         raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
-                                                 max_items=mg.MAX_CHARTS_IN_SET)
+            max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     if multichart:
         chart_fldname = var_role_charts_name
@@ -1082,7 +1071,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         if multichart:
             chart_val = chart_dic[CHART_VAL_KEY]
             chart_lbl = u"%s: %s" % (chart_fldname, 
-                              chart_fldlbls.get(chart_val, unicode(chart_val)))
+                chart_fldlbls.get(chart_val, unicode(chart_val)))
         else:
             chart_lbl = None
         series_dets = []
@@ -1090,7 +1079,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
             series_val = series_dic[SERIES_KEY]
             if multiseries:
                 legend_lbl = var_role_series_lbls.get(series_val, 
-                                                      unicode(series_val))
+                    unicode(series_val))
             else:
                 legend_lbl = None
             # process xy vals
@@ -1103,18 +1092,15 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
                 list_y.append(y_val)
                 data_tups.append((x_val, y_val))
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
-                          mg.LIST_X: list_x, 
-                          mg.LIST_Y: list_y,
-                          mg.DATA_TUPS: data_tups}
+                mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: data_tups}
             series_dets.append(series_det)
         chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
-                     mg.CHARTS_SERIES_DETS: series_dets}
+            mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
     overall_title = get_overall_title_scatterplot(var_role_x_axis_name, 
-                                    var_role_y_axis_name, var_role_series_name, 
-                                    var_role_charts_name)
+        var_role_y_axis_name, var_role_series_name, var_role_charts_name)
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
-                        mg.CHARTS_CHART_DETS: chart_dets}
+        mg.CHARTS_CHART_DETS: chart_dets}
     return overall_title, scatterplot_dets
 
 def reshape_sql_crosstab_data(raw_data, dp=0):
@@ -1188,7 +1174,7 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
     PADDING_PXLS = 35
     min_width_per_cluster = (MIN_PXLS_PER_BAR*n_bars_in_cluster)
     width_per_cluster = (max([min_width_per_cluster, MIN_CLUSTER_WIDTH,
-                           max_x_lbl_width*AVG_CHAR_WIDTH_PXLS]) + PADDING_PXLS)
+        max_x_lbl_width*AVG_CHAR_WIDTH_PXLS]) + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([width_per_cluster*n_clusters, width_x_title, MIN_CHART_WIDTH])
     # If wide labels, may not display almost any if one is too wide. Widen to take account.
@@ -1216,7 +1202,7 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
     return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
 def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width, 
-                          series_dets):
+        series_dets):
     """
     major_ticks -- e.g. want to only see the main labels and won't need it to be 
         so wide.
@@ -1228,7 +1214,7 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
     MIN_CHART_WIDTH = 700 if n_series < 5 else 900 # when vertically squeezed good to have more horizontal room
     PADDING_PXLS = 20 if n_cats < 8 else 25
     width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
-                     + PADDING_PXLS)
+        + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([n_cats*width_per_cat, width_x_title, MIN_CHART_WIDTH])
     if major_ticks:
@@ -1253,7 +1239,7 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     MIN_CHART_WIDTH = 200 if len(xaxis_dets) == 1 else 400 # only one box
     min_pxls_per_cat = MIN_PXLS_PER_BOX*n_series
     width_per_cat = (max([min_pxls_per_cat, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
-                     + PADDING_PXLS)
+        + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([width_per_cat*n_cats, width_x_title, MIN_CHART_WIDTH])
     minor_ticks = u"true" if n_cats > 10 else u"false"
@@ -1267,7 +1253,7 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
     return width, xfontsize, minor_ticks
 
 def setup_highlights(colour_mappings, single_colour, 
-                     override_first_highlight=False):
+        override_first_highlight=False):
     """
     If single colour in chart, only need one highlight defined.
     If default style and multiple series, redefine highlight for first. 
@@ -1281,8 +1267,8 @@ def setup_highlights(colour_mappings, single_colour,
         if i == 0 and override_first_highlight:
             hl_colour = u"#736354"
         colour_cases_list.append(u"""                case \"%s\":
-                    hlColour = \"%s\";
-                    break;""" % (bg_colour, hl_colour))
+            hlColour = \"%s\";
+            break;""" % (bg_colour, hl_colour))
         if single_colour:
             break
     colour_cases = u"\n".join(colour_cases_list)
@@ -1298,7 +1284,7 @@ def get_lbl_dets(xaxis_dets):
     return lbl_dets
 
 def get_ytitle_offset(max_y_lbl_len, x_lbl_len, max_safe_x_lbl_len_pxls, 
-                      rotate=False):
+        rotate=False):
     """
     Need to shift y-axis title left if wide y-axis label or first x-axis label 
         is wide.
@@ -1311,7 +1297,7 @@ def get_ytitle_offset(max_y_lbl_len, x_lbl_len, max_safe_x_lbl_len_pxls,
         try:
             if x_lbl_len*AVG_CHAR_WIDTH_PXLS > max_safe_x_lbl_len_pxls:
                 ytitle_offset += (AVG_CHAR_WIDTH_PXLS*x_lbl_len
-                                  -max_safe_x_lbl_len_pxls)/2.0 # half of label goes to the right
+                    -max_safe_x_lbl_len_pxls)/2.0 # half of label goes to the right
         except Exception:
             pass
     # y-axis adjustment
@@ -1354,8 +1340,8 @@ def get_indiv_title(multichart, chart_det):
     return indiv_title, indiv_title_html
 
 def simple_barchart_output(titles, subtitles, x_title, y_title, 
-                           chart_output_dets, rotate, show_borders, css_idx, 
-                           css_fil, page_break_after):
+        chart_output_dets, rotate, show_borders, css_idx, css_fil, 
+        page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1369,7 +1355,7 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
@@ -1396,18 +1382,17 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
                 else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
     override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                and single_colour)
+        and single_colour)
     colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                    override_first_highlight)
+        override_first_highlight)
     n_bars_in_cluster = 1
     # always the same number, irrespective of order
     n_clusters = len(chart_output_dets[mg.CHARTS_CHART_DETS][0]\
-                     [mg.CHARTS_SERIES_DETS][0][mg.CHARTS_XAXIS_DETS])
+        [mg.CHARTS_SERIES_DETS][0][mg.CHARTS_XAXIS_DETS])
     max_x_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
     (width, xgap, xfontsize, minor_ticks, 
      init_margin_offset_l) = get_barchart_sizings(x_title, n_clusters, 
-                                                  n_bars_in_cluster,
-                                                  max_x_lbl_width)
+        n_bars_in_cluster, max_x_lbl_width)
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     # following details are same across all charts so look at first
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -1419,14 +1404,14 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate)
+        max_safe_x_lbl_len_pxls, rotate)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.9
         xgap = xgap*0.8
         xfontsize = xfontsize*0.75
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     if rotate:
         margin_offset_l += 15
     width += margin_offset_l
@@ -1440,25 +1425,25 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
         lbl_dets = get_lbl_dets(xaxis_dets)
         xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
         pagebreak = (u"" if chart_idx % 2 == 0
-                     else u"page-break-after: always;")
+            else u"page-break-after: always;")
         # build js for the single series (only 1 ever per chart in simple bar charts)
         series_js_list = []
         series_names_list = []
         series_names_list.append(u"series0")
         series_js_list.append(u"var series0 = new Array();")
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
-                                   % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
+            % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
         series_js_list.append(u"series0[\"yVals\"] = %s;" % 
-                                            series_det[mg.CHARTS_SERIES_Y_VALS])
+            series_det[mg.CHARTS_SERIES_Y_VALS])
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
-                    + u"']")
+            + u"']")
         series_js_list.append(u"series0[\"options\"] = "
             u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
             u"yLbls: %s};" % (stroke_width, fill, tooltips))
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);"
-                      % u", ".join(series_names_list))
+            % u", ".join(series_names_list))
         series_js = series_js.lstrip()
         html.append(u"""
 <script type="text/javascript">
@@ -1524,10 +1509,10 @@ makechartRenumber%(chart_idx)s = function(){
              u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                              u"Bar Chart")
+            u"Bar Chart")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     """
     zero padding chart_idx so that when we search and replace, and go to 
         replace Renumber1 with Renumber15, we don't change Renumber16 to 
@@ -1536,12 +1521,12 @@ makechartRenumber%(chart_idx)s = function(){
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def clustered_barchart_output(titles, subtitles, x_title, y_title, 
-                              chart_output_dets, rotate, show_borders, css_idx, 
-                              css_fil, page_break_after):
+        chart_output_dets, rotate, show_borders, css_idx, css_fil, 
+        page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1556,7 +1541,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     html = []
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     max_x_lbl_len = chart_output_dets[mg.CHARTS_MAX_X_LBL_LEN]
@@ -1575,10 +1560,10 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        gridline_width, stroke_width, tooltip_border_colour, colour_mappings, 
+        connector_style) = lib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
-                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+        else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
     # following details are same across all charts so look at first
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -1587,7 +1572,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
     (width, xgap, xfontsize, minor_ticks, 
      init_margin_offset_l) = get_barchart_sizings(x_title, n_clusters, 
-                                               n_bars_in_cluster, max_lbl_width)
+        n_bars_in_cluster, max_lbl_width)
     series_det = chart0_series_dets[0]
     xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
     idx_1st_xdets = 0
@@ -1595,10 +1580,10 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate)
+        max_safe_x_lbl_len_pxls, rotate)
     ymax = get_ymax(chart_output_dets)
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     if rotate:
         margin_offset_l += 15
     if multichart:
@@ -1608,7 +1593,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         margin_offset_l += 15
     width += margin_offset_l
     series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
-                                                      css_fil)
+        css_fil)
     stroke_width = stroke_width if show_borders else 0
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
@@ -1624,9 +1609,9 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         single_colour = False
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                    and single_colour)
+            and single_colour)
         colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                        override_first_highlight)
+            override_first_highlight)
         series_js_list = []
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
@@ -1637,13 +1622,13 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                                                    % (series_idx, series_lbl))
+                % (series_idx, series_lbl))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" 
-                          % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+                % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
             fill = series_colours_by_lbl[series_lbl]
             tooltips = (u"['" 
-                        + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
-                        + u"']")
+                + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
+                + u"']")
             series_js_list.append(u"series%s[\"options\"] = "
                 u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
                 u"yLbls: %s};" % (series_idx, stroke_width, fill, tooltips))
@@ -1718,25 +1703,25 @@ makechartRenumber%(chart_idx)s = function(){
              u"chart_idx": u"%02d" % chart_idx,})
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                              u"Clust Bar")
+            u"Clust Bar")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets, 
-                    css_fil, css_idx, page_break_after):
+        css_fil, css_idx, page_break_after):
     """
     chart_output_dets -- see structure_gen_data()
     """
     debug = False
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
@@ -1752,7 +1737,7 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
     outer_bg = (u"" if outer_bg == u""
                 else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
-                                    override_first_highlight=False)
+        override_first_highlight=False)
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
     cat_colours_by_lbl = get_cat_colours_by_lbl(chart_output_dets, item_colours)
     if debug: print(pprint.pformat(cat_colours_by_lbl))
@@ -1785,13 +1770,13 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
             if mg.PLATFORM == mg.WINDOWS:
                 val2show = val2show.replace(u"<br>", u": ")
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
-                    u"\"tooltip\": \"%(tooltip)s\"}" % 
-                    {u"y": y_val, u"text": val2show, u"tooltip": tooltip})
+                u"\"tooltip\": \"%(tooltip)s\"}" % {u"y": y_val, 
+                u"text": val2show, u"tooltip": tooltip})
         if debug:
             print(cat_colours_by_lbl)
             print(colours_for_this_chart)
         slices_js = (u"slices = [" + (u",\n" + u" "*4*4).join(slices_js_lst) 
-                     + u"\n];")
+            + u"\n];")
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         html.append(u"""
 <script type="text/javascript">
@@ -1844,7 +1829,7 @@ makechartRenumber%(chart_idx)s = function(){
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def get_cat_colours_by_lbl(chart_output_dets, item_colours):
@@ -1881,7 +1866,7 @@ def get_series_colours_by_lbl(chart_output_dets, css_fil):
             series_colours_by_lbl[series_lbl] = item_colours[i]
         except IndexError:
             raise Exception(u"Unable to cope with need for that many different"
-                            u" colours.")
+                u" colours.")
     return series_colours_by_lbl
 
 def get_trend_y_vals(y_vals):
@@ -1937,8 +1922,8 @@ def get_smooth_y_vals(y_vals):
     return smooth_y_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-                     rotate, major_ticks, inc_trend, inc_smooth, css_fil, 
-                     css_idx, page_break_after):
+        rotate, major_ticks, inc_trend, inc_smooth, css_fil, css_idx, 
+        page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -1950,7 +1935,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     html = []
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     # following details are same across all charts so look at first
@@ -1971,8 +1956,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
     (width, xfontsize, 
      minor_ticks, micro_ticks) = get_linechart_sizings(major_ticks, x_title, 
-                                                      xaxis_dets, max_lbl_width, 
-                                                      chart0_series_dets)
+        xaxis_dets, max_lbl_width, chart0_series_dets)
     init_margin_offset_l = 25 if width > 1200 else 15 # gets squeezed
     idx_1st_xdets = 0
     idx_xlbl = 1
@@ -1980,13 +1964,13 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     max_safe_x_lbl_len_pxls = 90
     ymax = get_ymax(chart_output_dets)
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate)
+        max_safe_x_lbl_len_pxls, rotate)
     if multichart:
         width = width*0.9
         xfontsize = xfontsize*0.9
         init_margin_offset_l += 10
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -1999,9 +1983,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     grid_bg, item_colours, unused = output.get_stats_chart_colours(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
-                            if axis_lbl_font_colour != u"white" else u"black")
+        if axis_lbl_font_colour != u"white" else u"black")
     series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets, 
-                                                      css_fil)
+        css_fil)
     # loop through charts
     for chart_idx, chart_det in enumerate(chart_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
@@ -2059,9 +2043,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                                                    % (series_idx, series_lbl))
+                % (series_idx, series_lbl))
             series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                              (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+                (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
             stroke = series_colours_by_lbl[series_lbl]
             # To set markers explicitly:
             # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
@@ -2138,14 +2122,14 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                               u"Line Chart")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
 def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-                     rotate, major_ticks, css_fil, css_idx, page_break_after):
+        rotate, major_ticks, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2156,7 +2140,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     html.append(title_dets_html)
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
@@ -2174,7 +2158,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
     (width, xfontsize, minor_ticks, 
      micro_ticks) = get_linechart_sizings(major_ticks, x_title, xaxis_dets, 
-                                          max_lbl_width, chart0_series_dets)
+        max_lbl_width, chart0_series_dets)
     init_margin_offset_l = 25 if width > 1200 else 15 # gets squeezed
     if rotate:
         init_margin_offset_l += 5
@@ -2183,14 +2167,14 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
     max_safe_x_lbl_len_pxls = 90
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate)
+        max_safe_x_lbl_len_pxls, rotate)
     ymax = get_ymax(chart_output_dets)
     if multichart:
         width = width*0.8
         xfontsize = xfontsize*0.8
         init_margin_offset_l += 10
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -2202,7 +2186,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
-                            if axis_lbl_font_colour != u"white" else u"black")
+        if axis_lbl_font_colour != u"white" else u"black")
     #unused = setup_highlights(colour_mappings, single_colour=False, 
     #                                override_first_highlight=True)
     try:
@@ -2224,18 +2208,18 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_names_list.append(u"series0")
         series_js_list.append(u"var series0 = new Array();")
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
-                                   % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
+            % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
         series_js_list.append(u"series0[\"yVals\"] = %s;" % 
-                                            series_det[mg.CHARTS_SERIES_Y_VALS])
+            series_det[mg.CHARTS_SERIES_Y_VALS])
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
-                    + u"']")
+            + u"']")
         series_js_list.append(u"series0[\"options\"] = "
             u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\", "
             u"yLbls: %s};" % (stroke, fill, tooltips))
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);" %
-                      u", ".join(series_names_list))
+            u", ".join(series_names_list))
         series_js = series_js.lstrip()
         html.append(u"""
 <script type="text/javascript">
@@ -2285,14 +2269,14 @@ makechartRenumber%(chart_idx)s = function(){
              u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                              u"Area Chart")
+            u"Area Chart")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets, 
@@ -2466,9 +2450,8 @@ def use_mpl_scatterplots(scatterplot_dets):
     return use_mpl
             
 def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders, 
-                         legend, series_dets, series_colours_by_lbl, label_x, 
-                         label_y, ymin, ymax, x_vs_y, add_to_report, 
-                         report_name, css_fil, pagebreak):
+        legend, series_dets, series_colours_by_lbl, label_x, label_y, ymin, 
+        ymax, x_vs_y, add_to_report, report_name, css_fil, pagebreak):
     """
     min and max values are supplied for the y-axis because we want consistency 
         on that between charts. For the x-axis, whatever is best per chart is OK. 
@@ -2488,11 +2471,10 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
         all_x.extend(series_det[mg.LIST_X])
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
-                            series_dets, label_x, label_y, x_vs_y, 
-                            title_dets_html, add_to_report, report_name, html, 
-                            width_inches, height_inches, xmin=xmin, xmax=xmax, 
-                            ymin=ymin, ymax=ymax, dot_colour=dot_colours[0], 
-                            series_colours_by_lbl=series_colours_by_lbl)
+        series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
+        report_name, html, width_inches, height_inches, xmin=xmin, xmax=xmax, 
+        ymin=ymin, ymax=ymax, dot_colour=dot_colours[0], 
+        series_colours_by_lbl=series_colours_by_lbl)
     html.append(u"</div>")
 
 def get_optimal_min_max(axismin, axismax):
@@ -2584,9 +2566,8 @@ def get_optimal_min_max(axismin, axismax):
     return axismin, axismax
 
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
-                          show_borders, legend, series_dets, 
-                          series_colours_by_lbl, label_x, label_y, ymin, ymax, 
-                          css_fil, pagebreak):
+        show_borders, legend, series_dets, series_colours_by_lbl, label_x, 
+        label_y, ymin, ymax, css_fil, pagebreak):
     """
     min and max values are supplied for the y-axis because we want consistency 
         on that between charts. For the x-axis, whatever is best per chart is OK. 
@@ -2610,9 +2591,9 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     x_lbl_len = len(str(int(xmin)))
     max_safe_x_lbl_len_pxls = 90
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate=False) 
+        max_safe_x_lbl_len_pxls, rotate=False) 
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)
+        - DOJO_YTITLE_OFFSET_0)
     x_title = label_x
     axis_lbl_drop = 10
     y_title = label_y
@@ -2634,36 +2615,33 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         minor_ticks = u"false" if few_unique_x_vals else u"true"
         xy_pairs = "[" + ",\n".join(jsdata) + "]"
         series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx, 
-                                                                xy_pairs))
+            xy_pairs))
         (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
         # Can't have white for scatterplots because always a white outer background
         axis_lbl_font_colour = (axis_lbl_font_colour
-                              if axis_lbl_font_colour != u"white" else u"black")
+            if axis_lbl_font_colour != u"white" else u"black")
         stroke_width = stroke_width if show_borders else 0
         outer_bg = (u"" if outer_bg == u""
-                    else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
         single_colour = True
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
-                                    and single_colour)
+            and single_colour)
         colour_cases = setup_highlights(colour_mappings, single_colour, 
-                                        override_first_highlight)
+            override_first_highlight)
         fill = series_colours_by_lbl[series_lbl]
         series_js_list.append(u"series%(series_idx)s[\"style\"] = "
-                u"{stroke: {color: \"white\","
-                u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\","
-                u"marker: \"m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0\"};" % 
-                    {u"series_idx": series_idx, u"stroke_width": stroke_width,
-                     u"fill": fill})
+            u"{stroke: {color: \"white\","
+            u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\","
+            u"marker: \"m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0\"};" % 
+            {u"series_idx": series_idx, u"stroke_width": stroke_width,
+             u"fill": fill})
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);" %
-                      u", ".join(series_names_list))
+            u", ".join(series_names_list))
         series_js = series_js.lstrip()
-    
-    
-    
     # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
     # ...newbie-need-svg-path-segment-string
     html.append(u"""
@@ -2735,7 +2713,7 @@ makechartRenumber%(chart_idx)s = function(){
        u"minor_ticks": minor_ticks, u"tick_colour": major_gridline_colour})
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
 
 def get_scatterplot_ymin_ymax(scatterplot_dets):
     all_y_vals = []
@@ -2748,8 +2726,8 @@ def get_scatterplot_ymin_ymax(scatterplot_dets):
     return ymin, ymax
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
-                       label_x, label_y, add_to_report, report_name, 
-                       show_borders, css_fil, css_idx, page_break_after=False):
+        label_x, label_y, add_to_report, report_name, show_borders, css_fil, 
+        css_idx, page_break_after=False):
     """
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
                         mg.CHARTS_CHART_DETS: chart_dets}
@@ -2766,7 +2744,7 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     pagebreak = u"page-break-after: always;"
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     x_vs_y = '"%s"' % label_x + _(u" vs ") + '"%s"' % label_y
@@ -2798,26 +2776,25 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         if use_mpl:
             make_mpl_scatterplot(multichart, html, indiv_title_html, 
-                                 show_borders, legend, series_dets, 
-                                 series_colours_by_lbl, label_x, label_y, ymin, 
-                                 ymax, x_vs_y, add_to_report, report_name, 
-                                 css_fil, pagebreak)
+                show_borders, legend, series_dets, series_colours_by_lbl, 
+                label_x, label_y, ymin, ymax, x_vs_y, add_to_report, 
+                report_name, css_fil, pagebreak)
         else:
             make_dojo_scatterplot(chart_idx, multichart, html, 
-                                  indiv_title_html, show_borders, legend, 
-                                  series_dets, series_colours_by_lbl, label_x, 
-                                  label_y, ymin, ymax, css_fil, pagebreak)
+                indiv_title_html, show_borders, legend, series_dets, 
+                series_colours_by_lbl, label_x, label_y, ymin, ymax, css_fil, 
+                pagebreak)
         charts_append_divider(html, titles, overall_title, indiv_title, 
-                              u"Scatterplot")
+            u"Scatterplot")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
 def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
-                   var_role_series_name, xaxis_dets, max_x_lbl_len, 
-                   max_lbl_lines, overall_title, chart_dets, xmin, xmax, ymin, 
-                   ymax, rotate, css_fil, css_idx, page_break_after):
+       var_role_series_name, xaxis_dets, max_x_lbl_len, max_lbl_lines, 
+       overall_title, chart_dets, xmin, xmax, ymin, ymax, rotate, css_fil, 
+       css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2838,7 +2815,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     debug = False
     axis_lbl_rotate = -90 if rotate else 0
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     lbl_dets = get_lbl_dets(xaxis_dets)
     lbl_dets.insert(0, u"""{value: 0, text: ""}""")
@@ -2853,7 +2830,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
     (width, xfontsize,
         minor_ticks) = get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, 
-                                           chart_dets)
+        chart_dets)
     yfontsize = xfontsize
     if width > 1200:
         init_margin_offset_l = 25
@@ -2867,16 +2844,16 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     max_y_lbl_len = len(str(int(ymax)))
     max_safe_x_lbl_len_pxls = 180
     y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
-                                       max_safe_x_lbl_len_pxls, rotate) 
+        max_safe_x_lbl_len_pxls, rotate) 
     margin_offset_l = (init_margin_offset_l + y_title_offset 
-                       - DOJO_YTITLE_OFFSET_0)  
+        - DOJO_YTITLE_OFFSET_0)  
     if rotate:
         margin_offset_l += 10  
     html = []
     if any_missing_boxes:
         html.append(u"<p>At least one box will not be displayed because it "
-                    u"needed more than %s values or has inadequate "
-                    u"variability.</p>" % mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
+            u"needed more than %s values or has inadequate variability.</p>" % 
+            mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 
@@ -2884,12 +2861,12 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
     (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, unused, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        gridline_width, unused, tooltip_border_colour, 
+        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
     # Can't have white for boxplots because always a white outer background
     outer_bg = u"white"
     axis_lbl_font_colour = (axis_lbl_font_colour
-                            if axis_lbl_font_colour != u"white" else u"black")
+        if axis_lbl_font_colour != u"white" else u"black")
     """
     Build js for every series.
     colour_mappings - take first of each pair to use as outline of box plots, 
@@ -2920,7 +2897,6 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     pre_series.append(u"    var seriesconf = new Array();")
     pre_series.append(u"    var seriesdummy = [];")
     pre_series_str = "\n".join(pre_series)
-    
     offset_start = -((gap*n_gaps)/2.0) # if 1 box, offset = 0 i.e. middle
     offsets = [offset_start + (x*gap) for x in range(n_series)]
     series_js = []
@@ -2949,17 +2925,17 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         except IndexError:
             stroke = mg.DOJO_COLOURS[series_idx]
         series_js.append(u"    var strokecol%s = \"%s\";" % (series_idx, 
-                                                             stroke))
+            stroke))
         series_js.append(u"    var fillcol%s = getfainthex(strokecol%s);" 
-                         % (series_idx, series_idx))
+            % (series_idx, series_idx))
         series_js.append(u"    seriesconf[%(series_idx)s] = {seriesLabel: "
-             u"\"%(series_lbl)s\", "
-             u"seriesStyle: {stroke: {color: strokecol%(series_idx)s, "
-             u"width: \"1px\"}, fill: fillcol%(series_idx)s}};"
-             % {u"series_idx": series_idx, 
-                u"series_lbl": series_det[mg.CHART_SERIES_LBL]})
+            u"\"%(series_lbl)s\", "
+            u"seriesStyle: {stroke: {color: strokecol%(series_idx)s, "
+            u"width: \"1px\"}, fill: fillcol%(series_idx)s}};"
+            % {u"series_idx": series_idx, 
+            u"series_lbl": series_det[mg.CHART_SERIES_LBL]})
         series_js.append(u"    var series%(series_idx)s = [" 
-                      % {u"series_idx": series_idx})
+            % {u"series_idx": series_idx})
         offset = offsets[series_idx]
         box_js = [] 
         for boxdet_idx, boxdet in enumerate(series_det[mg.CHART_BOXDETS]):
@@ -2997,7 +2973,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         series_js.append(u"        ];") # close series list
     series_lst = ["series%s" % x for x in range(len(chart_dets))]
     series_js.append(u"    var series = seriesdummy.concat(%s);" 
-                     % ", ".join(series_lst))
+        % ", ".join(series_lst))
     series_js_str = u"\n".join(series_js)
     html.append(u"""
 <script type="text/javascript">
@@ -3066,12 +3042,12 @@ makechartRenumber00 = function(){
            u"connector_style": connector_style, 
            u"outer_bg": outer_bg, u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          item_type=u"Boxplot")
+        item_type=u"Boxplot")
     if debug: 
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
-                                                            margin_offset_l))
+            margin_offset_l))
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
     
