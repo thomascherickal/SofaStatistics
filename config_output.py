@@ -24,13 +24,13 @@ except ImportError: # if it's not there locally, try the wxPython lib.
         import wx.lib.agw.hyperlink as hl
     except ImportError:
         msg = (u"There seems to be a problem related to your wxPython "
-               u"package. %s" % traceback.format_exc())
+            u"package. %s" % traceback.format_exc())
         raise Exception(msg)
 
 debug = False
 PRETEND_IS_MAC = debug
 IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
-          else (mg.PLATFORM == mg.MAC))
+    else (mg.PLATFORM == mg.MAC))
 
 label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
 ADD2_RPT_LBL = _("Also add%sto report") % label_divider
@@ -47,21 +47,20 @@ ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
 class DlgGetTest(wx.Dialog):
     
     def __init__(self, title, label):
-        wx.Dialog.__init__(self, parent=None, id=-1, 
-                           title=title, 
-                           pos=(mg.HORIZ_OFFSET+200, 300))
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+            pos=(mg.HORIZ_OFFSET+200, 300))
         #, style=wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
         #                   wx.CLIP_CHILDREN)
         szr = wx.BoxSizer(wx.VERTICAL)
         lbl_msg1 = wx.StaticText(self, -1, u"%s extension under "
-                            u"construction. Free test version" % label)
+            u"construction. Free test version" % label)
         lbl_msg2 = wx.StaticText(self, -1, u"available for a limited time from "
-                                 u"%s" % mg.CONTACT)
+            u"%s" % mg.CONTACT)
         subject = output.percent_encode("Please send free %s extension" % label)
         link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension", 
-                    URL=u"mailto:grant@sofastatistics.com?subject=%s" % subject)
+            URL=u"mailto:grant@sofastatistics.com?subject=%s" % subject)
         lib.setup_link(link=link_home, link_colour="black", 
-                       bg_colour=wx.NullColour)
+            bg_colour=wx.NullColour)
         btn_ok = wx.Button(self, wx.ID_OK) # autobound to close event by id
         szr.Add(lbl_msg1, 0, wx.TOP|wx.LEFT|wx.RIGHT, 10)
         szr.Add(lbl_msg2, 0, wx.LEFT|wx.RIGHT, 10)
@@ -76,12 +75,10 @@ class DlgGetExt(wx.Dialog):
     
     def __init__(self, label, comments):
         wx.Dialog.__init__(self, parent=None, id=-1, 
-                           title=u"Extend and Improve SOFA", 
-                           pos=(mg.HORIZ_OFFSET+200, 300))
+            title=u"Extend and Improve SOFA", pos=(mg.HORIZ_OFFSET+200, 300))
         """
-        Now available as a SOFA extension plug-in.
-        "Get Plug-in"
-        Add button to open get_extensions page.
+        Now available as a SOFA extension plug-in; "Get Plug-in"; Add button to 
+        open get_extensions page.
         """
         self.link = u"http://www.sofastatistics.com/get_extensions.php"
         szr = wx.BoxSizer(wx.VERTICAL)
@@ -89,7 +86,7 @@ class DlgGetExt(wx.Dialog):
         for comment in comments:
             szr.Add(wx.StaticText(self, -1, comment), 0, wx.LEFT|wx.RIGHT, 10)
         btn_get_ext = wx.Button(self, -1, _(u"Get %s Plug-in") % label,
-                                size=(-1,50))
+            size=(-1,50))
         btn_get_ext.Bind(wx.EVT_BUTTON, self.on_btn_get_ext)
         btn_ok = wx.Button(self, wx.ID_OK, u"No Thanks") # autobound to close event by id
         btn_ok.Bind(wx.EVT_BUTTON, self.on_btn_ok)
@@ -105,7 +102,7 @@ class DlgGetExt(wx.Dialog):
         
     def on_btn_ok(self, event):
         wx.MessageBox(u"If you change your mind, the link is:\n\n%s" % 
-                      self.link)
+            self.link)
         self.Destroy()
         event.Skip()
         
@@ -114,11 +111,11 @@ def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-                                                   fil_name=mg.DEFAULT_PROJ)
+            fil_name=mg.DEFAULT_PROJ)
         mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
-                         mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
-                         mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
-                         mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
+            mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
+            mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
+            mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
         if debug: print("Updated mg.CURRENT_CONFIG")
     return mg.CURRENT_CONFIG
 
@@ -138,7 +135,7 @@ def get_szr_level(parent, panel, horiz=True):
     """
     hv_style = wx.RA_SPECIFY_COLS if horiz else wx.RA_SPECIFY_ROWS
     parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
-                                   choices=mg.LEVELS, style=hv_style)
+        choices=mg.LEVELS, style=hv_style)
     parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
     parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
     parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
@@ -257,7 +254,7 @@ class DlgVarConfig(wx.Dialog):
             if folder_exists:
                 with open(entered_vdt_path, "w") as f:
                     f.write(u"var_labels={}\nvar_notes={}\nvar_types={}"
-                            u"\nval_dics={}")
+                        u"\nval_dics={}")
                     f.close()
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
@@ -357,7 +354,7 @@ class ConfigUI(object):
         (self.drop_dbs, self.drop_tbls, 
          self.db_choice_items, 
          self.selected_dbe_db_idx) = getdata.get_data_dropdowns(self, panel, 
-                                                                dd.default_dbs)
+            dd.default_dbs)
         # 2) Tables
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
@@ -525,18 +522,18 @@ class ConfigUI(object):
         # style config details
         if debug: print(os.listdir(mg.CSS_PATH))
         style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
-                         if x.endswith(u".css")]
+            if x.endswith(u".css")]
         style_choices.sort()
         if as_list:
             style_selector = wx.ListBox(panel, -1, choices=style_choices, 
-                                        size=(120,-1))
+                size=(120,-1))
             style_selector.Bind(wx.EVT_LISTBOX, self.on_style_sel)
         else:
             style_selector = wx.Choice(panel, -1, choices=style_choices)
             style_selector.Bind(wx.EVT_CHOICE, self.on_style_sel)
         style_selector.SetFont(mg.GEN_FONT)
         style = (path2style(css_file) if css_file 
-                 else path2style(cc[mg.CURRENT_CSS_PATH]))
+            else path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
         style_selector.Enable(not self.readonly)
@@ -549,7 +546,7 @@ class ConfigUI(object):
         btn_var_config.Bind(wx.EVT_BUTTON, self.on_btn_var_config)
         btn_var_config.Enable(not self.readonly)
         btn_var_config.SetToolTipString(_(u"Configure variable details e.g. "
-                                          u"labels"))
+            u"labels"))
         return btn_var_config
     
     def set_extra_dets(self, vdt_file, script_file):          
@@ -649,13 +646,12 @@ class ConfigUI(object):
         import filtselect # by now, DLG will be available to inherit from
         parent = self
         dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
-                                       self.var_types, self.val_dics)
+            self.var_types, self.val_dics)
         retval = dlg.ShowModal()
         if retval != wx.ID_CANCEL:
             self.refresh_vars()
             parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
-                                                         parent.drop_tbls_szr, 
-                                                         parent.drop_tbls_panel)
+                parent.drop_tbls_szr, parent.drop_tbls_panel)
         lib.safe_end_cursor()
 
     def on_rclick_tables(self, event):
@@ -754,9 +750,8 @@ class ConfigUI(object):
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
-            comments = [u"Make it easy to share reports as PDFs ",
-                        u"or export high-quality images ready to ",
-                        u"put into documents or slideshows"]
+            comments = [u"Make it easy to share reports as PDFs or export high",
+                u"-quality images ready to put into documents or slideshows"]
             dlg = DlgGetExt(label=u"Export Report", comments=comments)
             dlg.ShowModal()
         
@@ -774,9 +769,8 @@ class ConfigUI(object):
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
-            comments = [u"Make it easy to share output as PDFs ",
-                u"or export high-quality images ready to ",
-                u"put into documents or slideshows"]
+            comments = [u"Make it easy to share output as PDFs or export high-"
+                u"quality images ready to put into documents or slideshows"]
             dlg = DlgGetExt(label=u"Export Output", comments=comments)
             dlg.ShowModal()
     
@@ -789,9 +783,9 @@ class ConfigUI(object):
             lib.safe_end_cursor()
             """
             Copying to the clipboard does not actually copy anything, it just 
-                posts a promise to provide the data later when when it is asked 
-                for. http://wxpython-users.1045709.n5.nabble.com/...
-                ...Going-crazy-with-copy-paste-problem-td2365276.html
+            posts a promise to provide the data later when when it is asked for. 
+            http://wxpython-users.1045709.n5.nabble.com/...
+            ...Going-crazy-with-copy-paste-problem-td2365276.html
             """
             wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
                 u"pasting the output or it won't work." % self.title))
@@ -799,14 +793,14 @@ class ConfigUI(object):
             # don't have extension installed (or working)
             lib.safe_end_cursor()
             comments = [u"Make it easy to copy and paste images ready to ",
-                        u"edit and put into documents or slideshows"]
+                u"edit and put into documents or slideshows"]
             dlg = DlgGetExt(label=u"Copy Output to Clipboard As Images", 
-                            comments=comments)
+                comments=comments)
             dlg.ShowModal()
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
-                          % lib.ue(e))
+                % lib.ue(e))
     
     def get_script_output(self, get_script_args, new_has_dojo, 
             allow_add2rpt=True):
@@ -868,7 +862,7 @@ class ConfigUI(object):
                 msg = NO_OUTPUT_YET_MSG
             else:
                 msg = _("The output file has not been created yet. Nothing to "
-                        "view") # not in a position to make one
+                    "view") # not in a position to make one
             wx.MessageBox(msg)
         else:
             url = output.path2url(cc[mg.CURRENT_REPORT_PATH])
@@ -931,7 +925,7 @@ def add_icon(frame):
     ib = wx.IconBundle()
     for sz in [128, 64, 48, 32, 16]:
         icon_path = os.path.join(mg.SCRIPT_PATH, u"images", 
-                                 u"sofastats_%s.xpm" % sz)
+            u"sofastats_%s.xpm" % sz)
         ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)
     
