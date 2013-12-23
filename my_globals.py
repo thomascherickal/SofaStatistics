@@ -851,9 +851,12 @@ SAMPLE_A = u"sample_a"
 SAMPLE_B = u"sample_b"
 LIST_X = u"list_x"
 LIST_Y = u"list_y"
+LINE_LST = u"line_lst"
 DATA_TUPS = u"data_tups"
 CHART_FREQS = "chart_freqs"
 CHART_AVGS = "chart_avgs"
+INC_REGRESSION = u"include_regression"
+REGRESSION_ERR = u"Unable to calculate regression line"
 # remember defaults //////////
 # stats tests
 STD_DROP_WIDTH = 180

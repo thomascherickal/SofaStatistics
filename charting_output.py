@@ -992,7 +992,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         var_role_y_axis, var_role_y_axis_name, 
         var_role_series, var_role_series_name, var_role_series_lbls,
         var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-        unique=True):
+        unique=True, inc_regression=False):
     """
     unique -- unique x-y pairs only
     """
@@ -1091,8 +1091,18 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
                 list_x.append(x_val)
                 list_y.append(y_val)
                 data_tups.append((x_val, y_val))
+            line_lst = None
+            if inc_regression:
+                try:
+                    (unused, unused, unused, 
+                     y0, y1) = lib.get_regression_dets(list_x, list_y)
+                    line_lst = [y0, y1]
+                except Exception:
+                    pass
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
-                mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: data_tups}
+                mg.LIST_X: list_x, mg.LIST_Y: list_y, 
+                mg.INC_REGRESSION: inc_regression, mg.LINE_LST: line_lst, 
+                mg.DATA_TUPS: data_tups}
             series_dets.append(series_det)
         chart_det = {mg.CHARTS_CHART_LBL: chart_lbl,
             mg.CHARTS_SERIES_DETS: series_dets}
@@ -2454,7 +2464,7 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
         ymax, x_vs_y, add_to_report, report_name, css_fil, pagebreak):
     """
     min and max values are supplied for the y-axis because we want consistency 
-        on that between charts. For the x-axis, whatever is best per chart is OK. 
+    on that between charts. For the x-axis, whatever is best per chart is OK. 
     """
     (grid_bg, dot_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
@@ -2467,8 +2477,24 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
         margin-top: 0; %(pagebreak)s">""" % {u"pagebreak": pagebreak})
     html.append(indiv_chart_title)
     all_x = []
+    indiv_regression_msgs = []
     for series_det in series_dets:
+        series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
+        list_x = series_det[mg.LIST_X]
+        list_y = series_det[mg.LIST_Y]
+        inc_regression = series_det[mg.INC_REGRESSION]
+        line_lst = series_det[mg.LINE_LST]
+        if inc_regression:
+            if line_lst is not None:
+                indiv_regression_msg = lib.get_indiv_regression_msg(list_x, 
+                    list_y, series_lbl)
+                indiv_regression_msgs.append(indiv_regression_msg)
+            else:
+                indiv_regression_msgs.append(mg.REGRESSION_ERR)
         all_x.extend(series_det[mg.LIST_X])
+    regression_msg = (u"<br>".join(x for x in indiv_regression_msgs if x) 
+        + u"<br>")
+    html.append(regression_msg)
     xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
@@ -2565,6 +2591,12 @@ def get_optimal_min_max(axismin, axismax):
     if debug: print("Final axismin: %s; Final axismax %s" % (axismin, axismax))
     return axismin, axismax
 
+def coords_lst2js_pairs(coords_lst):
+    "Turn coordinates into a JavaScript-friendly version as a string"
+    js_pairs_lst = ["{x: %s, y: %s}" % (x, y) for x, y in coords_lst]
+    js_pairs = "[" + ",\n".join(js_pairs_lst) + "]"
+    return js_pairs
+
 def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title, 
         show_borders, legend, series_dets, series_colours_by_lbl, label_x, 
         label_y, ymin, ymax, css_fil, pagebreak):
@@ -2572,9 +2604,11 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     min and max values are supplied for the y-axis because we want consistency 
         on that between charts. For the x-axis, whatever is best per chart is OK. 
     series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
-                   mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
-                   mg.DATA_TUPS: [(1,3),(1,5), ...]}
+        mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
+        mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...],
+        mg.INC_REGRESSION: True,
+        mg.LINE_LST: [12,26], # or None
+        mg.DATA_TUPS: [(1,3),(1,5), ...]}
     """
     debug = False
     if multichart:
@@ -2600,22 +2634,24 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     if debug: print(label_x, xmin, xmax, label_y, ymin, ymax)
     series_js_list = []
     series_names_list = []
+    indiv_regression_msgs = []
     for series_idx, series_det in enumerate(series_dets):
         series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
+        list_x = series_det[mg.LIST_X]
+        list_y = series_det[mg.LIST_Y]
+        inc_regression = series_det[mg.INC_REGRESSION]
+        line_lst = series_det[mg.LINE_LST]
+        data_tups = series_det[mg.DATA_TUPS]
         series_names_list.append(u"series%s" % series_idx)
         series_js_list.append(u"var series%s = new Array();" % series_idx)
-        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
-                 % (series_idx, series_lbl))
-        jsdata = []
-        x_set = set()
-        for x, y in series_det[mg.DATA_TUPS]:
-            jsdata.append("{x: %s, y: %s}" % (x, y))
-            x_set.add(x)
+        series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";" %
+            (series_idx, series_lbl))
+        js_pairs_points = coords_lst2js_pairs(data_tups)
+        series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx, 
+            js_pairs_points))
+        x_set = set([item[0] for item in data_tups])
         few_unique_x_vals = (len(x_set) < 10)
         minor_ticks = u"false" if few_unique_x_vals else u"true"
-        xy_pairs = "[" + ",\n".join(jsdata) + "]"
-        series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx, 
-            xy_pairs))
         (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
          colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
@@ -2631,17 +2667,44 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         colour_cases = setup_highlights(colour_mappings, single_colour, 
             override_first_highlight)
         fill = series_colours_by_lbl[series_lbl]
-        series_js_list.append(u"series%(series_idx)s[\"style\"] = "
+        point_series_style = (u"series%(series_idx)s[\"style\"] = "
             u"{stroke: {color: \"white\","
             u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\","
             u"marker: \"m-6,0 c0,-8 12,-8 12,0 m-12,0 c0,8 12,8 12,0\"};" % 
             {u"series_idx": series_idx, u"stroke_width": stroke_width,
              u"fill": fill})
+        series_js_list.append(point_series_style)
+        inc_regression_js = "false"
+        if inc_regression:
+            inc_regression_js = "true"
+            if line_lst is not None:
+                indiv_regression_msg = lib.get_indiv_regression_msg(list_x, 
+                    list_y, series_lbl)
+                indiv_regression_msgs.append(indiv_regression_msg)
+                y0, y1 = line_lst
+                line_coords = [(min(list_x), y0), (max(list_x), y1)]
+                js_pairs_line = coords_lst2js_pairs(line_coords)
+                regression_lbl = (u"%s Line" % series_lbl 
+                    if series_lbl else u"Line")
+                series_js_list.append(u"""series%s["lineLabel"] = "%s";""" % 
+                    (series_idx, regression_lbl))
+                series_js_list.append(u"series%s[\"xyLinePairs\"] = %s;" % 
+                    (series_idx, js_pairs_line))
+                point_series_style = (u"series%(series_idx)s[\"lineStyle\"] = "
+                    u"{plot: \"regression\", stroke: {color: \"%(fill)s\","
+                    u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\"};" %
+                    {u"series_idx": series_idx, u"stroke_width": stroke_width,
+                     u"fill": fill})
+                series_js_list.append(point_series_style)
+            else:
+                indiv_regression_msgs.append(mg.REGRESSION_ERR)
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);" %
             u", ".join(series_names_list))
         series_js = series_js.lstrip()
+    regression_msg = (u"<br>".join(x for x in indiv_regression_msgs if x) 
+        + u"<br><br>")
     # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
     # ...newbie-need-svg-path-segment-string
     html.append(u"""
@@ -2681,6 +2744,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
+    chartconf["incRegression"] = %(inc_regression)s;
     %(outer_bg)s
     makeScatterplot("mychartRenumber%(chart_idx)s", series, chartconf);
 }
@@ -2688,19 +2752,21 @@ makechartRenumber%(chart_idx)s = function(){
 
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 %(indiv_chart_title)s
+%(regression_msg)s
 <div id="mychartRenumber%(chart_idx)s" 
         style="width: %(width)spx; height: %(height)spx;">
     </div>
 %(legend)s
 </div>      
 """ % {u"legend": legend, u"series_js": series_js,
-       u"indiv_chart_title": indiv_chart_title, u"xy_pairs": xy_pairs,
+       u"indiv_chart_title": indiv_chart_title, 
        u"xmin": xmin, u"ymin": ymin, u"xmax": xmax, u"ymax": ymax,
        u"x_title": x_title, u"y_title": y_title,
        u"stroke_width": stroke_width, u"fill": fill,
        u"colour_cases": colour_cases, 
        u"width": width, u"height": height, u"xfontsize": xfontsize, 
-       u"pagebreak": pagebreak,
+       u"pagebreak": pagebreak, 
+       u"inc_regression": inc_regression_js, u"regression_msg": regression_msg,
        u"axis_lbl_font_colour": axis_lbl_font_colour,
        u"major_gridline_colour": major_gridline_colour,
        u"y_title_offset": y_title_offset,
@@ -2730,7 +2796,7 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
         css_idx, page_break_after=False):
     """
     scatterplot_dets = {mg.CHARTS_OVERALL_LEGEND_LBL: u"Age Group", # or None if only one series
-                        mg.CHARTS_CHART_DETS: chart_dets}
+        mg.CHARTS_CHART_DETS: chart_dets}
     chart_dets = [
         {mg.CHARTS_CHART_LBL: u"Gender: Male", # or None if only one chart
          mg.CHARTS_SERIES_DETS: series_dets},
@@ -2738,9 +2804,10 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
          mg.CHARTS_SERIES_DETS: series_dets}, ...
     ]
     series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
-                   mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
-                   mg.DATA_TUPS: [(1,3),(1,5), ...]}
+        mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
+        mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...],
+        mg.LINE_LST: [12,26], # or None
+        mg.DATA_TUPS: [(1,3),(1,5), ...]}
     """
     debug = False
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 

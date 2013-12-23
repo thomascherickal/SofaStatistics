@@ -444,6 +444,7 @@ makeScatterplot = function(chartname, series, chartconf){
     var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Variable B";
     var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
+    var incRegression = ("incRegression" in chartconf)? chartconf["incRegression"] : false;
 
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -502,6 +503,16 @@ makeScatterplot = function(chartname, series, chartconf){
     var i
     for (i in series){
         mychart.addSeries(series[i]["seriesLabel"], series[i]["xyPairs"], series[i]["style"]);
+    }
+    if(incRegression == true){
+        mychart.addPlot("regression", {type: "Lines", markers: false, shadows: {dx: 2, dy: 2, dw: 2}});
+        for (i in series){
+            try {
+                mychart.addSeries(series[i]["lineLabel"], series[i]["xyLinePairs"], series[i]["lineStyle"]);
+            } catch(err) {
+                /*do nothing*/
+            }
+        }
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 

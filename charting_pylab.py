@@ -165,35 +165,40 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
                        fontsize=7, rotation=270)
 
 def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
-                       label_a, label_b, a_vs_b, line_lst=None, line_lbl=u"", 
-                       xmin=None, xmax=None, ymin=None, ymax=None, 
-                       dot_colour=None, series_colours_by_lbl=None):
+        label_a, label_b, a_vs_b, xmin=None, xmax=None, ymin=None, ymax=None, 
+        dot_colour=None, series_colours_by_lbl=None):
     """
     Configure scatterplot with line of best fit.
     Size is set externally.
     series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
-                   mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
-                   mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...], 
-                   mg.DATA_TUPS: [(1,3),(1,5), ...]}
+        mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
+        mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...],
+        mg.INC_REGRESSION: True,
+        mg.LINE_LST: [12,26], # or None
+        mg.DATA_TUPS: [(1,3),(1,5), ...]}
     """
     multiseries = len(series_dets) > 1
     for series_det in series_dets:
         sample_a = series_det[mg.LIST_X]
         sample_b = series_det[mg.LIST_Y]
+        line_lst = series_det[mg.LINE_LST]
+        inc_regression = series_det[mg.INC_REGRESSION]
         series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
         label = (series_lbl if multiseries else a_vs_b)
         if multiseries:
             dot_colour = series_colours_by_lbl[series_lbl]
         marker_edge_colour = line_colour if show_borders else dot_colour
         pylab.plot(sample_a, sample_b, 'o', color=dot_colour, label=label, 
-                   markeredgecolor=marker_edge_colour)
+            markeredgecolor=marker_edge_colour)
         if xmin is not None and xmax is not None:
             pylab.xlim(xmin, xmax)
         if ymin is not None and ymax is not None:
             pylab.ylim(ymin, ymax)
-        if line_lst is not None:
+        if inc_regression:
+            line_series_lbl = u"%s " % series_lbl if series_lbl else u""
+            line_lbl = u"%s Line" % line_series_lbl
             pylab.plot([min(sample_a), max(sample_a)], line_lst, u"-", 
-                       color=line_colour, linewidth=4, label=line_lbl)
+                color=dot_colour, linewidth=5, label=line_lbl)
     axes = fig.gca()
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)
@@ -201,14 +206,12 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets,
     rect.set_facecolor(grid_bg)
     pylab.legend(loc="best", numpoints=1, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
-                   fontsize=7, rotation=270)
+        fontsize=7, rotation=270)
 
-def add_scatterplot(grid_bg, show_borders, line_colour, series_dets, 
-                    label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
-                    report_name, html, width_inches=7.5, height_inches=4.5, 
-                    line_lst=None, line_lbl=u"", xmin=None, xmax=None, 
-                    ymin=None, ymax=None, dot_colour=None, 
-                    series_colours_by_lbl=None):
+def add_scatterplot(grid_bg, show_borders, line_colour, series_dets, label_x, 
+        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html, 
+        width_inches=7.5, height_inches=4.5, xmin=None, xmax=None, ymin=None, 
+        ymax=None, dot_colour=None, series_colours_by_lbl=None):
     """
     Toggle prefix so every time this is run internally only, a different image 
         is referred to in the html <img src=...>.
@@ -219,8 +222,8 @@ def add_scatterplot(grid_bg, show_borders, line_colour, series_dets,
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
     config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
-                       label_x, label_y, x_vs_y, line_lst, line_lbl, xmin, xmax, 
-                       ymin, ymax, dot_colour, series_colours_by_lbl)
+        label_x, label_y, x_vs_y, xmin, xmax, ymin, ymax, dot_colour, 
+        series_colours_by_lbl)
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)

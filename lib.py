@@ -24,6 +24,32 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def get_indiv_regression_msg(list_x, list_y, series_lbl):
+    try:
+        (slope, intercept, 
+         unused, unused, unused) = core_stats.linregress(list_x, list_y)
+    except Exception:
+        return mg.REGRESSION_ERR
+    dp = 3
+    indiv_regression_msg = (u"Slope: %s; Intercept: %s" % 
+        (round(slope, dp), round(intercept, dp)))
+    if series_lbl:
+        indiv_regression_msg = u"%s: %s" % (series_lbl, 
+            indiv_regression_msg)
+    return indiv_regression_msg
+
+def get_regression_dets(list_x, list_y):
+    try:
+        (slope, intercept, r, 
+         unused, unused) = core_stats.linregress(list_x, list_y)
+    except Exception, e:
+        raise Exception(u"Unable to get regression details. Orig error: %s" % e) 
+    x0 = min(list_x)
+    x1 = max(list_x)
+    y0 = (x0*slope) + intercept
+    y1 = (x1*slope) + intercept
+    return slope, intercept, r, y0, y1
+
 def formatnum(num):
     try:
         formatted = "{:,}".format(num)

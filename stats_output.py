@@ -502,105 +502,95 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     return u"".join(html)
 
 def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
-                     report_name, css_fil, css_idx=0, dp=3, 
-                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        report_name, css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+        page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
-    slope, intercept, r, unused, unused = core_stats.linregress(list_x, list_y)
+        css_idx)
+    slope, intercept, r, y0, y1 = lib.get_regression_dets(list_x, list_y)
+    line_lst = [y0, y1]
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Pearson's Test of Linear Correlation for %s") % 
-             x_vs_y)
+        x_vs_y)
     title_html = "<h2>%s</h2>" % title
     html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
-    html.append(u"\n<p>" + _("Two-tailed p value") + \
-                u": %s" % lib.get_p(p, dp) + 
-                u" <a href='#ft1'><sup>1</sup></a></p>")
+    html.append(u"\n<p>" + _("Two-tailed p value")
+        + u": %s" % lib.get_p(p, dp) + u" <a href='#ft1'><sup>1</sup></a></p>")
     add_footnote(footnotes, content=mg.P_EXPLAN_REL)
-    html.append(u"\n<p>" + _("Pearson's R statistic") +
-                u": %s</p>" % round(r, dp))
+    html.append(u"\n<p>" + _("Pearson's R statistic")
+        + u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     html.append(u"<p>Linear Regression Details: "
-                u"<a href='#ft2'><sup>2</sup></a></p>")
+        u"<a href='#ft2'><sup>2</sup></a></p>")
     add_footnote(footnotes, content=u"Always look at the scatter plot when "
-                 u"interpreting the linear regression line.</p>")
+        u"interpreting the linear regression line.</p>")
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     output.append_divider(html, title, indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     show_borders = True
-    def gety(x, slope, intercept):
-        y = (x*slope) + intercept
-        return y
-    minx = min(list_x)
-    maxx = max(list_x)
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
-                    mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    line_lst = [gety(minx, slope, intercept), gety(maxx, slope, intercept)]
+        mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
+        mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
-                                   series_dets, label_x, label_y, x_vs_y, 
-                                   title_dets_html, add_to_report, 
-                                   report_name, html, line_lst=line_lst, 
-                                   line_lbl=u"Regression line", 
-                                   dot_colour=dot_colours[0])
+        series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
+        report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     output.append_divider(html, title, indiv_title=u"scatterplot")
     return u"".join(html)
 
 def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
-                      report_name, css_fil, css_idx=0, dp=3, 
-                      level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        report_name, css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+        page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
     title = (_("Results of Spearman's Test of Linear Correlation "
-               "for %s") % x_vs_y)
+        "for %s") % x_vs_y)
     title_html = "<h2>%s</h2>" % title
     html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
-                u" <a href='#ft1'><sup>1</sup></a></p>")
+        u" <a href='#ft1'><sup>1</sup></a></p>")
     add_footnote(footnotes, content=mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
-                u": %s</p>" % round(r, dp))
+        u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     output.append_divider(html, title, indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     show_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
-                    mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    
+        mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
-                                   series_dets, label_x, label_y, x_vs_y, 
-                                   title_dets_html, add_to_report, 
-                                   report_name, html, dot_colour=dot_colours[0])
+        series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
+        report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     output.append_divider(html, title, indiv_title=u"scatterplot")
     return u"".join(html)
 
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
-                     report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, 
-                     min_count, perc_cells_lt_5, df, css_fil, css_idx=0, dp=3, 
-                     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
+        perc_cells_lt_5, df, css_fil, css_idx=0, dp=3, 
+        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, css_idx)
     CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
     CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-                                                      css_idx)
+        css_idx)
     var_label_a = cgi.escape(var_label_a)
     var_label_b = cgi.escape(var_label_b)
     try:
@@ -622,23 +612,23 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
-                u" <a href='#ft1'><sup>1</sup></a></p>")
+        u" <a href='#ft1'><sup>1</sup></a></p>")
     add_footnote(footnotes, content=mg.P_EXPLAN_REL)  
     html.append(u"\n<p>" + _("Pearson's Chi Square statistic") + u": %s</p>" %
-                round(chi, dp))
+        round(chi, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     # headings
     html.append(u"\n\n<table cellspacing='0'>\n<thead>")
     html.append(u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % 
-                CSS_SPACEHOLDER)
+        CSS_SPACEHOLDER)
     html.append(u"<th class='%s' " % CSS_FIRST_COL_VAR +
-                u"colspan=%s>%s</th></tr>" % ((val_labels_b_n+1)*cells_per_col, 
-                                              var_label_b))
+        u"colspan=%s>%s</th></tr>" % ((val_labels_b_n+1)*cells_per_col, 
+        var_label_b))
     html.append(u"\n<tr>")
     for val in val_labels_b:
         html.append(u"<th colspan=%s>%s</th>" % (cells_per_col, val))
     html.append(u"<th colspan=%s>" % cells_per_col + _("TOTAL") +
-                u"</th></tr>\n<tr>")
+        u"</th></tr>\n<tr>")
     for i in range(val_labels_b_n + 1):
         html.append(u"<th>" + _("Obs") + u"</th><th>" + _("Exp") + u"</th>")
     html.append(u"</tr>")
@@ -646,7 +636,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     html.append(u"\n\n</thead><tbody>")
     item_i = 0
     html.append(u"\n<tr><td class='%s' rowspan=%s>%s</td>" % (CSS_FIRST_ROW_VAR, 
-                                            val_labels_a_n + 1, var_label_a))
+        val_labels_a_n + 1, var_label_a))
     col_obs_tots = [0]*val_labels_b_n
     col_exp_tots = [0]*val_labels_b_n
     # total row totals
@@ -660,8 +650,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
             obs = lst_obs[item_i]
             exp = lst_exp[item_i]
             html.append(u"<td class='%s'>" % CSS_DATACELL +
-                        u"%s</td><td class='%s'>%s</td>" % (obs, CSS_DATACELL, 
-                                                            round(exp, 1)))
+                u"%s</td><td class='%s'>%s</td>" % (obs, CSS_DATACELL, 
+                round(exp, 1)))
             row_obs_tot += obs
             row_exp_tot += exp
             col_obs_tots[col_i] += obs
@@ -671,8 +661,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         row_obs_tot_tot += row_obs_tot
         row_exp_tot_tot += row_exp_tot
         html.append(u"<td class='%s'>" % CSS_DATACELL +
-                u"%s</td><td class='%s'>%s</td>" % (row_obs_tot, CSS_DATACELL, 
-                                                    round(row_exp_tot,1)))
+            u"%s</td><td class='%s'>%s</td>" % (row_obs_tot, CSS_DATACELL, 
+            round(row_exp_tot,1)))
         html.append(u"</tr>\n<tr>")
     # add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
@@ -680,30 +670,28 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     for col_obs_tot, col_exp_tot in col_tots:
         html.append(u"<td class='%s'>" % CSS_DATACELL +
             u"%s</td><td class='%s'>%s</td>" % (col_obs_tot, CSS_DATACELL,
-                                                round(col_exp_tot, 1)))
+            round(col_exp_tot, 1)))
     # add total of totals
     html.append(u"<td class='%s'>" % CSS_DATACELL +
-                u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, 
-                                                    CSS_DATACELL, 
-                                                    round(row_exp_tot_tot,1)))
+        u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, CSS_DATACELL, 
+        round(row_exp_tot_tot,1)))
     html.append(u"</tr>")
     html.append(u"\n</tbody>\n</table>\n")
     # warnings
     html.append(u"\n<p>" + _("Minimum expected cell count") + u": %s</p>" %
-                round(min_count, dp))
+        round(min_count, dp))
     html.append(u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" %
-                round(perc_cells_lt_5, 1))
+        round(perc_cells_lt_5, 1))
     add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     output.append_divider(html, title, indiv_title=u"")
     add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
-                            var_label_a, var_label_b, val_labels_a, 
-                            val_labels_b, val_labels_a_n, val_labels_b_n, 
-                            add_to_report, report_name, html)
+        var_label_a, var_label_b, val_labels_a, val_labels_b, val_labels_a_n, 
+        val_labels_b_n, add_to_report, report_name, html)
     return u"".join(html)
 
 def get_xaxis_fontsize(val_labels):
@@ -719,9 +707,8 @@ def get_xaxis_fontsize(val_labels):
     return fontsize
 
 def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs, 
-                            var_label_a, var_label_b, val_labels_a, 
-                            val_labels_b, val_labels_a_n, val_labels_b_n, 
-                            add_to_report, report_name, html):
+        var_label_a, var_label_b, val_labels_a, val_labels_b, val_labels_a_n, 
+        val_labels_b_n, add_to_report, report_name, html):
     # NB list_obs is bs within a and we need the other way around
     debug = False
     #width = 7 
@@ -763,11 +750,10 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
-                                    plot, var_label_a, y_label, val_labels_a_n, 
-                                    val_labels_a, val_labels_b, 
-                                    propns_as_in_bs_lst)
+        plot, var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
+        propns_as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                             save_func=plot.save, dpi=None)
+        save_func=plot.save, dpi=None)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"proportion")
     # chart 2 - freqs
@@ -783,10 +769,10 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setLegendLabelSize(9)
     # only need 6 because program limits to that. See core_stats.get_obs_exp().
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
-                                    plot, var_label_a, y_label, val_labels_a_n, 
-                                    val_labels_a, val_labels_b, as_in_bs_lst)
+        plot, var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
+        as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
-                                             save_func=plot.save, dpi=None)
+        save_func=plot.save, dpi=None)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"frequency")
 

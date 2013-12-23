@@ -336,9 +336,9 @@ td, th {
     }""" % (mg.JS_N_CHARTS_STR, new_js_n_charts)
         dojo_debug = False
         dojo_js_source = (
-                  u"file:///home/g/sofastats/reports/sofastats_report_extras"
-                  u"/sofalayer.js.uncompressed.js") if dojo_debug \
-                  else u"sofastats_report_extras/sofastatsdojo_minified.js"
+            u"file:///home/g/sofastats/reports/sofastats_report_extras"
+            u"/sofalayer.js.uncompressed.js") if dojo_debug \
+            else u"sofastats_report_extras/sofastatsdojo_minified.js"
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' 
 href="sofastats_report_extras/tundra.css" />

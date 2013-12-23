@@ -412,12 +412,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_scatterplot = wx.Panel(self.panel_mid)
         self.chk_dot_borders = wx.CheckBox(self.panel_scatterplot, -1, 
-                                       _("Dot borders?"))
+            _("Dot borders?"))
         self.chk_dot_borders.SetFont(mg.GEN_FONT)
         self.chk_dot_borders.SetValue(True)
         self.chk_dot_borders.SetToolTipString(_("Show borders around "
-                                              "scatterplot dots?"))
+            "scatterplot dots?"))
+        self.chk_regression = wx.CheckBox(self.panel_scatterplot, -1, 
+            _("Show regression line?"))
+        self.chk_regression.SetFont(mg.GEN_FONT)
+        self.chk_regression.SetValue(False)
+        self.chk_regression.SetToolTipString(_("Show regression line?"))
         self.szr_scatterplot.Add(self.chk_dot_borders, 0, wx.TOP|wx.BOTTOM, 10)
+        self.szr_scatterplot.Add(self.chk_regression, 0, wx.LEFT|wx.TOP|
+            wx.BOTTOM, 10)
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
     
@@ -1214,31 +1221,31 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                     return False
         # 2) Excluding No Selections, we have duplicate selections
         selected_lblctrl_vars = [x for x in shown_lblctrl_vars 
-                         if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
+            if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
         selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x 
-                             in selected_lblctrl_vars]
+            in selected_lblctrl_vars]
         selected_lbls = [x.GetLabel().rstrip(u":") for x in selected_lblctrls]
         selected_vars = [x[idx_variable_in_lblctrl_vars] for x 
-                         in selected_lblctrl_vars]
+            in selected_lblctrl_vars]
         unique_selected_vars = set(selected_vars)
         if len(unique_selected_vars) < len(selected_vars):
                 final_comma = u"" if len(selected_vars) < 3 else u","
                 varlbls = (u'"' + u'", "'.join(selected_lbls[:-1]) + u'"' 
-                           + final_comma + u" and \"%s\"" % selected_lbls[-1])
+                    + final_comma + u" and \"%s\"" % selected_lbls[-1])
                 wx.MessageBox(_(u"The variables selected for %s must be "
-                                u"different.") % varlbls)
+                    u"different.") % varlbls)
                 return False
         return True
 
     def get_script(self, css_idx, css_fil, report_name):
         """
         Build script from inputs.
+        
         For each dropdown identify the variable role (according to CHART_CONFIG, 
-            chart type, and whether data is averaged or not). Not all dropdowns 
-            will have a variable selected (i.e. 'Not Selected' is the selection) 
-            but for those that do identify the field name, field label, and the 
-            value labels ready to pass to the appropriate data collection 
-            function.
+        chart type, and whether data is averaged or not). Not all dropdowns will 
+        have a variable selected (i.e. 'Not Selected' is the selection) but for 
+        those that do identify the field name, field label, and the value labels 
+        ready to pass to the appropriate data collection function.
         """
         debug = False
         dd = mg.DATADETS_OBJ
@@ -1253,7 +1260,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if debug: print(myvars)
         # other variables to set up
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
-                                                    else "False"))
+            else "False"))
         rptname = lib.escape_pre_write(report_name)
         script_lst.append(u"report_name = u\"%s\"" % rptname)
         agg_fldlbl = None
@@ -1289,7 +1296,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if self.chart_type in mg.GEN_CHARTS:
             if category_fldname is None:
                 raise Exception(u"Cannot generate %s script if category field "
-                                u"hasn't been set." % self.chart_type)
+                    u"hasn't been set." % self.chart_type)
         if self.chart_type in mg.CHARTS_WITH_YTITLE_OPTIONS:
             if CUR_DATA_OPT == mg.SHOW_FREQ:
                 ytitle2use = u"mg.Y_AXIS_FREQ_LBL"
@@ -1299,43 +1306,41 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 if agg_fldlbl is None:
                     raise Exception(u"Aggregated variable label not supplied.")
                 ytitle2use = (u'u"Mean %s"' % agg_fldlbl 
-                              if CUR_DATA_OPT == mg.SHOW_AVG 
-                              else u'u"Sum of %s"' % agg_fldlbl)
+                    if CUR_DATA_OPT == mg.SHOW_AVG 
+                    else u'u"Sum of %s"' % agg_fldlbl)
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(get_simple_barchart_script(ytitle2use, rotate, 
-                                  show_borders=self.chk_bar_borders.IsChecked(), 
-                                  css_fil=css_fil, css_idx=css_idx))
+                show_borders=self.chk_bar_borders.IsChecked(), css_fil=css_fil, 
+                css_idx=css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(get_clustered_barchart_script(ytitle2use, rotate, 
-                                show_borders=self.chk_clust_borders.IsChecked(), 
-                                css_fil=css_fil, css_idx=css_idx))
+                show_borders=self.chk_clust_borders.IsChecked(), 
+                css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.PIE_CHART:
             inc_val_dets = (u"True" if self.chk_val_dets.IsChecked()
-                            else u"False")
+                else u"False")
             script_lst.append(get_pie_chart_script(css_fil, css_idx, 
-                                                   inc_val_dets))
+                inc_val_dets))
         elif self.chart_type == mg.LINE_CHART:
             inc_trend = (u"True" if self.chk_line_trend.IsChecked()
-                            and self.chk_line_trend.Enabled
-                        else u"False")
+                and self.chk_line_trend.Enabled else u"False")
             inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
-                            and self.chk_line_smooth.Enabled
-                        else u"False")
+                and self.chk_line_smooth.Enabled else u"False")
             script_lst.append(get_line_chart_script(ytitle2use, rotate, major, 
-                                                    inc_trend, inc_smooth, 
-                                                    css_fil, css_idx))
+                inc_trend, inc_smooth, css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(ytitle2use, rotate, major, 
-                                                    css_fil, css_idx))
+                css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
-                          else u"False")
+                else u"False")
             script_lst.append(get_histogram_script(inc_normal, 
-                                 show_borders=self.chk_hist_borders.IsChecked(), 
-                                 css_fil=css_fil, css_idx=css_idx))
+                show_borders=self.chk_hist_borders.IsChecked(), css_fil=css_fil, 
+                css_idx=css_idx))
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(get_scatterplot_script(css_fil, css_idx, 
-                                 show_borders=self.chk_dot_borders.IsChecked()))
+                show_borders=self.chk_dot_borders.IsChecked(),
+                inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             script_lst.append(get_boxplot_script(rotate, css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
@@ -1477,23 +1482,24 @@ chart_output = charting_output.histogram_output(titles, subtitles,
            u"css_idx": css_idx}
     return script
 
-def get_scatterplot_script(css_fil, css_idx, show_borders):
+def get_scatterplot_script(css_fil, css_idx, show_borders, inc_regression):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
+    regression = "True" if inc_regression else "False"
     script = u"""
 (overall_title, 
  scatterplot_dets) = charting_output.get_scatterplot_dets(dbe, cur, tbl, 
-            tbl_filt, flds, var_role_x_axis, var_role_x_axis_name, 
-            var_role_y_axis, var_role_y_axis_name, 
-            var_role_series, var_role_series_name, var_role_series_lbls,
-            var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-            unique=True)
+    tbl_filt, flds, var_role_x_axis, var_role_x_axis_name, 
+    var_role_y_axis, var_role_y_axis_name, 
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    unique=True, inc_regression=%(regression)s)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
     overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
     add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
-           u"show_borders": show_borders}
+        u"show_borders": show_borders, u"regression": regression}
     return script
 
 def get_boxplot_script(rotate, css_fil, css_idx):

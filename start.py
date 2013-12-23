@@ -30,6 +30,7 @@ dev_debug = True # relates to errors etc once GUI application running.
 show_early_steps = True # same in setup
 show_more_steps = True
 test_lang = False
+# look in output for dojo_debug
 
 import sys
 import platform

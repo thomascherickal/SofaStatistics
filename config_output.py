@@ -809,7 +809,7 @@ class ConfigUI(object):
                           % lib.ue(e))
     
     def get_script_output(self, get_script_args, new_has_dojo, 
-                          allow_add2rpt=True):
+            allow_add2rpt=True):
         debug = False
         cc = get_cc()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -818,11 +818,11 @@ class ConfigUI(object):
             script = self.get_script(css_idx, *get_script_args)
         except Exception, e:
             raise Exception("Problem getting script. Orig error: %s" % 
-                            lib.ue(e))
+                lib.ue(e))
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT
         (bolran_report, 
          str_content) = output.run_report(self.output_modules, add_to_report, 
-                                          css_fils, new_has_dojo, script)
+            css_fils, new_has_dojo, script)
         if debug: print(str_content)
         return bolran_report, str_content
     

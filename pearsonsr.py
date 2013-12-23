@@ -27,9 +27,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         try:
             unused, label_a, unused, label_b = self.get_drop_vals()
             self.lbl_phrase.SetLabel(_(u"Are \"%(a)s\" and \"%(b)s\" correlated"
-                                       u" - do they change together in a linear"
-                                       u" fashion?") % {"a": label_a, 
-                                                        "b": label_b})
+                u" - do they change together in a linear fashion?") % 
+                {"a": label_a, "b": label_b})
         except Exception:
             self.lbl_phrase.SetLabel(u"")
     
@@ -42,16 +41,16 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             var_a, label_a, var_b, label_b = self.get_drop_vals()
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
-                          % lib.ue(e))
+                % lib.ue(e))
         script_lst.append(u"""
 sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s",
     cur=cur, tbl=u"%(tbl)s", tbl_filt=tbl_filt, fld_a=u"%(var_a)s",
     fld_b=u"%(var_b)s")""" % {u"dbe": dd.dbe, u"tbl": dd.tbl, u"var_a": var_a, 
-                              u"var_b": var_b})
+            u"var_b": var_b})
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
-                          else "False"))
+            else "False"))
         script_lst.append(u"report_name = u\"%s\"" %
-                          lib.escape_pre_write(report_name))
+            lib.escape_pre_write(report_name))
         script_lst.append(u"dp = 3")
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
@@ -62,7 +61,7 @@ pearsonsr_output = stats_output.pearsonsr_output(sample_a, sample_b, r, p, df,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
     level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
             {u"css_fil": lib.escape_pre_write(css_fil),
-             u"css_idx": css_idx})
+            u"css_idx": css_idx})
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)
 
