@@ -2684,18 +2684,17 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
                 y0, y1 = line_lst
                 line_coords = [(min(list_x), y0), (max(list_x), y1)]
                 js_pairs_line = coords_lst2js_pairs(line_coords)
-                regression_lbl = (u"%s Line" % series_lbl 
-                    if series_lbl else u"Line")
+                regression_lbl = (u"%s " % series_lbl if series_lbl else u"Line") # must not be identical to label for points or Dojo ignores first series of same name ;-)
+                #regression_lbl = (u"%s Line" % series_lbl if series_lbl else u"Line")
                 series_js_list.append(u"""series%s["lineLabel"] = "%s";""" % 
                     (series_idx, regression_lbl))
                 series_js_list.append(u"series%s[\"xyLinePairs\"] = %s;" % 
                     (series_idx, js_pairs_line))
-                point_series_style = (u"series%(series_idx)s[\"lineStyle\"] = "
+                line_series_style = (u"series%(series_idx)s[\"lineStyle\"] = "
                     u"{plot: \"regression\", stroke: {color: \"%(fill)s\","
-                    u"width: \"%(stroke_width)spx\"}, fill: \"%(fill)s\"};" %
-                    {u"series_idx": series_idx, u"stroke_width": stroke_width,
-                     u"fill": fill})
-                series_js_list.append(point_series_style)
+                    u"width: \"5px\"}, fill: \"%(fill)s\"};" %
+                    {u"series_idx": series_idx, u"fill": fill})
+                series_js_list.append(line_series_style)
             else:
                 indiv_regression_msgs.append(mg.REGRESSION_ERR)
         series_js_list.append(u"")
@@ -3021,21 +3020,21 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
                   indiv_boxlbl: "%(indiv_boxlbl)s"
                  }
               }""" % {u"unique_name": unique_name, u"series_idx": series_idx,
-                        u"boxdets_idx": boxdet_idx, u"offset": offset,
-                        u"lwhisker": mg.CHART_BOXPLOT_LWHISKER, 
-                        u"lwhisker_val": boxdet[mg.CHART_BOXPLOT_LWHISKER],
-                        u"lbox": mg.CHART_BOXPLOT_LBOX, 
-                        u"lbox_val": boxdet[mg.CHART_BOXPLOT_LBOX],
-                        u"median": mg.CHART_BOXPLOT_MEDIAN, 
-                        u"median_val": boxdet[mg.CHART_BOXPLOT_MEDIAN],
-                        u"ubox": mg.CHART_BOXPLOT_UBOX, 
-                        u"ubox_val": boxdet[mg.CHART_BOXPLOT_UBOX],
-                        u"uwhisker": mg.CHART_BOXPLOT_UWHISKER, 
-                        u"uwhisker_val": boxdet[mg.CHART_BOXPLOT_UWHISKER],
-                        u"outliers": mg.CHART_BOXPLOT_OUTLIERS, 
-                        u"outliers_val": boxdet[mg.CHART_BOXPLOT_OUTLIERS],
-                        u"indiv_boxlbl": boxdet[mg.CHART_BOXPLOT_INDIV_LBL]
-                        })
+                u"boxdets_idx": boxdet_idx, u"offset": offset,
+                u"lwhisker": mg.CHART_BOXPLOT_LWHISKER, 
+                u"lwhisker_val": boxdet[mg.CHART_BOXPLOT_LWHISKER],
+                u"lbox": mg.CHART_BOXPLOT_LBOX, 
+                u"lbox_val": boxdet[mg.CHART_BOXPLOT_LBOX],
+                u"median": mg.CHART_BOXPLOT_MEDIAN, 
+                u"median_val": boxdet[mg.CHART_BOXPLOT_MEDIAN],
+                u"ubox": mg.CHART_BOXPLOT_UBOX, 
+                u"ubox_val": boxdet[mg.CHART_BOXPLOT_UBOX],
+                u"uwhisker": mg.CHART_BOXPLOT_UWHISKER, 
+                u"uwhisker_val": boxdet[mg.CHART_BOXPLOT_UWHISKER],
+                u"outliers": mg.CHART_BOXPLOT_OUTLIERS, 
+                u"outliers_val": boxdet[mg.CHART_BOXPLOT_OUTLIERS],
+                u"indiv_boxlbl": boxdet[mg.CHART_BOXPLOT_INDIV_LBL]
+                })
         series_js.append(u",\n".join(box_js))            
         series_js.append(u"        ];") # close series list
     series_lst = ["series%s" % x for x in range(len(chart_dets))]
@@ -3092,22 +3091,19 @@ makechartRenumber00 = function(){
 %(legend)s
 </div>
     """ % {u"titles": title_dets_html, u"legend": legend, 
-           u"pre_series_str": pre_series_str,
-           u"series_js_str": series_js_str, u"xaxis_lbls": xaxis_lbls, 
-           u"width": width, u"height": height, 
-           u"xfontsize": xfontsize, u"yfontsize": yfontsize, 
-           u"xmin": xmin, u"xmax": xmax, u"ymin": ymin, u"ymax": ymax,
-           u"x_title": x_title, u"y_title": y_title,
-           u"axis_lbl_font_colour": axis_lbl_font_colour,
-           u"major_gridline_colour": major_gridline_colour,
-           u"gridline_width": gridline_width, u"pagebreak": pagebreak,
-           u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
-           u"y_title_offset": y_title_offset,
-           u"margin_offset_l": margin_offset_l,
-           u"axis_lbl_rotate": axis_lbl_rotate,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, 
-           u"outer_bg": outer_bg, u"grid_bg": grid_bg})
+        u"pre_series_str": pre_series_str, u"series_js_str": series_js_str, 
+        u"xaxis_lbls": xaxis_lbls, u"width": width, u"height": height, 
+        u"xfontsize": xfontsize, u"yfontsize": yfontsize, u"xmin": xmin, 
+        u"xmax": xmax, u"ymin": ymin, u"ymax": ymax, u"x_title": x_title, 
+        u"y_title": y_title, u"axis_lbl_font_colour": axis_lbl_font_colour,
+        u"major_gridline_colour": major_gridline_colour,
+        u"gridline_width": gridline_width, u"pagebreak": pagebreak,
+        u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
+        u"y_title_offset": y_title_offset, u"margin_offset_l": margin_offset_l,
+        u"axis_lbl_rotate": axis_lbl_rotate,
+        u"tooltip_border_colour": tooltip_border_colour,
+        u"connector_style": connector_style, u"outer_bg": outer_bg, 
+        u"grid_bg": grid_bg})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
         item_type=u"Boxplot")
     if debug: 

@@ -3,24 +3,28 @@
 
 """
 Start up launches the SOFA main form. Along the way it tries to detect errors
-    and report on them to the user so that they can seek help. E.g. faulty
-    version of Python being used to launch SOFA; or missing images needed by 
-    the form.
+and report on them to the user so that they can seek help. E.g. faulty version 
+of Python being used to launch SOFA; or missing images needed by the form.
+
 Start up can also run test code to diagnose early problems.
+
 Start up also checks to see if the current user of SOFA has their local SOFA 
-    folder in place ready to use. If not, SOFA constructs one. First, it 
-    creates the required folder and subfolders. Then it populates them by 
-    copying across css, sofa_db, default proj, vdts, and report extras. 
-    In the local folder the default project file is modified to point to the 
-    user's file paths. A version file is made for future reference.
+folder in place ready to use. If not, SOFA constructs one. First, it creates the 
+required folder and subfolders. Then it populates them by copying across css, 
+sofa_db, default proj, vdts, and report extras.
+ 
+In the local folder the default project file is modified to point to the user's 
+file paths. A version file is made for future reference.
+
 SOFA may also look to see if the local folder was created by an older version of 
-    SOFA. There may be some special tasks to conduct e.g. updating css files.
+SOFA. There may be some special tasks to conduct e.g. updating css files.
+
 If missing, a SOFA recovery folder is also made. If there is already a recovery 
-    folder, but the existing local copy of SOFA was older than the installing 
-    copy, the recovery folder will be wiped and overwritten with the latest 
-    files.
+folder, but the existing local copy of SOFA was older than the installing copy, 
+the recovery folder will be wiped and overwritten with the latest files.
+
 When the form is shown for the first time on Windows versions, a warning is 
-    given and com types are initialised.
+given and com types are initialised.
 """
 
 from __future__ import absolute_import

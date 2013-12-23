@@ -5,7 +5,7 @@ import os
 
 import boomslang
 import pylab
-import wx
+import wx #@UnusedImport
 
 import my_globals as mg
 import lib
@@ -15,16 +15,18 @@ import core_stats
 int_imgs_n = 0 # for internal images so always unique
 
 def save_report_img(add_to_report, report_name, save_func=pylab.savefig, 
-                    dpi=None):
+        dpi=None):
     """
     report_name -- full path to report
+    
     If adding to report, save image to a subfolder in reports named after the 
-        report. Return a relative image source. Make subfolder if not present.
-        Use image name guaranteed not to collide. Count items in subfolder and
-        use index as part of name.
+    report. Return a relative image source. Make subfolder if not present. Use 
+    image name guaranteed not to collide. Count items in subfolder and use index 
+    as part of name.
+    
     If not adding to report, save image to internal folder, and return absolute
-        image source.  Remember to alternate sets of names so always the 
-        freshest image showing in html (without having to reload etc).
+    image source.  Remember to alternate sets of names so always the freshest 
+    image showing in html (without having to reload etc).
     """
     debug = False
     kwargs = {"bbox_inches": "tight"} # hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
@@ -32,7 +34,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         kwargs["dpi"] = dpi
     if add_to_report:
         imgs_path = output.ensure_imgs_path(report_path=report_name, 
-                                            ext=mg.RPT_SUBFOLDER_SUFFIX)
+            ext=mg.RPT_SUBFOLDER_SUFFIX)
         if debug: print("imgs_path: %s" % imgs_path)
         n_imgs = len(os.listdir(imgs_path))
         file_name = u"%03d.png" % n_imgs
@@ -49,7 +51,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         # refresh html.  Otherwise might just show old version of same-named 
         # image file!
         output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
-                                ext=mg.RPT_SUBFOLDER_SUFFIX)
+            ext=mg.RPT_SUBFOLDER_SUFFIX)
         global int_imgs_n
         int_imgs_n += 1
         img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
@@ -58,7 +60,7 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
         save_func(*args, **kwargs)
         if debug: print("Just saved %s" % img_src)
         file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
-                          else mg.FILE_URL_START_GEN)
+            else mg.FILE_URL_START_GEN)
         img_src = file_url_start + output.percent_encode(img_src)
         if mg.PLATFORM == mg.WINDOWS:
             img_src = output.fix_perc_encodings_for_win(img_src)
@@ -67,19 +69,17 @@ def save_report_img(add_to_report, report_name, save_func=pylab.savefig,
 
 def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
     params = {"axes.labelsize": axes_labelsize,
-              "xtick.labelsize": xtick_labelsize,
-              "ytick.labelsize": ytick_labelsize,
-              }
+        "xtick.labelsize": xtick_labelsize, "ytick.labelsize": ytick_labelsize}
     pylab.rcParams.update(params)
 
 def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
-                              var_label_a, y_label, val_labels_a_n, 
-                              val_labels_a, val_labels_b, as_in_bs_lst):
+        var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
+        as_in_bs_lst):
     """
     Clustered bar charts
-    Var A defines the clusters and B the split within the clusters
-    e.g. gender vs country = gender as boomslang bars and country as values 
-        within bars.
+    
+    Var A defines the clusters and B the split within the clusters e.g. gender 
+    vs country = gender as boomslang bars and country as values within bars.
     """
     debug = False
     clustered_bars = boomslang.ClusteredBars(attribution=mg.ATTRIBUTION)
@@ -100,7 +100,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
         max_width = 17 if labels_n < 5 else 10
         (cluster.label, unused, 
          unused) = lib.get_lbls_in_lines(orig_txt=val_label_b, 
-                                         max_width=max_width)
+            max_width=max_width)
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
     clustered_bars.xTickLabels = val_labels_a
@@ -110,8 +110,8 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
     plot.setYLabel(y_label)
 
 def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False, 
-                grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
-                line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
+        grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
+        line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
     """
     Configure histogram with subplot of normal distribution curve.
     Size is set externally. 
@@ -125,10 +125,9 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
     (y_vals, start, 
      bin_width, unused) = core_stats.histogram(vals, n_bins, 
-                                               defaultreallimits=[lower_limit, 
-                                                                  upper_limit])
+        defaultreallimits=[lower_limit, upper_limit])
     y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, start, 
-                                                   bin_width)    
+        bin_width)    
     if thumbnail:
         n_bins = round(n_bins/2, 0)
         if n_bins < 5: 
@@ -145,9 +144,8 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     #n_bins = 4 # test only
     #wx.MessageBox("n_bins: %s" % n_bins)
     # see entry for hist in http://matplotlib.sourceforge.net/api/axes_api.html
-    n, bins, patches = axes.hist(vals, n_bins, normed=1, 
-                                 range=(lower_limit, upper_limit),
-                                 facecolor=bar_colour, edgecolor=line_colour)
+    n, bins, patches = axes.hist(vals, n_bins, normed=1, range=(lower_limit, 
+        upper_limit), facecolor=bar_colour, edgecolor=line_colour)
     if debug: print(n, bins, patches)
     norm_ys = lib.get_normal_ys(vals, bins)
     # ensure enough y-axis to show all of normpdf
@@ -159,10 +157,10 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     if max(norm_ys) > ymax:
         axes.set_ylim(ymax=1.05*max(norm_ys))
     unused = axes.plot(bins, norm_ys, color=line_colour, 
-                       linewidth=normal_line_width)
+        linewidth=normal_line_width)
     if inc_attrib:
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
-                       fontsize=7, rotation=270)
+            fontsize=7, rotation=270)
 
 def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
         label_a, label_b, a_vs_b, xmin=None, xmax=None, ymin=None, ymax=None, 
@@ -195,8 +193,7 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets,
         if ymin is not None and ymax is not None:
             pylab.ylim(ymin, ymax)
         if inc_regression:
-            line_series_lbl = u"%s " % series_lbl if series_lbl else u""
-            line_lbl = u"%s Line" % line_series_lbl
+            line_lbl = "%s " % series_lbl if series_lbl else u"" # can't be identical as the points series so add a space
             pylab.plot([min(sample_a), max(sample_a)], line_lst, u"-", 
                 color=dot_colour, linewidth=5, label=line_lbl)
     axes = fig.gca()
@@ -204,7 +201,11 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets,
     axes.set_ylabel(label_b)
     rect = axes.patch
     rect.set_facecolor(grid_bg)
-    pylab.legend(loc="best", numpoints=1, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    box = axes.get_position()
+    axes.set_position([box.x0, box.y0 + box.height*0.1, box.width, 
+        box.height*0.9])
+    pylab.legend(loc="upper center", bbox_to_anchor=(0.5, -0.05), numpoints=1, 
+        ncol=6, borderaxespad=3, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
         fontsize=7, rotation=270)
 
