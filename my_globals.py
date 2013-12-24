@@ -201,8 +201,20 @@ GROUPING_PLACEHOLDER = 1
 # html_title, html_post_title etc was deemed an even worse approach ;-)
 """
 To make it easy to extract individual items out of reports, split by divider, 
-    and in each chunk, the text after the item_title_start till the end is the 
-    item title we use to name any images we extract from it.
+and in each chunk, split by title divider. The text after the item_title_start 
+till the end is the item title we use to name any images we extract from the 
+first half of the chunk. E.g.
+
+SOFASTATS_ITEM_DIVIDER-->
+    <div class=screen-float-only style="margin-right: 10px;
+    margin-top: 0; page-break-after: always;">
+        <p><b>Gender: Female</b></p>Japan: Slope: 0.195; Intercept: 58.308<br>
+        Italy: Slope: 0.625; Intercept: 37.838<br>
+        Germany: Slope: 0.398; Intercept: 47.824<br>
+        <img src='default_report_images/076.png'>
+    </div>
+<!--ITEM_TITLE_START--><!--Scatterplot_Age vs Post-diet Weight By Country B_Gender: Female-->
+<!--SOFASTATS_ITEM_DIVIDER-->
 """
 ITEM_TITLE_START = u"<!--ITEM_TITLE_START-->" # put item title immediately after this and before divider
 OUTPUT_ITEM_DIVIDER = u"<!--SOFASTATS_ITEM_DIVIDER-->"  # put at end of every item
