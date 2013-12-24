@@ -453,10 +453,9 @@ class LiveTable(DimTable):
         """
         html = []
         title_dets_html = output.get_title_dets_html(self.titles,
-                                                     self.subtitles, css_idx,
-                                                     istable=True)
+            self.subtitles, css_idx, istable=True)
         html.append(title_dets_html)
-        html.append(u"<table cellspacing='0'>\n") # IE6 no support CSS borderspacing
+        html.append(u"%s<table cellspacing='0'>\n" % mg.REPORT_TABLE_START) # IE6 no support CSS borderspacing
         if not (self.prepared and self.prep_css_idx == css_idx):
             # need to get fresh - otherwise, can skip this step. Did it in prep.
             (self.row_label_rows_lst, 
@@ -465,9 +464,7 @@ class LiveTable(DimTable):
             (self.tree_col_labels, 
              self.hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.get_body_html_rows(self.row_label_rows_lst,
-                                                     self.tree_row_labels, 
-                                                     self.tree_col_labels, 
-                                                     css_idx)
+            self.tree_row_labels, self.tree_col_labels, css_idx)
         body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
             # flatten row list
@@ -475,7 +472,7 @@ class LiveTable(DimTable):
         body_html += u"\n</tbody>"
         html.append(self.hdr_html)
         html.append(body_html)
-        html.append(u"\n</table>")
+        html.append(u"\n</table>%s" % mg.REPORT_TABLE_END)
         parts = []
         overall_row_title = self.tree_row_labels.get_overall_title()
         overall_col_title = self.tree_col_labels.get_overall_title()
@@ -493,7 +490,7 @@ class LiveTable(DimTable):
             overall_title = u" Stats By ".join(parts)
         title = (self.titles[0] if self.titles else overall_title)
         output.append_divider(html, title, indiv_title=u"", 
-                              item_type=mg.TAB_TYPE2LBL[self.tab_type])
+            item_type=mg.TAB_TYPE2LBL[self.tab_type])
         return u"\n".join(html)
 
     def get_hdr_dets(self, row_label_cols_n, css_idx):

@@ -111,22 +111,21 @@ class DemoTable(object):
         # sort titles out first
         if self.txt_titles.GetValue():
             self.titles = [u"%s" % x for x 
-                           in self.txt_titles.GetValue().split(u"\n")]
+                in self.txt_titles.GetValue().split(u"\n")]
         else:
             self.titles = []
         if self.txt_subtitles.GetValue():
             self.subtitles = [u"%s" % x for x 
-                              in self.txt_subtitles.GetValue().split(u"\n")]
+                in self.txt_subtitles.GetValue().split(u"\n")]
         else:
             self.subtitles = []
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         html = []
         try:
             html.append(output.get_html_hdr(hdr_title=_(u"Report(s)"), 
-                                        css_fils=[cc[mg.CURRENT_CSS_PATH],], 
-                                        has_dojo=False, new_js_n_charts = None,
-                                        default_if_prob=True, grey=True, 
-                                        abs_pth=True))
+                css_fils=[cc[mg.CURRENT_CSS_PATH],], has_dojo=False, 
+                new_js_n_charts = None, default_if_prob=True, grey=True, 
+                abs_pth=True))
             html.append(u"<table cellspacing='0'>\n") # IE6 no CSS borderspacing
             main_html = self.get_html(css_idx)
         except my_exceptions.MissingCss:
@@ -135,7 +134,7 @@ class DemoTable(object):
             raise
         except Exception, e:
             wx.MessageBox(_("Unable to make report. Error details: %s") % 
-                            lib.ue(e))
+                lib.ue(e))
             raise
         html.append(main_html)
         html.append(u"\n</table>")

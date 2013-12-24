@@ -54,6 +54,11 @@ def get_hdr_and_items(report_path, diagnostic=False):
     
     Then split by title splitter - chunk 0 = actual content, chunk 1 = title to 
     use when saving the item.
+    
+    
+    REPORT_TABLE_START
+    
+    
     """
     debug = False
     if diagnostic: debug = True

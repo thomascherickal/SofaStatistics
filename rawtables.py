@@ -26,18 +26,20 @@ def get_hdr_dets(titles, subtitles, col_labels, css_idx):
     return hdr_html
 
 def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl, 
-             flds, cur, first_col_as_label, val_dics, add_total_row, 
-             where_tbl_filt, css_idx, page_break_after=False, display_n=None):
+        flds, cur, first_col_as_label, val_dics, add_total_row, where_tbl_filt, 
+        css_idx, page_break_after=False, display_n=None):
     """
     Get HTML for table.
+    
     SELECT statement lists values in same order as col names.
+    
     When adding totals, will only do it if all values are numeric (Or None).
+    
     Pulled out of object so can be used by both demo raw table (may need to 
-        update database settings (cursor, db etc) after the demo object was 
-        initiated e.g. user has changed data source after selecting raw tables)
-        AND by live run (which always grabs the data it needs at the moment it
-        is called (current by definition) and instantiates and gets html in one
-        go.
+    update database settings (cursor, db etc) after the demo object was 
+    initiated e.g. user has changed data source after selecting raw tables) AND 
+    by live run (which always grabs the data it needs at the moment it is called 
+    (current by definition) and instantiates and gets html in one go.
     """
     debug = False
     verbose = True
@@ -45,13 +47,13 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
     CSS_TOTAL_ROW = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOTAL_ROW, css_idx)
-    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
-                                        (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
+    CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
+        mg.CSS_PAGE_BREAK_BEFORE, css_idx)
     html = []
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx,
-                                                 istable=True)
+        istable=True)
     html.append(title_dets_html)
-    html.append(u"\n\n<table cellspacing='0'>\n") # IE6 - no support CSS borderspacing
+    html.append(u"\n\n%s<table cellspacing='0'>\n" % mg.REPORT_TABLE_START) # IE6 - no support CSS borderspacing
     hdr_html = get_hdr_dets(titles, subtitles, col_labels, css_idx)
     html.append(hdr_html)
     # build body
@@ -81,9 +83,10 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     colnames_clause = u", ".join([objqtr(x) for x in col_names])
     """
     Get data from SQL and apply labels. Collect totals along the way as is 
-        currently the case.
+    currently the case.
+    
     Sort by labels if appropriate. Then generate HTML row by row and cell by 
-        cell.
+    cell.
     """
     SQL_get_data = u"""SELECT %s 
     FROM %s 
@@ -149,15 +152,14 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
             # cell format
             col_class_names = u"\"" + u" ".join(col_class_lsts[i]) + u"\""
             col_classes = (u"class = %s" % col_class_names
-                           if col_class_names else u"")
+                if col_class_names else u"")
             row_tds.append(u"<td %s>%s</td>" % (col_classes, labelled_col))
- 
         body_html.append(u"<tr>" + u"".join(row_tds) + u"</td></tr>")
     if add_total_row:
         row_tot_vals = []
         for i in range(cols_n):
             val = (unicode(row_tots[i]) if i in row_tots_used
-                   else u"&nbsp;&nbsp;")
+                else u"&nbsp;&nbsp;")
             row_tot_vals.append(val)
         if first_col_as_label:
             tot_cell = u"<td class='%s'>" % CSS_LBL + _("TOTAL") + u"</td>"
@@ -166,15 +168,15 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
             tot_cell = u""
         # never a displayed total for strings (whether orig data or labels)
         joiner = u"</td><td class=\"%s\">" % CSS_ALIGN_RIGHT
-        body_html.append(u"<tr class='%s'>" % CSS_TOTAL_ROW +
-                        tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT +
-                        joiner.join(row_tot_vals) + u"</td></tr>")
+        body_html.append(u"<tr class='%s'>" % CSS_TOTAL_ROW
+            + tot_cell + u"<td class=\"%s\">"  % CSS_ALIGN_RIGHT
+            + joiner.join(row_tot_vals) + u"</td></tr>")
     body_html.append(u"</tbody>")
     html.append(u"\n".join(body_html))
-    html.append(u"\n</table>")
+    html.append(u"\n</table>%s" % mg.REPORT_TABLE_END)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" %
-                    CSS_PAGE_BREAK_BEFORE)
+            CSS_PAGE_BREAK_BEFORE)
     title = (titles[0] if titles else mg.TAB_TYPE2LBL[mg.DATA_LIST])
     output.append_divider(html, title, indiv_title=u"")
     return u"\n".join(html)

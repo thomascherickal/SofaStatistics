@@ -44,7 +44,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html_title = u"<h2>%s</h2>" % title
     html.append(html_title)
     html.append(u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>")
-    html.append(u"\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n%s<table cellspacing='0'>\n<thead>" % mg.REPORT_TABLE_START)
     html.append(u"\n<tr>" + \
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + u"</th>" + \
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Sum of Squares") + \
@@ -75,69 +75,65 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                 u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" %  dfwn)
     html.append(u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
                 (tpl % round(mean_squ_wn, dp)) + u"<td></td><td></td></tr>")
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     try:
         unused, p_sim = core_stats.sim_variance(samples, threshold=0.01)
         msg = round(p_sim, dp)
     except Exception:
         msg = "Unable to calculate"
     # footnote 2
-    html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
-                + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
+    html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance")
+        + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
     add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
     html.append(u"\n\n<h3>" + _("Group summary details") + u"</h3>")
-    html.append(u"\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n%s<table cellspacing='0'>\n<thead>" % mg.REPORT_TABLE_START)
     html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
-            u"</th>" +
-            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
-            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
-            u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("CI 95%") + 
-            u"<a class='%s" % CSS_TBL_HDR_FTNOTE 
-            + u"' href='#ft3'><sup>3</sup></a></th>")
+        u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Mean") + u"</th>" +
+        u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("CI 95%") + 
+        u"<a class='%s" % CSS_TBL_HDR_FTNOTE 
+        + u"' href='#ft3'><sup>3</sup></a></th>")
     # footnote 3
     add_footnote(footnotes, content=mg.CI_EXPLAN)
     # footnote 4
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + 
-                _("Standard Deviation") + u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
-                "' href='#ft4'><sup>4</sup></a></th>")
+        _("Standard Deviation") + u"<a class='%s" % CSS_TBL_HDR_FTNOTE +
+        "' href='#ft4'><sup>4</sup></a></th>")
     add_footnote(footnotes, content=mg.STD_DEV_EXPLAN)
     html.append(u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Max") + u"</th>")
     # footnotes 5,6,7
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Kurtosis") + 
-                u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" % 
-                CSS_TBL_HDR_FTNOTE)
+        u"<a class='%s' href='#ft5'><sup>5</sup></a></th>" % CSS_TBL_HDR_FTNOTE)
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Skew") + 
-                u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" %
-                CSS_TBL_HDR_FTNOTE)
+        u"<a class='%s' href='#ft6'><sup>6</sup></a></th>" % CSS_TBL_HDR_FTNOTE)
     html.append(u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("p abnormal") + 
-                u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" %
-                CSS_TBL_HDR_FTNOTE)
+        u"<a class='%s' href='#ft7'><sup>7</sup></a></th>" % CSS_TBL_HDR_FTNOTE)
     html.append(u"</tr>")
     add_footnote(footnotes, content=mg.KURT_EXPLAN)
     add_footnote(footnotes, content=mg.SKEW_EXPLAN)
     add_footnote(footnotes, content=mg.NORMALITY_MEASURE_EXPLAN)
     html.append(u"\n</thead>\n<tbody>")
     row_tpl = (u"\n<tr>"
-               u"<td class='%s'>" % CSS_LBL + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
-               u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
+        u"<td class='%s'>" % CSS_LBL + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
+        u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     dic_sample_tups = zip(dics, samples)
     for dic, sample in dic_sample_tups:
         results = (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
-                   round(dic[mg.STATS_DIC_MEAN], dp), 
-                   "%s - %s" % (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
-                                tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
-                   tpl % round(dic[mg.STATS_DIC_SD], dp), 
-                   dic[mg.STATS_DIC_MIN], 
-                   dic[mg.STATS_DIC_MAX])
+            round(dic[mg.STATS_DIC_MEAN], dp), "%s - %s" % 
+            (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
+            tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
+            tpl % round(dic[mg.STATS_DIC_SD], dp), dic[mg.STATS_DIC_MIN], 
+            dic[mg.STATS_DIC_MAX])
         try:
             (unused, p_arr, cskew, 
              unused, ckurtosis, unused) = core_stats.normaltest(sample)
@@ -147,11 +143,11 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             results += (kurt, skew, overall_p)
         except Exception:
             results += (_("Unable to calculate kurtosis"), 
-                        _("Unable to calculate skew"),
-                        _("Unable to calculate overall p for normality test"),
-                        )
+                _("Unable to calculate skew"),
+                _("Unable to calculate overall p for normality test"),
+            )
         html.append(row_tpl % results)
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)    
     output.append_divider(html, title, indiv_title=u"")
     for dic_sample_tup in dic_sample_tups:
@@ -221,7 +217,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
         html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance") \
                     + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
         add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
-    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n\n%s<table cellspacing='0'>\n<thead>" % 
+        mg.REPORT_TABLE_START)
     next_ft = len(footnotes) + 1
     html.append(u"\n<tr>" + \
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
@@ -295,7 +292,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                                 "normality test"),
                             )
         html.append(row_tpl % results)
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     html.append("\n<hr class='ftnote-line'>")
     add_footnotes(footnotes, html)
     return title
@@ -426,7 +423,8 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
              u"label_b": label_b.replace(u"%",u"%%"), u"n_a": n_a, 
              u"n_b": n_b, u"label_ranked": label_ranked.replace(u"%",u"%%"),
              u"even_matches": (n_a*n_b)/float(2)})
-    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n\n%s<table cellspacing='0'>\n<thead>" % 
+        mg.REPORT_TABLE_START)
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
@@ -444,7 +442,7 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
                                round(dic["avg rank"], dp),
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -478,7 +476,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     add_footnote(footnotes, content=u"Different statistics applications will "
         u"show different results here depending on the reporting approach "
         u"taken.")
-    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n\n%s<table cellspacing='0'>\n<thead>" % 
+        mg.REPORT_TABLE_START)
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Variable") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
@@ -494,7 +493,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
                                round(dic[mg.STATS_DIC_MEDIAN], dp), 
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
@@ -618,7 +617,8 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         round(chi, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     # headings
-    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n\n%s<table cellspacing='0'>\n<thead>" % 
+        mg.REPORT_TABLE_START)
     html.append(u"\n<tr><th class='%s' colspan=2 rowspan=3></th>" % 
         CSS_SPACEHOLDER)
     html.append(u"<th class='%s' " % CSS_FIRST_COL_VAR +
@@ -676,7 +676,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         u"%s</td><td class='%s'>%s</td>" % (row_obs_tot_tot, CSS_DATACELL, 
         round(row_exp_tot_tot,1)))
     html.append(u"</tr>")
-    html.append(u"\n</tbody>\n</table>\n")
+    html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     # warnings
     html.append(u"\n<p>" + _("Minimum expected cell count") + u": %s</p>" %
         round(min_count, dp))
@@ -797,7 +797,8 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     html.append("\n<p>" + _("Kruskal-Wallis H statistic") + ": %s</p>" % \
                                                                 round(h, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
-    html.append(u"\n\n<table cellspacing='0'>\n<thead>")
+    html.append(u"\n\n%s<table cellspacing='0'>\n<thead>" % 
+        mg.REPORT_TABLE_START)
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") + u"</th>" +
         u"\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("N") + u"</th>" +
@@ -813,7 +814,7 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
                                round(dic[mg.STATS_DIC_MEDIAN], dp),
                                dic[mg.STATS_DIC_MIN], 
                                dic[mg.STATS_DIC_MAX]))
-    html.append(u"\n</tbody></table>")
+    html.append(u"\n</tbody></table>%s" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
