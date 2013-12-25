@@ -583,7 +583,7 @@ def percent_encode(url2esc):
         perc_url = urllib.quote(url2esc_str)
     except Exception, e:
         raise Exception(u"Unable to percent encode \"%s\". Orig error: %s" % 
-                        (url2esc, lib.ue(e)))
+            (url2esc, lib.ue(e)))
     return perc_url
 
 def fix_perc_encodings_for_win(mystr):
@@ -598,8 +598,37 @@ def fix_perc_encodings_for_win(mystr):
         on XP. Crazy.
     """
     fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
-                 replace(mg.PERC_ENCODED_COLON, u":"))
+        replace(mg.PERC_ENCODED_COLON, u":"))
     return fixed_str
+
+def extract_title_subtitle(txt):
+    try:
+        title_start_idx = (txt.index(mg.TBL_TITLE_START) 
+            + len(mg.TBL_TITLE_START))
+        title_end_idx = txt.index(mg.TBL_TITLE_END)
+        title = txt[title_start_idx: title_end_idx].strip()
+        subtitle_start_idx = (txt.index(mg.TBL_SUBTITLE_START) 
+            + len(mg.TBL_SUBTITLE_START))
+        subtitle_end_idx = txt.index(mg.TBL_SUBTITLE_END)
+        subtitle = txt[subtitle_start_idx: subtitle_end_idx].strip()
+        return title, subtitle
+    except Exception, e:
+        raise Exception(u"Unable to extract title and subtitle. Orig error: %s" 
+            % lib.ue(e))
+
+def extract_tbl_only(tbl_item):
+    debug = False
+    try:
+        mystart, post_start = tbl_item.split(mg.REPORT_TABLE_START)
+        title, subtitle = extract_title_subtitle(mystart)
+        tbl_html, unused = post_start.split(mg.REPORT_TABLE_END)
+        tbl_only = u"<h2>%s</h2>\n<h2>%s</h2>\n%s" % (title, subtitle, tbl_html)
+    except Exception, e:
+        msg = (u"Unable to extract report table html and title from "
+            u"input. Orig error: %s" % lib.ue(e))
+        if debug: print(msg)
+        raise Exception(msg)
+    return tbl_only
 
 def rel2abs_rpt_img_links(str_html):
     """

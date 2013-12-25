@@ -216,16 +216,16 @@ SOFASTATS_ITEM_DIVIDER-->
 <!--ITEM_TITLE_START--><!--Scatterplot_Age vs Post-diet Weight By Country B_Gender: Female-->
 <!--SOFASTATS_ITEM_DIVIDER-->
 """
-ITEM_TITLE_START = u"<!--ITEM_TITLE_START-->" # put item title immediately after this and before divider
-OUTPUT_ITEM_DIVIDER = u"<!--SOFASTATS_ITEM_DIVIDER-->"  # put at end of every item
-VISUAL_DIVIDER_BEFORE_THIS = u"<!--VISUAL_DIVIDER_BEFORE_THIS-->"
-REPORT_TABLE_START = u"<!--_report_table_start-->"
-REPORT_TABLE_END = u"<!--_report_table_end-->"
-TBL_TITLE_START = u"<!--_title_start-->"
-TBL_TITLE_END = u"<!--_title_end-->"
-TBL_SUBTITLE_START = u"<!--_subtitle_start-->"
-TBL_SUBTITLE_END = u"<!--_subtitle_end-->"
-IMG_SRC_START = u"<img src='"
+ITEM_TITLE_START = u"<!-- _ITEM_TITLE_START -->" # put item title immediately after this and before divider
+OUTPUT_ITEM_DIVIDER = u"<!-- _SOFASTATS_ITEM_DIVIDER -->"  # put at end of every item
+VISUAL_DIVIDER_BEFORE_THIS = u"<!-- _VISUAL_DIVIDER_BEFORE_THIS -->"
+REPORT_TABLE_START = u"<!-- _REPORT_TABLE_START -->"
+REPORT_TABLE_END = u"<!--_REPORT_TABLE_END -->"
+TBL_TITLE_START = u"<!-- _TBL_TITLE_START -->"
+TBL_TITLE_END = u"<!-- _TBL_TITLE_END -->"
+TBL_SUBTITLE_START = u"<!-- _TBL_SUBTITLE_START -->"
+TBL_SUBTITLE_END = u"<!-- _TBL_SUBTITLE_END -->"
+IMG_SRC_START = u"<IMG src='"
 IMG_SRC_END = u"'>"
 PERC_ENCODED_BACKSLASH = u"%5C"
 PERC_ENCODED_COLON = u"%3A"

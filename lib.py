@@ -4,7 +4,6 @@
 from __future__ import print_function
 
 import codecs
-from collections import namedtuple
 import datetime
 import decimal
 import locale
@@ -15,6 +14,7 @@ import random
 import re
 import time
 import urllib
+
 import wx
 
 # only import my_globals from local modules
