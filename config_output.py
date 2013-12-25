@@ -455,16 +455,14 @@ class ConfigUI(object):
         szr_html_report.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_output_config.Add(szr_html_report, 3)
         if show_export_options:
-            export_choice_items = [_("Report as Images/PDF"), 
-                _("Current Output as Images/PDF"), 
+            export_choice_items = [_("Entire Report"), 
+                _("Current Output"), 
                 _("Copy current output ready to paste"),
-                # _("Tabular output to spreadsheet"),
-                # _("Tabular report items to spreadsheet"),
                 ]
             self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
             self.drop_export.Enable(not self.readonly)
-            self.drop_export.SetToolTipString(_(u"Export report as PDF or"
-                u" as images ready for reports, slideshows etc"))
+            self.drop_export.SetToolTipString(_(u"Export report as PDF, images,"
+                u" or to spreadsheet ready for reports, slideshows etc"))
             self.drop_export.SetSelection(0)
             lbl_export = wx.StaticText(panel, -1, _("Export:"))
             lbl_export.SetFont(mg.LABEL_FONT)
@@ -744,14 +742,15 @@ class ConfigUI(object):
             if debug: raise ImportError
             import export_output as export
             cc = get_cc()
-            dlg = export.DlgExportOutput(title=u"Export Report "
-                u"(Images/PDF)", report2export=cc[mg.CURRENT_REPORT_PATH], 
+            dlg = export.DlgExportOutput(title=u"Export Report", 
+                report2export=cc[mg.CURRENT_REPORT_PATH],
                 temp_report_only=False)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
-            comments = [u"Make it easy to share reports as PDFs or export high",
-                u"-quality images ready to put into documents or slideshows"]
+            comments = [u"Make it easy to share reports as PDFs; export high",
+                u"-quality images ready to put into documents or slideshows; or"
+                u" export report tables to a spreadsheet."]
             dlg = DlgGetExt(label=u"Export Report", comments=comments)
             dlg.ShowModal()
         
@@ -764,13 +763,14 @@ class ConfigUI(object):
             except AttributeError:
                 pass
             import export_output as export
-            dlg = export.DlgExportOutput(title=u"Export Output (PDF/Images)", 
+            dlg = export.DlgExportOutput(title=u"Export Output", 
                 report2export=mg.INT_REPORT_PATH, temp_report_only=True)
             dlg.ShowModal()
         except ImportError:
             # don't have extension installed (or working)
-            comments = [u"Make it easy to share output as PDFs or export high-"
-                u"quality images ready to put into documents or slideshows"]
+            comments = [u"Make it easy to share reports as PDFs; export high",
+                u"-quality images ready to put into documents or slideshows; or"
+                u" export report tables to a spreadsheet."]
             dlg = DlgGetExt(label=u"Export Output", comments=comments)
             dlg.ShowModal()
     
@@ -792,8 +792,9 @@ class ConfigUI(object):
         except ImportError:
             # don't have extension installed (or working)
             lib.safe_end_cursor()
-            comments = [u"Make it easy to copy and paste images ready to ",
-                u"edit and put into documents or slideshows"]
+            comments = [u"Make it easy to share reports as PDFs; export high",
+                u"-quality images ready to put into documents or slideshows; or"
+                u" export report tables to a spreadsheet."]
             dlg = DlgGetExt(label=u"Copy Output to Clipboard As Images", 
                 comments=comments)
             dlg.ShowModal()
