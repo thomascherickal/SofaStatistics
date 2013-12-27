@@ -419,7 +419,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             border-left: solid 1px #c0c0c0;
             border-right: solid 1px #c0c0c0;
             vertical-align: top;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
             font-size: 14px;
             color: white;

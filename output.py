@@ -149,7 +149,7 @@ def get_fallback_css():
             font-size: 12px;
         }
         h1, h2{
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
         }
         h1{
@@ -170,14 +170,14 @@ def get_fallback_css():
         .%s{""" % mg.CSS_TBL_TITLE + u"""
             padding: 0;
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
             font-size: 18px;
         }
         .%s{ """ % mg.CSS_TBL_SUBTITLE + u"""
             padding: 12px 0px 0px 0px;
             margin: 0;
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
             font-size: 14px;
         }
@@ -201,7 +201,7 @@ def get_fallback_css():
         }
         .%s, .%s, .%s {""" % (mg.CSS_FIRST_COL_VAR, mg.CSS_FIRST_ROW_VAR, 
                               mg.CSS_SPACEHOLDER) + u"""
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: white;
@@ -220,7 +220,7 @@ def get_fallback_css():
             vertical-align: top;
         }
         .%s, .%s{""" % (mg.CSS_ROW_VAR, mg.CSS_COL_VAR) + u"""
-            font-family: Arial, Helvetica, sans-serif;
+            font-family: Ubuntu, Helvetica, Arial, sans-serif;
             font-weight: bold;
             font-size: 15px;
             color: #000146;
