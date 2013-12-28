@@ -24,12 +24,15 @@ valqtr = dbe_sqlite.quote_val # only used on internal db in SQLite - all
 
 """
 Take user input and translate into valid SQLite clauses for an update statement.
+
 Note: need to rebuild table so that constraints (e.g. only accept numbers only)
-    can be added to the table.
+can be added to the table.
+
 on_recode() checks things out, then, if OK, calls recode_tbl().
+
 get_case_when_clause() calls process_orig() for each line in the recoding
-    instructions e.g. 1 TO 6 --> "Inappropriate" becomes an SQLite clause ready 
-    to include in the update statement.
+instructions e.g. 1 TO 6 --> "Inappropriate" becomes an SQLite clause ready to 
+include in the update statement.
 """
 
 def make_when_clause(orig_clause, new, new_fldtype):
@@ -90,10 +93,10 @@ def process_orig(orig, fldname, fldtype):
         r_part = parts[1].strip()
         if r_part == MIN:
             raise Exception(_("%(min)s can only be on the left side "
-                              "e.g.%(min)s TO 12") % {u"min": MIN})
+                "e.g.%(min)s TO 12") % {u"min": MIN})
         if l_part == MAX:
             raise Exception(_("%(max)s can only be on the right side "
-                              "e.g. %(max)s TO 12") % {u"max": MAX})
+                "e.g. %(max)s TO 12") % {u"max": MAX})
         has_min = False
         has_max = False
         num_mismatch = False
@@ -117,11 +120,11 @@ def process_orig(orig, fldname, fldtype):
         if num_mismatch:
             if debug: print(l_part, r_part)
             raise Exception(_("Only numeric values can be recoded for this "
-                              "variable"))
+                "variable"))
         if date_mismatch:
             if debug: print(l_part, r_part)
             raise Exception(_("Only date values can be recoded for this "
-                              "variable"))
+                "variable"))
         if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
             l_prep = valqtr(l_part, charset2try="utf-8")
             r_prep = valqtr(r_part, charset2try="utf-8")
@@ -145,7 +148,7 @@ def process_orig(orig, fldname, fldtype):
         elif fldtype == mg.FLDTYPE_NUMERIC:
             if not lib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
-                                  "are trying to recode a non-numeric value"))
+                    "are trying to recode a non-numeric value"))
             orig_clause = u"%s = %s" % (fld, orig)
         else:
             orig_clause = u"%s = %s" % (fld, orig)
@@ -173,9 +176,8 @@ def recode_cell_invalidation(recode_dlg, val, row, col, grid, col_dets):
     No dots as from or too (idxes 0 and 1).
     """
     if val == mg.MISSING_VAL_INDICATOR and col in (0,1):
-        return True, _(u"Please do not use the \"%s\" to recode to or from. " \
-                       u"Use MISSING for missing as required.") % \
-                       mg.MISSING_VAL_INDICATOR
+        return True, _(u"Please do not use the \"%s\" to recode to or from. "
+            u"Use MISSING for missing as required.") % mg.MISSING_VAL_INDICATOR
     return False, u""
 
 def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
@@ -202,11 +204,10 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
                 existing_labels_lst.append(display)
             existing_labels = u"\n".join(existing_labels_lst)
             wx.MessageBox(_("\"%(new_fldname)s\" already has value labels set. "
-                            "Only add labels here if you wish to add to or "
-                            "override existing value labels\n\n"
-                            "Existing labels:\n\n%(existing_labels)s") % 
-                            {"new_fldname": recode_dlg.new_fldname, 
-                             "existing_labels": existing_labels})
+                "Only add labels here if you wish to add to or override "
+                "existing value labels\n\nExisting labels:\n\n"
+                "%(existing_labels)s") % {"new_fldname": recode_dlg.new_fldname, 
+                "existing_labels": existing_labels})
 
 
 class DlgRecode(settings_grid.DlgSettingsEntry):
@@ -222,22 +223,22 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [
-                    {"col_label": _("FROM original value(s)"), 
-                     "coltype": settings_grid.COL_STR, 
-                     "colwidth": 200},
-                    {"col_label": _("TO new value"), 
-                     "coltype": settings_grid.COL_STR, 
-                     "colwidth": 200},
-                    {"col_label": _("With LABEL"), 
-                     "coltype": settings_grid.COL_STR, 
-                     "colwidth": 200, "empty_ok": True},
-                     ]
+            {"col_label": _("FROM original value(s)"), 
+             "coltype": settings_grid.COL_STR, 
+             "colwidth": 200},
+            {"col_label": _("TO new value"), 
+             "coltype": settings_grid.COL_STR, 
+             "colwidth": 200},
+            {"col_label": _("With LABEL"), 
+             "coltype": settings_grid.COL_STR, 
+             "colwidth": 200, "empty_ok": True},
+        ]
         grid_size = (640, 250)
         wx.Dialog.__init__(self, None, title=_("Recode Variable"),
-                          size=(700,350), pos=(mg.HORIZ_OFFSET+150,100),
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
+            size=(700,350), pos=(mg.HORIZ_OFFSET+150,100),
+            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-                                    lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+            lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.panel = wx.Panel(self)
         # New controls
         lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
@@ -246,8 +247,8 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         # [('string', 'fname', 'fname (string)'), ...]
         # field type is used for validation and constructing recode SQL string
         fld_dets = [(x[mg.TBL_FLDTYPE], x[mg.TBL_FLDNAME],
-                     u"%s (%s)" % (x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])) 
-                    for x in self.settings_data]
+            u"%s (%s)" % (x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])) 
+            for x in self.settings_data]
         fld_dets.sort(key=lambda s: s[2].upper()) # needed consistent sorting
         self.fldtypes = [x[0] for x in fld_dets]
         self.fldnames = [x[1] for x in fld_dets]
@@ -255,12 +256,12 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.fldname = self.fldnames[0]
         self.new_fldname = u""
         self.drop_from = wx.Choice(self.panel, -1, choices=self.fldchoices, 
-                                   size=(250,-1))
+             size=(250,-1))
         self.drop_from.SetSelection(0)
         self.drop_from.Bind(wx.EVT_CHOICE, self.on_var_sel)
         self.drop_from.Bind(wx.EVT_CONTEXT_MENU, self.on_var_rclick)
         self.drop_from.SetToolTipString(_("Right click to view variable "
-                                          "details"))
+            "details"))
         lbl_to = wx.StaticText(self.panel, -1, u"To:")
         lbl_to.SetFont(mg.LABEL_FONT)
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
@@ -268,13 +269,13 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         init_recode_clauses_data = []
         self.recode_clauses_data = []
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-                                grid_size, col_dets, init_recode_clauses_data, 
-                                self.recode_clauses_data,
-                                cell_response_func=warn_about_existing_labels,
-                                cell_invalidation_func=recode_cell_invalidation)
+            grid_size, col_dets, init_recode_clauses_data, 
+            self.recode_clauses_data, 
+            cell_response_func=warn_about_existing_labels,
+            cell_invalidation_func=recode_cell_invalidation)
         self.tabentry.grid.Enable(False)
         self.tabentry.grid.SetToolTipString(_("Disabled until there is a "
-                                              "variable to recode to"))
+            "variable to recode to"))
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         btn_help = wx.Button(self.panel, wx.ID_HELP)
@@ -282,7 +283,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         btn_recode = wx.Button(self.panel, -1, _("Recode"))
         btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
         btn_recode.SetToolTipString(_("Recode an existing variable into a new "
-                                      "variable"))
+            "variable"))
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_vars = wx.BoxSizer(wx.HORIZONTAL)
@@ -311,8 +312,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         var_label = lib.get_item_label(self.var_labels, self.fldname)
         choice_item = lib.get_choice_item(self.var_labels, self.fldname)
         unused = projects.set_var_props(choice_item, self.fldname, var_label, 
-                                        self.var_labels, self.var_notes, 
-                                        self.var_types, self.val_dics)
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
     def on_txt_to_char(self, event):
         keycode = event.GetKeyCode()
         if keycode == wx.WXK_RETURN:
@@ -353,65 +353,67 @@ e.g. if you want all missing values to become 99 you would have a line with From
 
     "10 TO MAX" as From and 99 as To.""")
         dlg = lib.DlgHelp(parent=self, title=_("Recoding Help"), 
-                          guidance_lbl=_("Recoding Rules"), 
-                          activity_lbl=u"recoding", guidance=rules, 
-                          help_pg=u"recoding_data")
+            guidance_lbl=_("Recoding Rules"), activity_lbl=u"recoding", 
+            guidance=rules, help_pg=u"recoding_data")
         dlg.ShowModal()
         event.Skip()
     
     def recover_from_failed_recode(self):
         """
         If this goes wrong, delete freshly-created table with orig name, and 
-            rename tmp table back to orig name. That way, we haven't wiped the 
-            original table merely because of a recode problem
+        rename tmp table back to orig name. That way, we haven't wiped the 
+        original table merely because of a recode problem
         """
         dd = mg.DATADETS_OBJ
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-        SQL_drop_orig = u"DROP TABLE IF EXISTS %s" % \
-                                getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)
+        SQL_drop_orig = (u"DROP TABLE IF EXISTS %s" %
+            getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname))
         dd.cur.execute(SQL_drop_orig)
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME),
-                           getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
+            (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME),
+            getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname)))
         dd.cur.execute(SQL_rename_tbl)
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
         dd.set_db(dd.db, tbl=self.tblname)
     
     def recode_tbl(self, case_when, oth_name_types, 
-                   idx_new_fld_in_oth_name_types):
+            idx_new_fld_in_oth_name_types):
         """
         Build SQL, rename existing to tmp table, create empty table with orig 
-            name, and then mass into it.
+        name, and then mass into it.
+        
         oth_name_types -- includes the new field
+        
         idx_new_fld_in_oth_name_types -- needed an index which could be used in 
-            oth_name_types. An idx for the orig field wouldn't work if the field 
-            was the sofa_id.
+        oth_name_types. An idx for the orig field wouldn't work if the field 
+        was the sofa_id.
+        
         Doesn't use ALTER TABLE mytable ADD newvar syntax etc followed by 
+        
         UPDATE mytable SET newvar = ... because we want to put the new variable 
-            in straight after the source variable.
+        in straight after the source variable.
         """
         debug = False
         dd = mg.DATADETS_OBJ
         # rename table to tmp
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
-                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)
+        SQL_drop_tmp = (u"DROP TABLE IF EXISTS %s" %
+            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME))
         dd.cur.execute(SQL_drop_tmp)
         SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-                          (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
-                           getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)))
+            (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)))
         dd.cur.execute(SQL_rename_tbl)
         # create new table with orig name and extra field
         create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
-                                                        strict_typing=False,
-                                                        inc_sofa_id=True)
+            strict_typing=False, inc_sofa_id=True)
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-        SQL_make_recoded_tbl = u"CREATE TABLE %s (%s) " % \
-                            (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
-                             create_fld_clause)
+        SQL_make_recoded_tbl = (u"CREATE TABLE %s (%s) " %
+            (getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+            create_fld_clause))
         if debug: print(u"SQL_make_recoded_tbl: %s" % SQL_make_recoded_tbl)
         dd.cur.execute(SQL_make_recoded_tbl)
         # want fields before new field, then case when, then any remaining flds
@@ -422,7 +424,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
         if debug: 
             print(u"oth_name_types: %s" % oth_name_types)
             print(u"idx_new_fld_in_oth_name_types: %s" % 
-                  idx_new_fld_in_oth_name_types)
+                idx_new_fld_in_oth_name_types)
         name_types_pre_new = oth_name_types[: idx_new_fld_in_oth_name_types]
         if debug: print(u"name_types_pre_new: %s" % name_types_pre_new)
         for name, unused in name_types_pre_new:
@@ -437,10 +439,9 @@ e.g. if you want all missing values to become 99 you would have a line with From
         SQL_insert_content = ("INSERT INTO %(tblname)s "
             "\n    SELECT %(fld_clauses)s "
             "\n    FROM %(tmp_tbl)s" % 
-                {u"tblname": getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
-                 u"fld_clauses": fld_clauses,
-                 u"tmp_tbl": getdata.tblname_qtr(mg.DBE_SQLITE, 
-                                                 mg.TMP_TBLNAME)})
+            {u"tblname": getdata.tblname_qtr(mg.DBE_SQLITE, self.tblname), 
+            u"fld_clauses": fld_clauses,
+            u"tmp_tbl": getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)})
         print("*"*60)
         print(SQL_insert_content) # worth keeping and not likely to be overdone
         print("*"*60)
@@ -453,8 +454,8 @@ e.g. if you want all missing values to become 99 you would have a line with From
             raise
         dd.con.commit()
         getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-        SQL_drop_tmp = u"DROP TABLE IF EXISTS %s" % \
-                            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)
+        SQL_drop_tmp = (u"DROP TABLE IF EXISTS %s" %
+            getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME))
         dd.cur.execute(SQL_drop_tmp)
         dd.con.commit()
         dd.set_db(dd.db, tbl=self.tblname)
@@ -471,10 +472,10 @@ e.g. if you want all missing values to become 99 you would have a line with From
         except KeyError:
             self.val_dics[fldname] = dict_labels
         projects.update_vdt(self.var_labels, self.var_notes, self.var_types, 
-                            self.val_dics)
+            self.val_dics)
 
     def get_case_when_clause(self, new_fldname, new_fldtype, fldtype, 
-                             dict_labels):
+            dict_labels):
         """
         Recoding into new variable with a CASE WHEN SQL syntax clause.
         Order doesn't matter except for REMAINING which is ELSE in CASE 
@@ -489,7 +490,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
                 orig_clause = process_orig(orig, self.fldname, fldtype)
                 process_label(dict_labels, new_fldtype, new, label)
                 when_clauses.append(make_when_clause(orig_clause, new, 
-                                                     new_fldtype))
+                    new_fldtype))
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
                 if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
@@ -505,12 +506,12 @@ e.g. if you want all missing values to become 99 you would have a line with From
                 remaining_clause = u" "*12 + u"WHEN 1=1 THEN %s" % remaining_to
             when_clauses.append(remaining_clause)
             process_label(dict_labels, new_fldtype, remaining_new, 
-                          remaining_label)
+                remaining_label)
         case_when_lst = []
         case_when_lst.append(u"    CASE")
         case_when_lst.extend(when_clauses)
         case_when_lst.append(u"        END\n    AS %s" % 
-                             objqtr(new_fldname))
+            objqtr(new_fldname))
         case_when = u"\n".join(case_when_lst)
         if debug: 
             pprint.pprint(dict_labels)
@@ -520,8 +521,8 @@ e.g. if you want all missing values to become 99 you would have a line with From
     def on_recode(self, event):
         """
         Get settings, validate when Recode button clicked, make recoded table, 
-            give message that a once-off recode - won't be automatic if new rows 
-            added or cells edited.
+        give message that a once-off recode - won't be automatic if new rows 
+        added or cells edited.
         """
         debug = False
         fld_idx = self.drop_from.GetSelection()
@@ -533,12 +534,12 @@ e.g. if you want all missing values to become 99 you would have a line with From
         valid, err = dbe_sqlite.valid_fldname(new_fldname)
         if not valid:
             wx.MessageBox(_("Field names can only contain letters, numbers, "
-                               "and underscores.\nOrig error: %s") % err)
+                "and underscores.\nOrig error: %s") % err)
             return
         # can't already be in use
         if new_fldname in self.fldnames:
             wx.MessageBox(_("Unable to use an existing field name (%s)") % 
-                            new_fldname)
+                new_fldname)
             return
         fldtype = self.fldtypes[fld_idx]
         self.tabentry.update_settings_data()
@@ -560,30 +561,30 @@ e.g. if you want all missing values to become 99 you would have a line with From
         new_fldtype = lib.get_overall_fldtype(type_set)
         try:
             case_when = self.get_case_when_clause(new_fldname, new_fldtype, 
-                                                  fldtype, dict_labels)
+                fldtype, dict_labels)
         except Exception, e:
             wx.MessageBox(_("Problem with your recode configuration."
-                            "\nCaused by error: %s") % lib.ue(e))
+                "\nCaused by error: %s") % lib.ue(e))
             return
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         # insert new field just after the source field
         if self.fldname == mg.SOFA_ID:
             idx_new_fld_in_oth_name_types = 0 # idx in oth_name_types
         else:
-            idx_new_fld_in_oth_name_types = \
-                        [x[0] for x in oth_name_types].index(self.fldname) + 1
+            idx_new_fld_in_oth_name_types = (
+                [x[0] for x in oth_name_types].index(self.fldname) + 1)
         oth_name_types.insert(idx_new_fld_in_oth_name_types,
-                              (new_fldname, new_fldtype))
+                (new_fldname, new_fldtype))
         if debug: print(oth_name_types)
         try:
             self.recode_tbl(case_when, oth_name_types, 
-                            idx_new_fld_in_oth_name_types)
+                idx_new_fld_in_oth_name_types)
             wx.MessageBox(_("Please Note - this was a once-off recode - it "
-                            "won't be applied automatically when new rows are "
-                            "added or cells are edited."))
+                "won't be applied automatically when new rows are added or "
+                "cells are edited."))
         except Exception, e:
             raise Exception(_("Problem recoding table."
-                              "\nCaused by error: %s") % lib.ue(e))
+                "\nCaused by error: %s") % lib.ue(e))
         self.update_labels(new_fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)
