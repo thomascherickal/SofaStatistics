@@ -216,8 +216,8 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         """
         tblname -- table containing the variable we are recoding
         fld_settings -- a list of dicts with the following keys: 
-            mg.TBL_FLDNAME, mg.TBL_FLDNAME_ORIG, mg.TBL_FLDTYPE, 
-            mg.TBL_FLDTYPE_ORIG.
+        mg.TBL_FLDNAME, mg.TBL_FLDNAME_ORIG, mg.TBL_FLDTYPE, 
+        mg.TBL_FLDTYPE_ORIG.
         """
         cc = config_output.get_cc()
         self.tblname = tblname
@@ -237,8 +237,8 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         wx.Dialog.__init__(self, None, title=_("Recode Variable"),
             size=(700,350), pos=(mg.HORIZ_OFFSET+150,100),
             style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
-        self.var_labels, self.var_notes, self.var_types, self.val_dics = \
-            lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+        (self.var_labels, self.var_notes, self.var_types, 
+         self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.panel = wx.Panel(self)
         # New controls
         lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
