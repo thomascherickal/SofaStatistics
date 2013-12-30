@@ -944,6 +944,7 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
         clause = (u"%(fldname)s %(fldtype)s %(check_clause)s" %
             {"fldname": objqtr(fldname), "fldtype": tosqlite["sqlite_type"],
             "check_clause": check})
+        if debug: print(u"clause: %s" % clause)
         fld_clause_items.append(clause)
     if inc_sofa_id:
         fld_clause_items.append(u"UNIQUE(%s)" % sofa_id)

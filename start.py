@@ -104,15 +104,6 @@ if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
 
-# wipe this next code block once we pass March 2013
-if (mg.PLATFORM == mg.LINUX and installed_version is not None 
-        and installed_version < "1.1.5"): # None is less than anything ;-)
-    mg.DEFERRED_WARNING_MSGS.append(u"The upgrade has created new "
-        u"sofastats and sofastats_recovery folders in %s. If you want to "
-        u"keep what was in the old location you will need to manually copy "
-        u"it across. You will also need to modify any custom proj files to "
-        u"take into account the new folder locations." % mg.USER_PATH)
-
 
 class SofaApp(wx.App):
 
@@ -130,10 +121,15 @@ class SofaApp(wx.App):
     def OnInit(self):
         """
         Application needs a frame to open so do that after setting some global 
-            values for screen dimensions.
+        values for screen dimensions.
+        
         Also responsible for setting translations etc so application 
-            internationalised.
+        internationalised.
         """
+        # so printing output to redirected file can cope with unicode on Win and Mac!
+        # Note must be done AFTER redirection has occurred or has no effect!
+        sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
+        sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'replace')
         try:
             config_globals.set_fonts()
             try:
@@ -149,7 +145,7 @@ class SofaApp(wx.App):
             return True
         except Exception, e: # frame will close by itself now
             raise Exception(u"Problem initialising application. "
-                            u"Original error: %s" % lib.ue(e))
+                u"Original error: %s" % lib.ue(e))
     
     def setup_i18n(self):
         """
