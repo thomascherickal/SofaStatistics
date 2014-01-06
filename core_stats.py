@@ -229,7 +229,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                 raise my_exceptions.CategoryTooLong(fld_b)
             vals_b.append(col_val)
     if len(vals_b) > mg.MAX_CHI_DIMS:
-        raise my_exceptions.TooManyRowsInChiSquare
+        raise my_exceptions.TooManyColsInChiSquare
     if len(vals_b) < mg.MIN_CHI_DIMS:
         raise my_exceptions.TooFewColsInChiSquare
     if len(vals_a)*len(vals_b) > mg.MAX_CHI_CELLS:
