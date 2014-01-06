@@ -536,6 +536,8 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
+    slope, intercept, r, y0, y1 = lib.get_regression_dets(list_x, list_y)
+    line_lst = [y0, y1]
     html = []
     footnotes = []
     x_vs_y = '"%s"' % label_x + _(" vs ") + '"%s"' % label_y
@@ -550,12 +552,19 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
         u": %s</p>" % round(r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
+    html.append(u"<p>Linear Regression Details: "
+        u"<a href='#ft2'><sup>2</sup></a></p>")
+    add_footnote(footnotes, content=u"Always look at the scatter plot when "
+        u"interpreting the linear regression line.</p>")
+    html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
+    html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     output.append_divider(html, title, indiv_title=u"")
     grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
     title_dets_html = u"" # already got an appropriate title for whole section
     show_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
-        mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.DATA_TUPS: None}] # only Dojo needs data_tups
+        mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
+        mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, dot_colour=dot_colours[0])
