@@ -525,39 +525,46 @@ class DlgStatsSelect(wx.Dialog):
                 tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
                     " is probably a good choice. The Kruskal-Wallis H may "
                     "still be preferable if your data is not adequately "
-                    "normal."), tips_width)
+                    "normal."), 
+                    tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
                     " is good for seeing if there is a difference in means "
                     "between multiple groups when the data is numerical and "
                     "adequately normal. Generally the ANOVA is robust to "
-                    "non-normality."), tips_width)
+                    "non-normality."), 
+                    tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
         elif test_type == TEST_KRUSKAL_WALLIS:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
                     " is probably a good choice. The ANOVA (Analysis Of "
                     "Variance) may still be preferable if your data is "
-                    "numerical and adequately normal."), tips_width)
+                    "numerical and adequately normal."), 
+                    tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
                     " is good for seeing if there is a difference in values "
                     "between multiple groups when the data is at least ordered"
                     " (ordinal). The ANOVA (Analysis Of "
                     "Variance) may still be preferable if your data is "
-                    "numerical and adequately normal."), tips_width)
+                    "numerical and adequately normal."), 
+                    tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
@@ -566,13 +573,15 @@ class DlgStatsSelect(wx.Dialog):
         elif test_type == TEST_CHI_SQUARE:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Chi Square test"
-                    " is probably a good choice."), tips_width)
+                    " is probably a good choice."), 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Chi Square test is one of "
                     "the most widely used tests in social science. It is good "
                     "for seeing if the results for two variables are "
                     "independent or related. Is there a relationship between "
-                    "gender and income group for example?"), tips_width)
+                    "gender and income group for example?"), 
+                    tips_width)
         elif test_type == TEST_PEARSONS_R:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
@@ -586,7 +595,8 @@ class DlgStatsSelect(wx.Dialog):
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
                     " is good for testing linear "
@@ -600,24 +610,41 @@ class DlgStatsSelect(wx.Dialog):
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
         elif test_type == TEST_SPEARMANS_R:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Spearman's R Correlation test is probably a good choice if you are testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."), 
+                tips = lib.get_text_to_draw(_(u"The Spearman's R Correlation "
+                    u"test is probably a good choice if you are testing to see "
+                    u"if two variables change together e.g. if one increases, "
+                    u"the other also increases (or at least stays the same). "
+                    u"Always look at the scatterplot to check the actual "
+                    u"relationship e.g. roughly linear. The Pearson's R "
+                    u"Correlation test may still be preferable if your data is "
+                    u"numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Spearman's R Correlation test is good for testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."), 
+                tips = lib.get_text_to_draw(_(u"The Spearman's R Correlation "
+                    u"test is good for testing to see if two variables change "
+                    u"together e.g. if one increases, the other also increases "
+                    u"(or at least stays the same). Always look at the "
+                    u"scatterplot to check the actual relationship e.g. roughly"
+                    u" linear. The Pearson's R Correlation test may still be "
+                    u"preferable if your data is numerical and adequately "
+                    u"normal."), 
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
         elif test_type == TEST_TTEST_INDEP:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Independent t-test is "
@@ -631,13 +658,15 @@ class DlgStatsSelect(wx.Dialog):
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.")
-                    % self.normality_label, tips_width)
+                    % self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Independent t-test is a very"
                     " popular test. It is good for seeing if there is a "
                     "difference between two groups when the data is numerical "
                     "and adequately normal. Generally the t-test is robust to "
-                    "non-normality."), tips_width)
+                    "non-normality."), 
+                    tips_width)
                 tips += u"\n\n" 
                 tips += lib.get_text_to_draw(_("The Mann-Whitney may be "
                     "preferable in some cases because of its resistance"
@@ -645,7 +674,8 @@ class DlgStatsSelect(wx.Dialog):
                     tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("It also copes better with small"
-                    " sample sizes e.g. < 20."), tips_width)
+                    " sample sizes e.g. < 20."), 
+                    tips_width)
         elif test_type == TEST_MANN_WHITNEY:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
@@ -658,16 +688,18 @@ class DlgStatsSelect(wx.Dialog):
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
                     "seeing if there is a difference between two groups when "
-                    "the data is at least ordinal (ordered)."), tips_width)
-                tips += u"\n\n" 
-                tips += lib.get_text_to_draw(_("The Independent t-test may be "
-                    "preferable if your data is numerical and doesn't violate "
-                    "normality too much.  Generally the t-test is robust"
-                    " to non-normality."),
+                    "the data is at least ordinal (ordered)."), 
+                    tips_width)
+                tips += u"\n\n"
+                tips += lib.get_text_to_draw(_(u"The Independent t-test may be "
+                    u"preferable if your data is numerical and doesn't violate "
+                    u"normality too much.  Generally the t-test is robust"
+                    u" to non-normality."), 
                     tips_width)
         elif test_type == TEST_TTEST_PAIRED:
             if assisted:
@@ -680,7 +712,8 @@ class DlgStatsSelect(wx.Dialog):
                 tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The paired t-test is good for "
                     "looking at differences in paired numerical data e.g. two "
@@ -690,7 +723,8 @@ class DlgStatsSelect(wx.Dialog):
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
         elif test_type == TEST_WILCOXON:
             if assisted:
                 tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks"
@@ -702,7 +736,8 @@ class DlgStatsSelect(wx.Dialog):
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
             else:
                 tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks is "
                     "good for looking at differences in paired data e.g. two "
@@ -713,11 +748,13 @@ class DlgStatsSelect(wx.Dialog):
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_("The paired t-test may be "
                     "preferable if your data is numerical and doesn't violate "
-                    "normality too much."), tips_width)
+                    "normality too much."), 
+                    tips_width)
                 tips += u"\n\n"
                 tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.") % 
-                    self.normality_label, tips_width)
+                    self.normality_label, 
+                    tips_width)
         else:
             tips = u""
         self.lbl_tips.SetLabel(tips)
