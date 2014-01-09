@@ -30,7 +30,6 @@ class DlgDataSelect(wx.Dialog):
             _("Choose an existing data table ..."), size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
             fil_name=proj_name)
-        hide_db = projects.get_hide_db()
         config_output.update_var_dets(dlg=self)
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
@@ -44,7 +43,8 @@ class DlgDataSelect(wx.Dialog):
         # key settings
         self.drop_tbls_panel = self.panel
         self.drop_tbls_system_font_size = True
-        self.drop_tbls_idx_in_szr = 3
+        hide_db = projects.get_hide_db()
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 0
         self.drop_tbls_can_grow = True

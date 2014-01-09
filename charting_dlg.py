@@ -76,14 +76,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_vars = wx.Panel(self)
         # key settings
+        hide_db = projects.get_hide_db()
         self.drop_tbls_panel = self.panel_data
         self.drop_tbls_system_font_size = False
         self.drop_tbls_sel_evt = self.on_table_sel
-        self.drop_tbls_idx_in_szr = 3
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # 2 fewer items
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data, 
-            hide_db=projects.get_hide_db()) # mixin
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         # variables

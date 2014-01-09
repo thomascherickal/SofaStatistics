@@ -80,12 +80,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         # key settings
         self.drop_tbls_panel = self.panel_data
         self.drop_tbls_system_font_size = False
-        self.drop_tbls_idx_in_szr = 3
+        hide_db = projects.get_hide_db()
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data, 
-            hide_db=projects.get_hide_db()) # mixin
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
         self.panel_data.SetSizer(self.szr_data)
         self.szr_output_config = self.get_szr_output_config(self.panel_bottom) 
         self.drop_tbls_szr = self.szr_data

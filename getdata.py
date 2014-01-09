@@ -755,6 +755,7 @@ def get_fresh_drop_tbls(parent, szr, panel):
     Destroy the existing dropdown widget, create a new one (with the non-system 
     font size), feed it back into the sizer.
     """
+    szr.Remove(parent.drop_tbls_idx_in_szr) # remove from sizer before destroying
     parent.drop_tbls.Destroy()
     tbls_with_filts, idx_tbl = get_tblnames_and_idx()
     drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts, 
