@@ -327,6 +327,13 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
         first_mismatch=first_mismatch, testing=testing)
     return fldtype
 
+def is_blank_raw_val(raw_val):
+    """
+    Need to handle solo single quotes or solo double quotes. May be result of 
+    escaping issues but be derived from csv rows like 1,"",4. 
+    """
+    return raw_val in (u"", u"''", u'""', u"'", u'"', None)
+
 def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
         faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
     """
@@ -352,7 +359,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
                     val = raw_val
             except AttributeError:
                 val = raw_val
-        elif raw_val == u"" or raw_val is None:
+        elif is_blank_raw_val(raw_val):
             ok_data = True
             val = u"NULL"
         elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric field
@@ -371,7 +378,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
             ok_data = True
         else:
             if debug: print(u"Raw val: %s" % raw_val)
-            if raw_val == u"" or raw_val is None:
+            if is_blank_raw_val(raw_val):
                 ok_data = True
                 val = u"NULL"
             elif raw_val == mg.MISSING_VAL_INDICATOR: # not ok in numeric fld
@@ -391,7 +398,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
     elif fldtype == mg.FLDTYPE_STRING:
         # None or empty string we'll turn to NULL
         ok_data = True
-        if raw_val is None or raw_val == u"":
+        if is_blank_raw_val(raw_val):
             val = u"NULL"
         else:
             val = raw_val
