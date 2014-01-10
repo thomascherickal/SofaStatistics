@@ -12,7 +12,7 @@ Start up also checks to see if the current user of SOFA has their local SOFA
 folder in place ready to use. If not, SOFA constructs one. First, it creates the 
 required folder and subfolders. Then it populates them by copying across css, 
 sofa_db, default proj, vdts, and report extras.
- 
+
 In the local folder the default project file is modified to point to the user's 
 file paths. A version file is made for future reference.
 
