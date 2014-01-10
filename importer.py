@@ -332,7 +332,7 @@ def is_blank_raw_val(raw_val):
     Need to handle solo single quotes or solo double quotes. May be result of 
     escaping issues but be derived from csv rows like 1,"",4. 
     """
-    return raw_val in (u"", u"''", u'""', u"'", u'"', None)
+    return raw_val in (u"", u"''", u'""', None)
 
 def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
         faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):

@@ -26,8 +26,9 @@ ERR_NEW_LINE_IN_STRING = u"newline inside string" #  # Shouldn't happen now I
 # n lines for sample to display etc. Would sometimes break inside a string.
 # Have to wait for cvs reader stage to be able to reliably tell when a line 
 # break is between lines and not within a field.
-ESC_DOUBLE_QUOTE = "\x14" # won't occur naturally and doesn't break csv module
+SAFE_CSV_ESCAPE_1 = "\x14" # won't occur naturally and doesn't break csv module
 # Shift Out control character in ASCII 
+SAFE_CSV_ESCAPE_2 = "\x15" # won't occur naturally, Shift In control character in ASCII. Not same as SAFE_CSV_ESCAPE_1
 """
 Support for unicode is lacking from the Python 2 series csv module and quite a
 bit of wrapping is required to work around it. Must wait for Python 3 or spend a 
@@ -66,7 +67,7 @@ def has_comma_delim(dialect):
     comma_delimiter = (dialect.delimiter.decode("utf8") == u",")
     return comma_delimiter
 
-def get_possible_encodings(file_path):
+def get_possible_encodings(file_path, delimiter):
     """
     Get list of encodings which potentially work for a sample. Fast enough not 
     to have to sacrifice code readability etc for performance.
@@ -85,7 +86,7 @@ def get_possible_encodings(file_path):
     for encoding in encodings:
         if debug: print("About to test encoding: %s" % encoding)
         try:
-            unused = csv2utf8_bytelines(file_path, encoding)
+            unused = csv2utf8_bytelines(file_path, encoding, delimiter)
             possible_encodings.append(encoding)
         except Exception:
             continue
@@ -290,7 +291,7 @@ class UnicodeCsvReader(object):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         debug = False
         try:
-            dialect.escapechar = ESC_DOUBLE_QUOTE
+            dialect.escapechar = SAFE_CSV_ESCAPE_1
             if debug: print(dialect.delimiter)
             self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
                 **kwargs)
@@ -339,7 +340,7 @@ class UnicodeCsvDictReader(object):
         # csv.py doesn't do Unicode; encode temporarily as UTF-8:
         try:
             kwargs = {"fieldnames": fieldnames} if fieldnames else {}
-            dialect.escapechar = ESC_DOUBLE_QUOTE
+            dialect.escapechar = SAFE_CSV_ESCAPE_1
             self.csv_dictreader = csv.DictReader(utf8_encoded_csv_data, 
                 dialect=dialect, **kwargs)
         except Exception, e:
@@ -387,22 +388,50 @@ class UnicodeCsvDictReader(object):
                     u"\nCaused by error: %s" % lib.ue(e))
             yield dict(unicode_key_value_tups)
 
-def escape_double_quotes_in_uni_lines(lines):
+def escape_double_quotes_in_uni_lines(lines, delimiter):
     """
     Needed because csv not handling doubled double quotes inside fields.
+    
+    The problem -- how can we tell within a line, whether two double quotes are
+    an attempt at escaping a solo double quote vs a quoted empty string? Need
+    to look for delimiters.
+    
+    If we see "" in the line string we need to know whether it is an attempt at 
+    escaping e.g "Fred said ""Hi""." rather than the actual enclosing quotes for 
+    an empty string e.g. "". So ,"", is ok as is; ...""... is not and needs 
+    escaping.
+    
+    My bad -- not clear why also escaping backslashes.
+    
+    unilines -- list of unicode values.
     """
     escaped_lines = []
     for i, line in enumerate(lines, 1):
         if not isinstance(line, unicode):
             raise Exception(u"Cannot escape double quotes unless a unicode "
                 u"string")
-        try:
-            escaped_line = (line.replace(u"\"\"", u"%s\"" % ESC_DOUBLE_QUOTE)
-                .replace(u"\\\"", u"%s\"" % ESC_DOUBLE_QUOTE))
-        except Exception, e:
-            raise Exception(u"Error escaping double quotes on line %s" % i +
-                u"\nCaused by error: %s" % lib.ue(e))
-        escaped_lines.append(escaped_line)
+        if line == u'""':
+            final_line = line # OK as is
+        else:
+            delim_doub = u'%s"' % delimiter # e.g. ,"
+            doub_delim = u'"%s' % delimiter # e.g. ",
+            delim_tmpchar = u'%s%s' % (delimiter, SAFE_CSV_ESCAPE_2) # e.g. ,X (actually not printable so let's use X
+            tmpchar_delim = u'%s%s' % (SAFE_CSV_ESCAPE_2, delimiter) # e.g. X,
+            try:
+                # temporarily change ," and ", to something else, before we 
+                # replace all the double double quoting, then converting back at end.
+                prep_line = (line.replace(delim_doub, delim_tmpchar)
+                    .replace(doub_delim, tmpchar_delim))
+                # now the actual escaping we want, but only the actual escaping we want
+                escaped_line = (prep_line.replace(u'""', u'%s"' % SAFE_CSV_ESCAPE_1)
+                    .replace(u"\\\"", u"%s\"" % SAFE_CSV_ESCAPE_1))
+                # put delim and double quote back as they were now it's safe ;-)
+                final_line = (escaped_line.replace(delim_tmpchar, delim_doub)
+                    .replace(tmpchar_delim, doub_delim))
+            except Exception, e:
+                raise Exception(u"Error escaping double quotes on line %s" % i +
+                    u"\nCaused by error: %s" % lib.ue(e))
+        escaped_lines.append(final_line)
     return escaped_lines
 
 def encode_lines_as_utf8(uni_lines):
@@ -437,7 +466,7 @@ def get_decoded_unilines(file_path, bom2rem, encoding):
     split_lines = tidied.split("\n")
     return split_lines
     
-def csv2utf8_bytelines(file_path, encoding, strict=True):
+def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
     """
     The csv module infamously only accepts lines of bytes encoded as utf-8.
     
@@ -518,7 +547,7 @@ def csv2utf8_bytelines(file_path, encoding, strict=True):
             unilines.append(line)
     if not unilines:
         raise Exception(u"No lines in CSV to process")
-    escaped_unilines = escape_double_quotes_in_uni_lines(unilines)
+    escaped_unilines = escape_double_quotes_in_uni_lines(unilines, delimiter)
     utf8_bytelines = encode_lines_as_utf8(escaped_unilines)
     if debug:
         print(repr(utf8_bytelines))
@@ -627,7 +656,7 @@ class DlgImportDisplay(wx.Dialog):
         """
         try:
             self.utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path, 
-                self.encoding)
+                self.encoding, self.dialect.delimiter)
         except Exception, e:
             msg = (u"Unable to display the first lines of this CSV file using "
                 u"the first selected encoding (%s).\n\nOrig error: %s" % 
@@ -789,11 +818,12 @@ class CsvImporter(importer.FileImporter):
             encoding = self.supplied_encoding
             has_header = self.headless_has_header
             utf8_encoded_csv_sample = csv2utf8_bytelines(self.file_path,
-                encoding)
+                encoding, dialect.delimiter)
         else:
             probably_has_hdr = get_prob_has_hdr(sample_rows, self.file_path, 
                 dialect)
-            encodings = get_possible_encodings(self.file_path)
+            encodings = get_possible_encodings(self.file_path, 
+                dialect.delimiter)
             if not encodings:
                 raise Exception(_("Data could not be processed using available "
                     "encodings"))
@@ -903,7 +933,7 @@ class CsvImporter(importer.FileImporter):
                 u"\nCaused by error: %s" % lib.ue(e))
         try:
             utf8_encoded_csv_data = csv2utf8_bytelines(self.file_path, 
-                encoding, strict=False)
+                encoding, dialect.delimiter, strict=False)
             # we supply field names so will start with first row
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                 dialect=dialect, fieldnames=ok_fldnames)
