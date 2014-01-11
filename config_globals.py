@@ -29,6 +29,10 @@ def set_SCRIPT_PATH():
     rawpth = os.path.dirname(mg.__file__)
     local_encoding = sys.getfilesystemencoding()
     mg.SCRIPT_PATH = unicode(rawpth, local_encoding)
+    if mg.SCRIPT_PATH == mg.LOCAL_PATH:
+        raise Exception(_(u"Oops - it looks like you've installed SOFA to your "
+            u"user directory rather than a program directory. Please uninstall "
+            u"SOFA and reinstall to a different location."))
         
 def import_dbe_plugin(dbe_plugin):
     """

@@ -300,6 +300,7 @@ def populate_css_path(prog_path, local_path):
     If something is wrong identifying script path, here is where it will fail 
     first.
     """
+    
     styles = [mg.DEFAULT_STYLE, u"grey spirals.css", u"lucid spirals.css", 
         u"pebbles.css"]
     for style in styles:
