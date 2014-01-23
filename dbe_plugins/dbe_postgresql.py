@@ -200,22 +200,26 @@ def has_tbls(cur, db):
 def get_min_max(fldtype, num_prec, dec_pts, autonum):
     """
     Returns minimum and maximum allowable numeric values.
-    num_prec - precision e.g. 6 for 23.5141
-    dec_pts - scale e.g. 4 for 23.5141
-    autonum - i.e. serial or bigserial
+    
+    num_prec -- precision e.g. 6 for 23.5141
+    dec_pts -- scale e.g. 4 for 23.5141
+    autonum -- i.e. serial or bigserial
+    
     http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
+    
     We use the following terms below: The scale of a numeric is the count of 
-        decimal digits in the fractional part, to the right of the decimal 
-        point. The precision of a numeric is the total count of significant 
-        digits in the whole number, that is, the number of digits to both 
-        sides of the decimal point. So the number 23.5141 has a precision of 
-        6 and a scale of 4. Integers can be considered to have a scale of 
-        zero.
+    decimal digits in the fractional part, to the right of the decimal point. 
+    The precision of a numeric is the total count of significant digits in the 
+    whole number, that is, the number of digits to both sides of the decimal 
+    point. So the number 23.5141 has a precision of 6 and a scale of 4. Integers 
+    can be considered to have a scale of zero.
     http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
-    NB even though a floating point type will not store values closer 
-        to zero than a certain level, such values will be accepted here.
-        The database will store these as zero. TODO - confirm with 
-        PostgreSQL.
+    
+    NB even though a floating point type will not store values closer to zero 
+    than a certain level, such values will be accepted here. The database will 
+    store these as zero.
+    
+    TODO - confirm with PostgreSQL.
     """
     if fldtype == SMALLINT:
         min_val = -(2**15)
@@ -240,6 +244,9 @@ def get_min_max(fldtype, num_prec, dec_pts, autonum):
         max_val = (2**1024)-1
     elif fldtype == NUMERIC: #alias of decimal
         # variable-precision, inexact. 15 decimal digits precision.
+        # postgresql does not require num_prec or dec_pts to be defined
+        num_prec = num_prec if num_prec is not None else 5
+        dec_pts = dec_pts if dec_pts is not None else 2
         abs_max = 10**(num_prec - dec_pts)
         min_val = -abs_max
         max_val = abs_max
