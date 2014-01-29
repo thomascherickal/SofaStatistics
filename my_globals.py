@@ -180,21 +180,21 @@ AGGREGATE_DATA_SHOW_OPTS = [SHOW_AVG, SHOW_SUM]
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
 script_export_measures_dic = {FREQ: u"FREQ", 
-                              ROWPCT: u"ROWPCT",
-                              COLPCT: u"COLPCT",
-                              SUM: u"SUM", 
-                              MEAN: u"MEAN",
-                              MEDIAN: u"MEDIAN", 
-                              MODE: u"MODE",
-                              SUMM_N: u"SUMM_N",
-                              STD_DEV: u"STD_DEV",
-                              MIN: u"MIN",
-                              MAX: u"MAX",
-                              RANGE: u"RANGE",
-                              LOWER_QUARTILE: u"LOWER_QUARTILE",
-                              UPPER_QUARTILE: u"UPPER_QUARTILE",
-                              IQR: u"IQR",
-                              }
+    ROWPCT: u"ROWPCT",
+    COLPCT: u"COLPCT",
+    SUM: u"SUM", 
+    MEAN: u"MEAN",
+    MEDIAN: u"MEDIAN", 
+    MODE: u"MODE",
+    SUMM_N: u"SUMM_N",
+    STD_DEV: u"STD_DEV",
+    MIN: u"MIN",
+    MAX: u"MAX",
+    RANGE: u"RANGE",
+    LOWER_QUARTILE: u"LOWER_QUARTILE",
+    UPPER_QUARTILE: u"UPPER_QUARTILE",
+    IQR: u"IQR",
+}
 GROUPING_PLACEHOLDER = 1
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 

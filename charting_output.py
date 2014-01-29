@@ -2650,7 +2650,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx, 
             js_pairs_points))
         x_set = set([item[0] for item in data_tups])
-        few_unique_x_vals = (len(x_set) < 10)
+        few_unique_x_vals = (len(x_set) < 4)
         minor_ticks = u"false" if few_unique_x_vals else u"true"
         (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
