@@ -744,9 +744,9 @@ def ttest_ind(sample_a, sample_b, label_a, label_b, use_orig_var=False):
 def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
     From stats.py - there are changes to variable labels and comments;
-        and the output is extracted early to give greater control over 
-        presentation.  A list of the differences is extracted along the way.
-        There are no changes to algorithms.
+    and the output is extracted early to give greater control over presentation.
+    A list of the differences is extracted along the way. There are no changes 
+    to algorithms. Also added trap for zerro division error.
     Returns t, p, dic_a, dic_b (p is the two-tailed probability), diffs
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO RELATED samples of scores,
@@ -770,6 +770,9 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     df = n - 1
     cov = cov / float(df)
     sd = math.sqrt((var_a + var_b - 2.0*cov) / float(n))
+    if sd == 0:
+        raise Exception(u"Unable to calculate t statistic - insufficient "
+            u"variability in at least one variable.")
     t = (mean_a - mean_b)/sd
     p = betai(0.5*df, 0.5, df / (df + t*t))
     min_a = min(sample_a)

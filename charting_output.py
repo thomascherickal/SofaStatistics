@@ -2505,20 +2505,29 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
 
 def get_optimal_min_max(axismin, axismax):
     """
+    For boxplots and scatterplots.
+    
     axismin -- the minimum y value exactly
     axismax -- the maximum y value exactly
-    Generally, we want box plots to have y-axes starting from just below the 
-        minimum point (e.g. lowest outlier). That is avoid the common case where 
-        we have the y-axis start at 0, and all our values range tightly 
-        together. In which case we will have a series of tiny boxplots up the 
-        top and we won't be able to see the different parts of it e.g. LQ, 
-        median etc.
-    But sometimes the lowest point is not that far above 0, in which case we 
-        should set it to 0. A 0-based axis is preferable unless the values are a 
-        long way away. Going from 0.5-12 is silly. Might as well go from 0-12.
-    3 scenarios:
     
-    1) min and max are both +ve
+    Generally, we want box and scatter plots to have y-axes starting from just 
+    below the minimum point (e.g. lowest outlier). That is avoid the common case 
+    where we have the y-axis start at 0, and all our values range tightly 
+    together. In which case, for boxplots, we will have a series of tiny 
+    boxplots up the top and we won't be able to see the different parts of it 
+    e.g. LQ, median etc. For scatter plots our data will be too tightly 
+    scrunched up to see any spread.
+    
+    But sometimes the lowest point is not that far above 0, in which case we 
+    should set it to 0. A 0-based axis is preferable unless the values are a 
+    long way away. Going from 0.5-12 is silly. Might as well go from 0-12.
+    4 scenarios:
+    
+    1) min and max are both the same
+    Just try to set the max differently to the min so there is a range on the 
+    axis to display. See implementation for more details.
+    
+    2) min and max are both +ve
     |   *
     |
     -------
@@ -2527,7 +2536,7 @@ def get_optimal_min_max(axismin, axismax):
     padding from 0 the lesser of 0.1 of axismin and 0.1 of valrange. The 
     outer padding can be the lesser of the axismax and 0.1 of valrange.
     
-    2) min and max are -ve
+    3) min and max are -ve
     -------
     |   *
     |
@@ -2535,7 +2544,7 @@ def get_optimal_min_max(axismin, axismax):
     above max point. Make min y-axis just below min point. Make the 
     padding the lesser of 0.1 of gap and 0.1 of valrange.
     
-    3) min is -ve and max is +ve
+    4) min is -ve and max is +ve
     |   *
     -------
     |   *
@@ -2544,7 +2553,14 @@ def get_optimal_min_max(axismin, axismax):
     """
     debug = False
     if debug: print("Orig min max: %s %s" % (axismin, axismax))
-    if axismin >= 0 and axismax >= 0: # both +ve
+    if axismin == axismax:
+        if axismin < 0:
+            axismax = 0.1*abs(axismin)
+        elif axismin == 0:
+            axismax = 1
+        elif axismin > 0:
+            axismax = 1.1*axismin
+    elif axismin >= 0 and axismax >= 0: # both +ve
         """
         Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
         below min point. Make max y-axis just above the max point. Make the 
