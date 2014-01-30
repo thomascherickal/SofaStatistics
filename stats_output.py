@@ -42,8 +42,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         u" \"%(a)s\" to \"%(b)s\"") % {u"avg": label_avg, u"a": label_a, 
         u"b": label_b}
     html_title = u"<h2>%s</h2>" % title
-    html.append(html_title)
-    html.append(u"\n\n<h3>" + _("Analysis of variance table") + u"</h3>")
+    html.append(mg.TBL_TITLE_START + html_title + mg.TBL_TITLE_END)
+    html.append(u"\n\n<h3>" + mg.TBL_SUBTITLE_START 
+        + _("Analysis of variance table") + mg.TBL_SUBTITLE_END + u"</h3>")
     html.append(u"\n%s<table cellspacing='0'>\n<thead>" % mg.REPORT_TABLE_START)
     html.append(u"\n<tr>" +
         u"<th class='%s'>" % CSS_FIRST_COL_VAR + _("Source") + u"</th>" +
@@ -75,6 +76,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append(u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" % 
         (tpl % round(mean_squ_wn, dp)) + u"<td></td><td></td></tr>")
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
+    output.append_divider(html, title, indiv_title=u"Analysis of Variance")
     try:
         unused, p_sim = core_stats.sim_variance(samples, threshold=0.01)
         msg = round(p_sim, dp)
@@ -84,7 +86,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append(u"\n<p>" + _("O'Brien's test for homogeneity of variance")
         + u": %s" % msg + u" <a href='#ft2'><sup>2</sup></a></p>")
     add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
-    html.append(u"\n\n<h3>" + _("Group summary details") + u"</h3>")
+    html.append(mg.TBL_TITLE_START + mg.TBL_TITLE_END)
+    html.append(u"\n\n<h3>"  + mg.TBL_SUBTITLE_START 
+        + _("Group summary details")  + mg.TBL_SUBTITLE_END + u"</h3>")
     html.append(u"\n%s<table cellspacing='0'>\n<thead>" % mg.REPORT_TABLE_START)
     html.append(u"\n<tr><th class='%s'>" % CSS_FIRST_COL_VAR + _("Group") +
         u"</th>" +
@@ -148,7 +152,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         html.append(row_tpl % results)
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)    
-    output.append_divider(html, title, indiv_title=u"")
+    output.append_divider(html, title, indiv_title=u"Group Summary")
     for dic_sample_tup in dic_sample_tups:
         dic, sample = dic_sample_tup
         histlbl = dic["label"]

@@ -87,7 +87,12 @@ def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     return imgs_path
 
 def append_divider(html, title, indiv_title=u"", item_type=u""):
-    "Must immediately follow image or table item that it refers to."
+    """
+    indiv_title -- so we can use a general title but have separate parts e.g. 
+    separate histograms under a single analysis e.g. ANOVA.
+    
+    Must immediately follow image or table item that it refers to.
+    """
     item_title = get_item_title(title, indiv_title, item_type)
     html.append(u"%s<!--%s-->%s" % (mg.ITEM_TITLE_START, item_title, 
         mg.OUTPUT_ITEM_DIVIDER))
@@ -527,16 +532,17 @@ def get_css_dets():
 def get_title_dets_html(titles, subtitles, css_idx, istable=False):
     """
     Table title and subtitle html ready to display.
+    
     If title and/or subtitle are empty, want minimal display height. But have to 
-        have stable html. Solution - have cells table containing spans. But make 
-        separate table from main table so wide title !- wide table ;-)
+    have stable html. Solution - have cells table containing spans. But make 
+    separate table from main table so wide title !- wide table ;-)
     """
     (CSS_TBL_TITLE, 
      CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
     title_dets_html_lst = []
     # titles
     title_dets_html_lst.append(u"<table cellspacing='0'><thead><tr>"
-                               u"<th class='%s'>" % CSS_TBL_TITLE_CELL)
+        u"<th class='%s'>" % CSS_TBL_TITLE_CELL)
     title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_TITLE)
     if istable:
         title_dets_html_lst.append(mg.TBL_TITLE_START) # so we can refresh content
@@ -602,6 +608,7 @@ def fix_perc_encodings_for_win(mystr):
     return fixed_str
 
 def extract_title_subtitle(txt):
+    debug = False
     try:
         title_start_idx = (txt.index(mg.TBL_TITLE_START) 
             + len(mg.TBL_TITLE_START))
@@ -613,13 +620,26 @@ def extract_title_subtitle(txt):
         subtitle = txt[subtitle_start_idx: subtitle_end_idx].strip()
         return title, subtitle
     except Exception, e:
+        if debug:
+            print(txt)
         raise Exception(u"Unable to extract title and subtitle. Orig error: %s" 
             % lib.ue(e))
 
 def extract_tbl_only(tbl_item):
-    debug = False
+    """
+    Assumes certain placeholders exist from which titles can be extracted.
+    Assumes only one report start and end.
+    """
+    debug = True
     try:
-        mystart, post_start = tbl_item.split(mg.REPORT_TABLE_START)
+        split_report = tbl_item.split(mg.REPORT_TABLE_START)
+        try:
+            mystart, post_start = split_report
+        except ValueError:
+            if debug: print(tbl_item)
+            raise Exception(u"Unable to split by report table start (%s)."
+                u"\n\nOrig item: %s\n...\n%s" % (mg.REPORT_TABLE_START, 
+                tbl_item[:400], tbl_item[-400:]))
         title, subtitle = extract_title_subtitle(mystart)
         tbl_html, unused = post_start.split(mg.REPORT_TABLE_END)
         tbl_only = u"<h2>%s</h2>\n<h2>%s</h2>\n%s" % (title, subtitle, tbl_html)
