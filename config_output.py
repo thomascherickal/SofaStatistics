@@ -455,10 +455,11 @@ class ConfigUI(object):
         szr_html_report.Add(self.btn_report_path, 0, wx.LEFT|wx.RIGHT, 5)
         szr_output_config.Add(szr_html_report, 3)
         if show_export_options:
-            export_choice_items = [_("Entire Report"), 
+            export_choice_items = [
                 _("Current Output"), 
                 _("Copy current output ready to paste"),
-                ]
+                _("Entire Report"), 
+            ]
             self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
             self.drop_export.Enable(not self.readonly)
             self.drop_export.SetToolTipString(_(u"Export report as PDF, images,"
@@ -700,17 +701,17 @@ class ConfigUI(object):
     def on_btn_export(self, event):
         idx_export_sel = self.drop_export.GetSelection()
         if idx_export_sel == 0:
-            self.on_sel_export_report(event)
-        elif idx_export_sel == 1:
             if self.export_output_enabled:
                 self.on_sel_export_output(event)
             else:
                 wx.MessageBox(u"Unable to export output")
-        elif idx_export_sel == 2:
+        elif idx_export_sel == 1:
             if self.copy_output_enabled:
                 self.on_sel_copy_output(event)
             else:
                 wx.MessageBox(u"Unable to copy output")
+        elif idx_export_sel == 2:
+            self.on_sel_export_report(event)
         else:
             raise Exception(u"Unexpected export selection: {}".format(
                 idx_export_sel))
@@ -788,7 +789,8 @@ class ConfigUI(object):
             ...Going-crazy-with-copy-paste-problem-td2365276.html
             """
             wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
-                u"pasting the output or it won't work." % self.title))
+                u"pasting the output or it won't work." % self.title), 
+                caption=u"COPIED OUTPUT")
         except ImportError:
             # don't have extension installed (or working)
             lib.safe_end_cursor()
