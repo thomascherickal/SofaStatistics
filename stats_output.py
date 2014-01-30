@@ -182,7 +182,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     return u"".join(html)
 
 def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
-                        dp, indep, css_idx, html):
+        dp, indep, css_idx, html):
     """
     Footnotes are autonumbered at end. The links to them will need numbering 
         though.
@@ -200,8 +200,10 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     else:
         title = (_("Results of Paired Samples t-test of \"%(a)s\" vs \"%(b)s\"") 
             % {"a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
-    title_html = u"<h2>%s</h2>" % title
+    title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
+        mg.TBL_TITLE_END)
     html.append(title_html)
+    html.append(mg.TBL_SUBTITLE_START + mg.TBL_SUBTITLE_END)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
         u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -395,8 +397,10 @@ def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0,
     title = (_(u"Results of Mann Whitney U Test of \"%(ranked)s\" for "
         u"\"%(a)s\" vs \"%(b)s\"") % {"ranked": label_ranked, "a": label_a, 
         "b": label_b})
-    title_html = u"<h2>%s</h2>" % title
+    title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
+        mg.TBL_TITLE_END)
     html.append(title_html)
+    html.append(mg.TBL_SUBTITLE_START + mg.TBL_SUBTITLE_END)
     # always footnote 1 (so can hardwire anchor)
     # double one-tailed p value so can report two-tailed result
     html.append(u"\n<p>" + _("Two-tailed p value") + u": %s" % 
@@ -457,7 +461,9 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     label_b = dic_b[mg.STATS_DIC_LBL]
     title = (_(u"Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs "
         u"\"%(b)s\"") % {"a": label_a, "b": label_b})
-    title_html = u"<h2>%s</h2>" % title
+    title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
+        mg.TBL_TITLE_END)
+    html.append(mg.TBL_SUBTITLE_START + mg.TBL_SUBTITLE_END)
     html.append(title_html)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("Two-tailed p value") + u": %s" % lib.get_p(p, dp)
@@ -607,8 +613,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     title = (_("Results of Pearson's Chi Square Test of Association Between "
         "\"%(laba)s\" and \"%(labb)s\"") % {u"laba": var_label_a, 
         u"labb": var_label_b})
-    title_html = u"<h2>%s</h2>" % title
+    title_html = mg.TBL_TITLE_START + u"<h2>%s</h2>" % title + mg.TBL_TITLE_END
     html.append(title_html)
+    html.append(mg.TBL_SUBTITLE_START + mg.TBL_SUBTITLE_END)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
         u" <a href='#ft1'><sup>1</sup></a></p>")
@@ -629,7 +636,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         html.append(u"<th colspan=%s>%s</th>" % (cells_per_col, val))
     html.append(u"<th colspan=%s>" % cells_per_col + _("TOTAL") +
         u"</th></tr>\n<tr>")
-    for i in range(val_labels_b_n + 1):
+    for unused in range(val_labels_b_n + 1):
         html.append(u"<th>" + _("Obs") + u"</th><th>" + _("Exp") + u"</th>")
     html.append(u"</tr>")
     # body
@@ -787,8 +794,10 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     title = (_(u"Results of Kruskal-Wallis H test of average %(avg)s for "
         u"groups from \"%(a)s\" to \"%(b)s\"") % {"avg": label_avg, 
         "a": label_a, "b": label_b})
-    title_html = u"<h2>%s</h2>" % title
+    title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
+        mg.TBL_TITLE_END)
     html.append(title_html)
+    html.append(mg.TBL_SUBTITLE_START + mg.TBL_SUBTITLE_END)
     # always footnote 1 (so can hardwire anchor)
     html.append(u"\n<p>" + _("p value") + u": %s" % lib.get_p(p, dp) + 
         u" <a href='#ft1'><sup>1</sup></a></p>")
