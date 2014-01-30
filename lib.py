@@ -204,6 +204,8 @@ def get_normal_ys(vals, bins):
     Get np array of y values for normal distribution curve with given values 
         and bins.
     """
+    if len(vals) < 2:
+        raise Exception(_(u"Need multiple values to calculate normal curve."))
     debug = False
     import pylab
     mu = core_stats.mean(vals)
@@ -211,7 +213,7 @@ def get_normal_ys(vals, bins):
     if debug: print(bins, mu, sigma)
     if sigma == 0:
         raise Exception(u"Unable to get y-axis values for normal curve with a "
-                        u"sigma of 0.")
+            u"sigma of 0.")
     norm_ys = pylab.normpdf(bins, mu, sigma)
     return norm_ys
 

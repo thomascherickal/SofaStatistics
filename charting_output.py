@@ -861,7 +861,7 @@ def get_histo_dp(combined_start, bin_width):
 
 def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, 
         var_role_bin_name, var_role_charts, var_role_charts_name, 
-        var_role_charts_lbls):
+        var_role_charts_lbls, inc_normal):
     """
     Make separate db call each histogram. Getting all values anyway and don't 
         want to store in memory.
@@ -966,11 +966,14 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
         bin_lbls[-1] = bin_lbls[-1].replace(u"<", u"<=")
         maxval = bin_end
         xaxis_dets = [(x+1, u"") for x in range(n_bins)]
-        norm_ys = list(lib.get_normal_ys(vals4norm, np.array(bins)))
-        sum_yval = sum(y_vals)
-        sum_norm_ys = sum(norm_ys)
-        norm_multiplier = sum_yval/(1.0*sum_norm_ys)
-        norm_ys = [x*norm_multiplier for x in norm_ys]
+        if inc_normal: # some things are done in code above that aren't needed if not generating norm curve but easier to leave in
+            norm_ys = list(lib.get_normal_ys(vals4norm, np.array(bins)))
+            sum_yval = sum(y_vals)
+            sum_norm_ys = sum(norm_ys)
+            norm_multiplier = sum_yval/(1.0*sum_norm_ys)
+            norm_ys = [x*norm_multiplier for x in norm_ys]
+        else:
+            norm_ys = []
         if debug: print(minval, maxval, xaxis_dets, y_vals, bin_lbls)
         title_bits = []
         title_bits.append(var_role_bin_name)

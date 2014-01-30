@@ -1470,16 +1470,15 @@ def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
     dd = mg.DATADETS_OBJ
     script = u"""
 (overall_title, 
- chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
-                    var_role_bin, var_role_bin_name, var_role_charts, 
-                    var_role_charts_name, var_role_charts_lbls)
+chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
+    var_role_bin, var_role_bin_name, var_role_charts, var_role_charts_name, 
+    var_role_charts_lbls, inc_normal=%(inc_normal)s)
 chart_output = charting_output.histogram_output(titles, subtitles, 
-        var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
-         show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-         css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"inc_normal": inc_normal, 
-           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx}
+    var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
+    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
+        u"inc_normal": inc_normal, u"show_borders": show_borders, 
+        u"css_fil": esc_css_fil, u"css_idx": css_idx}
     return script
 
 def get_scatterplot_script(css_fil, css_idx, show_borders, inc_regression):
