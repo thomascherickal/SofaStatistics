@@ -2557,12 +2557,16 @@ def get_optimal_min_max(axismin, axismax):
     debug = False
     if debug: print("Orig min max: %s %s" % (axismin, axismax))
     if axismin == axismax:
-        if axismin < 0:
-            axismax = 0.1*abs(axismin)
-        elif axismin == 0:
+        myvalue = axismin
+        if myvalue < 0:
+            axismin = 1.1*myvalue
+            axismax = 0
+        elif myvalue == 0:
+            axismin = -1
             axismax = 1
-        elif axismin > 0:
-            axismax = 1.1*axismin
+        elif myvalue > 0:
+            axismin = 0
+            axismax = 1.1*myvalue
     elif axismin >= 0 and axismax >= 0: # both +ve
         """
         Snap min to 0 if gap small rel to range, otherwise make min y-axis just 
@@ -2597,7 +2601,7 @@ def get_optimal_min_max(axismin, axismax):
                 axismax += min(0.1*gap, 0.1*valrange)
         except ZeroDivisionError:
             pass
-        axismin -= min(0.1*axismin, 0.1*valrange)
+        axismin -= min(0.1*abs(axismin), 0.1*valrange) # make even more negative, but by the least possible
     elif axismin <=0 and axismax >=0: # spanning y-axis (even if all 0s ;-))
         """
         Pad max with 0.1*axismax. No harm if 0.
