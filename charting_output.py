@@ -122,7 +122,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     # 1) grouping variables
     if var_role_charts:
         SQL_charts = ("""SELECT %(var_role_charts)s 
-        AS charts
+        AS _sofa_charts
         FROM %(tbl)s
         WHERE %(var_role_charts)s IS NOT NULL 
             AND %(var_role_series)s IS NOT NULL 
@@ -132,13 +132,13 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         GROUP BY %(var_role_charts)s""" % sql_dic)
     else:
         if dbe == mg.DBE_MS_ACCESS: # one can't touch Access without getting a few warts ;-)
-            SQL_charts = u"SELECT TOP 1 1 AS charts FROM %(tbl)s" % sql_dic
+            SQL_charts = u"SELECT TOP 1 1 AS _sofa_charts FROM %(tbl)s" % sql_dic
         else:
-            SQL_charts = u"SELECT 1 AS charts"
+            SQL_charts = u"SELECT 1 AS _sofa_charts"
     if debug: print(SQL_charts)
     if var_role_series:
         SQL_series = ("""SELECT %(var_role_series)s 
-        AS series
+        AS _sofa_series
         FROM %(tbl)s
         WHERE %(var_role_series)s IS NOT NULL 
             AND %(var_role_charts)s IS NOT NULL 
@@ -148,12 +148,13 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         GROUP BY %(var_role_series)s""" % sql_dic)
     else:
         if dbe == mg.DBE_MS_ACCESS:
-            SQL_series = u"SELECT TOP 1 1 AS series FROM %(tbl)s" % sql_dic
+            SQL_series = (u"SELECT TOP 1 1 AS _sofa_series FROM %(tbl)s" % 
+                sql_dic)
         else:
-            SQL_series = u"SELECT 1 AS series"
+            SQL_series = u"SELECT 1 AS _sofa_series"
     if debug: print(SQL_series)
     SQL_cat = ("""SELECT %(var_role_cat)s 
-    AS cat
+    AS _sofa_cat
     FROM %(tbl)s
     WHERE %(var_role_cat)s IS NOT NULL 
         AND %(var_role_charts)s IS NOT NULL 
@@ -165,7 +166,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts %s 
         (%s) AS qryseries %s
         (%s) AS qrycat""" % (SQL_charts, cartesian_joiner, SQL_series, 
-                             cartesian_joiner, SQL_cat)
+        cartesian_joiner, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
     if data_show not in mg.AGGREGATE_DATA_SHOW_OPTS:
@@ -176,7 +177,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         sql_dic[u"val2show"] = u" SUM(%(var_role_agg)s) " % sql_dic
     else:
         raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
-                        data_show)
+            data_show)
     groupby_vars = []
     if var_role_charts: groupby_vars.append(objqtr(var_role_charts))
     if var_role_series: groupby_vars.append(objqtr(var_role_series))
@@ -184,13 +185,13 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     sql_dic[u"groupby_charts_series_cats"] = (u" GROUP BY " 
                                               + u", ".join(groupby_vars))
     SQL_vals2show = u"""SELECT %(var_role_charts)s
-    AS charts,
+    AS _sofa_charts,
         %(var_role_series)s
-    AS series,
+    AS _sofa_series,
         %(var_role_cat)s
-    AS cat,
+    AS _sofa_cat,
         %(val2show)s
-    AS val2show
+    AS _sofa_val2show
     FROM %(tbl)s
     %(where_tbl_filt)s
     %(groupby_charts_series_cats)s""" % sql_dic
@@ -200,19 +201,19 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
     sql_dic[u"SQL_vals2show"] = SQL_vals2show
     sql_dic[u"get_val2show"] = (mg.DBE_MODULES[dbe].if_clause % 
-                                       (u"val2show IS NULL", u"0", u"val2show"))
-    SQL_get_raw_data = """SELECT qrygrouping_vars.charts, 
-    qrygrouping_vars.series, 
-    qrygrouping_vars.cat,
+        (u"_sofa_val2show IS NULL", u"0", u"_sofa_val2show"))
+    SQL_get_raw_data = """SELECT qrygrouping_vars._sofa_charts, 
+    qrygrouping_vars._sofa_series, 
+    qrygrouping_vars._sofa_cat,
         %(get_val2show)s 
-    AS val
+    AS _sofa_val
     FROM (%(SQL_group_by_vars)s) AS qrygrouping_vars 
     LEFT JOIN (%(SQL_vals2show)s) AS qryvals2show
-    ON qrygrouping_vars.charts = qryvals2show.charts
-    AND qrygrouping_vars.series = qryvals2show.series
-    AND qrygrouping_vars.cat = qryvals2show.cat
-    ORDER BY qrygrouping_vars.charts, qrygrouping_vars.series, 
-        qrygrouping_vars.cat""" % sql_dic    
+    ON qrygrouping_vars._sofa_charts = qryvals2show._sofa_charts
+    AND qrygrouping_vars._sofa_series = qryvals2show._sofa_series
+    AND qrygrouping_vars._sofa_cat = qryvals2show._sofa_cat
+    ORDER BY qrygrouping_vars._sofa_charts, qrygrouping_vars._sofa_series, 
+        qrygrouping_vars._sofa_cat""" % sql_dic    
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
@@ -1023,15 +1024,15 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
         sql_dic[u"var_role_series"] = objqtr(var_role_series)
     else:
         sql_dic[u"var_role_series"] = mg.GROUPING_PLACEHOLDER
-    # only want rows where all variables are not null
+    # only want rows where all variables are not null (don't name field x or y or series or bad confusion happens in SQLite!
     SQL_get_xy_pairs = (u"""SELECT %(var_role_charts)s 
     AS charts,
         %(var_role_series)s 
-    AS series,
+    AS _sofa_series,
         %(fld_x_axis)s
-    AS x, 
+    AS _sofa_x, 
         %(fld_y_axis)s
-    AS y
+    AS _sofa_y
     FROM %(tbl)s
     WHERE %(var_role_charts)s IS NOT NULL 
         AND %(var_role_series)s IS NOT NULL 

@@ -630,7 +630,7 @@ def extract_tbl_only(tbl_item):
     Assumes certain placeholders exist from which titles can be extracted.
     Assumes only one report start and end.
     """
-    debug = True
+    debug = False
     try:
         split_report = tbl_item.split(mg.REPORT_TABLE_START)
         try:
