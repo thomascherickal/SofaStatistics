@@ -29,9 +29,11 @@ def get_projs():
     """
     NB includes .proj at end.
     os.listdir()
+    
     Changed in version 2.3: On Windows NT/2k/XP and Unix, if path is a Unicode 
-        object, the result will be a list of Unicode objects. Undecodable 
-        filenames will still be returned as string objects.
+    object, the result will be a list of Unicode objects. Undecodable filenames 
+    will still be returned as string objects.
+    
     May need unicode results so always provide a unicode path. 
     """
     proj_fils = os.listdir(os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER))
@@ -45,12 +47,13 @@ def get_hide_db():
 def get_proj_notes(fil_proj, proj_dic):
     """
     Read the proj file and extract the notes part.
+    
     If the default project, return the translated notes rather than what is 
-        actually stored in the file (notes in English).
+    actually stored in the file (notes in English).
     """
     if fil_proj == mg.DEFAULT_PROJ:
         proj_notes = _("Default project so users can get started without "
-                       "having to understand projects. NB read only.")
+            "having to understand projects. NB read only.")
     else:
         proj_notes = proj_dic["proj_notes"]
     return proj_notes
@@ -85,10 +88,11 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
 def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
-                  var_types, val_dics):
+        var_types, val_dics):
     """
     For selected variable (name) gives user ability to set properties e.g.
-        value labels.  Then stores in appropriate labels file.
+    value labels.  Then stores in appropriate labels file.
+    
     Returns True if user clicks OK to properties (presumably modified).
     """
     dd = mg.DATADETS_OBJ
@@ -134,7 +138,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     var_type = var_types.get(var_name, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": var_type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, 
-                              init_settings_data, settings_data, val_type)
+        init_settings_data, settings_data, val_type)
     ret = getsettings.ShowModal()
     if ret == wx.ID_OK:
         if var_desc["label"].strip():
@@ -167,28 +171,29 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
         var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-                     var_types.get(x) in (None, mg.VAR_TYPE_ORD, 
-                                          mg.VAR_TYPE_QUANT)]
+            var_types.get(x) in (None, mg.VAR_TYPE_ORD, mg.VAR_TYPE_QUANT)]
     elif min_data_type == mg.VAR_TYPE_QUANT:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
         if debug:
             print(dd.flds)
         var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-                     var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
+            var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
     else:
         raise Exception(u"get_approp_var_names received a faulty min_data_"
-                        u"type: %s" % min_data_type)
+            u"type: %s" % min_data_type)
     return var_names
 
 def get_idx_to_select(choice_items, drop_var, var_labels, default):
     """
     Get index to select. If variable passed in, use that if possible.
+    
     It will not be possible if it has been removed from the list e.g. because
-        of a user reclassification of data type (e.g. was quantitative but
-        has been redefined as categorical); or because of a change of filtering.
-    If no variable passed in, or it was but couldn't be used (see above),
-        use the default if possible. If not possible, select the first item.
+    of a user reclassification of data type (e.g. was quantitative but has been 
+    redefined as categorical); or because of a change of filtering.
+    
+    If no variable passed in, or it was but couldn't be used (see above), use 
+    the default if possible. If not possible, select the first item.
     """
     var_removed = False
     if drop_var:
@@ -264,8 +269,9 @@ class DlgListVars(wx.Dialog):
     def setup_vars(self):
         """
         Sets up list of variables ensuring using latest details.
+        
         Leaves list unselected.  That way we can select something more than 
-            once.
+        once.
         """
         vals = get_approp_var_names()
         dic_labels = self.var_labels
@@ -285,24 +291,26 @@ class DlgListVars(wx.Dialog):
 class GetSettings(settings_grid.DlgSettingsEntry):
     
     def __init__(self, title, boltext, boldatetime, var_desc, 
-                 init_settings_data, settings_data, val_type):
+            init_settings_data, settings_data, val_type):
         """
         var_desc - dic with keys "label", "notes", and "type".
+        
         init_settings_data - list of tuples (must have at least one item, even 
-            if only a "rename me").
+        if only a "rename me").
+        
         col_dets - See under settings_grid.SettingsEntry
+        
         settings_data - add details to it in form of a list of tuples.
         """
-        col_dets = [{"col_label": _("Value"), "coltype": val_type, 
-                     "colwidth": 50}, 
-                    {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
-                     "colwidth": 200},
-                     ]
+        col_dets = [
+            {"col_label": _("Value"), "coltype": val_type, "colwidth": 50}, 
+            {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
+            "colwidth": 200},
+        ]
         grid_size = (250, 250)
-        wx.Dialog.__init__(self, None, title=title,
-                          size=(500,400), pos=(mg.HORIZ_OFFSET+150,100),
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|\
-                            wx.SYSTEM_MENU)
+        wx.Dialog.__init__(self, None, title=title, size=(500,400), 
+            pos=(mg.HORIZ_OFFSET+150,100), style=wx.RESIZE_BORDER|wx.CAPTION
+            |wx.CLOSE_BOX|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.var_desc = var_desc
@@ -312,11 +320,11 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         lbl_var_notes = wx.StaticText(self.panel, -1, "Notes:")
         lbl_var_notes.SetFont(mg.LABEL_FONT)
         self.txt_var_label = wx.TextCtrl(self.panel, -1, self.var_desc["label"], 
-                                         size=(250,-1))
+            size=(250,-1))
         self.txt_var_notes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
-                                         style=wx.TE_MULTILINE)
+            style=wx.TE_MULTILINE)
         self.rad_data_type = wx.RadioBox(self.panel, -1, _("Data Type"),
-                                       choices=mg.VAR_TYPES)
+            choices=mg.VAR_TYPES)
         self.rad_data_type.SetStringSelection(self.var_desc["type"])
         # if text or datetime, only enable categorical.
         # datetime cannot be quant (if a measurement of seconds etc would be 
@@ -343,8 +351,7 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
         self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-                                        grid_size, col_dets, init_settings_data, 
-                                        settings_data)
+            grid_size, col_dets, init_settings_data, settings_data)
         self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
         self.setup_btns(readonly=False)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
@@ -355,13 +362,13 @@ class GetSettings(settings_grid.DlgSettingsEntry):
 
     def on_type_help_btn(self, event):
         wx.MessageBox(_("Nominal data (names only) is just labels or names. "
-          "Ordinal data has a sense of order but no amount, "
-          "and Quantity data has actual amount e.g. 2 is twice 1."
-          "\n\n* Example of Nominal (names only) data: sports codes ("
-          "'Soccer', 'Badminton', 'Skiing' etc)."
-          "\n\n* Example of Ordinal (ranked) data: ratings of restaurant "
-          "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
-          "\n\n* Example of Quantity (amount) data: height in cm."))
+            "Ordinal data has a sense of order but no amount, "
+            "and Quantity data has actual amount e.g. 2 is twice 1."
+            "\n\n* Example of Nominal (names only) data: sports codes ("
+            "'Soccer', 'Badminton', 'Skiing' etc)."
+            "\n\n* Example of Ordinal (ranked) data: ratings of restaurant "
+            "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
+            "\n\n* Example of Quantity (amount) data: height in cm."))
 
     def on_ok(self, event):
         """
@@ -390,9 +397,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         else:
             myheight = 800
         wx.Dialog.__init__(self, parent=parent, title=_("Project Settings"),
-               size=(mywidth, myheight), 
-               style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|\
-               wx.SYSTEM_MENU|wx.CAPTION|wx.TAB_TRAVERSAL) 
+            size=(mywidth, myheight), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX
+            |wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION|wx.TAB_TRAVERSAL) 
         # wx.CLIP_CHILDREN causes problems in Windows
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)
@@ -522,7 +528,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
     def set_defaults(self, fil_proj):
         """
         If a proj file, grabs default settings from there and stores as 
-            attributes of dialog via get_proj_settings().
+        attributes of dialog via get_proj_settings().
         """
         if fil_proj:
             self.new_proj = False
@@ -585,24 +591,23 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         try:
             exec proj_cont in proj_dic
         except SyntaxError, e:
-            wx.MessageBox(\
+            wx.MessageBox(
                 _(u"Syntax error in project file \"%(fil_proj)s\"."
-                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                                              u"err": lib.ue(e)})
+                u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                u"err": lib.ue(e)})
             raise
         except Exception, e:
-            wx.MessageBox(\
+            wx.MessageBox(
                 _(u"Error processing project file \"%(fil_proj)s\"."
-                  u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                                              u"err": lib.ue(e)})
+                u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
+                u"err": lib.ue(e)})
             raise
         try:
             self.proj_name = filname2projname(fil_proj)
         except Exception, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                            "Use %(def_proj)s for reference.") % 
-                            {u"fil_proj": fil_proj, 
-                             u"def_proj": mg.DEFAULT_PROJ})
+                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
+                u"def_proj": mg.DEFAULT_PROJ})
             raise
         # Taking settings from proj file (via exec and proj_dic)
         #   and adding them to this frame ready for use.
@@ -617,16 +622,14 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                            "Use %(def_proj)s for reference.") % 
-                            {u"fil_proj": fil_proj, 
-                             u"def_proj": mg.DEFAULT_PROJ})
+                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
+                u"def_proj": mg.DEFAULT_PROJ})
             raise Exception(u"Key error reading from proj_dic."
-                            u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % lib.ue(e))
         except Exception, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                            "Use %(def_proj)s for reference.") % 
-                            {u"fil_proj": fil_proj, 
-                             u"def_proj": mg.DEFAULT_PROJ})
+                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
+                u"def_proj": mg.DEFAULT_PROJ})
             raise
     
     def on_dbe_choice(self, event):
@@ -637,9 +640,12 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
     def setup_btns(self):
         """
         Must have ID of wx.ID_... to trigger validators (no event binding 
-            needed) and for std dialog button layout.
+        needed) and for std dialog button layout.
+        
         NB can only add some buttons as part of standard sizer to be realised.
+        
         Insert or Add others after the Realize() as required.
+        
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
@@ -677,7 +683,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         """
         import webbrowser
         url = (u"http://www.sofastatistics.com/wiki/doku.php"
-               u"?id=help:projects")
+            u"?id=help:projects")
         webbrowser.open_new_tab(url)
         event.Skip()
     
@@ -745,13 +751,13 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             enough_completed = proj_name and any_cons
             if not enough_completed:
                 wx.MessageBox(_("Not enough details completed to "
-                                "save a project file"))
+                    "save a project file"))
                 return
             default_dbe_lacks_con = default_dbe not in completed_dbes
             if default_dbe_lacks_con:
                 wx.MessageBox(_("Connection details need to be completed "
-                      "for the default database engine (%s) to save a project"
-                      " file.") % default_dbe)
+                    "for the default database engine (%s) to save a project"
+                    " file.") % default_dbe)
                 return
             # write the data
             fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s%s" % 
@@ -766,35 +772,34 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                 f = codecs.open(fil_name, "w", encoding="utf-8")
             except IOError, e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
-                                u"\"%(fil_name)s\" is a valid file name."
-                                u"\n\nCaused by error: %(err)s")
-                                % {u"fil_name": fil_name, 
-                                   u"err": lib.ue(e)})
+                    u"\"%(fil_name)s\" is a valid file name."
+                    u"\n\nCaused by error: %(err)s") % {u"fil_name": fil_name, 
+                    u"err": lib.ue(e)})
                 return
             f.write(u"# Windows file paths _must_ have double not single "
-                    u"backslashes")
+                u"backslashes")
             f.write(u"\n# All file paths _must_ have a u before the"
-                    u" quote-enclosed string")
+                u" quote-enclosed string")
             f.write(u"""\n# u"C:\\\\Users\\\\demo.txt" is GOOD""")
             f.write(u"""\n# u"C:\\Users\\demo.txt" is BAD""")
             f.write(u"""\n# "C:\\\\Users\\\\demo.txt" is also BAD""")
             f.write(u"\n\nproj_notes = u\"\"\"%s\"\"\"" %
-                    lib.escape_pre_write(proj_notes))
+                lib.escape_pre_write(proj_notes))
             f.write(u"\n\nfil_var_dets = u\"%s\"" % 
-                    lib.escape_pre_write(fil_var_dets))
+                lib.escape_pre_write(fil_var_dets))
             f.write(u"\nfil_css = u\"%s\"" % \
-                    lib.escape_pre_write(fil_css))
+                lib.escape_pre_write(fil_css))
             f.write(u"\nfil_report = u\"%s\"" % 
-                    lib.escape_pre_write(fil_report))
+                lib.escape_pre_write(fil_report))
             f.write(u"\nfil_script = u\"%s\"" % 
-                    lib.escape_pre_write(fil_script))
+                lib.escape_pre_write(fil_script))
             f.write(u"\ndefault_dbe = u\"%s\"" % default_dbe)
             f.write(u"\n\ndefault_dbs = " + 
-                    lib.escape_pre_write(lib.dic2unicode(default_dbs)))
+                lib.escape_pre_write(lib.dic2unicode(default_dbs)))
             f.write(u"\n\ndefault_tbls = " + 
-                    lib.escape_pre_write(lib.dic2unicode(default_tbls)))
+                lib.escape_pre_write(lib.dic2unicode(default_tbls)))
             f.write(u"\n\ncon_dets = " + 
-                    lib.escape_pre_write(lib.dic2unicode(con_dets)))
+                lib.escape_pre_write(lib.dic2unicode(con_dets)))
             f.close()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
