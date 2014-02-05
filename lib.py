@@ -1212,6 +1212,8 @@ def dic2unicode(mydic, indent=1):
     Needed because pprint.pformat() can't cope with strings like 'João Rosário'.
     Pity so will have to wait till Python 3 version to handle more elegantly.
     Goal is to make files that Python can run.
+    
+    Note -- recursive so can cope with nested dictionaries.
     """
     try:
         keyvals = mydic.items()
