@@ -108,6 +108,8 @@ def sensible_sort_keys(input_list):
 
 def get_init_settings_data(val_dics, var_name, bolnumeric):
     """
+    Get initial settings to display value labels appropriately.
+    
     Needs to handle the following scenarios appropriately:
     
     User has a numeric field. They are only allowed to enter value labels for 
@@ -152,7 +154,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         var_types, val_dics):
     """
     For selected variable (name) gives user ability to set properties e.g.
-    value labels.  Then stores in appropriate labels file.
+    value labels. Then stores in appropriate labels file.
     
     Returns True if user clicks OK to properties (presumably modified).
     """
