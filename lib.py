@@ -1216,7 +1216,7 @@ def dic2unicode(mydic, indent=1):
     Note -- recursive so can cope with nested dictionaries.
     """
     try:
-        keyvals = mydic.items()
+        keyvals = sorted(mydic.items())
     except Exception: # not a dict, just a value
         return get_unicode_repr(mydic)
     ustr = u"{"

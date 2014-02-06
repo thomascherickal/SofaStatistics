@@ -341,6 +341,7 @@ if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/95207
 else:
     USER_PATH = HOME_PATH
 LOCAL_PATH = os.path.join(USER_PATH, u"sofastats")
+# LOCAL_PATH = '/home/g/different_sofastats_location' # can override but make sure the new folder doesn't exist yet - let SOFA make and populate it. Only then override anything you want to override.
 RECOVERY_PATH = os.path.join(USER_PATH, u"sofastats_recovery")
 REPORTS_FOLDER = u"reports"
 PROJS_FOLDER = u"projs"
