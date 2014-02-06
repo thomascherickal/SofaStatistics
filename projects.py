@@ -11,6 +11,10 @@ import getdata
 import config_output
 import settings_grid
 
+BROKEN_VDT_MSG = _(u"This field is numeric, so any non-numeric keys in the "
+    u"source vdt file e.g. '1', '1a', 'apple' will be ignored. Did you manually"
+    u" edit it or generate your own vdt? Remember 1 or 1.0 is not equal to '1'") 
+
 def valid_proj(subfolder, proj_filname):
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, proj_filname)
     try:
@@ -87,6 +91,63 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     f.close()
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
+def val2sortnum(val):
+    try:
+        sortnum = float(val)
+    except (ValueError, TypeError):
+        sortnum = val # will be after the numbers - sort order seems to be None, 1, capital text, lower case text
+    return sortnum
+
+def sensible_sort_keys(input_list):
+    """
+    Sort so None, '1', 2, 3, '4', 11, '12', 'Banana', 'apple'. In practice, the 
+    most important bit is the "numbers" being in order like '1', 2, 3, '4', 11, 
+    '12'.
+    """
+    return input_list.sort(key=lambda s: val2sortnum(s[0]))
+
+def get_init_settings_data(val_dics, var_name, bolnumeric):
+    """
+    Needs to handle the following scenarios appropriately:
+    
+    User has a numeric field. They are only allowed to enter value labels for 
+    numeric keys. No problems will ever occur for this user.
+
+    User has a text field. They can enter any text, including numbers 
+    e.g. "Apple", "1", "1b" etc. I want these displayed in the correct sort 
+    order but still being stored as string. So I want 'apple', 'banana','1','2',
+    '3','11','99','100' ... This is necessary because people sometimes import 
+    data with a text data type when it really should have been numeric. But they 
+    hate it when the labels are '1','11','12','2','3' etc and fair enough. This 
+    is a pretty common case.
+
+    User has a numeric field. They have edited the vdt file outside of SOFA e.g. 
+    manually, or they have generated it programmatically, and included some 
+    non-numeric keys e.g. '1'. Anything that can be converted into a number 
+    should be displayed as a number. Anything else should be discarded and the 
+    user should be warned that this has happened and why.
+    """
+    init_settings_data = []
+    msg = None
+    if val_dics.get(var_name):
+        val_dic = val_dics.get(var_name)
+        if val_dic:
+            if bolnumeric:
+                numeric_fld_but_non_numeric_keys = False
+                for key, value in val_dic.items():
+                    if not isinstance(key, (float, int)): # not going to worry about people wanting to add value labels to complex numbers or scientific notation ;-)
+                        numeric_fld_but_non_numeric_keys = True
+                    else:
+                        init_settings_data.append((key, unicode(value)))
+                init_settings_data.sort(key=lambda s: s[0])
+                if numeric_fld_but_non_numeric_keys:
+                    msg = BROKEN_VDT_MSG
+            else:
+                for key, value in val_dic.items():
+                    init_settings_data.append((key, unicode(value)))
+                    sensible_sort_keys(init_settings_data)
+    return init_settings_data, msg
+
 def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
         var_types, val_dics):
     """
@@ -97,37 +158,23 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     """
     dd = mg.DATADETS_OBJ
     # get val_dic for variable (if any) and display in editable list
-    init_settings_data = []
-    if val_dics.get(var_name):
-        val_dic = val_dics.get(var_name)
-        if val_dic:
-            for key, value in val_dic.items():
-                # If a number, even if stored as string, get as number and use 
-                # that and sort by that.
-                try:
-                    newkey = int(key)
-                except Exception:
-                    try:
-                        newkey = float(key)
-                    except Exception:
-                        newkey = key
-                init_settings_data.append((newkey, unicode(value)))
-    init_settings_data.sort(key=lambda s: s[0])
     settings_data = [] # get settings_data back updated
     bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
     boldecimal = dd.flds[var_name][mg.FLD_DECPTS]
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
     boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
+    init_settings_data, msg = get_init_settings_data(val_dics, var_name, 
+        bolnumeric)
+    if msg: wx.MessageBox(msg)
     if bolnumeric:
-        if boldecimal or dd.dbe == mg.DBE_SQLITE: # could be int or float so  
-            # have to allow the more inclusive.
+        if boldecimal or dd.dbe == mg.DBE_SQLITE: # could be int or float so have to allow the more inclusive.
             val_type = settings_grid.COL_FLOAT
         else:
             val_type = settings_grid.COL_INT
     else:
         val_type = settings_grid.COL_STR
     title = _("Settings for %s") % choice_item
-    notes = var_notes.get(var_name, "")
+    notes = var_notes.get(var_name, u"")
     # if nothing recorded, choose useful default variable type
     if bolnumeric:
         def_type = mg.VAR_TYPE_QUANT # have to trust the user somewhat!
@@ -144,8 +191,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
         if var_desc["label"].strip():
             var_labels[var_name] = var_desc["label"]
         else:
-            try: # otherwise uses empty string as label which can't be seen ;-). 
-                # Better to act as if has no label at all.
+            try: # otherwise uses empty string as label which can't be seen ;-). Better to act as if has no label at all.
                 del var_labels[var_name]
             except KeyError:
                 pass
