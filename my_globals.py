@@ -14,7 +14,7 @@ import wx
 
 debug = False
 
-VERSION = u"1.4.1"
+VERSION = u"1.4.2"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -22,7 +22,8 @@ CONTACT = u"grant@sofastatistics.com"
 LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH, LANGUAGE_SPANISH_ARGENTINA
 """
-TEST_LANGID = wx.LANGUAGE_SLOVENIAN
+TEST_LANGID = wx.LANGUAGE_SPANISH
+LOCALEDIR = './locale' # overridden in setup.py
 FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"

@@ -965,8 +965,8 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport sys")
     f.write(u"\nimport gettext")
     f.write(u"\nimport numpy as np")
-    f.write(u"\ngettext.install(domain='sofastats', localedir='./locale', "
-            u"unicode=False)")
+    f.write(u"\ngettext.install(domain='sofastats', localedir='%s', "
+            u"unicode=False)" % mg.LOCALEDIR)
     f.write(u"\nsys.path.append(u'%s')" % \
             lib.escape_pre_write(mg.SCRIPT_PATH))
     for module in modules:

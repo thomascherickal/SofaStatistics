@@ -86,6 +86,7 @@ except Exception, e:
         print(msg)
         raw_input(INIT_DEBUG_MSG)
     raise Exception(msg)
+mg.LOCALEDIR = localedir
 try:
     import lib
     import config_globals #@UnusedImport
