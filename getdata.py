@@ -361,13 +361,12 @@ def get_dbe_syntax_elements(dbe):
     return mg.DBE_MODULES[dbe].get_syntax_elements()
 ##########################################################################################
 
-def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, quote_obj, 
-                                    quote_val):
+def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, flds, quote_obj, 
+        quote_val):
     debug = False
     quoted_obj = quote_obj(fldname)
     if debug: print(u"quoted_obj: %s" % quoted_obj)
-    dd = mg.DATADETS_OBJ
-    quoted_val = quote_val(val, charset2try=dd.flds[fldname][mg.FLD_CHARSET])
+    quoted_val = quote_val(val, charset2try=flds[fldname][mg.FLD_CHARSET])
     if len(quoted_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE: # can't do len of raw val when a datetime in Postgresql - datetime.datetime has no len()
         raise my_exceptions.CategoryTooLong(fldname)
     if debug: print(u"quoted_val: %s" % quoted_val)
@@ -428,7 +427,7 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
                 repr(val).strip(u"L"))
         else:
             clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte, 
-                objqtr, valqtr)
+                flds, objqtr, valqtr)
     if debug: print(clause)
     return clause
 

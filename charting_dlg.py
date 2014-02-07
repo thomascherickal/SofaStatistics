@@ -1509,7 +1509,7 @@ def get_boxplot_script(rotate, css_fil, css_idx):
  max_label_len, max_lbl_lines, 
  overall_title, chart_dets, 
  any_missing_boxes) = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
-                    var_role_desc, var_role_desc_name,
+                    flds, var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
                     sort_opt="%(sort_opt)s", rotate=%(rotate)s)

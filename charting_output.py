@@ -593,8 +593,8 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if debug: print(chart_output_dets)
     return chart_output_dets
 
-def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
-        var_role_cat, var_role_cat_name, var_role_cat_lbls,
+def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc, 
+        var_role_desc_name, var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls, sort_opt, 
         rotate=False):
     """
@@ -619,7 +619,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         being used for the whiskers and outliers in the caption for the plot.
     """
     debug = False
-    dd = mg.DATADETS_OBJ
     objqtr = getdata.get_obj_quoter_func(dbe)
     where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
     boxplot_width = 0.25
@@ -703,7 +702,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
         if series_val is not None:
             legend_lbl = var_role_series_lbls.get(series_val, 
                 unicode(series_val))
-            series_val_filt = getdata.make_fld_val_clause(dbe, dd.flds, 
+            series_val_filt = getdata.make_fld_val_clause(dbe, flds, 
                 fldname=var_role_series, val=series_val)
             and_series_val_filt = u" AND %s" % series_val_filt
         else:
@@ -728,7 +727,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, var_role_desc, var_role_desc_name,
                     xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
                 # Now see if any desc values for particular series_val and cat_val
                 and_cat_val_filt = u" AND %s" % getdata.make_fld_val_clause(dbe, 
-                    dd.flds, fldname=var_role_cat, val=cat_val)
+                    flds, fldname=var_role_cat, val=cat_val)
             else:
                 xaxis_dets.append((i, u"''", "''"))
                 and_cat_val_filt = u""
