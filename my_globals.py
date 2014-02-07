@@ -24,6 +24,7 @@ LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH, LANGUAGE_SPANISH_ARGENTINA
 """
 TEST_LANGID = wx.LANGUAGE_SPANISH
 LOCALEDIR = './locale' # overridden in setup.py
+CANON_NAME = None # overridden in start.py 
 FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"

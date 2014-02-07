@@ -155,6 +155,7 @@ class SofaApp(wx.App):
         langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
         try:
             canon_name = self.get_canon_name(langdir)
+            mg.CANON_NAME = canon_name
         except Exception, e:
             raise Exception(u"Unable to get canon name. Original error: %s" 
                 % lib.ue(e))

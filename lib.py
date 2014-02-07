@@ -25,6 +25,32 @@ import core_stats
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def get_gettext_setup_txt():
+    """
+    Must achieve same result for gettext as occurs in SofaApp.setup_i18n() in
+    start.py.
+    
+    Need to explicitly set proper locale in scripts so they can run 
+    independently of the GI.
+    
+    Doesn't need to be in start.py but safest to be next to where code it is
+    meant to replicate.
+    """
+    bits = []
+    bits.append(u"try:")
+    bits.append(u"    mytrans = gettext.translation(u'sofastats', langdir,")
+    bits.append(u"        languages=[%s,], fallback=True)" % mg.CANON_NAME)
+    bits.append(u"    mytrans.install(unicode=True)")
+    bits.append(u"except Exception, e:")
+    bits.append(u"    raise Exception(u\"Problem installing translation. ")
+    bits.append(u"        u\"Original error: %s\" % lib.ue(e))")
+    if mg.PLATFORM == mg.LINUX:
+        bits.append(u"try:")
+        bits.append(u"    os.environ['LANG'] = u\"%s.UTF-8\"" % mg.CANON_NAME)
+        bits.append(u"except (ValueError, KeyError):")
+        bits.append(u"pass # OK if unable to set environment settings.")
+    return "\n".join(bits)
+
 def get_indiv_regression_msg(list_x, list_y, series_lbl):
     try:
         (slope, intercept, 
