@@ -3,45 +3,51 @@
 
 """
 This module is mostly concerned with the html displayed as output, the scripts 
-    written to produce it, and the display of it.
+written to produce it, and the display of it.
+    
 For any given item of output, e.g. a report table or a dojo chart, there is a
-    snippet of code specific to that item, and other, potentially shared code,
-    that might be needed to display that item e.g. css, or javascript. 
+snippet of code specific to that item, and other, potentially shared code, that 
+might be needed to display that item e.g. css, or javascript. 
+
 The snippet is needed in potentially two contexts - for standalone display in 
-    the GUI and as part of a larger external html output file. If the snippet is 
-    in a larger html file, with the snippets of many other items, the overall 
-    html must have the shared resources (css, js) it requires. This shared code 
-    should only appear once in the external html.
+the GUI and as part of a larger external html output file. If the snippet is in 
+a larger html file, with the snippets of many other items, the overall html must 
+have the shared resources (css, js) it requires. This shared code should only 
+appear once in the external html.
+
 If the item is being added to an external html report, any images will need to 
-    be stored in an appropriate subfolder of the report so that it can be 
-    distributed complete with visible images.  In this case, the standalone GUI 
-    version of the snippet should link to these same images.  To do this it will 
-    need a full path to the report images.  The snippet inside the external html 
-    report should have a relative link to make the output portable.  It 
-    shouldn't matter where the external html file is as long as the appropriate 
-    subfolders (images, js) are below it.
+be stored in an appropriate subfolder of the report so that it can be 
+distributed complete with visible images.  In this case, the standalone GUI 
+version of the snippet should link to these same images. To do this it will need 
+a full path to the report images. The snippet inside the external html report 
+should have a relative link to make the output portable. It shouldn't matter 
+where the external html file is as long as the appropriate subfolders (images, 
+js) are below it.
+
 If the item is only being used for standalone GUI display, without being added 
-    to an external html report, there will be no report to store the images 
-    under. Instead, any images it links to can be stored in the _internal folder.
-The snippet is produced by a script.  It is created with an html header and 
-    footer so that it can be displayed with the appropriate styles and js 
-    (without the right js, the dojo charts would not exist at all).
+to an external html report, there will be no report to store the images under. 
+Instead, any images it links to can be stored in the _internal folder.
+
+The snippet is produced by a script. It is created with an html header and 
+footer so that it can be displayed with the appropriate styles and js (without 
+the right js, the dojo charts would not exist at all).
+
 The initial snippet has a header containing the embedded css for the selected
-    style e.g. lucid spirals. Embedding is bulkier than linking so why do that?
-    In its initial state, any background images in this css have relative
-    links. The full path will vary by installation so it must start this way and 
-    be modified to become absolute.  Instead of having duplicate copies of the 
-    background images for the standalone snippet (in _internal) an absolute path 
-    to the existing images is needed.  This is achieved, when converting the raw
-    snippet into the internal standalone GUI version by including the css in 
-    embedded form in the snippet header and editing the css in a simple search 
-    and replace looking for url(...).  
+style e.g. lucid spirals. Embedding is bulkier than linking so why do that? In 
+its initial state, any background images in this css have relative links. The 
+full path will vary by installation so it must start this way and be modified to 
+become absolute. Instead of having duplicate copies of the background images for 
+the standalone snippet (in _internal) an absolute path to the existing images is 
+needed. This is achieved, when converting the raw snippet into the internal 
+standalone GUI version by including the css in embedded form in the snippet 
+header and editing the css in a simple search and replace looking for url(...).
+  
 The initial snippet also has all the js it needs for dojo in the html header as
-    well as its special css.  There is no obstacle to linking to these resources 
-    rather than embedding them so they are linked.
+well as its special css.  There is no obstacle to linking to these resources 
+rather than embedding them so they are linked.
 
 When being added to an html report, the header is completely removed and 
-    replaced.
+replaced.
 
 HTML output is used in different places with different needs. Which all adds
 complexity, unfortunately.
@@ -263,17 +269,23 @@ def get_html_hdr(hdr_title, css_fils, has_dojo=False, new_js_n_charts=None,
                  default_if_prob=False, grey=False, abs_pth=False):
     """
     Get HTML header.
+    
     Add suffixes to each of the main classes so can have multiple styles in a
-        single HTML file.
+    single HTML file.
+    
     has_dojo -- so can include all required css and javascript links plus direct
-        css and js.
+    css and js.
+    
     new_js_n_charts -- the number of dojo chart objects in the final version of 
-        this report including anything just being added.
+    this report including anything just being added.
+    
     default_if_prob -- if True, will use the default css if the specified css 
-        fails.  Otherwise will raise a css-specific exception (which will 
-        probably be handled to give the user some feedback).
+    fails.  Otherwise will raise a css-specific exception (which will probably 
+    be handled to give the user some feedback).
+    
     grey -- make the text in the cells grey instead of black so it is more
-        clearly an example rather than real data.
+    clearly an example rather than real data.
+    
     abs_pth -- absolute paths to background images in css.
     """
     debug = False
@@ -443,7 +455,7 @@ makefaint = function(colour){
     else:
         dojo_insert = u""
     hdr = mg.DEFAULT_HDR % {u"title": hdr_title, u"css": css, 
-                            u"dojo_insert": dojo_insert}
+        u"dojo_insert": dojo_insert}
     if abs_pth:
         hdr = rel2abs_css_bg_imgs(hdr)
     if debug: print(hdr)
@@ -464,12 +476,12 @@ def get_js_n_charts(html):
     debug = False
     try:
         idx_start = (html.index(mg.N_CHARTS_TAG_START) +
-                     len(mg.N_CHARTS_TAG_START))
+            len(mg.N_CHARTS_TAG_START))
         idx_end = html.index(mg.N_CHARTS_TAG_END)
         raw_n_charts_str = html[idx_start: idx_end]
         if debug: print(raw_n_charts_str)
-        js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR).
-                          rstrip(u";"))
+        js_n_charts = int(raw_n_charts_str.strip().lstrip(mg.JS_N_CHARTS_STR)
+            .rstrip(u";"))
         if debug: print(js_n_charts)
     except Exception:
         js_n_charts = None
@@ -496,9 +508,9 @@ def get_css_dets():
     cc = config_output.get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
-                            "Continue using the default style instead?") % 
-                            cc[mg.CURRENT_CSS_PATH], _("Needs CSS Style"), 
-                            style=wx.YES_NO|wx.ICON_QUESTION)
+            "Continue using the default style instead?") % 
+            cc[mg.CURRENT_CSS_PATH], _("Needs CSS Style"), 
+            style=wx.YES_NO|wx.ICON_QUESTION)
         if ret == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
@@ -595,13 +607,13 @@ def percent_encode(url2esc):
 def fix_perc_encodings_for_win(mystr):
     """
     IE6 at least chokes on C%3A%5CDocuments but is OK with 
-        C:/Documents.
-    IE6 can't cope with non-English text percent encoded or 
-        otherwise. See http://ihateinternetexplorer.com/. The IE 
-        widget on Windows 7 is fine though so time will fix this 
-        problem.
-    These steps made a difference in the wxPython IE-based window
-        on XP. Crazy.
+    C:/Documents.
+    
+    IE6 can't cope with non-English text percent encoded or otherwise. See 
+    http://ihateinternetexplorer.com/. The IE widget on Windows 7 is fine though 
+    so time will fix this problem.
+    
+    These steps made a difference in the wxPython IE-based window on XP. Crazy.
     """
     fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, u"/").
         replace(mg.PERC_ENCODED_COLON, u":"))
@@ -653,22 +665,27 @@ def extract_tbl_only(tbl_item):
 def rel2abs_rpt_img_links(str_html):
     """
     Linked images in external HTML reports are in different locations from those 
-        in internal standalone GUI output. 
-        The former are in subfolders of the reports folder ready to be shared 
-        with other people alongside the report file which refers to them. The 
-        latter are in the internal folder only.
+    in internal standalone GUI output. 
+    
+    The former are in subfolders of the reports folder ready to be shared with 
+    other people alongside the report file which refers to them. The latter are 
+    in the internal folder only.
+    
     The internal-only images/js can be referred to by the GUI with reference to 
-        their absolute path.
+    their absolute path.
+    
     The report-associated images/js, can be referred to by their report in a 
-        relative sense, but not by the GUI which has a different relative 
-        location than the report. That is why it must use an absolute path to 
-        the images/js (stored in a particular report's subfolder).
+    relative sense, but not by the GUI which has a different relative location 
+    than the report. That is why it must use an absolute path to the images/js 
+    (stored in a particular report's subfolder).
+    
     So this functionality is only needed for GUI display of report-associated 
-        images/js.
+    images/js.
+    
     Turn my_report_name/001.png to e.g. 
-        file:///home/g/Documents/sofastats/reports/my_report_name/001.png so 
-        that the html can be written to, and read from, anywhere (and still show 
-        the images!) in the temporary GUI displays.
+    file:///home/g/Documents/sofastats/reports/my_report_name/001.png so 
+    that the html can be written to, and read from, anywhere (and still show the 
+    images!) in the temporary GUI displays.
     """
     debug = False
     verbose = False
@@ -680,13 +697,11 @@ def rel2abs_rpt_img_links(str_html):
         report_path = fix_perc_encodings_for_win(report_path)
     if debug: print(u"report_path: %s" % report_path)
     file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
-                      else mg.FILE_URL_START_GEN)
+        else mg.FILE_URL_START_GEN)
     abs_display_content = (str_html.replace(u"%s" % mg.IMG_SRC_START, 
-                                            u"%s%s%s" % (mg.IMG_SRC_START,
-                                                         file_url_start, 
-                                                         report_path)))
-    if debug and verbose: print(u"From \n\n%s\n\nto\n\n%s" % (str_html, 
-                                                           abs_display_content))
+        u"%s%s%s" % (mg.IMG_SRC_START, file_url_start, report_path)))
+    if debug and verbose: 
+        print(u"From \n\n%s\n\nto\n\n%s" % (str_html, abs_display_content))
     return abs_display_content
 
 def path2url(path):
@@ -711,7 +726,7 @@ def rel2abs_rpt_extras(strhtml, tpl):
     debug = False
     url = path2url(mg.REPORT_EXTRAS_PATH)
     abs_display_content = strhtml.replace(tpl % mg.REPORT_EXTRAS_FOLDER, 
-                                          tpl % url) 
+        tpl % url) 
     if debug: print("From \n\n%s\n\nto\n\n%s" % (strhtml, abs_display_content))
     return abs_display_content
 
@@ -721,14 +736,16 @@ def rel2abs_extra_js_links(strhtml):
 def rel2abs_css_bg_imgs(strhtml):
     """
     Make all css background images work off absolute rather than relative paths.  
+    
     Turn url("sofastats_report_extras/tile.gif"); to 
-         url("file:///home/g/Documents/sofastats/reports/sofastats_report_extras/tile.gif");.
+    url("file:///home/g/Documents/sofastats/reports/sofastats_report_extras/tile.gif");.
     """
     return rel2abs_rpt_extras(strhtml, tpl=u"url(\"%s")
 
 def rel2abs_js_links(strhtml):
     """
     Make all js links work off absolute rather than relative paths.
+    
     Turn <script src="sofastats_report_extras/sofalayer.js"> to 
     <script src="file:////home/g/sofastats/reports/sofastats_report_extras/
         sofalayer.js">.
@@ -738,6 +755,7 @@ def rel2abs_js_links(strhtml):
 def rel2abs_css_links(strhtml):
     """
     Make all css links work off absolute rather than relative paths.
+    
     Turn href="sofastats_report_extras/tundra.css" to 
     href="file:///home/g/sofastats/reports/sofastats_report_extras/tundra.css".
     """
@@ -746,13 +764,13 @@ def rel2abs_css_links(strhtml):
 def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     """
     Get the HTML divider between content -includes source e.g. database, table 
-        and time stamp; and a filter description.
+    and time stamp; and a filter description.
     """
     debug = False
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     pagebreak = u" page-break-before: always " if page_break_before else u""
     div = (u"""\n<br><br>\n<hr style="clear: both; %s">\n%s\n<p>%s</p>\n%s""" %
-                (pagebreak, source, filt_msg, mg.VISUAL_DIVIDER_BEFORE_THIS))
+        (pagebreak, source, filt_msg, mg.VISUAL_DIVIDER_BEFORE_THIS))
     if debug: print(div)
     return div
 
@@ -764,9 +782,9 @@ def get_source(db, tblname):
 def get_title_css(css_idx):
     CSS_TBL_TITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE, css_idx)
     CSS_TBL_SUBTITLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_SUBTITLE, 
-                                                 css_idx)
+        css_idx)
     CSS_TBL_TITLE_CELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TBL_TITLE_CELL, 
-                                                   css_idx)
+        css_idx)
     return CSS_TBL_TITLE, CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL
 
 def extract_html_hdr(html):
@@ -774,7 +792,7 @@ def extract_html_hdr(html):
     Get html between the head tags. The start tag must be present.
     """
     html_hdr = extract_html_content(html, start_tag=u"<head>", 
-                                    end_tag=u"</head>")
+        end_tag=u"</head>")
     return html_hdr
 
 def extract_html_body(html):
@@ -782,7 +800,7 @@ def extract_html_body(html):
     Get html between the body tags. The start tag must be present.
     """
     html_body = extract_html_content(html, start_tag=mg.BODY_START, 
-                                     end_tag=u"</body>")
+        end_tag=u"</body>")
     return html_body
 
 def hdr_has_dojo(html):
@@ -803,8 +821,8 @@ def extract_html_content(html, start_tag, end_tag):
     except ValueError:
         if not html:
             msg = (u"Empty report file. Please delete it. SOFA builds report "
-                   u"files as needed if you enter a report name to add output "
-                   u"to that doesn't yet exist.")
+                u"files as needed if you enter a report name to add output to "
+                u"that doesn't yet exist.")
         else:
             msg = u"Start of broken file: %s ..." % html[:60]
         raise my_exceptions.MalformedHtml(msg)
@@ -816,19 +834,24 @@ def extract_html_content(html, start_tag, end_tag):
     return extracted
 
 def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
-                   new_html):
+        new_html):
     """
     If report doesn't exist, make it.
+    
     If it does exist, extract existing content and then create empty version.
+    
     Add to empty file, new header, existing content, and new content.
+    
     A new header is required each time because there may be new css included 
-        plus new js functions to make new charts.
+    plus new js functions to make new charts.
+    
     New content is everything between the body tags.
+    
     new_has_dojo -- does the new html being added have Dojo. NB the report may 
-        have other results which have dojo, whether or not the latest output 
-        has.
+    have other results which have dojo, whether or not the latest output has.
+
     If report has dojo, change from makechartRenumber0 etc, to next available 
-        integers.
+    integers.
     """
     debug = False
     cc = config_output.get_cc()
@@ -850,7 +873,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
                 if new_has_dojo:
                     new_js_n_charts += n_charts_in_new
             if debug: print("n_charts: %s, new_n_charts: %s" % (js_n_charts, 
-                                                                new_js_n_charts))
+                new_js_n_charts))
         existing_no_ends = extract_html_body(existing_html)
         f.close()        
     else:
@@ -861,9 +884,10 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     if has_dojo:
         """
         May be a set of charts e.g. Renumber0, Renumber1 etc
+        
         zero padding chart_idx so that when we search and replace, and go to 
-            replace Renumber1 with Renumber15, we don't change Renumber16 to 
-            Renumber156 ;-)
+        replace Renumber1 with Renumber15, we don't change Renumber16 to 
+        Renumber156 ;-)
         """
         for i in range(n_charts_in_new):
             orig_n_charts = new_js_n_charts - n_charts_in_new
@@ -871,16 +895,16 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
             replacement = u"%02d" % new_n
             i_zero_padded = u"%02d" % i
             new_no_hdr = new_no_hdr.replace(u"Renumber%s" % i_zero_padded, 
-                                            replacement)
-    hdr_title = time.strftime(_("SOFA Statistics Report") + \
-                              " %Y-%m-%d_%H:%M:%S")
+                replacement)
+    hdr_title = time.strftime(_("SOFA Statistics Report") 
+        + " %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
     try:
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
     except IOError:
         if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
             raise Exception(u"Unable to save to report. You might need to "
-                            u"check and correct the path to the report.")
+                u"check and correct the path to the report.")
     except Exception, e:
         raise Exception(u"Unable to save to report. Orig error: %s" % lib.ue(e))
     css_fils_str = '[u"' + u'",\nu"'.join(css_fils) + u'"]'
@@ -911,7 +935,7 @@ def export_script(script, css_fils, new_has_dojo=False):
     dd = mg.DATADETS_OBJ
     cc = config_output.get_cc()
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
-               "output", "rawtables", "stats_output"]
+        "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
         f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "U", "utf-8")
         existing_script = lib.clean_boms(f.read())             
@@ -922,20 +946,20 @@ def export_script(script, css_fils, new_has_dojo=False):
         f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "w", "utf-8")
     except IOError:
         wx.MessageBox(_("Problem making script file named \"%s\". Please try "
-                        "another name.") % cc[mg.CURRENT_SCRIPT_PATH])
+            "another name.") % cc[mg.CURRENT_SCRIPT_PATH])
         return
     if existing_script:
         f.write(_strip_script(existing_script))
     else:
         insert_prelim_code(modules, f, cc[mg.CURRENT_REPORT_PATH], css_fils, 
-                           new_has_dojo)
+            new_has_dojo)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
-                           inc_divider=True)
+        inc_divider=True)
     add_end_script_code(f)
     f.close()
     wx.MessageBox(_("Script added to end of \"%s\" ready for reuse and "
-                    "automation") % cc[mg.CURRENT_SCRIPT_PATH])
+        "automation") % cc[mg.CURRENT_SCRIPT_PATH])
 
 def add_divider_code(f, tbl_filt_label, tbl_filt):
     """
@@ -944,16 +968,16 @@ def add_divider_code(f, tbl_filt_label, tbl_filt):
     dd = mg.DATADETS_OBJ
     f.write(u"\nsource = output.get_source(u\"%s\", u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ndivider = output.get_divider(source, "
-            u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, 
-                                                         tbl_filt))
+        u" u\"\"\" %s \"\"\", u\"\"\" %s \"\"\")" % (tbl_filt_label, tbl_filt))
     f.write(u"\nfil.write(divider)\n")
 
 def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     """
     Insert preliminary code at top of file.  Needed for making output
     f - open file handle ready for writing.
+    
     NB only one output file per script irrespective of selection as each script
-        exported.
+    exported.
     """
     debug = False
     if debug: print(css_fils)
@@ -985,7 +1009,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
 
 def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
-                           inc_divider=False):
+        inc_divider=False):
     """
     Append exported script onto existing script file.
     f - open file handle ready for writing
@@ -1006,7 +1030,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(u"\ndbe =\"%s\"" % dd.dbe)
     f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe,")
     f.write(u"\n    con_dets=con_dets, default_dbs=default_dbs, "
-            u"\n    default_tbls=default_tbls, ")
+        u"\n    default_tbls=default_tbls, ")
     f.write(u"\n    db=u\"%s\", tbl=u\"%s\")" % (dd.db, dd.tbl))
     f.write(u"\ncon = dbe_resources[mg.DBE_CON]")
     f.write(u"\ncur = dbe_resources[mg.DBE_CUR]")
@@ -1023,26 +1047,26 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
 def add_end_script_code(f):
     "Add ending code to script. NB leaves open file."
     f.write(u"\n" + u"\n" + mg.SCRIPT_END + \
-            u"-"*(65 - len(mg.SCRIPT_END)) + u"\n")
+        u"-"*(65 - len(mg.SCRIPT_END)) + u"\n")
     f.write(u"\n" + u"fil.write(output.get_html_ftr())")
     f.write(u"\n" + u"fil.close()")
 
 def generate_script(modules, css_fils, new_has_dojo, inner_script,
-                    tbl_filt_label, tbl_filt):
+        tbl_filt_label, tbl_filt):
     debug = False
     verbose = False
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "w", "utf-8")
         if debug and verbose: print(css_fils)
         insert_prelim_code(modules, f, mg.INT_REPORT_PATH, css_fils, 
-                           new_has_dojo)
+            new_has_dojo)
         append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 
-                               inc_divider=False)
+            inc_divider=False)
         add_end_script_code(f)
         f.close()
     except Exception, e:
         raise Exception(u"Unable to make the script needed to make the output."
-                        u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % lib.ue(e))
 
 def run_script():
     try:
@@ -1054,7 +1078,7 @@ def run_script():
         script = script[script.index(mg.MAIN_SCRIPT_START):]
     except Exception, e:
         raise Exception(u"Unable to read part of script for execution."
-                        u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % lib.ue(e))
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_MS_ACCESS:
         orig_projdic = dd.proj_dic
@@ -1070,7 +1094,7 @@ def run_script():
     except Exception, e:
         print("Unable to run report: %s" % traceback.format_exc())
         raise Exception(_(u"Unable to run script to generate report. Caused by "
-                          u"error: %s") % lib.ue(e))
+            u"error: %s") % lib.ue(e))
     finally:
         if dd.dbe == mg.DBE_MS_ACCESS: 
             dd.set_proj_dic(orig_projdic)
@@ -1079,13 +1103,14 @@ def run_script():
 def get_raw_results():
     """
     Raw results will have a html header with embedded css referencing relative
-        background images, and in the body either relative image links (if added 
-        to report) or absolute images links (if standalone GUI only). 
+    background images, and in the body either relative image links (if added to
+    report) or absolute images links (if standalone GUI only). 
+    
     If it has dojo, will have relative dojo js and css in the header, a 
-        makeObjects function, also in the header, which only runs from 0 to N
-        makechartsRenumber0(), and in the body, a function called 
-        makechartRenumber0, a chart called mychartRenumber0, and a legend called 
-        legendMychartRenumber0, and makechartsRenumber1 etc.
+    makeObjects function, also in the header, which only runs from 0 to N
+    makechartsRenumber0(), and in the body, a function called 
+    makechartRenumber0, a chart called mychartRenumber0, and a legend called 
+    legendMychartRenumber0, and makechartsRenumber1 etc.
     """
     debug = False
     verbose = False
@@ -1096,34 +1121,35 @@ def get_raw_results():
         if debug and verbose: print(raw_results)
     except Exception, e:
         raise Exception(u"Unable to read local copy of output report."
-                        u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % lib.ue(e))
     return raw_results
 
 def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
-                      raw_results):
+        raw_results):
     """
     Append into html file. 
+    
     Handles source and filter desc internally when making divider between 
-        output.
+    output.
+    
     Ignores snippet html header and modifies report header if required.
     """
     try:
         save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
-                       raw_results)
+            raw_results)
     except my_exceptions.MalformedHtml, e:
-        raise Exception(_("Problems with the content of the"
-                          u" report you are saving to. Please fix, or delete "
-                          u"report and start again."
-                          u"Caused by error: %s") % lib.ue(e))
+        raise Exception(_("Problems with the content of the report you are "
+            u"saving to. Please fix, or delete report and start again. Caused "
+            u"by error: %s") % lib.ue(e))
     except Exception, e:
         raise Exception(u"Problem running report.\n"
-                        u"Caused by error: %s" % lib.ue(e))
+            u"Caused by error: %s" % lib.ue(e))
 
 def get_abs_content(raw_display_content, add_to_report):
     """
     Relative references are good for a portable html file but no good for local
-        display in SOFA or extracting paths suitable for copying images. Need
-        absolute paths.
+    display in SOFA or extracting paths suitable for copying images. Need
+    absolute paths.
     """
     debug = False
     verbose = True
@@ -1155,7 +1181,8 @@ def get_abs_content(raw_display_content, add_to_report):
 def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     """
     Runs report and returns bolran_report, and HTML representation of report 
-        (or of the error) for GUI display. Report includes HTML header.
+    (or of the error) for GUI display. Report includes HTML header.
+    
     add_to_report -- also append result to current report.
     """
     debug = False
@@ -1166,34 +1193,33 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
     try:
         generate_script(modules, css_fils, new_has_dojo, inner_script,
-                        tbl_filt_label, tbl_filt)
+            tbl_filt_label, tbl_filt)
         run_script()
         raw_results = get_raw_results()
         if add_to_report:
             append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, 
-                               new_has_dojo, raw_results)
+                new_has_dojo, raw_results)
         # Split raw_results so can insert messages re filters etc AFTER header
         above_inner_body, inner_body = raw_results.split(mg.BODY_START)
         try:
             abs_above_inner_body = get_abs_content(above_inner_body, 
-                                                   add_to_report)
+                add_to_report)
             abs_inner_body = get_abs_content(inner_body, add_to_report)
         except Exception, e:
             if add_to_report:
                 raise Exception(u"Problems getting copy of output to display."
-                                u"\nOrig error: %s" % lib.ue(e))
+                    u"\nOrig error: %s" % lib.ue(e))
             else:
                 raise Exception(u"Problems getting content to display on "
-                                u"screen.\nOrig error: %s" % lib.ue(e))
+                    u"screen.\nOrig error: %s" % lib.ue(e))
         if add_to_report:
             esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
             gui_display_content = (abs_above_inner_body + mg.BODY_START + 
-                                   u"\n<p>Output also saved to '%s'</p>" % 
-                                   esc_rpt_path + u"<p>%s</p>" % filt_msg 
-                                   + abs_inner_body)
+                u"\n<p>Output also saved to '%s'</p>" % esc_rpt_path 
+                + u"<p>%s</p>" % filt_msg + abs_inner_body)
         else:
             gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
-                                   + u"<p>%s</p>" % filt_msg + abs_inner_body)
+                + u"<p>%s</p>" % filt_msg + abs_inner_body)
         if debug: print(abs_inner_body)
     except my_exceptions.NeedViableInput, e:
         return False, u"<p>%s</p>" % lib.ue(e)
@@ -1201,7 +1227,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         return False, u"<h1>Ooops!</h1><p>%s</p>" % lib.ue(e)
     if debug: 
         print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 
-                                               gui_display_content))
+            gui_display_content))
     try: # makes it much easier to extract absolute chart paths for linked 
             # images (as opposed to SVG/Javascript images (Dojo).
         with codecs.open(mg.INT_REPORT_PATH, "w", "utf-8") as f:
@@ -1216,7 +1242,7 @@ def display_report(parent, str_content, url_load=False):
     # display results
     wx.BeginBusyCursor()
     dlg = showhtml.DlgHTML(parent=parent, title=_("Report"), url=None, 
-                           content=str_content, url_load=url_load)
+        content=str_content, url_load=url_load)
     dlg.ShowModal()
     lib.safe_end_cursor() # again to be sure
     
