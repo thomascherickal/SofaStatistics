@@ -962,26 +962,26 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(mg.PYTHON_ENCODING_DECLARATION)
     f.write(u"\n" + mg.MAIN_SCRIPT_START)
     f.write(u"\nimport codecs")
-    f.write(u"\nimport sys")
     f.write(u"\nimport gettext")
     f.write(u"\nimport numpy as np")
+    f.write(u"\nimport os")
+    f.write(u"\nimport sys")
     f.write(u"\ngettext.install(domain='sofastats', localedir='%s', "
-            u"unicode=False)" % mg.LOCALEDIR)
-    f.write(lib.get_gettext_setup_txt())
-    f.write(u"\nsys.path.append(u'%s')" % \
-            lib.escape_pre_write(mg.SCRIPT_PATH))
+        u"unicode=False)" % mg.LOCALEDIR)
+    f.write(u"\n" + lib.get_gettext_setup_txt())
+    f.write(u"\nsys.path.append(u'%s')" % lib.escape_pre_write(mg.SCRIPT_PATH))
     for module in modules:
         f.write(u"\nimport %s" % module)
     f.write(u"\nimport my_exceptions")
-    f.write(u"""\n\nfil = codecs.open(u"%s",""" % \
-                      lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
+    f.write(u"""\n\nfil = codecs.open(u"%s",""" %
+        lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
     css_fils_str = u'[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"\ncss_fils=%s" % lib.escape_pre_write(css_fils_str))
     has_dojo = new_has_dojo # always for making single output item e.g. chart
     has_dojo_str = u"True" if has_dojo else u"False"
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
-            u"has_dojo=%s, new_js_n_charts=None, default_if_prob=True))" % 
-            has_dojo_str)
+        u"has_dojo=%s, new_js_n_charts=None, default_if_prob=True))" % 
+        has_dojo_str)
     f.write(u"\n\n# end of script 'header'" + u"\n" + u"\n")
 
 def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, 

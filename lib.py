@@ -38,17 +38,18 @@ def get_gettext_setup_txt():
     """
     bits = []
     bits.append(u"try:")
-    bits.append(u"    mytrans = gettext.translation(u'sofastats', langdir,")
-    bits.append(u"        languages=[%s,], fallback=True)" % mg.CANON_NAME)
+    bits.append(u"    mytrans = gettext.translation(u'sofastats', \"%s\"," % 
+        mg.LANGDIR)
+    bits.append(u"        languages=[u'%s',], fallback=True)" % mg.CANON_NAME)
     bits.append(u"    mytrans.install(unicode=True)")
     bits.append(u"except Exception, e:")
-    bits.append(u"    raise Exception(u\"Problem installing translation. ")
-    bits.append(u"        u\"Original error: %s\" % lib.ue(e))")
+    bits.append(u"    raise Exception(u\"Problem installing translation. \"")
+    bits.append(u"        u\"Original error: %s\" % e)")
     if mg.PLATFORM == mg.LINUX:
         bits.append(u"try:")
-        bits.append(u"    os.environ['LANG'] = u\"%s.UTF-8\"" % mg.CANON_NAME)
+        bits.append(u"    os.environ['LANG'] = u'%s.UTF-8'" % mg.CANON_NAME)
         bits.append(u"except (ValueError, KeyError):")
-        bits.append(u"pass # OK if unable to set environment settings.")
+        bits.append(u"    pass # OK if unable to set environment settings.")
     return "\n".join(bits)
 
 def get_indiv_regression_msg(list_x, list_y, series_lbl):

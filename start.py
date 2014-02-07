@@ -152,15 +152,15 @@ class SofaApp(wx.App):
         Esp http://wiki.wxpython.org/Internationalization
         See also http://wiki.wxpython.org/RecipesI18n
         """
-        langdir = os.path.join(mg.SCRIPT_PATH, u'locale')
+        mg.LANGDIR = os.path.join(mg.SCRIPT_PATH, u'locale')
         try:
-            canon_name = self.get_canon_name(langdir)
+            canon_name = self.get_canon_name(mg.LANGDIR)
             mg.CANON_NAME = canon_name
         except Exception, e:
             raise Exception(u"Unable to get canon name. Original error: %s" 
                 % lib.ue(e))
         try:
-            mytrans = gettext.translation(u"sofastats", langdir, 
+            mytrans = gettext.translation(u"sofastats", mg.LANGDIR, 
                 languages=[canon_name,], fallback=True)
             mytrans.install(unicode=True) # must set explicitly here for Mac
         except Exception, e:
