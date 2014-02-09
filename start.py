@@ -2,6 +2,9 @@
 # -*- coding: utf-8 -*-
 
 """
+SOFA Statistics is released under the AGPL3 and the copyright is held by 
+Paton-Simpson & Associates Ltd.
+
 Start up launches the SOFA main form. Along the way it tries to detect errors
 and report on them to the user so that they can seek help. E.g. faulty version 
 of Python being used to launch SOFA; or missing images needed by the form.
@@ -1041,11 +1044,10 @@ class StartFrame(wx.Frame):
                 self.max_help_text_width), wx.Rect(self.main_left, 
                 self.help_text_top, self.help_text_width, 260))
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 7, 
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
-            ucopyright = u"\u00a9"
-            panel_dc.DrawLabel(u"Released under open source AGPL3 licence\n%s "
-                u"2009-2013 Paton-Simpson & Associates Ltd" % ucopyright, 
+            panel_dc.DrawLabel(u"Fully open source and\nreleased under the "
+                u"AGPL3 licence", 
                 wx.Rect(self.main_left, self.form_height-53, 100, 50))
             panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115, 
                 self.form_height-58, True)
