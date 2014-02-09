@@ -2,13 +2,13 @@ from __future__ import print_function
 from decimal import Decimal
 import locale
 import pprint
-import wx
+import wx #@UnusedImport
 import wx.grid
 
 import my_globals as mg
 import lib
-import my_exceptions
 import config_output
+import export_data
 import getdata
 import db_tbl
 import projects
@@ -1053,15 +1053,6 @@ class TblEditor(wx.Dialog):
         event.Skip()
     
     def on_btn_export(self, event):
-        try:
-            import export_data
-        except ImportError:
-            # don't have extension installed (or working)
-            comments = [u"Make it easy to export data to a spreadsheet"]
-            dlg = config_output.DlgGetExt(label=u"Export Data", 
-                                          comments=comments)
-            dlg.ShowModal()
-            return
         n_rows = self.dbtbl.rows_n - 1
         if n_rows > 20000:
             strn = locale.format('%d', self.dbtbl.rows_n-1, True)

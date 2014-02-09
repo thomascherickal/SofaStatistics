@@ -82,7 +82,6 @@ except ImportError: # if it's not there locally, try the wxPython lib.
             raw_input(setup.INIT_DEBUG_MSG)
         raise Exception(msg)
 if show_early_steps: print(u"Imported hl successfully.")
-
 import my_globals as mg
 if show_early_steps: print(u"Imported my_globals successfully.")
 import lib
@@ -93,6 +92,8 @@ import config_globals
 if show_early_steps: print(u"Imported config_globals successfully.")
 import config_output
 if show_early_steps: print(u"Imported config_output successfully.")
+import backup_sofa
+if show_early_steps: print(u"Imported backup_sofa successfully.")
 import getdata
 if show_early_steps: print(u"Imported getdata successfully.")
 import projects
@@ -1353,27 +1354,13 @@ class StartFrame(wx.Frame):
         event.Skip()
     
     def on_backup_click(self, event):
-        debug = False
-        plugin_found = False
+        wx.BeginBusyCursor()
         try:
-            if debug: raise ImportError
-            import backup_sofa as bu
-            plugin_found = True
-        except ImportError:
-            # don't have extension installed (or working)
-            comments = [u"Make it easy to backup your data, variable labels, "
-                u"and reports"]
-            dlg = config_output.DlgGetExt(label=u"Backup SOFA", 
-                comments=comments)
-            dlg.ShowModal()
-        if plugin_found:
-            wx.BeginBusyCursor()
-            try:
-                msg = bu.run_backup()
-            except Exception, e:
-                msg = u"Unable to make backup.\n\nOrig error: %s" % e
-            lib.safe_end_cursor()
-            wx.MessageBox(msg)
+            msg = backup_sofa.run_backup()
+        except Exception, e:
+            msg = u"Unable to make backup.\n\nOrig error: %s" % e
+        lib.safe_end_cursor()
+        wx.MessageBox(msg)
         event.Skip()
     
     def on_backup_enter(self, event):

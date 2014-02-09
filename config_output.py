@@ -9,6 +9,7 @@ import my_globals as mg
 import my_exceptions
 import config_globals
 import lib
+import export_output as export
 import getdata
 import output
 #import projects
@@ -69,43 +70,7 @@ class DlgGetTest(wx.Dialog):
         self.SetSizer(szr)
         szr.SetSizeHints(self)
         szr.Layout()
-
-
-class DlgGetExt(wx.Dialog):
-    
-    def __init__(self, label, comments):
-        wx.Dialog.__init__(self, parent=None, id=-1, 
-            title=u"Extend and Improve SOFA", pos=(mg.HORIZ_OFFSET+200, 300))
-        """
-        Now available as a SOFA extension plug-in; "Get Plug-in"; Add button to 
-        open get_extensions page.
-        """
-        self.link = u"http://www.sofastatistics.com/get_extensions.php"
-        szr = wx.BoxSizer(wx.VERTICAL)
-        szr.AddSpacer(10)
-        for comment in comments:
-            szr.Add(wx.StaticText(self, -1, comment), 0, wx.LEFT|wx.RIGHT, 10)
-        btn_get_ext = wx.Button(self, -1, _(u"Get %s Plug-in") % label,
-            size=(-1,50))
-        btn_get_ext.Bind(wx.EVT_BUTTON, self.on_btn_get_ext)
-        btn_ok = wx.Button(self, wx.ID_OK, u"No Thanks") # autobound to close event by id
-        btn_ok.Bind(wx.EVT_BUTTON, self.on_btn_ok)
-        szr.Add(btn_get_ext, 1, wx.GROW|wx.ALL, 10)
-        szr.Add(btn_ok, 0, wx.ALL, 10)
-        self.SetSizer(szr)
-        szr.SetSizeHints(self)
-        szr.Layout()
-
-    def on_btn_get_ext(self, event):
-        webbrowser.open_new_tab(url=self.link)
-        event.Skip()
-        
-    def on_btn_ok(self, event):
-        wx.MessageBox(u"If you change your mind, the link is:\n\n%s" % 
-            self.link)
-        self.Destroy()
-        event.Skip()
-        
+       
         
 def get_cc():
     debug = False
@@ -717,7 +682,6 @@ class ConfigUI(object):
                 idx_export_sel))
 
     def on_sel_export_report(self, event):
-        debug = False
         cc = get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
@@ -739,47 +703,25 @@ class ConfigUI(object):
                 {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
                 u"rpt_root": rpt_root, u"reports_path": mg.REPORTS_PATH})
             return
-        try:
-            if debug: raise ImportError
-            import export_output as export
-            cc = get_cc()
-            dlg = export.DlgExportOutput(title=u"Export Report", 
-                report2export=cc[mg.CURRENT_REPORT_PATH],
-                temp_report_only=False)
-            dlg.ShowModal()
-        except ImportError:
-            # don't have extension installed (or working)
-            comments = [u"Make it easy to share reports as PDFs; export high",
-                u"-quality images ready to put into documents or slideshows; or"
-                u" export report tables to a spreadsheet."]
-            dlg = DlgGetExt(label=u"Export Report", comments=comments)
-            dlg.ShowModal()
+        cc = get_cc()
+        dlg = export.DlgExportOutput(title=u"Export Report", 
+            report2export=cc[mg.CURRENT_REPORT_PATH],
+            temp_desktop_report_only=False)
+        dlg.ShowModal()
+
         
     def on_sel_export_output(self, event):
-        debug = False
         try:
-            if debug: raise ImportError
-            try:
-                self.update_demo_display() # so mg.INT_REPORT_PATH includes the latest title
-            except AttributeError:
-                pass
-            import export_output as export
-            dlg = export.DlgExportOutput(title=u"Export Output", 
-                report2export=mg.INT_REPORT_PATH, temp_report_only=True)
-            dlg.ShowModal()
-        except ImportError:
-            # don't have extension installed (or working)
-            comments = [u"Make it easy to share reports as PDFs; export high",
-                u"-quality images ready to put into documents or slideshows; or"
-                u" export report tables to a spreadsheet."]
-            dlg = DlgGetExt(label=u"Export Output", comments=comments)
-            dlg.ShowModal()
+            self.update_demo_display() # so mg.INT_REPORT_PATH includes the latest title
+        except AttributeError:
+            pass
+        dlg = export.DlgExportOutput(title=u"Export Output", 
+            report2export=mg.INT_REPORT_PATH, temp_desktop_report_only=True)
+        dlg.ShowModal()
     
     def on_sel_copy_output(self, event):
-        debug = False
         wx.BeginBusyCursor()
         try:
-            import export_output as export
             export.copy_output()
             lib.safe_end_cursor()
             """
@@ -791,15 +733,6 @@ class ConfigUI(object):
             wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
                 u"pasting the output or it won't work." % self.title), 
                 caption=u"COPIED OUTPUT")
-        except ImportError:
-            # don't have extension installed (or working)
-            lib.safe_end_cursor()
-            comments = [u"Make it easy to share reports as PDFs; export high",
-                u"-quality images ready to put into documents or slideshows; or"
-                u" export report tables to a spreadsheet."]
-            dlg = DlgGetExt(label=u"Copy Output to Clipboard As Images", 
-                comments=comments)
-            dlg.ShowModal()
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
