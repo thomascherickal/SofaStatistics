@@ -2,6 +2,10 @@
 # -*- coding: utf-8 -*-
 
 """
+Sorry - I haven't been able to get exporting to work on Macs yet. Please contact 
+the project if you would like details or if you are a Python developer and can 
+help.
+
 export2pdf(), export2spreadsheet(), and export2imgs() do the real work and can 
 be scripted outside the GUI. Set headless = True when calling. export2imgs has 
 the best doc string to read.
@@ -25,31 +29,6 @@ import my_globals as mg
 import lib
 import my_exceptions
 import output
-
-if mg.PLATFORM == mg.MAC:
-    raise Exception(u"Sorry - I haven't been able to get exporting to work on "
-        u"Macs yet. Please contact %s if you would like details or if you are a"
-        u" Python developer and can help." % mg.CONTACT)
-
-__version__ = "1.2.0"
-"""
-1.2.0 -- Making the headless API sane again ;-) and now including PDF and 
-spreadsheet exporting as a headless option.
-
-1.1.0 -- splitting more code up into smaller units. Put some in lib so can 
-access for exporting html tables as well.
-
-1.0.4 -- removed some unused code. Enabling non-GUI scripting.
-
-1.0.3 -- strips empty space off end of desktop foldername - needed if no AM/PM 
-in localisation.
-
-1.0.2 -- now checks if raw_pdf actually made, whether or not shell command 
-returned error. Also gives feedback on command that failed.
-
-1.0.1 -- now init cmd_fix_pdf so always get a useful error msg if 
-fix_pdf() fails.
-"""
 
 OVERRIDE_FOLDER = None
 
@@ -537,9 +516,11 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
         temp_desktop_path, output_dpi, gauge_start_imgs=0, headless=False, 
         export_status=None, steps_per_img=None, msgs=None, progbar=None):
     """
-    hdr -- HTML header with css, javascript etc. Make with get_hdr_and_items()
+    hdr -- HTML header with css, javascript etc. Make hdr (and img_items) with 
+    get_hdr_and_items()
     
-    img_items -- list of data about images. Make with get_hdr_and_items()
+    img_items -- list of data about images. Make img_items (and hdr) with a call 
+    to get_hdr_and_items()
     
     temp_desktop_report_only -- boolean. False when exporting a report; True 
     when exporting or coping current output.
@@ -593,7 +574,7 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
     long_time = ((n_imgs > 30 and output_dpi == SCREEN_DPI) 
         or (n_imgs > 10 and output_dpi == PRINT_DPI) 
         or (n_imgs > 2 and output_dpi == HIGH_QUAL_DPI))
-    if long_time:
+    if long_time and not headless:
         if wx.MessageBox(_("The report has %s images to export at %s dpi. "
                 "Do you wish to export at this time?") % (n_imgs, output_dpi), 
                 caption=_("SLOW EXPORT PREDICTED"), style=wx.YES_NO) == wx.NO:
@@ -604,7 +585,7 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
     ftr = u"</body></html>"
     # give option of backing out
     for i, item in enumerate(img_items, 1):
-        wx.Yield()
+        if not headless: wx.Yield()
         if export_status[mg.CANCEL_EXPORT]:
             if progbar: progbar.SetValue(0)
             raise my_exceptions.ExportCancel
@@ -618,8 +599,12 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
             try:
                 shutil.copyfile(src, dst)
             except Exception, e:
-                wx.MessageBox(u"Unable to copy existing image file. "
-                    u"Orig error: %s" % lib.ue(e))
+                msg = (u"Unable to copy existing image file. Orig error: %s" % 
+                    lib.ue(e))
+                if not headless:
+                    wx.MessageBox(msg)
+                else:
+                    print(msg)
                 if progbar: progbar.SetValue(0)
                 raise my_exceptions.ExportCancel
         else:
@@ -709,7 +694,10 @@ def shellit(cmd, shell=True):
     verbose = False
     if debug: 
         if verbose:
-            wx.MessageBox(cmd)
+            try:
+                wx.MessageBox(cmd)
+            except Exception: # e.g. headless
+                print(cmd)
         else:
             print(cmd)
     encoding2use = sys.getfilesystemencoding() # on win, mbcs
