@@ -117,26 +117,25 @@ class Prog2console(object):
 
 class DlgExportOutput(wx.Dialog):
     
-    def __init__(self, title, report2export, temp_desktop_report_only=False):
+    def __init__(self, title, report_path, save2report_path=True):
         """
-        temp_desktop_report_only -- exporting output to a temporary desktop 
-        folder for the user to look at, shift somewhere else etc. Otherwise the 
-        output goes into the report folder.
+        save2report_path -- output goes into the report folder. If False, 
+        exporting output to a temporary desktop folder for the user to look at. 
         """
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
             pos=(mg.HORIZ_OFFSET+200, 300), style=wx.MINIMIZE_BOX|
             wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
             wx.CAPTION|wx.CLIP_CHILDREN)
-        self.temp_desktop_report_only = temp_desktop_report_only
+        self.save2report_path = save2report_path
         if OVERRIDE_FOLDER:
-            self.temp_desktop_report_only = False
-        self.report2export = report2export
+            self.save2report_path = True
+        self.report_path = report_path
         szr = wx.BoxSizer(wx.VERTICAL)
         self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
         if self.temp_desktop_report_only:
             msg = u"Export content currently displayed in SOFA"
         else:
-            report_name = os.path.split(report2export)[1]
+            report_name = os.path.split(report_path)[1]
             msg = u"Export \"%s\"" % report_name
         lbl_msg = wx.StaticText(self, -1, msg)
         szr.Add(lbl_msg, 0, wx.ALL, 10)
@@ -208,7 +207,10 @@ class DlgExportOutput(wx.Dialog):
             return
         self.align_btns_to_exporting(exporting=True)
         msgs = []
-        if self.temp_desktop_report_only:
+        if self.save2report_path:
+            foldername = None
+            temp_desktop_path = None
+        else:
             # save to folder on desktop
             ts = datetime.datetime.now().strftime('%b %d %I-%M %p').strip()
             foldername = u"SOFA export %s" % ts
@@ -219,10 +221,7 @@ class DlgExportOutput(wx.Dialog):
                 os.mkdir(temp_desktop_path)
             except OSError:
                 pass # already there
-        else:
-            foldername = None
-            temp_desktop_path = None
-        hdr, img_items, tbl_items = get_hdr_and_items(self.report2export, 
+        hdr, img_items, tbl_items = get_hdr_and_items(self.report_path, 
             DIAGNOSTIC)
         n_imgs = len(img_items)
         n_tbls = len(tbl_items)
@@ -236,7 +235,7 @@ class DlgExportOutput(wx.Dialog):
             self.output_dpi, n_tbls)
         if do_pdf:
             try:
-                pdf_tasks(self.temp_desktop_report_only, self.report2export, 
+                pdf_tasks(self.save2report_path, self.report_path, 
                     temp_desktop_path, headless, gauge_start_pdf, steps_per_pdf, 
                     msgs, self.progbar)
             except Exception, e:
@@ -249,8 +248,8 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_imgs:
             try:
-                export2imgs(hdr, img_items, self.temp_desktop_report_only, 
-                    self.report2export, temp_desktop_path, self.output_dpi, 
+                export2imgs(hdr, img_items, self.save2report_path, 
+                    self.report_path, temp_desktop_path, self.output_dpi, 
                     gauge_start_imgs, headless, self.export_status, 
                     steps_per_img, msgs, self.progbar)
             except Exception, e:
@@ -270,10 +269,9 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_tbls:
             try:
-                export2spreadsheet(hdr, tbl_items, 
-                    self.temp_desktop_report_only, self.report2export, 
-                    temp_desktop_path, gauge_start_tbls, headless, 
-                    steps_per_tbl, msgs, self.progbar)
+                export2spreadsheet(hdr, tbl_items, self.save2report_path, 
+                    self.report_path, temp_desktop_path, gauge_start_tbls, 
+                    headless, steps_per_tbl, msgs, self.progbar)
             except Exception, e:
                 try:
                     raise
@@ -461,19 +459,13 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     return (gauge_start_pdf, steps_per_pdf_item, gauge_start_imgs, 
         steps_per_img_item, gauge_start_tbls, steps_per_tbl_item)
 
-def pdf_tasks(temp_desktop_report_only, report2export, temp_desktop_path,  
-        headless, gauge_start_pdf, steps_per_pdf, msgs, progbar):
-    if temp_desktop_report_only:
-        foldername = os.path.split(temp_desktop_path)[1]
-        pdf_path = export2pdf(temp_desktop_path, u"SOFA output.pdf", 
-            report2export, gauge_start_pdf, headless, steps_per_pdf, progbar)
-        pdf_saved_msg = _(u"PDF has been saved to your desktop in the "
-            u"\"%s\" folder" % foldername)
-    else:
-        if not os.path.exists(report2export):
+def pdf_tasks(save2report_path, report_path, temp_desktop_path, headless, 
+        gauge_start_pdf, steps_per_pdf, msgs, progbar):
+    if save2report_path:
+        if not os.path.exists(report_path):
             raise Exception(u"Report contents cannot be exported. "
-                u"No report file \"%s\"to export." % report2export)
-        rpt_root, rpt_name = os.path.split(report2export)
+                u"No report file \"%s\"to export." % report_path)
+        rpt_root, rpt_name = os.path.split(report_path)
         pdf_name = u"%s.pdf" % os.path.splitext(rpt_name)[0]
         """
         Make version which removes class class="screen-float-only" because this 
@@ -481,7 +473,7 @@ def pdf_tasks(temp_desktop_report_only, report2export, temp_desktop_path,
         to manually prevent floating.
         """
         """
-        file_src = codecs.open(self.report2export, "r", "utf-8")
+        file_src = codecs.open(self.report_path, "r", "utf-8")
         txt2fix = file_src.read()
         file_src.close()
         HTML4PDF_PATH = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
@@ -491,9 +483,15 @@ def pdf_tasks(temp_desktop_report_only, report2export, temp_desktop_path,
         file_dest.write(txt2write)
         file_dest.close()
         """
-        pdf_path = export2pdf(rpt_root, pdf_name, report2export, 
+        pdf_path = export2pdf(rpt_root, pdf_name, report_path, 
             gauge_start_pdf, headless, steps_per_pdf, progbar)
         pdf_saved_msg = (_(u"PDF has been saved to: \"%s\"") % pdf_path)
+    else:
+        foldername = os.path.split(temp_desktop_path)[1]
+        pdf_path = export2pdf(temp_desktop_path, u"SOFA output.pdf", 
+            report_path, gauge_start_pdf, headless, steps_per_pdf, progbar)
+        pdf_saved_msg = _(u"PDF has been saved to your desktop in the "
+            u"\"%s\" folder" % foldername)
     msgs.append(pdf_saved_msg)
 
 def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0, 
@@ -512,7 +510,7 @@ def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0,
     progbar.SetValue(gauge2show)
     return pdf_path
 
-def export2imgs(hdr, img_items, temp_desktop_report_only, report_path, 
+def export2imgs(hdr, img_items, save2report_path, report_path, 
         temp_desktop_path, output_dpi, gauge_start_imgs=0, headless=False, 
         export_status=None, steps_per_img=None, msgs=None, progbar=None):
     """
@@ -522,15 +520,15 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
     img_items -- list of data about images. Make img_items (and hdr) with a call 
     to get_hdr_and_items()
     
-    temp_desktop_report_only -- boolean. False when exporting a report; True 
+    save2report_path -- boolean. True when exporting a report; False 
     when exporting or coping current output.
     
     report_path -- only needed if exporting entire report 
-    i.e. temp_desktop_report_only = False. 
+    i.e. save2report_path = True. 
     e.g. /home/g/Documents/sofastats/reports/sofa_use_only_report.htm
     
-    temp_desktop_path -- images will go here if temp_desktop_report_only (unless 
-    there is an OVERRIDE_FOLDER that is).
+    temp_desktop_path -- images will only go here if not save2report_path 
+    (and if there is no OVERRIDE_FOLDER as well that is).
     
     output_dpi -- e.g. 300
     
@@ -623,17 +621,16 @@ def export2imgs(hdr, img_items, temp_desktop_report_only, report_path,
                 (i, u",\n".join(imgs_made)))
         gauge2show += steps_per_img
         if progbar: progbar.SetValue(gauge2show)
-    if temp_desktop_report_only:
-        foldername = os.path.split(temp_desktop_path)[1]
-        img_saved_msg = (u"Images have been saved to your desktop "
-            u"in the \"%s\" folder" % foldername)
+    if save2report_path:
+        img_saved_msg = (_(u"Images have been saved to: \"%s\"") % imgs_path)
     else:
-        img_saved_msg = (_(u"Images have been saved to: \"%s\"") % 
-            imgs_path)
+        foldername = os.path.split(temp_desktop_path)[1]
+        img_saved_msg = (u"Images have been saved to your desktop in the "
+            u"\"%s\" folder" % foldername)
     if not headless:
         msgs.append(img_saved_msg)
 
-def export2spreadsheet(hdr, tbl_items, temp_desktop_report_only, report2export, 
+def export2spreadsheet(hdr, tbl_items, save2report_path, report_path, 
         temp_desktop_path, gauge_start_tbls=0, headless=False, 
         steps_per_tbl=None, msgs=None, progbar=None):
     if headless:
@@ -642,18 +639,18 @@ def export2spreadsheet(hdr, tbl_items, temp_desktop_report_only, report2export,
                 u"settings")
         steps_per_tbl = 1 # leave msgs as default of None
         progbar = Prog2console()
-    if temp_desktop_report_only:
-        spreadsheet_path = os.path.join(temp_desktop_path, u"SOFA output.xls")
-    else:
-        if not os.path.exists(report2export):
+    if save2report_path:
+        if not os.path.exists(report_path):
             raise Exception(u"Report contents cannot be exported. "
-                u"No report file \"%s\"to export." % report2export)
-        spreadsheet_root, rpt_name = os.path.split(report2export)
+                u"No report file \"%s\"to export." % report_path)
+        spreadsheet_root, rpt_name = os.path.split(report_path)
         spreadsheet_name = u"%s.xls" % os.path.splitext(rpt_name)[0]
         progbar = progbar if progbar else Prog2console()
         if OVERRIDE_FOLDER:
             spreadsheet_root = OVERRIDE_FOLDER
         spreadsheet_path = os.path.join(spreadsheet_root, spreadsheet_name)
+    else:
+        spreadsheet_path = os.path.join(temp_desktop_path, u"SOFA output.xls")
     n_tbls = len(tbl_items)
     html = [hdr,] + [output.extract_tbl_only(tbl_item.content) for tbl_item 
         in tbl_items]
@@ -661,13 +658,13 @@ def export2spreadsheet(hdr, tbl_items, temp_desktop_report_only, report2export,
     with codecs.open(spreadsheet_path, "w", "utf-8") as f_xls:
         f_xls.write(html2save)
         f_xls.close()
-    if temp_desktop_report_only:
+    if save2report_path:
+        spreadsheet_saved_msg = (_(u"The spreadsheet has been saved"
+            u" to: \"%s\"") % spreadsheet_path)
+    else:
         foldername = os.path.split(temp_desktop_path)[1]
         spreadsheet_saved_msg = (u"The spreadsheet has been saved "
             u"to your desktop in the \"%s\" folder" % foldername)
-    else:
-        spreadsheet_saved_msg = (_(u"The spreadsheet has been saved"
-            u" to: \"%s\"") % spreadsheet_path)
     msgs.append(spreadsheet_saved_msg)
     gauge2show = gauge_start_tbls + (steps_per_tbl*n_tbls)
     progbar.SetValue(gauge2show)

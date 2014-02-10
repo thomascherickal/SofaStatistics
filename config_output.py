@@ -713,8 +713,7 @@ class ConfigUI(object):
             return
         cc = get_cc()
         dlg = export.DlgExportOutput(title=u"Export Report", 
-            report2export=cc[mg.CURRENT_REPORT_PATH],
-            temp_desktop_report_only=False)
+            report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True)
         dlg.ShowModal()
 
         
@@ -724,7 +723,7 @@ class ConfigUI(object):
         except AttributeError:
             pass
         dlg = export.DlgExportOutput(title=u"Export Output", 
-            report2export=mg.INT_REPORT_PATH, temp_desktop_report_only=True)
+            report_path=mg.INT_REPORT_PATH, save2report_path=False)
         dlg.ShowModal()
     
     def on_sel_copy_output(self, event):

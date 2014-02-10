@@ -47,9 +47,10 @@ if show_early_steps: print(u"Just imported traceback")
 if not(hasattr(sys, 'frozen') and sys.frozen):
     try:
         import wxversion
-        wxversion.select("2.8")
-    except wxversion.AlreadyImportedError, e:
-        pass
+        try:
+            wxversion.select("2.8")
+        except wxversion.AlreadyImportedError, e:
+            pass
     except Exception, e:
         msg = u"There seems to be a problem with wxversion. %s" % \
             traceback.format_exc()
