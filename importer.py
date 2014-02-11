@@ -285,21 +285,27 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
         testing=False):
     """
     NB client code gets number of fields in row 1. Then for each field, it 
-        traverses rows (i.e. travels down a col, then down the next etc).  If a
-        row has more flds than are in the first row, no problems will be picked
-        up here because we never go into the problematic column. But we will
-        strike None values in csv files, for eg, when a row is shorter than it
-        should be.
+    traverses rows (i.e. travels down a col, then down the next etc). If a row 
+    has more flds than are in the first row, no problems will be picked up here 
+    because we never go into the problematic column. But we will strike None 
+    values in csv files, for eg, when a row is shorter than it should be.
+    
     sample_data -- list of dicts.
+    
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
-        If a csv files does, however, it is not. Should be empty str.
+    If a csv files does, however, it is not. Should be empty str.
+    
     For individual values, if numeric, assume numeric, 
         if date, assume date, 
         if string, either an empty string or an ordinary string.
-    For entire field sample, numeric if only contains numeric 
-        and empty strings (could be missings).
+    
+    For entire field sample, numeric if only contains numeric and empty strings 
+    (could be missings).
+    
     Date if only contains dates and empty strings (could be missings).
+    
     String otherwise.   
+    
     Return field type.
     """
     debug = False
@@ -343,13 +349,15 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
         faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
+    
     Missing values are OK in numeric and date fields in the source field being 
-        imported, but a missing value indicator (e.g. ".") is not. Must be 
-        converted to a null.  A missing value indicator is fine in the data 
-        _once it has been imported_ but not beforehand.
+    imported, but a missing value indicator (e.g. ".") is not. Must be 
+    converted to a null. A missing value indicator is fine in the data _once it 
+    has been imported_ but not beforehand.
+    
     Checking is always necessary, even for a sample which has already been 
-        examined. May have found a variable conflict and need to handle it after 
-        it raises a mismatch error by turning faulty values to nulls.
+    examined. May have found a variable conflict and need to handle it after it 
+    raises a mismatch error by turning faulty values to nulls.
     """
     debug = False
     ok_data = False        
@@ -423,17 +431,24 @@ def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes,
         faulty2missing_fld_list, comma_dec_sep_ok=False):
     """
     Add val to vals.
+    
     feedback -- dic with mg.NULLED_DOTS
+    
     NB field types are only a guess based on a sample of the first rows in the 
-        file being imported.  Could be wrong.
-    If checking, will validate and turn empty strings into nulls
-        as required.  Also turn '.' into null as required (and leave msg).
-    If not checking (e.g. because a pre-tested sample) only do the
-        pytime (Excel) and empty string to null conversions.
+    file being imported.  Could be wrong.
+    
+    If checking, will validate and turn empty strings into nulls as required. 
+    Also turn '.' into null as required (and leave msg).
+    
+    If not checking (e.g. because a pre-tested sample) only do the 
+    pytime (Excel) and empty string to null conversions.
+    
     If all is OK, will add val to vals. NB val will need to be internally 
-        quoted unless it is a NULL. Watch for "But I say ""No"" don't I".
+    quoted unless it is a NULL. Watch for "But I say ""No"" don't I".
+    
     If not, will turn to missing if in faulty2missing_fld_list, otherwise will 
-        raise an exception.
+    raise an exception.
+    
     Quote ready for inclusion in SQLite SQL insert query.
     """
     debug = False
@@ -486,9 +501,9 @@ def report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, allow_none):
             n_row_items = len(vals)
         # remove quoting
         # e.g. ['1', '2'] or ['1', '2', None]
-        vals_str = unicode(vals).replace(u"', '", u",").replace(u"['", u"")\
-            .replace(u"']", u"").replace(u"',", u",").replace(u", None", u"")\
-            .replace(u"]", u"")
+        vals_str = (unicode(vals).replace(u"', '", u",").replace(u"['", u"")
+            .replace(u"']", u"").replace(u"',", u",").replace(u", None", u"")
+            .replace(u"]", u""))
         raise Exception(_("Incorrect number of fields in %(row_msg)s.\n\n"
             "Expected %(n_flds)s but found %(n_row_items)s.\n\n"
             "Faulty Row: %(vals_str)s") % {"row_msg": row_msg, "n_flds": n_flds, 
@@ -499,13 +514,18 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
         gauge_start=0, allow_none=True, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS
+    
     Add the rows of data (dicts), processing each cell as you go.
-    If checking, will validate and turn empty strings into nulls
-        as required.
+    
+    If checking, will validate and turn empty strings into nulls as required.
+    
     If not checking (e.g. because a pre-tested sample) only do the
-        empty string to null conversions.
+    empty string to null conversions.
+    
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
-        If a csv files does, however, it is not. Should be empty str.
+    
+    If a csv files does, however, it is not. Should be empty str.
+    
     TODO - insert multiple lines at once for performance.
     """
     debug = False
@@ -553,7 +573,8 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
 def get_steps_per_item(items_n):
     """
     Needed for progress bar - how many items before displaying another of the 
-        steps as set by GAUGE_STEPS.
+    steps as set by GAUGE_STEPS.
+    
     Chunks per item e.g. 0.01.
     """
     if items_n != 0:
@@ -641,19 +662,29 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname,
         comma_dec_sep_ok=False, headless=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
+    
     feedback -- dic with mg.NULLED_DOTS
+    
     ok_fldnames -- cleaned field names (shouldn't have a sofa_id field)
+    
     fldtypes -- dict with field types for original field names
+    
     faulty2missing_fld_list -- list of fields where we should turn faulty values 
-        to missing.
+    to missing.
+    
     data -- list of dicts using orig fld names
+    
     allow_none -- if Excel returns None for an empty cell that is correct bvr.
-        If a csv files does, however, it is not. Should be empty str.
+    
+    If a csv files does, however, it is not. Should be empty str.
+    
     Give it a unique identifier field as well.
+    
     Set up the data type constraints needed.
-    Keep trying till success or user decodes not to fix and keep going.  Fix 
-        involves changing the relevant fldtype to string, which will accept 
-        anything.
+    
+    Keep trying till success or user decodes not to fix and keep going. Fix 
+    involves changing the relevant fldtype to string, which will accept 
+    anything.
     """
     while True: # keep trying till success or user decodes not to fix & continue
         if try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
@@ -667,8 +698,9 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
         headless=False):
     """
     Rename table to final name.
+    
     This part is only called once at the end and is so fast there is no need to
-        report progress till completion.
+    report progress till completion.
     """
     debug = False
     try:
@@ -685,7 +717,7 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
         con.commit()
     except Exception, e:
         raise Exception(u"Unable to rename temporary table."
-                        u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % lib.ue(e))
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -788,21 +820,21 @@ class DlgHasHeaderGivenData(wx.Dialog):
     def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
-                           size=(850, 250), style=wx.CAPTION|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+200,120))
+            size=(850, 250), style=wx.CAPTION|wx.SYSTEM_MENU, 
+            pos=(mg.HORIZ_OFFSET+200,120))
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
         explan = _(u"Does your %s file have a header row? Note - SOFA cannot "
-                   u"handle multiple header rows.") % ext
+            u"handle multiple header rows.") % ext
         lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
         html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,240))
         html_content.SetPage(content)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
-                                   _("Has Header Row"))
+            _("Has Header Row"))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
         btn_no_header = wx.Button(self.panel, -1, _("No Header"))
         btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
@@ -840,7 +872,7 @@ class DlgHasHeaderGivenData(wx.Dialog):
 
 class FileImporter(object):
     def __init__(self, parent, file_path, tblname, headless, 
-                 headless_has_header, supplied_encoding=None):
+            headless_has_header, supplied_encoding=None):
         self.parent = parent
         self.file_path = file_path
         self.tblname = tblname
@@ -875,17 +907,15 @@ class DlgImportFileSelect(wx.Dialog):
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
         title = _(u"Select file to import") + \
-                  u" (csv/xls/xlsx/ods/Google spreadsheet)"
-        wx.Dialog.__init__(self, parent=parent, title=title,
-                           size=(550,300), 
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,-1))
+            u" (csv/xls/xlsx/ods/Google spreadsheet)"
+        wx.Dialog.__init__(self, parent=parent, title=title, size=(550,300), 
+            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
+            pos=(mg.HORIZ_OFFSET+100,-1))
         self.CentreOnScreen(wx.VERTICAL)
         self.parent = parent
         self.panel = wx.Panel(self)
         self.Bind(wx.EVT_CLOSE, self.on_close)
-        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
-                                            # running script can check on it.
+        self.import_status = {mg.CANCEL_IMPORT: False} # can change and running script can check on it.
         self.file_type = FILE_UNKNOWN
         config_output.add_icon(frame=self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -926,7 +956,7 @@ class DlgImportFileSelect(wx.Dialog):
         self.btn_import.Enable(False)
         # progress
         self.progbar = wx.Gauge(self.panel, -1, GAUGE_STEPS, size=(-1, 20),
-                                style=wx.GA_PROGRESSBAR)
+            style=wx.GA_PROGRESSBAR)
         # sizers
         szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
         szr_file_path.Add(btn_help, 0, wx.LEFT, 10)
@@ -1027,8 +1057,8 @@ class DlgImportFileSelect(wx.Dialog):
         filename = self.txt_file.GetValue()
         int_name = self.txt_int_name.GetValue()
         complete = (filename != u"" and int_name != u"")
-        if debug: print("filename: \"%s\" int_name: \"%s\" complete: %s" % \
-                        (filename, int_name, complete))
+        if debug: print("filename: \"%s\" int_name: \"%s\" complete: %s" %
+            (filename, int_name, complete))
         self.btn_import.Enable(complete)
 
     def align_btns_to_importing(self, importing):
@@ -1059,8 +1089,7 @@ def check_tblname(file_path, tblname, headless):
         else:
             title = _("FAULTY SOFA TABLE NAME")
             msg = (_("You can only use letters, numbers and underscores in "
-                   "a SOFA Table Name. Use another name?\nOrig error: %s") 
-                   % err)
+                "a SOFA Table Name. Use another name?\nOrig error: %s") % err)
             ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO:
                 raise Exception(u"Had a problem with faulty SOFA Table "
@@ -1073,32 +1102,33 @@ def check_tblname(file_path, tblname, headless):
         if not headless: # assume OK to overwrite existing table name with 
             # fresh data if running headless
             title = _("SOFA NAME ALREADY EXISTS")
-            msg = _("A table named \"%(tbl)s\" "
-                  "already exists in the SOFA default database.\n\n"
-                  "Do you want to replace it with the new data from "
-                  "\"%(fil)s\"?")
+            msg = _("A table named \"%(tbl)s\" already exists in the SOFA "
+                "default database.\n\nDo you want to replace it with the new "
+                "data from \"%(fil)s\"?")
             ret = wx.MessageBox(msg % {"tbl": tblname, "fil": file_path}, 
-                                title, wx.YES_NO|wx.ICON_QUESTION)
+                title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO: # no overwrite so get new one (or else!)
                 wx.MessageBox(_("Please change the SOFA Table Name and try "
-                                "again"))
+                    "again"))
                 return None
             elif ret == wx.YES:
                 pass # use name (overwrite orig)
     return tblname
 
 def run_import(self, headless=False, file_path=None, tblname=None, 
-               headless_has_header=True, supplied_encoding=None):
+        headless_has_header=True, supplied_encoding=None):
     """
     Identify type of file by extension and open dialog if needed
-        to get any additional choices e.g. separator used in 'csv'.
-    headless -- enable script to be run without user intervention. Anything
-        that would normally prompt user decisions raises an exception 
-        instead.
+    to get any additional choices e.g. separator used in 'csv'.
+    
+    headless -- enable script to be run without user intervention. Anything that 
+    would normally prompt user decisions raises an exception instead.
+
     headless_has_header -- seeing as we won't tell it through the GUI if 
-        headless, need to tell it here.
+    headless, need to tell it here.
+
     supplied_encoding -- if headless, we can't manually select from likely 
-        encoding so must supply here.
+    encoding so must supply here.
     """
     dd = mg.DATADETS_OBJ
     if not headless:
@@ -1108,7 +1138,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
     if not file_path:
         if headless:
             raise Exception(_(u"A file name must be supplied when importing"
-                              u" if running in headless mode."))
+                u" if running in headless mode."))
         else:
             wx.MessageBox(_("Please select a file"))
             self.align_btns_to_importing(importing=False)
@@ -1123,11 +1153,11 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             self.file_type = FILE_CSV
         else:
             ret = wx.MessageBox(_("SOFA imports txt files as csv files.\n\n"
-                                 "Is your txt file a valid csv file?"), 
-                                 caption=_("CSV FILE?"), style=wx.YES_NO)
+                "Is your txt file a valid csv file?"), caption=_("CSV FILE?"), 
+                style=wx.YES_NO)
             if ret == wx.NO:
                 wx.MessageBox(_("Unable to import txt files unless csv "
-                                "format inside"))
+                    "format inside"))
                 self.align_btns_to_importing(importing=False)
                 return
             else:
@@ -1138,7 +1168,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
         self.file_type = FILE_ODS
     else:
         unknown_msg = _("Files with the file name extension "
-                        "'%s' are not supported") % extension
+            "'%s' are not supported") % extension
         if headless:
             raise Exception(unknown_msg)
         else:
@@ -1151,7 +1181,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
     if not tblname:
         if headless:
             raise Exception("Unable to import headless unless a table "
-                            "name supplied")
+                "name supplied")
         else:
             wx.MessageBox(_("Please select a SOFA Table Name for the file"))
             self.align_btns_to_importing(importing=False)
@@ -1169,7 +1199,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
     for bad_char in bad_chars:
         if bad_char in tblname:
             bad_char_msg = (_("Do not include '%s' in SOFA Table Name") % 
-                            bad_char)
+                bad_char)
             if headless:
                 raise Exception(bad_char_msg)
             else:
@@ -1189,7 +1219,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
         if final_tblname is None:
             if headless:
                 raise Exception("Table name supplied is inappropriate for "
-                                "some reason.")
+                    "some reason.")
             else:
                 self.txt_int_name.SetFocus()
                 self.align_btns_to_importing(importing=False)
@@ -1200,23 +1230,22 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             raise
         else:
             wx.MessageBox(_("Please select a suitable SOFA Table Name "
-                            "and try again"))
+                "and try again"))
             self.align_btns_to_importing(importing=False)
             return
     # import file
     if self.file_type == FILE_CSV:
         import csv_importer
         file_importer = csv_importer.CsvImporter(self, file_path, 
-                                final_tblname, headless, headless_has_header,
-                                supplied_encoding)
+            final_tblname, headless, headless_has_header, supplied_encoding)
     elif self.file_type == FILE_EXCEL:
         import excel_importer
         file_importer = excel_importer.ExcelImporter(self, file_path,
-                                final_tblname, headless, headless_has_header)
+            final_tblname, headless, headless_has_header)
     elif self.file_type == FILE_ODS:
         import ods_importer
         file_importer = ods_importer.OdsImporter(self, file_path,
-                                final_tblname, headless, headless_has_header)
+            final_tblname, headless, headless_has_header)
     proceed = False
     try:
         proceed = file_importer.get_params()
@@ -1225,12 +1254,12 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             raise
         else:
             wx.MessageBox(_("Unable to import data after getting "
-                            u"parameters\n\nError") + u": %s" % lib.ue(e))
+                u"parameters\n\nError") + u": %s" % lib.ue(e))
             lib.safe_end_cursor()
     if proceed:
         try:
             file_importer.import_content(self.progbar, self.import_status,
-                                         self.lbl_feedback)
+                self.lbl_feedback)
             if not headless: dd.set_db(dd.db, tbl=tblname)
             lib.safe_end_cursor()
         except my_exceptions.ImportConfirmationRejected, e:
@@ -1251,6 +1280,6 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 self.progbar.SetValue(0)
                 lib.safe_end_cursor()
                 wx.MessageBox(_(u"Unable to import data\n\nHelp available "
-                        u"at %s\n\n") % mg.CONTACT + u"Error: %s" % lib.ue(e))
+                    u"at %s\n\n") % mg.CONTACT + u"Error: %s" % lib.ue(e))
     if not headless:
         self.align_btns_to_importing(importing=False)
