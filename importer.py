@@ -45,7 +45,7 @@ def run_gui_import(self):
     run_import(self)
     
 def run_headless_import(file_path, tblname, headless_has_header, 
-        supplied_encoding=None):
+        supplied_encoding=None, force_quickcheck=False):
     """
     Usage:
     file_path = "/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx" #csvfiles/percent_names.csv"
@@ -58,7 +58,7 @@ def run_headless_import(file_path, tblname, headless_has_header,
     dummy_importer = DummyImporter()
     run_import(dummy_importer, headless=True, file_path=file_path, 
         tblname=tblname, headless_has_header=headless_has_header,
-        supplied_encoding=supplied_encoding)
+        supplied_encoding=supplied_encoding, force_quickcheck=force_quickcheck)
 
 
 class DlgFixMismatch(wx.Dialog):
@@ -1116,7 +1116,8 @@ def check_tblname(file_path, tblname, headless):
     return tblname
 
 def run_import(self, headless=False, file_path=None, tblname=None, 
-        headless_has_header=True, supplied_encoding=None):
+        headless_has_header=True, supplied_encoding=None, 
+        force_quickcheck=False):
     """
     Identify type of file by extension and open dialog if needed
     to get any additional choices e.g. separator used in 'csv'.
@@ -1237,15 +1238,16 @@ def run_import(self, headless=False, file_path=None, tblname=None,
     if self.file_type == FILE_CSV:
         import csv_importer
         file_importer = csv_importer.CsvImporter(self, file_path, 
-            final_tblname, headless, headless_has_header, supplied_encoding)
+            final_tblname, headless, headless_has_header, supplied_encoding,
+            force_quickcheck)
     elif self.file_type == FILE_EXCEL:
         import excel_importer
         file_importer = excel_importer.ExcelImporter(self, file_path,
-            final_tblname, headless, headless_has_header)
+            final_tblname, headless, headless_has_header, force_quickcheck)
     elif self.file_type == FILE_ODS:
         import ods_importer
         file_importer = ods_importer.OdsImporter(self, file_path,
-            final_tblname, headless, headless_has_header)
+            final_tblname, headless, headless_has_header, force_quickcheck)
     proceed = False
     try:
         proceed = file_importer.get_params()
