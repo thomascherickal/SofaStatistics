@@ -852,6 +852,7 @@ def get_default_db_dets():
         fil_name=mg.DEFAULT_PROJ)
     default_dd = DataDets(proj_dic)
     default_dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)
+    dbe_sqlite.add_funcs_to_con(default_dd.con) # otherwise the functions aren't available if needed raising sqlite3.OperationalError: no such function: is_numeric
     return default_dd
 
 def dup_tblname(tblname):

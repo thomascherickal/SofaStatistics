@@ -52,8 +52,9 @@ def run_headless_import(file_path, tblname, headless_has_header,
     tblname = "headless_yeah_baby"
     headless_has_header = True
     supplied_encoding = "utf-8"
+    force_quickcheck = True
     importer.run_headless_import(file_path, tblname, headless_has_header, 
-                                 supplied_encoding)
+        supplied_encoding, force_quickcheck)
     """
     dummy_importer = DummyImporter()
     run_import(dummy_importer, headless=True, file_path=file_path, 
