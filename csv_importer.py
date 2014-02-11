@@ -958,7 +958,7 @@ class CsvImporter(importer.FileImporter):
                 default_dd.cur, self.file_path, self.tblname, self.has_header, 
                 ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
                 steps_per_item, gauge_start, allow_none=False, 
-                comma_dec_sep_ok=not comma_delimiter)
+                comma_dec_sep_ok=not comma_delimiter, headless=self.headless)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                 self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],

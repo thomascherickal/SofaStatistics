@@ -780,7 +780,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tblname = self.tblname_lst[0]
         if debug: print(u"DBE in make_new_tbl is: ", dd.dbe)
-        getdata.make_sofa_tbl(dd.con, dd.cur, tblname, oth_name_types)
+        getdata.make_sofa_tbl(dd.con, dd.cur, tblname, oth_name_types, 
+            headless=False)
         wx.MessageBox(_(u"Your new table has been added to the default SOFA "
             u"database"))
             

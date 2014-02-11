@@ -154,11 +154,10 @@ class OdsImporter(importer.FileImporter):
             importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
                 default_dd.cur, self.file_path, self.tblname, self.has_header, 
                 ok_fldnames, fldtypes, faulty2missing_fld_list, rows, 
-                progbar, steps_per_item, gauge_start)
+                progbar, steps_per_item, gauge_start, headless=self.headless)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                                      self.tblname, self.file_path,
-                                      progbar, feedback[mg.NULLED_DOTS],
-                                      self.headless)
+                self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],
+                self.headless)
         except Exception:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

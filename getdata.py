@@ -951,7 +951,8 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     fld_clause = u", ".join(fld_clause_items)
     return fld_clause
 
-def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False):
+def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False, 
+        headless=False):
     """
     Make a table into the SOFA default database.  Must have autonumber SOFA_ID.
     
@@ -974,9 +975,10 @@ def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False):
     con.commit()
     if debug: print(u"Successfully created %s" % tblname)
     force_sofa_tbls_refresh(sofa_default_db_cur=cur)
-    # If the main data connection is to this (default sofa) database it must be 
-    # reconnected to ensure the change has been registered.
-    dd = mg.DATADETS_OBJ
-    if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
-            add_checks=False)
+    if not headless:
+        # If the main data connection is to this (default sofa) database it must 
+        # be reconnected to ensure the change has been registered.
+        dd = mg.DATADETS_OBJ
+        if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
+            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
+                add_checks=False)

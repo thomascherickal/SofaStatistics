@@ -576,7 +576,7 @@ def post_fail_tidy(progbar, con, cur):
 def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path, 
         tblname, has_header, ok_fldnames, fldtypes, faulty2missing_fld_list, 
         data, progbar, steps_per_item, gauge_start, allow_none=True, 
-        comma_dec_sep_ok=False):
+        comma_dec_sep_ok=False, headless=False):
     debug = False
     if debug:
         print(u"Cleaned (ok) field names are: %s" % ok_fldnames)
@@ -602,7 +602,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         for ok_fldname in ok_fldnames:
             oth_name_types.append((ok_fldname, fldtypes[ok_fldname]))
         if debug: print(oth_name_types)
-        getdata.make_sofa_tbl(con, cur, tblname, oth_name_types)
+        getdata.make_sofa_tbl(con, cur, tblname, oth_name_types, headless)
     except Exception, e:
         raise   
     try:
@@ -633,7 +633,7 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
 def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname, 
         has_header, ok_fldnames, fldtypes, faulty2missing_fld_list, data, 
         progbar, steps_per_item, gauge_start, allow_none=True, 
-        comma_dec_sep_ok=False):
+        comma_dec_sep_ok=False, headless=False):
     """
     Create fresh disposable table in SQLite and insert data into it.
     feedback -- dic with mg.NULLED_DOTS
@@ -655,7 +655,7 @@ def add_to_tmp_tbl(feedback, import_status, con, cur, file_path, tblname,
                 tblname, has_header, ok_fldnames, fldtypes, 
                 faulty2missing_fld_list, data, progbar, steps_per_item, 
                 gauge_start, allow_none=True, 
-                comma_dec_sep_ok=comma_dec_sep_ok):
+                comma_dec_sep_ok=comma_dec_sep_ok, headless=headless):
             break
     
 def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
@@ -1226,7 +1226,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
         try:
             file_importer.import_content(self.progbar, self.import_status,
                                          self.lbl_feedback)
-            dd.set_db(dd.db, tbl=tblname)
+            if not headless: dd.set_db(dd.db, tbl=tblname)
             lib.safe_end_cursor()
         except my_exceptions.ImportConfirmationRejected, e:
             lib.safe_end_cursor()

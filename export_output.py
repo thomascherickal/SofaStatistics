@@ -132,11 +132,11 @@ class DlgExportOutput(wx.Dialog):
         self.report_path = report_path
         szr = wx.BoxSizer(wx.VERTICAL)
         self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
-        if self.temp_desktop_report_only:
-            msg = u"Export content currently displayed in SOFA"
-        else:
+        if self.save2report_path:
             report_name = os.path.split(report_path)[1]
             msg = u"Export \"%s\"" % report_name
+        else:
+            msg = u"Export content currently displayed in SOFA"
         lbl_msg = wx.StaticText(self, -1, msg)
         szr.Add(lbl_msg, 0, wx.ALL, 10)
         szr_pdf_or_tbls = wx.BoxSizer(wx.VERTICAL)
@@ -291,8 +291,8 @@ class DlgExportOutput(wx.Dialog):
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
         msg = u"\n\n".join(msgs)
-        caption = (_(u"EXPORTED CURRENT OUTPUT") 
-            if self.temp_desktop_report_only else _(u"EXPORTED REPORT"))
+        caption = (_(u"EXPORTED REPORT") if self.save2report_path 
+            else _(u"EXPORTED CURRENT OUTPUT"))
         wx.MessageBox(_(u"Exporting completed.\n\n%s") % msg, caption=caption)
         self.progbar.SetValue(0)
     
@@ -526,9 +526,11 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     report_path -- only needed if exporting entire report 
     i.e. save2report_path = True. 
     e.g. /home/g/Documents/sofastats/reports/sofa_use_only_report.htm
+    Will go here if save2report_path is True (and there is no OVERRIDE_FOLDER 
+    set).
     
-    temp_desktop_path -- images will only go here if not save2report_path 
-    (and if there is no OVERRIDE_FOLDER as well that is).
+    temp_desktop_path -- images will only go here if save2report_path is False 
+    (and there is no OVERRIDE_FOLDER set).
     
     output_dpi -- e.g. 300
     
@@ -536,7 +538,7 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     show progress through exporting images, tables, and as pdf as a single total 
     job. Can also be used when in headless mode.
     
-    headless -- Set to False to run from a script without GUI input.
+    headless -- Set to True to run from a script without GUI input.
     
     export_status -- only used to check if a user has cancelled the export via 
     the GUI.
@@ -559,11 +561,11 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
         progbar = Prog2console()
     if DIAGNOSTIC: debug = True
     output_dpi = 60 if debug else output_dpi
-    if temp_desktop_path:
-        imgs_path = temp_desktop_path
-    else:
+    if save2report_path:
         imgs_path = output.ensure_imgs_path(report_path, 
             ext=u"_exported_images")
+    else:
+        imgs_path = temp_desktop_path
     if OVERRIDE_FOLDER:
         imgs_path = OVERRIDE_FOLDER
     rpt_root = os.path.split(report_path)[0]
@@ -1029,7 +1031,7 @@ def copy_output():
         os.remove(delme)
     hdr, img_items, unused = get_hdr_and_items(mg.INT_REPORT_PATH, DIAGNOSTIC)
     msgs = [] # not used in this case
-    export2imgs(hdr, img_items=img_items, temp_desktop_report_only=False, 
+    export2imgs(hdr, img_items=img_items, save2report_path=True, 
         report_path=mg.INT_REPORT_PATH, temp_desktop_path=mg.INT_COPY_IMGS_PATH,  
         output_dpi=PRINT_DPI, gauge_start_imgs=0, headless=False, 
         export_status=export_status, steps_per_img=GAUGE_STEPS, msgs=msgs, 
