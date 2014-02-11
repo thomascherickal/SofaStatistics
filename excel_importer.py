@@ -21,15 +21,15 @@ class ExcelImporter(importer.FileImporter):
     """
     
     def __init__(self, parent, file_path, tblname, headless, 
-                 headless_has_header):
+            headless_has_header):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
-                                       headless, headless_has_header)
+            headless, headless_has_header)
         self.ext = u"XLS/XLSX"
     
     def has_header_row(self, row1_types, row2_types):
         """
         Will return True if nothing but strings or in first row and anything in 
-            other rows that is not e.g. a number or a date. Empty is OK.
+        other rows that is not e.g. a number or a date. Empty is OK.
         XL_CELL_BLANK = 6
         XL_CELL_BOOLEAN = 4
         XL_CELL_DATE = 3
@@ -50,7 +50,7 @@ class ExcelImporter(importer.FileImporter):
     def get_params(self):
         """
         Display each cell based on cell characteristics only - no attempt to 
-            collapse down to one data type e.g. dates only or numbers only.
+        collapse down to one data type e.g. dates only or numbers only.
         """
         debug = False
         if self.headless:
@@ -150,15 +150,23 @@ class ExcelImporter(importer.FileImporter):
                       steps_per_item, import_status, faulty2missing_fld_list):
         """
         Assess data sample to identify field types based on values in fields.
+        
         Doesn't really use built-in xlrd functionality for getting type data.
+        
         Uses it indirectly to get values e.g. dates in correct form.
+        
         Decided to stay with existing approach. 
+        
         If a field has mixed data types will define as string.
+        
         Returns fldtypes, sample_data.
+        
         fldtypes - dict with ok field names as keys and field types as 
-            values.
+        values.
+        
         sample_data - list of dicts containing the first rows of data 
-            (no point reading them all again during subsequent steps).   
+        (no point reading them all again during subsequent steps).   
+        
         Sample first N rows (at most) to establish field types.   
         """
         debug = False
@@ -196,9 +204,10 @@ class ExcelImporter(importer.FileImporter):
     def import_content(self, progbar, import_status, lbl_feedback):
         """
         Get field types dict.  Use it to test each and every item before they 
-            are added to database (after adding the records already tested).
+        are added to database (after adding the records already tested).
+        
         Add to disposable table first and if completely successful, rename
-            table to final name.
+        table to final name.
         """
         debug = False
         faulty2missing_fld_list = []
@@ -214,7 +223,7 @@ class ExcelImporter(importer.FileImporter):
         except IOError, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to find file \"%s\" for importing."
-                            % self.file_path)
+                % self.file_path)
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to read spreadsheet."
@@ -228,7 +237,7 @@ class ExcelImporter(importer.FileImporter):
             print("About to assess data sample")
         (fldtypes, 
          sample_data) = self.assess_sample(wkbook, wksheet, ok_fldnames, 
-                progbar, steps_per_item, import_status, faulty2missing_fld_list)
+            progbar, steps_per_item, import_status, faulty2missing_fld_list)
         if debug:
             print("Just finished assessing data sample")
             print(fldtypes)

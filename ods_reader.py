@@ -5,15 +5,16 @@ import zipfile
 
 import my_globals as mg
 import lib
-import my_exceptions
 import importer
 
 """
 NB need to handle ods from OpenOffice Calc, and Gnumeric at least. Some 
-    differences.
+differences.
+
 NB some internal xml files are mainly empty yet they still have to be parsed.
-    They may even be very large e.g. 100MB! Extremely inefficient under these 
-    circumstances.
+They may even be very large e.g. 100MB! Extremely inefficient under these 
+circumstances.
+
 Example of date cell:
     <table:table-cell table:style-name="ce1" office:value-type="date" 
         office:date-value="2010-02-01">
@@ -34,16 +35,20 @@ Example of float cell:
     </table:table-cell>
     
 get_ods_dets() is the most main starting point. It is supplied with fldnames 
-    already by get_ok_fldnames() which uses get_tbl() as an input and gets and
-    processes the first data_row.
+already by get_ok_fldnames() which uses get_tbl() as an input and gets and
+processes the first data_row.
+
 get_ods_dets gets data rows (actually table-row elements) with get_rows().
+
 Then we loop through rows (table-row elements) and for each row get a list of 
-    field types (as identified in the actual row) and a values dictionary using 
-    the fldnames as keys using dets_from_row().
+field types (as identified in the actual row) and a values dictionary using the 
+fldnames as keys using dets_from_row().
+
 For each cell element in the row, we use process_cells() to process individual 
-    cell (or cells if col repeating). Update types and valdict.
+cell (or cells if col repeating). Update types and valdict.
+
 There is a problem if the number of data cells exceed the number of fldnames 
-    identified.
+identified.
 """
 
 XML_TYPE_STR = u"string"
@@ -70,7 +75,7 @@ def get_ods_xml_size(filename):
     return size
 
 def get_contents_xml_tree(filename, lbl_feedback=None, progbar=None, 
-                          prog_step1=None, prog_step2=None):
+        prog_step1=None, prog_step2=None):
     debug = False
     myzip = zipfile.ZipFile(filename)
     cont = myzip.open("content.xml")
@@ -79,7 +84,7 @@ def get_contents_xml_tree(filename, lbl_feedback=None, progbar=None,
     if progbar is not None: progbar.SetValue(prog_step1)
     if lbl_feedback is not None:
         lbl_feedback.SetLabel(_("Please be patient. The next step may take a "
-                                "few minutes ..."))
+            "few minutes ..."))
     wx.Yield()
     tree = etree.parse(cont) # the most time-intensive bit
     if lbl_feedback is not None: lbl_feedback.SetLabel(u"")
@@ -299,20 +304,26 @@ def get_el_inner_val(el):
 
 def get_fldnames_from_header_row(row, headless=False):
     """
-    Work across row collecting fldnames. Stop when hit end of data columns.
-    NB an empty cell is allowed as part of a dataset if deemed to be a divider.
+    Work across row collecting fldnames. Stop when hit end of data columns. NB 
+    an empty cell is allowed as part of a dataset if deemed to be a divider.
+
     Only single column dividers are allowed.
+
     Sometimes grab one cell too many (empty cell may have been a divider but 
-        turned out not to be) so need to remove last fldname.
+    turned out not to be) so need to remove last fldname.
+
     An empty cell is deemed to be a divider unless a column-repeating empty 
-        cell, or two empty cells in a row). 
+    cell, or two empty cells in a row). 
+
     OK to grab an empty string for a field name if a divider column (empty field 
-        names will be autofilled later). 
+    names will be autofilled later). 
+
     Only empty string field names are allowed to be repeated (they will be made 
-        distinct when autofilled later).
+    distinct when autofilled later).
+
     One oddity of this approach is that a csv or xls version of the same file 
-        which has a blank field label as the final col will have that col 
-        autonamed whereas here it and all its data will be ignored. 
+    which has a blank field label as the final col will have that col autonamed 
+    whereas here it and all its data will be ignored. 
     """
     debug = False
     orig_fldnames = []
@@ -326,7 +337,7 @@ def get_fldnames_from_header_row(row, headless=False):
             # e.g. <table:table-cell table:number-columns-repeated="254" 
             # table:style-name="ACELL-0x88a3bc8"/>
             raise Exception(_("Field name \"%s\" cannot be repeated")
-                            % get_el_inner_val(el))
+                % get_el_inner_val(el))
         # if got this far, must be non-repeating cell details
         if DATE_VAL in attrib_dict:
             if debug: print("Getting fldname from DATE_VAL")
@@ -341,9 +352,9 @@ def get_fldnames_from_header_row(row, headless=False):
             if debug: print("No fldname provided by cell")
             """
             No data in cell but still may be needed as part of data e.g. if a 
-                divider column. We know it can't be column-repeating (eliminated 
-                above) so only need to look if had an empty cell immediately 
-                before.
+            divider column. We know it can't be column-repeating (eliminated 
+            above) so only need to look if had an empty cell immediately before.
+
             Set fldname to empty string if not last column.
             """
             if last_was_empty:
@@ -364,14 +375,17 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  testing=False):
     """
     Returns fldtypes (dict with field names as keys) and rows (list of dicts).
+    
     Re: fldtypes, given that there may be data mismatches within fields, need to 
-        get user decision when there is more than one option. Do this by 
-        collecting all types (e.g. date, number) within col and an example of 
-        the first mismatch per col.
+    get user decision when there is more than one option. Do this by collecting 
+    all types (e.g. date, number) within col and an example of the first 
+    mismatch per col.
+    
     Limited value in further optimising my code. The xml parsing stage takes up 
-        most of the time. Using the SAX approach would significantly reduce 
-        memory usage but would it save any time overall? Harder code and may 
-        even be slower.
+    most of the time. Using the SAX approach would significantly reduce memory 
+    usage but would it save any time overall? Harder code and may even be 
+    slower.
+    
     BTW, XML is a terrible way to store lots of data ;-).
     """
     debug = False
@@ -389,22 +403,22 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     row_n = len(rows)*1.0
     if (has_header and row_n == 1) or (not has_header and row_n == 0):
         raise Exception(u"No data rows identified. Either there were no "
-                        u"data rows at all or there were too many empty rows "
-                        u"before the first data row.")
+            u"data rows at all or there were too many empty rows before the "
+            u"first data row.")
     steps_per_item = prog_steps_left/row_n
     if debug: print("Has %s rows including any headers" % row_n)
     fld_first_mismatches = [None,]*len(fldnames) # init
     """
     1) Process all rows and cols to get data (datarows), the field types found 
-        in each col (col_type_sets), and information required to enable user to 
-        be confident that there are in fact mismatches (fld_first_mismatches).
+    in each col (col_type_sets), and information required to enable user to be
+    confident that there are in fact mismatches (fld_first_mismatches).
     """
     for row_num, row in enumerate(rows, 1):
         try:
             if has_header and row_num == 1:
                 continue
             col_type_sets, valdict = dets_from_row(fldnames, col_type_sets, 
-                                             fld_first_mismatches, row, row_num)
+                fld_first_mismatches, row, row_num)
             if valdict:
                 datarows.append(valdict)
             gauge_val = next_prog_val + ((row_num-1)*steps_per_item)
@@ -412,23 +426,23 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
             wx.Yield()
         except Exception, e:
             raise Exception(u"Error getting details from row %s."
-                            u"\nCaused by error: %s" % (row_num, lib.ue(e)))
+                u"\nCaused by error: %s" % (row_num, lib.ue(e)))
     """
     2) Get user decisions on each field where there are potentially more than 
-        one data type.
+    one data type.
     """
     for fldname, type_set, first_mismatch in zip(fldnames, col_type_sets, 
-                                                 fld_first_mismatches):
+            fld_first_mismatches):
         fldtype = importer.get_best_fldtype(fldname, type_set,
-                                faulty2missing_fld_list, first_mismatch, 
-                                testing)
+            faulty2missing_fld_list, first_mismatch, testing)
         fldtypes[fldname] = fldtype
     return fldtypes, datarows
 
 def get_tbl_cell_el_dets(row):
     """
     Get enough details to filter out non-data cells and for extracting data 
-        from the data cells.  Must handle Calc and Gnumeric etc.
+    from the data cells.  Must handle Calc and Gnumeric etc.
+    
     OK - <table:table-cell table:style-name="ACELL-0x95496b8" 
         office:value-type="float" office:value="1">
         <text:p>1</text:p>
@@ -456,7 +470,7 @@ def add_type_to_coltypes(coltypes, col_idx, coltype):
         coltypes.append(set([coltype]))    
 
 def update_types_and_valdict(col_type_sets, col_idx, fldnames, valdict, coltype, 
-                             val2use):
+        val2use):
     """
     col_type_sets -- list of sets - each set is coltypes for given col
     """
@@ -465,11 +479,11 @@ def update_types_and_valdict(col_type_sets, col_idx, fldnames, valdict, coltype,
         fldname = fldnames[col_idx]
     except IndexError:
         raise Exception(u"Didn't get enough field names to cover "
-                        u"all the data cells.")
+            u"all the data cells.")
     valdict[fldname] = val2use
 
 def process_cells(attrib_dict, col_type_sets, fld_first_mismatches, col_idx, 
-                  fldnames, valdict, coltype, val2use, row_num):
+        fldnames, valdict, coltype, val2use, row_num):
     """
     Process cell (or cells if col repeating) in row. Update types and valdict.
     Sniff for data type mismatches to pass back out.
@@ -479,7 +493,7 @@ def process_cells(attrib_dict, col_type_sets, fld_first_mismatches, col_idx,
     # This single el is repeated if col-repeat.
     for unused in range(get_col_rep(attrib_dict)):
         update_types_and_valdict(col_type_sets, col_idx, fldnames, valdict, 
-                                 coltype, val2use)
+            coltype, val2use)
         col_type_set = col_type_sets[col_idx]
         mismatch_in_col = (fld_first_mismatches[col_idx] is not None) # initialised with Nones
         if not mismatch_in_col: # sniff for the first (not interested in subsequent)
@@ -492,13 +506,13 @@ def process_cells(attrib_dict, col_type_sets, fld_first_mismatches, col_idx,
                     # can treat as the expected type.
                 expected_fldtype = list(main_type_set)[0]
                 mismatch_in_col = (importer.FIRST_MISMATCH_TPL %
-                                        {u"row": row_num, u"value": val2use, 
-                                         u"fldtype": expected_fldtype})
+                    {u"row": row_num, u"value": val2use, 
+                    u"fldtype": expected_fldtype})
                 fld_first_mismatches[col_idx] = mismatch_in_col # will never collect mismatch for this col again
             elif n_types_in_col > 2:
                 raise Exception(u"Should have identified first mismatch when "
-                                u"reached two non-missing col types but here we"
-                                u" are with three. Something must be wrong.")
+                    u"reached two non-missing col types but here we are with "
+                    u"three. Something must be wrong.")
         idx_final_col = len(fldnames) - 1
         col_idx += 1
         if col_idx > idx_final_col:
@@ -508,7 +522,7 @@ def process_cells(attrib_dict, col_type_sets, fld_first_mismatches, col_idx,
 def get_val_and_type(attrib_dict, el_det):
     """
     Not straight forward - the value we want is in different places depending on
-        value type.
+    value type.
     """
     debug = False
     xml_type = attrib_dict[VAL_TYPE]
@@ -521,13 +535,15 @@ def get_val_and_type(attrib_dict, el_det):
     elif xml_type == XML_TYPE_FLOAT:
         """
         For Scientific, Fraction, and Date etc always safest to use xml_value 
-            rather than text.
+        rather than text.
+        
         NB need to treat as datetime if it really is even though not
-            properly tagged as a date-value (e.g. Google Docs spreadsheets).
+        properly tagged as a date-value (e.g. Google Docs spreadsheets).
+        
         Needed because Google Docs spreadsheets return timestamp as a float with 
-            a text format e.g. 40347.8271296296 and 6/18/2010 19:51:04. If a 
-            float, check to see if a valid datetime anyway. NB date text might 
-            be invalid and not align with float value e.g. 
+        a text format e.g. 40347.8271296296 and 6/18/2010 19:51:04. If a float, 
+        check to see if a valid datetime anyway. NB date text might be invalid 
+        and not align with float value e.g. 
         <table:table-cell table:style-name="ce22" office:value-type="float" 
             office:value="40413.743425925924">
         <text:p>50/23/2010 17:50:32</text:p>
@@ -546,7 +562,7 @@ def get_val_and_type(attrib_dict, el_det):
             except ValueError:
                 pass # If not there, OK that removing it failed
             usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
-                                          ok_date_formats=probable_date_formats)
+                ok_date_formats=probable_date_formats)
             # OK for this purpose to accept invalid dates - we calculate the 
             # datetime from the number anyway - this is just an indicator that 
             # this is meant to be a date e.g. 50/23/2010 17:50:32.
@@ -608,8 +624,10 @@ def get_val_and_type(attrib_dict, el_det):
 def get_vals_from_row(row, n_flds):
     """
     Get rows back as list of lists of vals (as unicode ready for display).
+    
     Based on dets_from_row - which lumps more responsibilities for efficiency 
-        reasons.
+    reasons.
+    
     Note - must handle number-columns-repeated e.g. 
     <table:table-cell table:number-columns-repeated="2" 
             office:value-type="float" office:value="3">
@@ -629,12 +647,10 @@ def get_vals_from_row(row, n_flds):
         # the defaults unless overridden by actual data
         val2use = None
         if DATE_VAL in attrib_dict:
-            val2use = attrib_dict[DATE_VAL] # take proper date value
-                            # e.g. 2010-02-01 rather than orig text of 01/02/10
+            val2use = attrib_dict[DATE_VAL] # take proper date value e.g. 2010-02-01 rather than orig text of 01/02/10
         elif VAL_TYPE in attrib_dict:
             val2use, unused = get_val_and_type(attrib_dict, el_det)
-        elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
-            # need empty cell for each column spanned (until hit max cols)
+        elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s) need empty cell for each column spanned (until hit max cols)
             val2use=u""
         else:
             continue
@@ -651,15 +667,18 @@ def get_vals_from_row(row, n_flds):
 def dets_from_row(fldnames, col_type_sets, fld_first_mismatches, row, row_num):
     """
     Update col_type_sets and return dict of values in row (using fldnames as 
-        keys).
+    keys).
+    
     If there are more cells than fldnames, raise exception. Suggest user adds
-        header row, checks data, and tries again.
+    header row, checks data, and tries again.
+    
     Formula cells with values have a val type attrib as well and will be picked 
-        up that way first. It is only if they haven't that they count as an 
-        empty cell. Important not to just skip empty formulae cells.
+    up that way first. It is only if they haven't that they count as an empty 
+    cell. Important not to just skip empty formulae cells.
+    
     fld_first_mismatches --  list with an item for each fld. Init to None for 
-        each. If hit a mismatch, set for that index if not already set (only 
-        want the first per fld).
+    each. If hit a mismatch, set for that index if not already set (only want 
+    the first per fld).
     """
     debug = False
     verbose = False
@@ -676,28 +695,26 @@ def dets_from_row(fldnames, col_type_sets, fld_first_mismatches, row, row_num):
         val2use = u""
         if DATE_VAL in attrib_dict:
             coltype = mg.VAL_DATE
-            val2use = attrib_dict[DATE_VAL] # take proper date value
-                            # e.g. 2010-02-01 rather than orig text of 01/02/10
+            val2use = attrib_dict[DATE_VAL] # take proper date value e.g. 2010-02-01 rather than orig text of 01/02/10
             if debug: print(val2use)
             # We pass over to process_cells which handle col-repeats. At the end 
             # of that process we need to know what col_idx we are on. 
             col_idx = process_cells(attrib_dict, col_type_sets, 
-                                    fld_first_mismatches, col_idx, fldnames, 
-                                    valdict, coltype, val2use, row_num)
+                fld_first_mismatches, col_idx, fldnames, valdict, coltype, 
+                val2use, row_num)
         elif VAL_TYPE in attrib_dict:
             coltype = mg.VAL_EMPTY_STRING
             val2use, coltype = get_val_and_type(attrib_dict, el_det)
             if debug: print(val2use)
             col_idx = process_cells(attrib_dict, col_type_sets, 
-                                    fld_first_mismatches, col_idx, fldnames, 
-                                    valdict, coltype, val2use, row_num)
+                fld_first_mismatches, col_idx, fldnames, valdict, coltype, 
+                val2use, row_num)
         elif len(el_det[RAW_EL]) == 0 or FORMULA in attrib_dict: # empty cell(s)
             # need empty cell for each column spanned (until hit max cols)
             coltype = mg.VAL_EMPTY_STRING
             col_idx = process_cells(attrib_dict, col_type_sets, 
-                                    fld_first_mismatches, col_idx,fldnames, 
-                                    valdict, coltype=mg.VAL_EMPTY_STRING, 
-                                    val2use=u"", row_num=row_num)
+                fld_first_mismatches, col_idx,fldnames, valdict, 
+                coltype=mg.VAL_EMPTY_STRING, val2use=u"", row_num=row_num)
         else:
             pass
         idx_final_col = len(fldnames) - 1

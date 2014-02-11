@@ -18,15 +18,17 @@ else:
 class OdsImporter(importer.FileImporter):
     """
     Import ODS file (OpenOffice Calc, Gnumeric etc) into default SOFA SQLite 
-        database.
+    database.
+    
     Needs to identify data types to ensure only consistent data in a field.
+    
     Adds unique index id so can identify unique records with certainty.
     """
     
     def __init__(self, parent, file_path, tblname, headless, 
-                 headless_has_header):
+            headless_has_header):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
-                                       headless, headless_has_header)
+            headless, headless_has_header)
         self.ext = u"ODS"
 
     def has_header_row(self, strdata):
@@ -40,14 +42,14 @@ class OdsImporter(importer.FileImporter):
         if len(strdata) < 2: # a header row needs a following row to be a header
             return False
         row1_types = [lib.get_val_type(val, comma_dec_sep_ok) 
-                      for val in strdata[0]]
+            for val in strdata[0]]
         row2_types = [lib.get_val_type(val, comma_dec_sep_ok) 
-                      for val in strdata[1]]
+            for val in strdata[1]]
         str_type = mg.VAL_STRING
         empty_type = mg.VAL_EMPTY_STRING
         non_str_types = [mg.VAL_DATE, mg.VAL_NUMERIC]
         return importer.has_header_row(row1_types, row2_types, str_type, 
-                                       empty_type, non_str_types)
+            empty_type, non_str_types)
         
     def get_params(self):
         """
@@ -60,15 +62,14 @@ class OdsImporter(importer.FileImporter):
         else:
             if not os.path.exists(self.file_path):
                 raise Exception(u"Unable to find file \"%s\" for importing. "
-                                u"Please check that file exists." % 
-                                self.file_path)
+                    u"Please check that file exists." % self.file_path)
             size = ods_reader.get_ods_xml_size(self.file_path)
             if size > mg.ODS_GETTING_LARGE:
                 ret = wx.MessageBox(_("This spreadsheet may take a while to "
-                        "import.\n\nInstead of importing, it could be faster to "
-                        "save as csv and import the csv version." 
-                        "\n\nImport now anyway?"), 
-                        _("SLOW IMPORT"), wx.YES_NO|wx.ICON_INFORMATION)
+                    "import.\n\nInstead of importing, it could be faster to "
+                    "save as csv and import the csv version." 
+                    "\n\nImport now anyway?"), 
+                    _("SLOW IMPORT"), wx.YES_NO|wx.ICON_INFORMATION)
                 if ret == wx.NO:
                     return False
                 return importer.FileImporter.get_params(self) # check for header
@@ -78,13 +79,12 @@ class OdsImporter(importer.FileImporter):
                 tbl = ods_reader.get_tbl(tree)
                 # much less efficient if no header supplied
                 ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
-                                                rows_to_sample=ROWS_TO_SAMPLE, 
-                                                headless=self.headless)
+                    rows_to_sample=ROWS_TO_SAMPLE, headless=self.headless)
                 if not ok_fldnames:
                     raise Exception(_("Unable to extract or generate field "
-                                      "names"))
+                        "names"))
                 rows = ods_reader.get_rows(tbl, inc_empty=False, 
-                                           n=importer.ROWS_TO_SHOW_USER)
+                    n=importer.ROWS_TO_SHOW_USER)
                 lib.safe_end_cursor()
                 strdata = []
                 for i, row in enumerate(rows, 1):
@@ -98,7 +98,7 @@ class OdsImporter(importer.FileImporter):
                 except Exception:
                     prob_has_hdr = False
                 dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, 
-                                                     strdata, prob_has_hdr)
+                    strdata, prob_has_hdr)
                 ret = dlg.ShowModal()
                 if debug: print(unicode(ret))
                 if ret == wx.ID_CANCEL:
@@ -110,9 +110,10 @@ class OdsImporter(importer.FileImporter):
     def import_content(self, progbar, import_status, lbl_feedback):
         """
         Get field types dict. Use it to test each and every item before they 
-            are added to database (after adding the records already tested).
+        are added to database (after adding the records already tested).
+        
         Add to disposable table first and if completely successful, rename
-            table to final name.
+        table to final name.
         """
         debug = False
         faulty2missing_fld_list = []
@@ -125,20 +126,18 @@ class OdsImporter(importer.FileImporter):
         prog_step1 = prog_steps_for_xml_steps/5.0 # to encourage them ;-)
         prog_step2 = prog_steps_for_xml_steps/2.0
         tree = ods_reader.get_contents_xml_tree(self.file_path, lbl_feedback, 
-                                                progbar, prog_step1, prog_step2)
+            progbar, prog_step1, prog_step2)
         tbl = ods_reader.get_tbl(tree)
         ok_fldnames = ods_reader.get_ok_fldnames(tbl, self.has_header, 
-                                                 ROWS_TO_SAMPLE, self.headless)
+            ROWS_TO_SAMPLE, self.headless)
         if not ok_fldnames:
             raise Exception(_("Unable to extract or generate field names"))
         # Will expect exactly the same number of fields as we have names for.
         # Have to process twice as much before it will add another step on bar.
         (fldtypes, 
          rows) = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
-                                         ok_fldnames, faulty2missing_fld_list, 
-                                         prog_steps_for_xml_steps, 
-                                         next_prog_val=prog_step2, 
-                                         has_header=self.has_header)
+            ok_fldnames, faulty2missing_fld_list, prog_steps_for_xml_steps, 
+            next_prog_val=prog_step2, has_header=self.has_header)
         if debug:
             if large:
                 print("%s" % rows[:20])
