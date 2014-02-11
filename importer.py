@@ -21,8 +21,8 @@ FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
 GAUGE_STEPS = 50
 FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
-                      u"\nValue: \"%(value)s\""
-                      u"\nExpected column type: %(fldtype)s")
+    u"\nValue: \"%(value)s\""
+    u"\nExpected column type: %(fldtype)s")
 ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
 
@@ -45,7 +45,7 @@ def run_gui_import(self):
     run_import(self)
     
 def run_headless_import(file_path, tblname, headless_has_header, 
-                        supplied_encoding=None):
+        supplied_encoding=None):
     """
     Usage:
     file_path = "/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx" #csvfiles/percent_names.csv"
@@ -57,8 +57,8 @@ def run_headless_import(file_path, tblname, headless_has_header,
     """
     dummy_importer = DummyImporter()
     run_import(dummy_importer, headless=True, file_path=file_path, 
-               tblname=tblname, headless_has_header=headless_has_header,
-               supplied_encoding=supplied_encoding)
+        tblname=tblname, headless_has_header=headless_has_header,
+        supplied_encoding=supplied_encoding)
 
 
 class DlgFixMismatch(wx.Dialog):
@@ -78,7 +78,7 @@ class DlgFixMismatch(wx.Dialog):
         self.fldtypes = fldtypes
         self.faulty2missing_fld_list = faulty2missing_fld_list
         wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU)
+            style=wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         if assessing_sample:
             choice_txt = (_(u"A mix of data types was found in a sample of "
@@ -159,9 +159,11 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
         first_mismatch=u"", testing=False):
     """
     type_set may contain empty_str as well as actual types. Useful to remove
-        empty str and see what is left.
+    empty str and see what is left.
+    
     faulty2missing_fld_list -- so we can stay with the selected best type by 
-        setting faulty values that don't match type to missing.
+    setting faulty values that don't match type to missing.
+    
     STRING is the fallback.
     """
     main_type_set = type_set.copy()
@@ -197,17 +199,20 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
         fldtype = mg.FLDTYPE_STRING    
     return fldtype
 
-def process_fldnames(raw_names, headless=False):
+def process_fldnames(raw_names, headless=False, force_quickcheck=False):
     """
     Turn spaces into underscores, fills blank field names with a safe and 
-        uniquely numbered name, and appends a unique number to duplicate field 
-        names.
+    uniquely numbered name, and appends a unique number to duplicate field 
+    names.
+    
     Checks all field names OK for sqlite and none are empty strings.
+    
     Expects a list of field name strings. Returns the same number of field 
-        names.
+    names.
+    
     The client code should not rely on the row data it extracts having the same 
-        field names exactly as they may be modified e.g. spaces turned to 
-        underscores.
+    field names exactly as they may be modified e.g. spaces turned to 
+    underscores.
     """
     debug = False
     try:
@@ -239,7 +244,7 @@ def process_fldnames(raw_names, headless=False):
     n_names = len(names)
     if n_names > 50:
         if headless:
-            pass
+            if force_quickcheck: quickcheck = True
         else:
             # don't test each name individually - takes too long
             # we gain speed and lose ability to single out bad variable name

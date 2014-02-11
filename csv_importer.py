@@ -726,11 +726,12 @@ class CsvImporter(importer.FileImporter):
     """
     
     def __init__(self, parent, file_path, tblname, headless, 
-            headless_has_header, supplied_encoding):
+            headless_has_header, supplied_encoding, force_quickcheck=False):
         self.parent = parent
         importer.FileImporter.__init__(self, self.parent, file_path, tblname, 
             headless, headless_has_header, supplied_encoding)
         self.ext = u"CSV"
+        self.force_quickcheck = force_quickcheck
         
     def assess_sample(self, reader, progbar, steps_per_item, import_status, 
             comma_delimiter, faulty2missing_fld_list, ok_fldnames):
@@ -866,7 +867,7 @@ class CsvImporter(importer.FileImporter):
                 raise Exception(u"Unable to get sample of csv with details. "
                     u"\nCaused by error: %s" % lib.ue(e)) 
             ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames,
-                self.headless)
+                self.headless, self.force_quickcheck)
         else: # get number of fields from first row (not consumed because not 
             # using dictreader.
             try:

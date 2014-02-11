@@ -302,7 +302,7 @@ def get_el_inner_val(el):
         if debug: print("NO TEXT in el - " + etree.tostring(el))
         return u""
 
-def get_fldnames_from_header_row(row, headless=False):
+def get_fldnames_from_header_row(row, headless=False, force_quickcheck=False):
     """
     Work across row collecting fldnames. Stop when hit end of data columns. NB 
     an empty cell is allowed as part of a dataset if deemed to be a divider.
@@ -368,7 +368,7 @@ def get_fldnames_from_header_row(row, headless=False):
     if orig_fldnames[-1] == u"":
         orig_fldnames.pop()
     if debug: print(orig_fldnames)
-    return importer.process_fldnames(orig_fldnames, headless)
+    return importer.process_fldnames(orig_fldnames, headless, force_quickcheck)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                  prog_steps_for_xml_steps, next_prog_val, has_header=True,

@@ -21,10 +21,11 @@ class ExcelImporter(importer.FileImporter):
     """
     
     def __init__(self, parent, file_path, tblname, headless, 
-            headless_has_header):
+            headless_has_header, force_quickcheck=False):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
             headless, headless_has_header)
         self.ext = u"XLS/XLSX"
+        self.force_quickcheck = force_quickcheck
     
     def has_header_row(self, row1_types, row2_types):
         """
@@ -102,7 +103,7 @@ class ExcelImporter(importer.FileImporter):
                     else unicode(raw_fldname))
                 orig_fldnames.append(fldname)
             fldnames = importer.process_fldnames(orig_fldnames, 
-                headless=self.headless)
+                headless=self.headless, force_quickcheck=self.force_quickcheck)
         else:
             # numbered is OK
             fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x 
