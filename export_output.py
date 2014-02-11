@@ -64,28 +64,30 @@ if DIAGNOSTIC:
 
 """
 Idea - put into large pages, then use PythonMagick to auto-crop. Then I don't 
-    have to know exact dimensions.
+have to know exact dimensions.
+
 Use SOFA Python code to split output into individual images (split chart series 
-    into individual charts). Each will have the massive html header (css and 
-    javascript etc) plus a tiny end bit (close body and html tags). Store in 
-    _internal folder.
+into individual charts). Each will have the massive html header (css and 
+javascript etc) plus a tiny end bit (close body and html tags). Store in 
+_internal folder.
+
 Also split out any text in same order so that numbering can be sequential. Store 
-    names inside html original so we can name “001 - Gender by Ethnicity.png” 
-    etc.
+names inside html original so we can name “001 - Gender by Ethnicity.png” etc.
 
 http://www.imagemagick.org/Magick++/Image.html#Image%20Manipulation%20Methods
 http://www.imagemagick.org/Usage/crop/#trim
 A trick that works is to add a border of the colour you want to trim,
-    _then_ trim.
+then_ trim.
+
 trim() -- Trim edges that are the background color from the image.
 
-trimming is very slow at higher dpis so we can do a quick, dirty version
-    at a lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi
-    to get rough dimensions to crop.
-We can (approximately) translate from size at lower dpi to larger
-    based on quick job done at lower dpi. Add a few pixels around
-    to be safe. [update - for some reason, takes more, best to add a fair
-    few and then trim the final]
+trimming is very slow at higher dpis so we can do a quick, dirty version at a 
+lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough 
+dimensions to crop.
+
+We can (approximately) translate from size at lower dpi to larger based on quick 
+job done at lower dpi. Add a few pixels around to be safe. [update - for some 
+reason, takes more, best to add a fair few and then trim the final]
 20 130x138
 40 261x277
 80 518x550
@@ -97,10 +99,8 @@ http://stackoverflow.com/questions/4809314/...
 
 Packaging Notes:
 Wkhtmltopdf - Packaged for Ubuntu and cross-platform. An active projects but 
-    some tricky bugs too: Problems with space between characters
-    wkhtmltopdf > 0.9.0
-ImageMagick - Packaged for Ubuntu and cross-platform.
-    imagemagick > 8.0.0
+some tricky bugs too: Problems with space between characters wkhtmltopdf > 0.9.0
+ImageMagick - Packaged for Ubuntu and cross-platform. imagemagick > 8.0.0
 PythonMagick - http://www.imagemagick.org/download/python/
     python-pythonmagick > 0.9.0
 Note -- enable images saved to be in high resolution for publishing purposes.
@@ -459,7 +459,7 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     return (gauge_start_pdf, steps_per_pdf_item, gauge_start_imgs, 
         steps_per_img_item, gauge_start_tbls, steps_per_tbl_item)
 
-def pdf_tasks(save2report_path, report_path, temp_desktop_path, headless, 
+def pdf_tasks(save2report_path, report_path, alternative_path, headless, 
         gauge_start_pdf, steps_per_pdf, msgs, progbar):
     if save2report_path:
         if not os.path.exists(report_path):
@@ -487,8 +487,8 @@ def pdf_tasks(save2report_path, report_path, temp_desktop_path, headless,
             gauge_start_pdf, headless, steps_per_pdf, progbar)
         pdf_saved_msg = (_(u"PDF has been saved to: \"%s\"") % pdf_path)
     else:
-        foldername = os.path.split(temp_desktop_path)[1]
-        pdf_path = export2pdf(temp_desktop_path, u"SOFA output.pdf", 
+        foldername = os.path.split(alternative_path)[1]
+        pdf_path = export2pdf(alternative_path, u"SOFA output.pdf", 
             report_path, gauge_start_pdf, headless, steps_per_pdf, progbar)
         pdf_saved_msg = _(u"PDF has been saved to your desktop in the "
             u"\"%s\" folder" % foldername)
@@ -511,7 +511,7 @@ def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0,
     return pdf_path
 
 def export2imgs(hdr, img_items, save2report_path, report_path, 
-        temp_desktop_path, output_dpi, gauge_start_imgs=0, headless=False, 
+        alternative_path, output_dpi, gauge_start_imgs=0, headless=False, 
         export_status=None, steps_per_img=None, msgs=None, progbar=None):
     """
     hdr -- HTML header with css, javascript etc. Make hdr (and img_items) with 
@@ -523,14 +523,16 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     save2report_path -- boolean. True when exporting a report; False 
     when exporting or coping current output.
     
-    report_path -- only needed if exporting entire report 
-    i.e. save2report_path = True. 
+    report_path -- needed whether or not exporting entire report. Need to know
+    location so can make pdf in report folder - our html relies on the 
+    Javascript files and images being in the correct relative location.
     e.g. /home/g/Documents/sofastats/reports/sofa_use_only_report.htm
-    Will go here if save2report_path is True (and there is no OVERRIDE_FOLDER 
-    set).
     
-    temp_desktop_path -- images will only go here if save2report_path is False 
-    (and there is no OVERRIDE_FOLDER set).
+    Will put images here if save2report_path is True (and there is no 
+    OVERRIDE_FOLDER set).
+    
+    alternative_path -- images will only go here if save2report_path is False 
+    (and there is no OVERRIDE_FOLDER set). Don't include a trailing slash.
     
     output_dpi -- e.g. 300
     
@@ -565,7 +567,7 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
         imgs_path = output.ensure_imgs_path(report_path, 
             ext=u"_exported_images")
     else:
-        imgs_path = temp_desktop_path
+        imgs_path = alternative_path
     if OVERRIDE_FOLDER:
         imgs_path = OVERRIDE_FOLDER
     rpt_root = os.path.split(report_path)[0]
@@ -626,14 +628,14 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     if save2report_path:
         img_saved_msg = (_(u"Images have been saved to: \"%s\"") % imgs_path)
     else:
-        foldername = os.path.split(temp_desktop_path)[1]
+        foldername = os.path.split(alternative_path)[1]
         img_saved_msg = (u"Images have been saved to your desktop in the "
             u"\"%s\" folder" % foldername)
     if not headless:
         msgs.append(img_saved_msg)
 
 def export2spreadsheet(hdr, tbl_items, save2report_path, report_path, 
-        temp_desktop_path, gauge_start_tbls=0, headless=False, 
+        alternative_path, gauge_start_tbls=0, headless=False, 
         steps_per_tbl=None, msgs=None, progbar=None):
     if headless:
         if (steps_per_tbl, msgs, progbar) != (None, None, None):
@@ -652,7 +654,7 @@ def export2spreadsheet(hdr, tbl_items, save2report_path, report_path,
             spreadsheet_root = OVERRIDE_FOLDER
         spreadsheet_path = os.path.join(spreadsheet_root, spreadsheet_name)
     else:
-        spreadsheet_path = os.path.join(temp_desktop_path, u"SOFA output.xls")
+        spreadsheet_path = os.path.join(alternative_path, u"SOFA output.xls")
     n_tbls = len(tbl_items)
     html = [hdr,] + [output.extract_tbl_only(tbl_item.content) for tbl_item 
         in tbl_items]
@@ -664,7 +666,7 @@ def export2spreadsheet(hdr, tbl_items, save2report_path, report_path,
         spreadsheet_saved_msg = (_(u"The spreadsheet has been saved"
             u" to: \"%s\"") % spreadsheet_path)
     else:
-        foldername = os.path.split(temp_desktop_path)[1]
+        foldername = os.path.split(alternative_path)[1]
         spreadsheet_saved_msg = (u"The spreadsheet has been saved "
             u"to your desktop in the \"%s\" folder" % foldername)
     msgs.append(spreadsheet_saved_msg)
@@ -1032,7 +1034,7 @@ def copy_output():
     hdr, img_items, unused = get_hdr_and_items(mg.INT_REPORT_PATH, DIAGNOSTIC)
     msgs = [] # not used in this case
     export2imgs(hdr, img_items=img_items, save2report_path=True, 
-        report_path=mg.INT_REPORT_PATH, temp_desktop_path=mg.INT_COPY_IMGS_PATH,  
+        report_path=mg.INT_REPORT_PATH, alternative_path=mg.INT_COPY_IMGS_PATH,  
         output_dpi=PRINT_DPI, gauge_start_imgs=0, headless=False, 
         export_status=export_status, steps_per_img=GAUGE_STEPS, msgs=msgs, 
         progbar=None)
