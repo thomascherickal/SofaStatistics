@@ -7,6 +7,7 @@ import csv
 import cStringIO
 import os
 
+import xlwt
 import wx
 
 import my_globals as mg
@@ -92,6 +93,12 @@ class DlgExportData(wx.Dialog):
     def on_btn_export(self, event):
         """
         Follow style of Data List code where possible.
+        
+        Start with original list of columns and column names. If including 
+        labels, with insert additional fields as required.
+        
+        Collect details for each (original) field. Then loop through column 
+        names and 
         """
         self.progbar.SetValue(0)
         wx.BeginBusyCursor()
@@ -99,8 +106,9 @@ class DlgExportData(wx.Dialog):
         debug = False
         dd = mg.DATADETS_OBJ
         cc = config_output.get_cc()
-        filname_csv = u"%s.csv" % dd.tbl
-        filname_xls = u"%s.xls" % dd.tbl
+        extra_lbl = u"_with_labels" if inc_lbls else u""
+        filname_csv = u"%s%s.csv" % (dd.tbl, extra_lbl)
+        filname_xls = u"%s%s.xls" % (dd.tbl, extra_lbl)
         desktop = os.path.join(mg.HOME_PATH, u"Desktop")
         filpath_csv = os.path.join(desktop, filname_csv)
         filpath_xls = os.path.join(desktop, filname_xls)
@@ -108,69 +116,68 @@ class DlgExportData(wx.Dialog):
             print(filpath_csv)
             print(filpath_xls)
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
-        col_names = getdata.fldsdic_to_fldnames_lst(fldsdic=dd.flds)
+        orig_col_names = getdata.fldsdic_to_fldnames_lst(fldsdic=dd.flds)
         (unused, unused, 
          unused, val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         # get alignment and val_dics (if showing lbl fields may be more than one set of col dets per col)
-        col_dets = []
-        col_det = namedtuple('col_det', 'alignright, valdic')
-        for i, col_name in enumerate(col_names):
-            numericfld = dd.flds[col_name][mg.FLD_BOLNUMERIC]
-            col_dets.append([col_det(numericfld, None)]) # always raw first so no valdic
-            has_lbls = val_dics.get(col_name)
+        all_col_dets = []
+        col_lbl_statuses = []
+        col_det = namedtuple('col_det', 'col_name, alignright, valdic')
+        for i, orig_col_name in enumerate(orig_col_names):
+            numericfld = dd.flds[orig_col_name][mg.FLD_BOLNUMERIC]
+            all_col_dets.append(col_det(orig_col_name, numericfld, None)) # always raw first so no valdic
+            has_lbls = val_dics.get(orig_col_name)
             if inc_lbls and has_lbls:
-                col_dets[i].append(col_det(False, val_dics.get(col_name))) # labels are always left aligned
-        raw_list = []
-        html = [u"""<!DOCTYPE HTML PUBLIC '-//W3C//DTD HTML 4.01 Transitional//EN'
-        'http://www.w3.org/TR/html4/loose.dtd'>
-        <html>
-        <head>
-        <meta name='I♥unicode'>
-        <meta http-equiv="content-type" content="text/html; charset=utf-8"/>
-        <title>%s</title>\n<body>""" % dd.tbl]
-        # add header row
-        html.append(u"<table>\n<thead>\n<tr>")
-        colnames2use = []
-        for idx_cols, col_name in enumerate(col_names):
-            col_det_lst = col_dets[idx_cols]
-            for idx_col_det in range(len(col_det_lst)): # should be at least 1 and at most 2
-                if idx_col_det > 1:
-                    raise Exception(u"Excessive column details received for %s"
-                        % col_name)
-                colname2use = (col_name if idx_col_det == 0 
-                        else u"%s_Label" % col_name)
-                colnames2use.append(colname2use)
-        raw_list.append(colnames2use)
-        html.append(u"".join([u"<th>%s</th>" % x for x in colnames2use]))
-        html.append(u"</tr>\n</thead>")
+                col_lbl_statuses.append(True)
+                all_col_dets.append(col_det("%s_Label" % orig_col_name, False, 
+                    val_dics.get(orig_col_name))) # labels are always left aligned
+            else:
+                col_lbl_statuses.append(False)
+        book = xlwt.Workbook()
+        sheet = book.add_sheet('%s output' % dd.tbl)
+        style_bold_12pt = xlwt.XFStyle()
+        font = xlwt.Font()
+        font.name = 'Arial'
+        font.bold = True
+        font.height = 12*20 #12pt
+        style_bold_12pt.font = font
+        colnames2use = [det.col_name for det in all_col_dets]
+        raw_list = [colnames2use,]
+        for idx_col, colname2use in enumerate(colnames2use):
+            col_style = xlwt.XFStyle()
+            if all_col_dets[idx_col].alignright:
+                alignment = xlwt.Alignment()
+                alignment.horz = xlwt.Alignment.HORZ_RIGHT
+                col_style.alignment = alignment
+            sheet.col(idx_col).set_style(col_style)
+            sheet.write(0, idx_col, colname2use, style_bold_12pt) # actual hdr row content
         # get data from SQL line by line
-        colnames_clause = u", ".join([objqtr(x) for x in col_names])
+        colnames_clause = u", ".join([objqtr(x) for x in orig_col_names])
         SQL_get_data = u"""SELECT %s 
         FROM %s""" % (colnames_clause, getdata.tblname_qtr(dd.dbe, dd.tbl))
         if debug: print(SQL_get_data)
         dd.cur.execute(SQL_get_data) # must be dd.cur
-        html.append(u"<tbody>\n")
-        idx_row = 0
+        idx_row = 1
         while True:
             try:
-                row = dd.cur.fetchone()
+                row = dd.cur.fetchone() # Note - won't have the extra columns, just the original
                 if row is None:
                     break # run out of rows
                 row_raw = []
-                row_html = [u"<tr>\n"]
-                for i, col_name in enumerate(col_names):
-                    col_det_lst = col_dets[i]
-                    for det in col_det_lst:
-                        alignright = (u" style='text-align: right'" 
-                            if det.alignright else u"")
-                        val2show = (det.valdic.get(row[i], row[i]) if det.valdic 
-                            else row[i])
-                        row_raw.append(unicode(val2show)) # must be a string
-                        row_html.append(u"<td %s>%s</td>" % (alignright, 
-                            val2show))
-                row_html.append(u"</tr>\n")
+                idx_final_cols = 0 # have to manage these ourselves
+                for idx_orig_col, val in enumerate(row):
+                    has_lbl = col_lbl_statuses[idx_orig_col]
+                    sheet.write(idx_row, idx_final_cols, val)
+                    row_raw.append(unicode(val)) # must be a string
+                    idx_final_cols += 1
+                    if has_lbl:
+                        det = all_col_dets[idx_final_cols] 
+                        lbl2show = (det.valdic.get(val, val) if det.valdic 
+                            else val)
+                        sheet.write(idx_row, idx_final_cols, lbl2show)
+                        row_raw.append(unicode(lbl2show)) # must be a string
+                        idx_final_cols += 1
                 raw_list.append(row_raw)
-                html.append(u"".join(row_html))
                 idx_row += 1
                 gauge2set = ((1.0*idx_row)/self.n_rows)*GAUGE_STEPS
                 self.progbar.SetValue(gauge2set)
@@ -185,7 +192,6 @@ class DlgExportData(wx.Dialog):
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
                 return
-        html.append(u"</tbody>\n</table></body></html>")
         with open(filpath_csv, 'wb') as f_csv: # no special encoding needed given what writer does, must be in binary mode otherwise extra line breaks on Windows 
             csv_writer = UnicodeWriter(f_csv, delimiter=',', quotechar='"', 
                 quoting=csv.QUOTE_MINIMAL)
@@ -196,10 +202,8 @@ class DlgExportData(wx.Dialog):
                     raise Exception(u"Unable to write row %s to csv file. "
                         u"Orig error: %s" % (i, e))
             f_csv.close()
-        html2save = u"\n".join(html)
-        with codecs.open(filpath_xls, "w", "utf-8") as f_xls:
-            f_xls.write(html2save)
-            f_xls.close()
+        book.save(filpath_xls)
+        
         self.progbar.SetValue(GAUGE_STEPS)
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)

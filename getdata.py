@@ -955,13 +955,13 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
 def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False, 
         headless=False):
     """
-    Make a table into the SOFA default database.  Must have autonumber SOFA_ID.
+    Make a table into the SOFA default database. Must have autonumber SOFA_ID.
     
     Optionally may apply type checking constraint on fields (NB no longer able
     to open database outside of this application which using user-defined
     functions in table definitions).
     
-    oth_name_types -- [(ok_fldname, fldtype), ...].  No need to reference old 
+    oth_name_types -- [(ok_fldname, fldtype), ...]. No need to reference old 
     names or types.
     
     strict_typing -- uses user-defined functions to apply strict typing via

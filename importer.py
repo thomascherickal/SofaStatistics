@@ -629,7 +629,8 @@ def try_to_add_to_tmp_tbl(feedback, import_status, con, cur, file_path,
         for ok_fldname in ok_fldnames:
             oth_name_types.append((ok_fldname, fldtypes[ok_fldname]))
         if debug: print(oth_name_types)
-        getdata.make_sofa_tbl(con, cur, tblname, oth_name_types, headless)
+        getdata.make_sofa_tbl(con, cur, tblname, oth_name_types, 
+            headless=headless)
     except Exception, e:
         raise   
     try:

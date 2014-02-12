@@ -12,8 +12,10 @@ import my_globals as mg
 
 """
 If not available, make backup subfolder.
+
 Make date-time stamped zip file and include in it all vdts, projs, sofa_db and, 
-    optionally, reports.
+optionally, reports.
+
 Do not include default_report_extras.
 """
 
@@ -33,7 +35,7 @@ def run_backup(inc_reports=True):
     backup_path = os.path.join(backup_folder, backup_filname)
     # http://www.doughellmann.com/PyMOTW/zipfile/
     zf = zipfile.ZipFile(backup_path, mode='w', 
-                         compression=zipfile.ZIP_DEFLATED)
+        compression=zipfile.ZIP_DEFLATED)
     folders2backup = [mg.PROJS_FOLDER, mg.VDTS_FOLDER]
     if inc_reports:
         folders2backup.append(mg.REPORTS_FOLDER)
@@ -60,6 +62,6 @@ def run_backup(inc_reports=True):
     zf.close()
     if debug: print("Closed zip file")
     msg = (u"Backed up %s files to:\n\"%s\"\n\nYou'll find it in your \"%s\" "
-           u"folder.\n\nTIP: copy your backups to a USB stick and keep "
-           u"it off-site." % (len(files2backup), backup_filname, backup_folder))
+        u"folder.\n\nTIP: copy your backups to a USB stick and keep it "
+        u"off-site." % (len(files2backup), backup_filname, backup_folder))
     return msg
