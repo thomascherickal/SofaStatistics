@@ -5,9 +5,10 @@ import codecs
 from collections import namedtuple
 import csv
 import cStringIO
+import datetime
 import os
 
-import xlwt
+import xlwt #@UnresolvedImport
 import wx
 
 import my_globals as mg
@@ -21,8 +22,8 @@ GAUGE_STEPS = 100
 
 class UnicodeWriter:
     """
-    A CSV writer which will write rows to CSV file "f",
-    which is encoded in the given encoding.
+    A CSV writer which will write rows to CSV file "f", which is encoded in the 
+    given encoding.
     """
 
     def __init__(self, f, dialect=csv.excel, encoding="utf-8", **kwds):
@@ -100,10 +101,10 @@ class DlgExportData(wx.Dialog):
         Collect details for each (original) field. Then loop through column 
         names and 
         """
+        debug = False
         self.progbar.SetValue(0)
         wx.BeginBusyCursor()
         inc_lbls = self.chk_inc_lbls.IsChecked()
-        debug = False
         dd = mg.DATADETS_OBJ
         cc = config_output.get_cc()
         extra_lbl = u"_with_labels" if inc_lbls else u""
@@ -126,6 +127,8 @@ class DlgExportData(wx.Dialog):
         for i, orig_colname in enumerate(orig_col_names):
             numericfld = dd.flds[orig_colname][mg.FLD_BOLNUMERIC]
             datefld = dd.flds[orig_colname][mg.FLD_BOLDATETIME]
+            if debug and datefld: print(u"%s is a datetime field" % 
+                orig_colname)
             all_col_dets.append(col_det(orig_colname, numericfld, datefld, 
                 None)) # always raw first so no valdic
             has_lbls = val_dics.get(orig_colname)
@@ -135,7 +138,7 @@ class DlgExportData(wx.Dialog):
                     False, val_dics.get(orig_colname))) # labels are not dates or numeric
             else:
                 col_lbl_statuses.append(False)
-        book = xlwt.Workbook()
+        book = xlwt.Workbook(encoding='utf8')
         sheet = book.add_sheet('%s output' % dd.tbl)
         style_bold_12pt = xlwt.XFStyle()
         font = xlwt.Font()
@@ -153,6 +156,8 @@ class DlgExportData(wx.Dialog):
                 alignment.horz = xlwt.Alignment.HORZ_RIGHT
                 col_style.alignment = alignment
             sheet.col(idx_col).set_style(col_style)
+            if det.isdate:
+                sheet.col(idx_col).width = 256*20  
             sheet.write(0, idx_col, colname2use, style_bold_12pt) # actual hdr row content
         # get data from SQL line by line
         colnames_clause = u", ".join([objqtr(x) for x in orig_col_names])
@@ -162,7 +167,7 @@ class DlgExportData(wx.Dialog):
         dd.cur.execute(SQL_get_data) # must be dd.cur
         idx_row = 1
         date_style = xlwt.XFStyle()
-        date_style.num_format_str = 'M/D/YY' # 'yyyy/mm/dd h:mm:ss'
+        date_style.num_format_str = 'yyyy-mm-dd hh:mm:ss'
         while True:
             try:
                 row = dd.cur.fetchone() # Note - won't have the extra columns, just the original
@@ -173,7 +178,13 @@ class DlgExportData(wx.Dialog):
                 for idx_orig_col, val in enumerate(row):
                     has_lbl = col_lbl_statuses[idx_orig_col]
                     if all_col_dets[idx_final_cols].isdate:
-                        val2use = lib.get_time_obj(val)
+                        if isinstance(val, datetime.datetime):
+                            val2use = val
+                        else:
+                            try:
+                                val2use = lib.get_datetime_from_str(val)
+                            except Exception:
+                                val2use = u""
                         sheet.write(idx_row, idx_final_cols, val2use, 
                             date_style)
                     else:
@@ -213,7 +224,6 @@ class DlgExportData(wx.Dialog):
                         u"Orig error: %s" % (i, e))
             f_csv.close()
         book.save(filpath_xls)
-        
         self.progbar.SetValue(GAUGE_STEPS)
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)

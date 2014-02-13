@@ -58,6 +58,7 @@ SMALLINT = u"smallint" # "signed two-byte integer"
 TEXT = u"text" # "variable-length character string"
 TIME = u"time" # "time of day"
 TIMESTAMP = u"timestamp" # "date and time"
+TIMESTAMP_WITHOUT_TIMEZONE = u"timestamp without time zone"
 TSQUERY = u"tsquery" # "text search query"
 TSVECTOR = u"tsvector" # "text search document"
 TXID_SNAPSHOT = u"txid_snapshot" # "user-level transaction ID snapshot"
@@ -288,11 +289,12 @@ def get_flds(cur, db, tbl):
         AS dec_pts,
             columns.numeric_precision 
         AS num_precision,
-            lower(columns.data_type) IN (%s, %s, %s, %s) """ % \
-                (quote_val(TIMESTAMP), quote_val(DATE), quote_val(TIME), 
-                 quote_val(INTERVAL)) + u"""
+            lower(columns.data_type) IN (%s, %s, %s, %s, %s) """ % \
+                (quote_val(TIMESTAMP), quote_val(TIMESTAMP_WITHOUT_TIMEZONE), 
+                quote_val(DATE), quote_val(TIME), quote_val(INTERVAL)) + u"""
         AS boldatetime,
-            lower(columns.data_type) IN (%s) """ % quote_val(TIMESTAMP) + \
+            lower(columns.data_type) IN (%s, %s) """ % (quote_val(TIMESTAMP), 
+                quote_val(TIMESTAMP_WITHOUT_TIMEZONE)) + \
         u""" AS timestamp
         FROM information_schema.columns
         WHERE columns.table_schema::text = %(schema)s
