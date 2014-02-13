@@ -88,9 +88,11 @@ def formatnum(num):
 def extract_img_path(content, use_as_url=False):
     """
     Extract image path from html.
+    
     use_as_url -- is the path going to be used as a url (if not we need to 
-        unquote it) so the image path we extract can be used by the os e.g. to 
-        copy an image
+    unquote it) so the image path we extract can be used by the os e.g. to 
+    copy an image
+    
     IMG_SRC_START -- u"<img src='"
     """
     debug = False
@@ -144,10 +146,10 @@ def get_src_dst_preexisting_img(export_report, imgs_path, content):
 
 def setup_link(link, link_colour, bg_colour):
     link.SetColours(link=link_colour, visited=link_colour, 
-                    rollover=link_colour)
+        rollover=link_colour)
     link.SetOwnBackgroundColour(bg_colour)
     link.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
-                            wx.SWISS, wx.NORMAL, wx.NORMAL))
+        wx.SWISS, wx.NORMAL, wx.NORMAL))
     link.SetSize(wx.Size(250, 17))
     link.SetUnderlines(link=True, visited=True, rollover=False)
     link.SetLinkCursor(wx.CURSOR_HAND)
@@ -158,10 +160,10 @@ def setup_link(link, link_colour, bg_colour):
 
 class DlgHelp(wx.Dialog):
     def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 
-                 help_pg):
+            help_pg):
         wx.Dialog.__init__(self, parent=parent, title=title, 
-                           style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,100))
+            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
+            pos=(mg.HORIZ_OFFSET+100,100))
         self.panel = wx.Panel(self)
         self.help_pg = help_pg
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -189,7 +191,7 @@ class DlgHelp(wx.Dialog):
     def on_online_help(self, event):
         import webbrowser
         url = (u"http://www.sofastatistics.com/wiki/doku.php"
-               u"?id=help:%s" % self.help_pg)
+            u"?id=help:%s" % self.help_pg)
         webbrowser.open_new_tab(url)
         event.Skip()
         
@@ -229,7 +231,7 @@ def mustreverse():
 def get_normal_ys(vals, bins):
     """
     Get np array of y values for normal distribution curve with given values 
-        and bins.
+    and bins.
     """
     if len(vals) < 2:
         raise Exception(_(u"Need multiple values to calculate normal curve."))
@@ -248,12 +250,16 @@ def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote,
               pystr_use_double_quotes=True, charset2try=u"utf-8"):
     """
     Need to quote a value e.g. for inclusion in an SQL statement.
+    
     raw_val -- might be a string or a datetime but can't be a number.
+    
     sql_str_literal_quote -- e.g. ' for SQLite
+    
     sql_esc_str_literal_quote -- e.g. '' for SQLite
+    
     pystr_use_double_quotes -- Use double quotes for string declaration 
-        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
-        literal quotes used by the database engine to minimise escaping.
+    e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
+    literal quotes used by the database engine to minimise escaping.
     """
     debug = False
     try: # try to process as date first
@@ -262,45 +268,51 @@ def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote,
     except AttributeError: # now try as string
         """
         E.g. val is: Don't say "Hello" like that
+        
         We need something ready for WHERE myval = 'Don''t say "Hello" like that'
+        
         So our string declaration ready for insertion into the SQL will need to 
-            be something like:
+        be something like:
+        
         mystr = u"'Don''t say \"Hello\" like that'"
+        
         Tricky because two levels of escaping ;-). 
-        1) Database engine dependent SQL escaping: The SQL 
-            statement itself has its own escaping of internal quotes. So SQLite 
-            uses ' for quotes and '' to escape them internally.
+        
+        1) Database engine dependent SQL escaping: The SQL statement itself has 
+        its own escaping of internal quotes. So SQLite uses ' for quotes and '' 
+        to escape them internally.
+        
         2) Python escaping: We need to create a Python string, and do any 
-            internal escaping relative to that such that the end result when 
-            included in a longer string is correctly escaped SQL. When escaping 
-            the final Python string declaration, must escape relative to that 
-            e.g. myvar = "..."..." needs to be "...\"...". 
+        internal escaping relative to that such that the end result when 
+        included in a longer string is correctly escaped SQL. When escaping the 
+        final Python string declaration, must escape relative to that e.g. 
+        myvar = "..."..." needs to be "...\"...". 
+        
         3) variable declaration of quoted value
         The overall process is not super hard when clearly understood as having 
-            two steps.
+        two steps.
         """
         try: # 1) do sql escaping
             try: # try as if already unicode
                 val = raw_val.replace(sql_str_literal_quote, 
-                                      sql_esc_str_literal_quote)
+                    sql_esc_str_literal_quote)
             except UnicodeDecodeError:
                 if debug: print(repr(raw_val))
-                val = unicode(raw_val, 
-                              charset2try).replace(sql_str_literal_quote, 
-                                                   sql_esc_str_literal_quote)
+                val = unicode(raw_val, charset2try).replace(
+                    sql_str_literal_quote, sql_esc_str_literal_quote)
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
-                            u"\nCaused by error: %s" % ue(e))
+                u"\nCaused by error: %s" % ue(e))
         if pystr_use_double_quotes:
             # 2) do Python escaping
             pystr_esc_val = val.replace(u'"', u'\"')
             # 3) variable declaration of quoted value
             quoted_val = u"%s%s%s" % (sql_str_literal_quote, pystr_esc_val,
-                                      sql_str_literal_quote)
+                sql_str_literal_quote)
         else:
             pystr_esc_val = val.replace(u"'", u"\'")
             quoted_val = u'%s%s%s' % (sql_str_literal_quote, pystr_esc_val,
-                                      sql_str_literal_quote)
+                sql_str_literal_quote)
     return quoted_val
 
 def get_p(p, dp):
@@ -314,6 +326,7 @@ def get_p(p, dp):
 def get_exec_ready_text(text):
     """
     test -- often the result of f.read()
+    
     exec can't handle some Windows scripts e.g. print("Hello world")\r\n
     you can see
     """
@@ -358,7 +371,8 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
 def get_sorted_vals(sort_order, vals, lbls):
     """
     Get sorted values according to values in supplied list or their labels 
-        according to sort option selected.
+    according to sort option selected.
+    
     http://www.python.org/dev/peps/pep-0265/
     """
     if sort_order == mg.SORT_INCREASING:
@@ -392,43 +406,45 @@ def extract_dojo_style(css_fil):
     try:
         exec css_dojo in css_dojo_dic
     except SyntaxError, e:
-        wx.MessageBox(\
-            _(u"Syntax error in dojo settings in css file \"%(css_fil)s\"."
-              u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
-              u"css_dojo": css_dojo, u"err": ue(e)})
+        wx.MessageBox(_(u"Syntax error in dojo settings in css file"
+            u" \"%(css_fil)s\"."
+            u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
+            u"css_dojo": css_dojo, u"err": ue(e)})
         raise
     except Exception, e:
-        wx.MessageBox(\
-            _(u"Error processing css dojo file \"%(css_fil)s\"."
-              u"\n\nDetails: %(err)s") % {u"css_fil": css_fil,
-              u"err": ue(e)})
+        wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
+            u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": ue(e)})
         raise
     return (css_dojo_dic[u"outer_bg"], 
-            css_dojo_dic[u"inner_bg"], # grid_bg
-            css_dojo_dic[u"axis_label_font_colour"], 
-            css_dojo_dic[u"major_gridline_colour"], 
-            css_dojo_dic[u"gridline_width"], 
-            css_dojo_dic[u"stroke_width"], 
-            css_dojo_dic[u"tooltip_border_colour"], 
-            css_dojo_dic[u"colour_mappings"],
-            css_dojo_dic[u"connector_style"],
-            )
+        css_dojo_dic[u"inner_bg"], # grid_bg
+        css_dojo_dic[u"axis_label_font_colour"], 
+        css_dojo_dic[u"major_gridline_colour"], 
+        css_dojo_dic[u"gridline_width"], 
+        css_dojo_dic[u"stroke_width"], 
+        css_dojo_dic[u"tooltip_border_colour"], 
+        css_dojo_dic[u"colour_mappings"],
+        css_dojo_dic[u"connector_style"],
+        )
 
 def get_bins(min_val, max_val):
     """
     Goal - set nice bin widths so "nice" value e.g. 0.2, 0.5, 1 (or
-        200, 500, 1000 or 0.002, 0.005, 0.01) and not too many or too few
-        bins.
-    Start with a bin width which splits the data into the optimal number 
-        of bins.  Normalise it, adjust upwards to nice size, and 
-        denormalise.  Check number of bins resulting.
-    OK?  If room to double number of bins, halve size of normalised bin
-        width, and try to adjust upwards to a nice size.  This time,
-        however, there is the option of 2 as an interval size (so we have
-        2, 5, or 10.  Denormalise and recalculate the number of bins.
-    Now reset lower and upper limits if appropriate.  Make lower limit a 
-        multiple of the bin_width and make upper limit n_bins*bin_width higher.
-        Add another bin if not covering max value.
+    200, 500, 1000 or 0.002, 0.005, 0.01) and not too many or too few bins.
+    
+    Start with a bin width which splits the data into the optimal number of 
+    bins. Normalise it, adjust upwards to nice size, and denormalise. Check 
+    number of bins resulting.
+    
+    OK? If room to double number of bins, halve size of normalised bin width, 
+    and try to adjust upwards to a nice size. This time, however, there is the 
+    option of 2 as an interval size (so we have 2, 5, or 10. Denormalise and 
+    recalculate the number of bins.
+    
+    Now reset lower and upper limits if appropriate. Make lower limit a multiple 
+    of the bin_width and make upper limit n_bins*bin_width higher.
+    
+    Add another bin if not covering max value.
+    
     n_bins -- need an integer ready for core_stats.histogram
     """
     debug = False
@@ -491,9 +507,8 @@ def get_bins(min_val, max_val):
         n_bins += 1
     if debug:
         print(("For %s to %s use an interval size of %s for a data range of %s "
-               "to %s giving you %s bins") % (min_val, max_val, 
-                                              better_bin_width, lower_limit, 
-                                              upper_limit, n_bins))
+            "to %s giving you %s bins") % (min_val, max_val, better_bin_width, 
+            lower_limit, upper_limit, n_bins))
     return n_bins, lower_limit, upper_limit
 
 def saw_toothing(y_vals, period, start_idx=0):
@@ -509,7 +524,7 @@ def saw_toothing(y_vals, period, start_idx=0):
 def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
     """
     Look for sawtoothing on commonly found periods (5 and 2).  If found, reduce
-        bins until problem gone or too few bins to keep shrinking.
+    bins until problem gone or too few bins to keep shrinking.
     """
     debug = False
     while n_bins > 5:
@@ -547,12 +562,12 @@ def version_a_is_newer(version_a, version_b):
         raise Exception(u"Version A parts faulty")
     if version_a_parts[0] > version_b_parts[0]:
         is_newer = True
-    elif version_a_parts[0] == version_b_parts[0] \
-        and version_a_parts[1] > version_b_parts[1]:
+    elif (version_a_parts[0] == version_b_parts[0]
+            and version_a_parts[1] > version_b_parts[1]):
         is_newer = True
-    elif version_a_parts[0] == version_b_parts[0] \
-        and version_a_parts[1] == version_b_parts[1]\
-        and version_a_parts[2] > version_b_parts[2]:
+    elif (version_a_parts[0] == version_b_parts[0]
+            and version_a_parts[1] == version_b_parts[1]
+            and version_a_parts[2] > version_b_parts[2]):
         is_newer = True
     else:
         is_newer = False
@@ -587,7 +602,9 @@ def get_unicode_datestamp():
 def ue(e):
     """
     Return unicode string version of error reason
+    
     unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
+    
     str(e).decode("utf8", ...) handles "找不到指定的模块。"
     """
     debug = False
@@ -662,9 +679,11 @@ def handle_ms_data(data):
 def ms2unicode(text):
     """
     Inspiration from http://effbot.org/zone/unicode-gremlins.htm
-        which maps cp1252 gremlins to real unicode characters.
+    which maps cp1252 gremlins to real unicode characters.
+    
     Main changes - now ensure the output is unicode even if cp1252 characters 
-        not found in it.
+    not found in it.
+    
     Also handles smart quotes etc (which are multibyte) and commonly used ;-).
     """
     import re # easier to transplant for testing if everything here
@@ -694,8 +713,11 @@ def ms2unicode(text):
 def str2unicode(raw):
     """
     If not a string, raise Exception.  Otherwise ...
+    
     Convert byte strings to unicode.
+    
     Convert any cp1252 text to unicode e.g. smart quotes.
+    
     Return safe unicode string (pure unicode and no unescaped backslashes).
     """
     if not isinstance(raw, basestring): # isinstance includes descendants
@@ -721,6 +743,7 @@ def str2unicode(raw):
 def any2unicode(raw):
     """
     Get unicode string back from any input.
+    
     If a number, avoids scientific notation if up to 16 places.
     """
     if is_basic_num(raw):
@@ -764,7 +787,8 @@ def get_val_type(val, comma_dec_sep_ok=False):
 def get_overall_fldtype(type_set):
     """
     type_set may contain empty_str as well as actual types.  Useful to remove
-        empty str and see what is left.
+    empty str and see what is left.
+    
     STRING is the fallback.
     """
     debug = False
@@ -790,8 +814,10 @@ def update_local_display(html_ctrl, str_content, wrap_text=False):
 def get_min_content_size(szr_lst, vertical=True):
     """
     For a list of sizers return min content size overall. NB excludes padding 
-        (border).
+    (border).
+    
     Returns x, y.
+    
     vertical -- whether parent sizer of szr_lst is vertical.
     """
     debug = False
@@ -809,16 +835,22 @@ def get_min_content_size(szr_lst, vertical=True):
     return x, y
 
 def set_size(window, szr_lst, width_init=None, height_init=None, 
-             horiz_padding=10):
+        horiz_padding=10):
     """
     Provide ability to display a larger initial size yet set an explicit minimum
-        size. Also handles need to "jitter" in Windows.
+    size. Also handles need to "jitter" in Windows.
+    
     Doesn't use the standard approach of szr.SetSizeHints(self) and 
-        panel.Layout(). Setting size hints will shrink it using Fit().
+    panel.Layout(). Setting size hints will shrink it using Fit().
+    
     window -- e.g. the dialog itself or a frame.
+    
     szr_lst -- all the szrs in the main szr (can be a grid instead of a szr)
+    
     width_init -- starting width. If None use the minimum worked out.
+    
     height_init -- starting height. If None use the minimum worked out.
+    
     NB no need to set size=() in __init__ of window. 
     """
     width_cont_min, height_cont_min = get_min_content_size(szr_lst)
@@ -835,8 +867,9 @@ def set_size(window, szr_lst, width_init=None, height_init=None,
 def esc_str_input(raw):
     """
     Escapes input ready to go into a string using %.
+    
     So "variable %Y has fields %s" % fields will fail because variables with 
-        name %Y will confuse the string formatting operation.  %%Y will be fine.
+    name %Y will confuse the string formatting operation.  %%Y will be fine.
     """
     try:
         new_str = raw.replace("%", "%%")
@@ -855,7 +888,7 @@ def get_invalid_var_dets_msg(fil_var_dets):
         var_dets_dic = {}
         exec var_dets in var_dets_dic
         if debug: wx.MessageBox(u"%s got a clean bill of health from "
-                                u"get_invalid_var_dets_msg()!" % fil_var_dets)
+            u"get_invalid_var_dets_msg()!" % fil_var_dets)
         return None
     except Exception, e:
         return ue(e)
@@ -863,11 +896,12 @@ def get_invalid_var_dets_msg(fil_var_dets):
 def get_var_dets(fil_var_dets):
     """
     Get variable details from fil_var_dets file.
+    
     Returns var_labels, var_notes, var_types, val_dics.
+    
     If any errors, return empty dicts and let user continue. Perhaps a corrupted 
-        vdts file. Not a reason to bring the whole show down. At least make it
-        easy for them to fix the variable details/change the project settings 
-        etc. 
+    vdts file. Not a reason to bring the whole show down. At least make it easy 
+    for them to fix the variable details/change the project settings etc. 
     """
     empty_var_dets = ({},{},{},{})
     try:
@@ -883,21 +917,21 @@ def get_var_dets(fil_var_dets):
         exec var_dets in var_dets_dic
         try:
             results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
-                       var_dets_dic["var_types"], var_dets_dic["val_dics"])
+                var_dets_dic["var_types"], var_dets_dic["val_dics"])
         except Exception, e:
             wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
-                          u"var_notes, var_types, and val_dics. "
-                          u"Please check file." % fil_var_dets)
+                u"var_notes, var_types, and val_dics. "
+                u"Please check file." % fil_var_dets)
     except SyntaxError, e:
         wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
-              u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-                                          u"err": unicode(e)})
+            u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
+            u"err": unicode(e)})
     except Exception, e:
         wx.MessageBox(
             _(u"Error processing variable details file \"%(fil_var_dets)s\"."
-              u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-                                          u"err": unicode(e)})
+            u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
+            u"err": unicode(e)})
     return results
 
 def get_rand_val_of_type(lbl_type):
@@ -929,8 +963,8 @@ def get_n_fldnames(n):
 def get_unique_fldnames(existing_fldnames):
     """
     If some field names are blank e.g. empty columns in a csv file, autofill
-        with safe names (numbered to be unique). Create numbered versions of 
-        duplicates to ensure they are also unique.
+    with safe names (numbered to be unique). Create numbered versions of 
+    duplicates to ensure they are also unique.
     """
     fldnames = []
     prev_fldnames_and_counters = {}
@@ -946,7 +980,7 @@ def get_unique_fldnames(existing_fldnames):
                     prev_fldnames_and_counters[name] += 1
                 # make unique using next number
                 newname = mg.NEXT_VARIANT_FLDNAME_TEMPLATE % (name, 
-                                            prev_fldnames_and_counters[name])
+                    prev_fldnames_and_counters[name])
             else:
                 newname = name
         fldnames.append(newname)
@@ -955,7 +989,7 @@ def get_unique_fldnames(existing_fldnames):
 def get_next_fldname(existing_fldnames):
     """
     Get next available variable name where names follow a template e.g. var001,
-        var002 etc.If a gap, starts after last one. Gaps are not filled.
+    var002 etc.If a gap, starts after last one. Gaps are not filled.
     """
     nums_used = []
     for fldname in existing_fldnames:
@@ -973,9 +1007,11 @@ def get_next_fldname(existing_fldnames):
 def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
     """
     Returns quoted text. Will not be further quoted.
+    
     Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
+    
     actual_lbl_width -- may be broken into lines if not rotated. If rotated, we
-        need sum of each line (no line breaks possible at present).
+    need sum of each line (no line breaks possible at present).
     """
     debug = False
     lines = []
@@ -983,7 +1019,7 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
         words = orig_txt.split()
     except Exception:
         raise Exception("Tried to split a non-text label. "
-                        "Is the script not supplying text labels?")
+            "Is the script not supplying text labels?")
     line_words = []
     for word in words:
         line_words.append(word)
@@ -1009,12 +1045,11 @@ def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
                 # see - http://grokbase.com/t/dojo/dojo-interest/09cat4bkvg/...
                 #...dojox-charting-line-break-in-axis-labels-ie
                 wrapped_txt = (u"\"" 
-                           + u"\" + \" \" + \"".join(x.strip() for x in lines) 
-                           + u"\"")
+                    + u"\" + \" \" + \"".join(x.strip() for x in lines) + u"\"")
                 actual_lbl_width = sum(len(x)+1 for x in lines) - 1
             else:
-                wrapped_txt = (u"\"" + 
-                               u"\" + labelLineBreak + \"".join(lines) + u"\"")
+                wrapped_txt = (u"\""
+                    + u"\" + labelLineBreak + \"".join(lines) + u"\"")
                 actual_lbl_width = max_width # they are centred in max_width
     else:
         if n_lines == 1:
@@ -1064,7 +1099,9 @@ def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
 def add_text_to_bitmap(bitmap, text, btn_font_sz, colour, left=9, top=3):
     """
     Add short text to bitmap with standard left margin.
+    
     Can then use bitmap for a bitmap button.
+    
     See http://wiki.wxpython.org/index.cgi/WorkingWithImages
     """
     width = bitmap.GetWidth()
@@ -1090,19 +1127,19 @@ def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
     blank_btn_path = os.path.join(mg.SCRIPT_PATH, u"images", xpm)
     if not os.path.exists(blank_btn_path):
         raise Exception(u"Problem finding background button image.  "
-                        u"Missing path: %s" % blank_btn_path)
+            u"Missing path: %s" % blank_btn_path)
     try:
         blank_btn_bmp = wx.Image(blank_btn_path, 
-                                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
     except Exception:
         raise Exception(u"Problem creating background button image from %s"
-                        % blank_btn_path)
+            % blank_btn_path)
     return blank_btn_bmp
 
 def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, reverse=False):
     """
     Makes image with path details, mirrors if required, then converts to a 
-        bitmap and returns it.
+    bitmap and returns it.
     """
     img = wx.Image(src_img_path, bmp_type)
     if reverse:
@@ -1118,8 +1155,9 @@ def reverse_bmp(bmp):
 def get_tbl_filt(dbe, db, tbl):
     """
     Returns tbl_filt_label, tbl_filt.
+    
     Do not build tbl_file = clause yourself using this - use get_tbl_filt_clause
-        instead so quoting works.
+    instead so quoting works.
     """
     try:
         tbl_filt_label, tbl_filt = mg.DBE_TBL_FILTS[dbe][db][tbl]
@@ -1134,9 +1172,10 @@ def get_tbl_filt_clause(dbe, db, tbl):
 def get_tbl_filts(tbl_filt):
     """
     Returns filters ready to use as WHERE and AND filters:
-        where_filt, and_filt
+    where_filt, and_filt
+    
     Filters must still work if empty strings (for performance when no filter 
-        required).
+    required).
     """
     if tbl_filt.strip() != "":
         where_tbl_filt = u""" WHERE %s""" % tbl_filt
@@ -1163,11 +1202,14 @@ def get_filt_msg(tbl_filt_label, tbl_filt):
 def is_numeric(val, comma_dec_sep_ok=False):
     """
     Is a value numeric?  This is operationalised to mean can a value be cast as 
-        a float.  
+    a float.  
+    
     NB the string 5 is numeric.  Scientific notation is numeric. Complex numbers 
-        are considered not numeric for general use.  
+    are considered not numeric for general use.  
+    
     The type may not be numeric (e.g. might be the string '5') but the "content" 
-        must be.
+    must be.
+    
     http://www.rosettacode.org/wiki/IsNumeric#Python
     """
     if is_pytime(val):
@@ -1190,29 +1232,31 @@ def is_numeric(val, comma_dec_sep_ok=False):
 def is_basic_num(val):
     """
     Is a value of a basic numeric type - i.e. integer, long, float? NB complex 
-        or Decimal values are not considered basic numbers.
+    or Decimal values are not considered basic numbers.
+    
     NB a string containing a numeric value is not a number type even though it
-        will pass is_numeric().
+    will pass is_numeric().
     """
     return type(val) in [int, long, float]
 
 def n2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
+    
     http://docs.python.org/library/decimal.html with added error trapping and
-        handling of non-floats.
+    handling of non-floats.
     """
     if not isinstance(f, float):
         try:
             f = float(f)
         except (ValueError, TypeError):
-            raise Exception(u"Unable to convert value to Decimal.  " +
-                            u"Value was \"%s\"" % f)
+            raise Exception(u"Unable to convert value to Decimal.  "
+                + u"Value was \"%s\"" % f)
     try:
         n, d = f.as_integer_ratio()
     except Exception:
-        raise Exception(u"Unable to turn value \"%s\" into integer " % f +
-                        u"ratio for unknown reason.")
+        raise Exception(u"Unable to turn value \"%s\" into integer " % f
+            + u"ratio for unknown reason.")
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)
@@ -1237,7 +1281,9 @@ def get_unicode_repr(item):
 def dic2unicode(mydic, indent=1):
     """
     Needed because pprint.pformat() can't cope with strings like 'João Rosário'.
+    
     Pity so will have to wait till Python 3 version to handle more elegantly.
+    
     Goal is to make files that Python can run.
     
     Note -- recursive so can cope with nested dictionaries.
@@ -1259,7 +1305,8 @@ def dic2unicode(mydic, indent=1):
 def clean_boms(orig_utf8):
     """
     Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
-        '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
+    '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
+    
     From codecs:
     
     BOM_UTF8 = '\xef\xbb\xbf'
@@ -1336,8 +1383,9 @@ def is_pytime(val):
 def if_none(val, default):
     """
     Returns default if value is None - otherwise returns value.
+    
     While there is a regression in pywin32 cannot compare pytime with anything
-        see http://mail.python.org/pipermail/python-win32/2009-March/008920.html
+    see http://mail.python.org/pipermail/python-win32/2009-March/008920.html
     """
     if is_pytime(val):
         return val
@@ -1349,18 +1397,17 @@ def if_none(val, default):
 def pytime_to_datetime_str(pytime):
     """
     A PyTime object is used primarily when exchanging date/time information 
-        with COM objects or other win32 functions.
+    with COM objects or other win32 functions.
+    
     http://docs.activestate.com/activepython/2.4/pywin32/PyTime.html
     See http://timgolden.me.uk/python/win32_how_do_i/use-a-pytime-value.html
     And http://code.activestate.com/recipes/511451/    
     """
     try:
         datetime_str = "%s-%s-%s %s:%s:%s" % (pytime.year, 
-                                              unicode(pytime.month).zfill(2),
-                                              unicode(pytime.day).zfill(2),
-                                              unicode(pytime.hour).zfill(2),
-                                              unicode(pytime.minute).zfill(2),
-                                              unicode(pytime.second).zfill(2))
+          unicode(pytime.month).zfill(2), unicode(pytime.day).zfill(2),
+          unicode(pytime.hour).zfill(2),  unicode(pytime.minute).zfill(2),
+          unicode(pytime.second).zfill(2))
     except ValueError:
         datetime_str = "NULL"
     return datetime_str
@@ -1388,7 +1435,7 @@ def date_range2mysql(entered_start_date, entered_end_date):
         return start_date, end_date     
     except:
         raise Exception(u"Please pass valid start and end dates as per the "
-                        u"required format e.g. 25-01-2007")    
+            u"required format e.g. 25-01-2007")    
 
 def mysql2textdate(mysql_date, output_format):
     """
@@ -1408,10 +1455,10 @@ def is_date_part(datetime_str):
     If a mishmash will fail bad_date later.
     """
     return (u"-" in datetime_str
-            or u"/" in datetime_str 
-            or u"." in datetime_str 
-            or u"," in datetime_str
-            or u" " in datetime_str)
+        or u"/" in datetime_str 
+        or u"." in datetime_str 
+        or u"," in datetime_str
+        or u" " in datetime_str)
 
 def is_time_part(datetime_str):
     """
@@ -1419,7 +1466,7 @@ def is_time_part(datetime_str):
     If a mishmash will fail bad_time later.
     """
     return (":" in datetime_str or "am" in datetime_str.lower()
-            or "pm" in datetime_str.lower())
+        or "pm" in datetime_str.lower())
 
 def is_year(datetime_str):
     try:
@@ -1433,7 +1480,8 @@ def get_datetime_parts(datetime_str):
     """
     Return potential date and time parts separately if possible.
     Split in the ways that ensure any legitimate datetime strings are split 
-        properly.
+    properly.
+    
     E.g. 2009 (or 4pm) returned as a list of 1 item []
     E.g. 2011-04-14T23:33:05 returned as [u"2011-04-14", u"23:33:052"]
      (Google docs spreadsheets use 2011-04-14T23:33:05).
@@ -1441,9 +1489,12 @@ def get_datetime_parts(datetime_str):
     E.g. 1 Feb 2009 returned as [u"1 Feb 2009"]
     E.g. 1 Feb 2009 4pm returned as [u"1 Feb 2009", u"4pm"]
     E.g. 21/12/2009 4pm returned as [u"21/12/2009", u"4pm"]
+
     Not sure which way round they are yet or no need to guarantee that the parts 
-        are even valid as either dates or times.
+    are even valid as either dates or times.
+
     Copes with spaces in times by removing them e.g. 4 pm -> 4pm
+
     Returns parts_lst.
     """
     datetime_str = datetime_str.replace(u" pm", u"pm")
@@ -1479,9 +1530,11 @@ def get_datetime_parts(datetime_str):
 def datetime_split(datetime_str):
     """
     Split date and time (if both).
-    Return date part, time part, order (True unless order 
-        time then date).
+    
+    Return date part, time part, order (True unless order time then date).
+    
     Return None for any missing components.
+    
     boldate_then_time -- only False if time then date with both present.
     """
     parts_lst = get_datetime_parts(datetime_str)
@@ -1509,14 +1562,16 @@ def datetime_split(datetime_str):
         return (None, None, True)
 
 def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
-                                    ok_time_formats):
+        ok_time_formats):
     """
     Returns (date_part, date_format, time_part, time_format, boldate_then_time) 
-        if a usable datetime. NB usable doesn't mean valid as such.  E.g. we 
-        may need to add a date to the time to make it valid.
+    if a usable datetime. NB usable doesn't mean valid as such.  E.g. we may 
+    need to add a date to the time to make it valid.
+    
     Returns None if not usable.
+    
     These parts can be used to make a valid time object ready for conversion 
-        into a standard string for data entry.
+    into a standard string for data entry.
     """
     debug = False
     if not is_string(raw_datetime_str):
@@ -1572,13 +1627,19 @@ def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None,
                            ok_time_formats=None):
     """
     Is the datetime string usable? Used for checking user-entered datetimes.
+    
     Doesn't cover all possibilities - just what is needed for typical data 
-        entry.
+    entry.
+    
     If only a time, can always use today's date later to prepare for SQL.
+    
     If only a date, can use midnight as time e.g. MySQL 00:00:00
+    
     Acceptable formats for date component are:
     2009, 2008-02-26, 1-1-2008, 01-01-2008, 01/01/2008, 1/1/2008.
+    
     NB not American format - instead assumed to be day, month, year.
+    
     TODO - handle better ;-)
     Acceptable formats for time are:
     2pm, 2:30pm, 14:30 , 14:30:00
@@ -1587,8 +1648,8 @@ def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None,
         (or time and date).
     """
     return get_dets_of_usable_datetime_str(raw_datetime_str, 
-                            ok_date_formats or mg.OK_DATE_FORMATS, 
-                            ok_time_formats or mg.OK_TIME_FORMATS) is not None
+        ok_date_formats or mg.OK_DATE_FORMATS, 
+        ok_time_formats or mg.OK_TIME_FORMATS) is not None
     
 def is_std_datetime_str(raw_datetime_str):
     """
@@ -1603,21 +1664,19 @@ def is_std_datetime_str(raw_datetime_str):
     except Exception:
         return False
 
-def get_std_datetime_str(raw_datetime_str):
+def get_time_obj(raw_datetime_str):
     """
     Takes a string and checks if there is a usable datetime in there (even a
-        time without a date is OK).
-    If there is, creates a complete time_obj and then turns that into a standard
-        datetime string.
-    
+    time without a date is OK).
+
+    If there is, creates a complete time_obj and returns it.
     """
     debug = False
     datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str, 
-                                                    mg.OK_DATE_FORMATS, 
-                                                    mg.OK_TIME_FORMATS)
+        mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
     if datetime_dets is None:
         raise Exception(u"Need a usable datetime string to return a standard "
-                        u"datetime string.")
+            u"datetime string.")
     else: 
         # usable (possibly requiring a date to be added to a time)
         # has at least one part (date/time) and anything it has is ok
@@ -1627,26 +1686,46 @@ def get_std_datetime_str(raw_datetime_str):
         if date_part is not None and time_part is not None:
             if boldate_then_time:           
                 time_obj = time.strptime("%s %s" % (date_part, time_part), 
-                                         "%s %s" % (date_format, time_format))
+                    "%s %s" % (date_format, time_format))
             else: # time then date
                 time_obj = time.strptime("%s %s" % (time_part, date_part),
-                                         "%s %s" % (time_format, date_format))
+                    "%s %s" % (time_format, date_format))
         elif date_part is not None and time_part is None:
             # date only (add time of 00:00:00)
             time_obj = time.strptime("%s 00:00:00" % date_part, 
-                                     "%s %%H:%%M:%%S" % date_format)
+                "%s %%H:%%M:%%S" % date_format)
         elif date_part is None and time_part is not None:
             # time only (assume today's date)
             today = time.localtime()
             time_obj = time.strptime("%s-%s-%s %s" % (today[0], today[1], 
-                                                      today[2], time_part), 
-                                     "%%Y-%%m-%%d %s" % time_format)
+                today[2], time_part), "%%Y-%%m-%%d %s" % time_format)
         else:
             raise Exception(u"Supposedly a usable datetime str but no usable "
-                            u"parts")
+                u"parts")
         if debug: print(time_obj)
-        std_datetime_str = time_obj_to_datetime_str(time_obj)
-        return std_datetime_str
+    return time_obj
+
+def get_datetime_from_str(raw_datetime_str):
+    """
+    Takes a string and checks if there is a usable datetime in there (even a
+    time without a date is OK).
+
+    If there is, returns a standard datetime object.
+    """
+    time_obj = get_time_obj(raw_datetime_str)
+    dt = datetime.datetime.fromtimestamp(time.mktime(time_obj))
+    return dt
+    
+def get_std_datetime_str(raw_datetime_str):
+    """
+    Takes a string and checks if there is a usable datetime in there (even a
+    time without a date is OK).
+
+    If there is, returns a standard datetime string.
+    """
+    time_obj = get_time_obj(raw_datetime_str)
+    std_datetime_str = time_obj_to_datetime_str(time_obj)
+    return std_datetime_str
 
 def time_obj_to_datetime_str(time_obj):
     "Takes time_obj and returns standard datetime string"
@@ -1673,10 +1752,15 @@ def get_choice_item(item_labels, item_val):
 def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
     """
     Sorted by label, not name.
+    
     dic_labels - could be for either variables of values.
+    
     vals - either variables or values.
+    
     If DROP_SELECT in list, always appears first.
+    
     Returns choice_items_sorted, orig_items_sorted.
+    
     http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
         ... sort-can-you-do-a-schwartzian-transform-in-python
     """
@@ -1692,7 +1776,7 @@ def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
 def get_col_dets(coltree, colroot, var_labels):
     """
     Get names and labels of columns actually selected in GUI column tree plus 
-        any sort order. Returns col_names, col_labels, col_sorting.
+    any sort order. Returns col_names, col_labels, col_sorting.
     """
     descendants = get_tree_ctrl_descendants(tree=coltree, parent=colroot)
     col_names = []
@@ -1708,13 +1792,16 @@ def get_col_dets(coltree, colroot, var_labels):
 class ItemConfig(object):
     """
     Item config storage and retrieval.
+    
     Has: var_name, measures, has_tot, sort order, bolnumeric
+    
     bolnumeric is only used for verbose summary reporting.
+    
     Note - won't have a var name if it is the column config item.
     """
     
     def __init__(self, sort_order, var_name=None, measures_lst=None, 
-                 has_tot=False, bolnumeric=False):
+            has_tot=False, bolnumeric=False):
         self.var_name = var_name
         if measures_lst:
             self.measures_lst = measures_lst
@@ -1734,10 +1821,10 @@ class ItemConfig(object):
             str_parts.append(total_part)
         # ordinary sorting by freq (may include rows and cols)
         order2lbl_dic = {mg.SORT_NONE: u"Not Sorted",
-                         mg.SORT_VALUE: u"Sort by Value", 
-                         mg.SORT_LBL: _("Sort by Label"),
-                         mg.SORT_INCREASING: _("Sort by Freq (Asc)"),
-                         mg.SORT_DECREASING: _("Sort by Freq (Desc)")}
+            mg.SORT_VALUE: u"Sort by Value", 
+            mg.SORT_LBL: _("Sort by Label"),
+            mg.SORT_INCREASING: _("Sort by Freq (Asc)"),
+            mg.SORT_DECREASING: _("Sort by Freq (Desc)")}
         sort_order_part = order2lbl_dic.get(self.sort_order)        
         if sort_order_part:
             str_parts.append(sort_order_part)

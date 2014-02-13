@@ -122,15 +122,17 @@ class DlgExportData(wx.Dialog):
         # get alignment and val_dics (if showing lbl fields may be more than one set of col dets per col)
         all_col_dets = []
         col_lbl_statuses = []
-        col_det = namedtuple('col_det', 'col_name, alignright, valdic')
-        for i, orig_col_name in enumerate(orig_col_names):
-            numericfld = dd.flds[orig_col_name][mg.FLD_BOLNUMERIC]
-            all_col_dets.append(col_det(orig_col_name, numericfld, None)) # always raw first so no valdic
-            has_lbls = val_dics.get(orig_col_name)
+        col_det = namedtuple('col_det', 'col_name, numeric, isdate, valdic')
+        for i, orig_colname in enumerate(orig_col_names):
+            numericfld = dd.flds[orig_colname][mg.FLD_BOLNUMERIC]
+            datefld = dd.flds[orig_colname][mg.FLD_BOLDATETIME]
+            all_col_dets.append(col_det(orig_colname, numericfld, datefld, 
+                None)) # always raw first so no valdic
+            has_lbls = val_dics.get(orig_colname)
             if inc_lbls and has_lbls:
                 col_lbl_statuses.append(True)
-                all_col_dets.append(col_det("%s_Label" % orig_col_name, False, 
-                    val_dics.get(orig_col_name))) # labels are always left aligned
+                all_col_dets.append(col_det("%s_Label" % orig_colname, False, 
+                    False, val_dics.get(orig_colname))) # labels are not dates or numeric
             else:
                 col_lbl_statuses.append(False)
         book = xlwt.Workbook()
@@ -145,7 +147,8 @@ class DlgExportData(wx.Dialog):
         raw_list = [colnames2use,]
         for idx_col, colname2use in enumerate(colnames2use):
             col_style = xlwt.XFStyle()
-            if all_col_dets[idx_col].alignright:
+            det = all_col_dets[idx_col]
+            if det.numeric:
                 alignment = xlwt.Alignment()
                 alignment.horz = xlwt.Alignment.HORZ_RIGHT
                 col_style.alignment = alignment
@@ -158,6 +161,8 @@ class DlgExportData(wx.Dialog):
         if debug: print(SQL_get_data)
         dd.cur.execute(SQL_get_data) # must be dd.cur
         idx_row = 1
+        date_style = xlwt.XFStyle()
+        date_style.num_format_str = 'M/D/YY' # 'yyyy/mm/dd h:mm:ss'
         while True:
             try:
                 row = dd.cur.fetchone() # Note - won't have the extra columns, just the original
@@ -167,7 +172,12 @@ class DlgExportData(wx.Dialog):
                 idx_final_cols = 0 # have to manage these ourselves
                 for idx_orig_col, val in enumerate(row):
                     has_lbl = col_lbl_statuses[idx_orig_col]
-                    sheet.write(idx_row, idx_final_cols, val)
+                    if all_col_dets[idx_final_cols].isdate:
+                        val2use = lib.get_time_obj(val)
+                        sheet.write(idx_row, idx_final_cols, val2use, 
+                            date_style)
+                    else:
+                        sheet.write(idx_row, idx_final_cols, val)
                     row_raw.append(unicode(val)) # must be a string
                     idx_final_cols += 1
                     if has_lbl:
