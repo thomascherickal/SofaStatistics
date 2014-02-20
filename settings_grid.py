@@ -266,6 +266,9 @@ class SettingsEntry(object):
             self.grid.MakeCellVisible(self.rows_n - 1, 0)
         self.control = None
     
+    def SetFocus(self):
+        self.grid.SetFocus()
+    
     def get_new_renderer_editor(self, col_idx):
         """
         For a given column index, return a fresh renderer and editor object.
@@ -275,10 +278,10 @@ class SettingsEntry(object):
         """
         coltype = self.col_dets[col_idx]["coltype"]
         if coltype == COL_INT:
-            min = self.col_dets[col_idx].get("col_min_val", -1) # -1 no minimum
-            max = self.col_dets[col_idx].get("col_max_val", min)
+            col_min_val = self.col_dets[col_idx].get("col_min_val", -1) # -1 no minimum
+            col_max_val = self.col_dets[col_idx].get("col_max_val", col_min_val)
             renderer = wx.grid.GridCellNumberRenderer()
-            editor = wx.grid.GridCellNumberEditor(min, max)
+            editor = wx.grid.GridCellNumberEditor(col_min_val, col_max_val)
         elif coltype == COL_FLOAT:
             width, precision = self.get_width_precision(col_idx)
             renderer = wx.grid.GridCellFloatRenderer(width, precision)

@@ -599,8 +599,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         rotate=False):
     """
     NB can't just use group by SQL to get results - need upper and lower 
-        quartiles etc and we have to work on the raw values to achieve this. We
-        have to do more work outside of SQL to get the values we need.
+    quartiles etc and we have to work on the raw values to achieve this. We have 
+    to do more work outside of SQL to get the values we need.
+    
     xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
     
     series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
@@ -608,15 +609,20 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                                 mg.CHART_BOXPLOT_LWHISKER: 1.7, 
                                 mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
                            {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
+    
     NB supply a boxdet even for an empty box. Put marker that it should be 
-        skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
+    skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
+    
     # list of subseries dicts each of which has a label and a list of dicts 
-        (one per box).
+    (one per box).
+    
     http://en.wikipedia.org/wiki/Box_plot: one of several options: the lowest 
-        datum still within 1.5 IQR of the lower quartile, and the highest datum 
-        still within 1.5 IQR of the upper quartile.
-    Because of this variability, it is appropriate to describe the convention 
-        being used for the whiskers and outliers in the caption for the plot.
+    datum still within 1.5 IQR of the lower quartile, and the highest datum 
+    still within 1.5 IQR of the upper quartile.
+    
+    Because of this variability, it may be appropriate in a future version to 
+    describe the convention being used for the whiskers and outliers somewhere 
+    e.g. in the caption for the plot.
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)

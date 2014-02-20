@@ -915,13 +915,15 @@ def get_var_dets(fil_var_dets):
     results = empty_var_dets # init
     try: # http://docs.python.org/reference/simple_stmts.html
         exec var_dets in var_dets_dic
-        try:
-            results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
-                var_dets_dic["var_types"], var_dets_dic["val_dics"])
+        try: # puts out results in form which should work irrespective of surrounding encoding of script. E.g. labels={u'1': u'R\xe9parateurs de lampe \xe0 p\xe9trole',
+            results = (var_dets_dic["var_labels"], 
+                var_dets_dic["var_notes"],
+                var_dets_dic["var_types"], 
+                var_dets_dic["val_dics"])
         except Exception, e:
             wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
                 u"var_notes, var_types, and val_dics. "
-                u"Please check file." % fil_var_dets)
+                u"Please check file. Orig error: %s" % (fil_var_dets, ue(e)))
     except SyntaxError, e:
         wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
