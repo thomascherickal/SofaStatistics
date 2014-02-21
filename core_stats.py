@@ -153,8 +153,9 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
 def get_val_quoter(dbe, flds, fld, val):
     """
     Get function for quoting values according to field type and value.
+    
     NB "5" is a string and must be quoted otherwise we will be matching 5s 
-        instead.
+    instead.
     """
     num = True
     if not flds[fld][mg.FLD_BOLNUMERIC]:
@@ -167,6 +168,27 @@ def get_val_quoter(dbe, flds, fld, val):
     else:
         val_quoter = getdata.get_val_quoter_func(dbe)
     return val_quoter
+
+def get_unique_dim_vals(vals_used, dbe, flds, fld):
+    """
+    Get unique values for dimension (row or column) in form ready to use.
+    And check there are no excessively long labels.
+    """
+    if dbe == mg.DBE_SQLITE and flds[fld][mg.FLD_BOLNUMERIC]:
+        # SQLite sometimes returns strings even if REAL
+        # Add conditions: Only if sqlite and only if meant to be numeric
+        try:
+            vals = [float(x[0]) for x in vals_used]
+            return vals
+        except Exception:
+            pass
+    vals = []
+    for row_tup in vals_used:
+        row_val = row_tup[0]
+        if len(row_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
+            raise my_exceptions.CategoryTooLong(fld)
+        vals.append(row_val)    
+    return vals
 
 def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds, 
                 fld_a, fld_b):
@@ -193,16 +215,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                  "qfld_b": qfld_b, "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_row_vals_used)
     row_vals_used = cur.fetchall()
-    # SQLite sometimes returns strings even if REAL
-    try:
-        vals_a = [float(x[0]) for x in row_vals_used]
-    except Exception:
-        vals_a = []
-        for row_tup in row_vals_used:
-            row_val = row_tup[0]
-            if len(row_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
-                raise my_exceptions.CategoryTooLong(fld_a)
-            vals_a.append(row_val)
+    vals_a = get_unique_dim_vals(row_vals_used, dbe, flds, fld_a)
     if len(vals_a) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyRowsInChiSquare
     if len(vals_a) < mg.MIN_CHI_DIMS:
@@ -218,16 +231,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
                                    "and_tbl_filt": and_tbl_filt}
     cur.execute(SQL_col_vals_used)
     col_vals_used = cur.fetchall()
-    # SQLite sometimes returns strings even if REAL
-    try:
-        vals_b = [float(x[0]) for x in col_vals_used]
-    except Exception:
-        vals_b = []
-        for col_tup in col_vals_used:
-            col_val = col_tup[0]
-            if len(col_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
-                raise my_exceptions.CategoryTooLong(fld_b)
-            vals_b.append(col_val)
+    vals_b = get_unique_dim_vals(col_vals_used, dbe, flds, fld_b)
     if len(vals_b) > mg.MAX_CHI_DIMS:
         raise my_exceptions.TooManyColsInChiSquare
     if len(vals_b) < mg.MIN_CHI_DIMS:

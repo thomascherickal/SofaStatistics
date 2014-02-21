@@ -1239,7 +1239,8 @@ def is_basic_num(val):
     NB a string containing a numeric value is not a number type even though it
     will pass is_numeric().
     """
-    return type(val) in [int, long, float]
+    numtyped = type(val) in [int, long, float]
+    return numtyped
 
 def n2d(f):
     """
