@@ -62,6 +62,55 @@ def run_headless_import(file_path, tblname, headless_has_header,
         supplied_encoding=supplied_encoding, force_quickcheck=force_quickcheck)
 
 
+class DlgChooseFldtype(wx.Dialog):
+    def __init__(self, fldname):
+        title_txt = _(u"CHOOSE FIELD TYPE")
+        wx.Dialog.__init__(self, None, title=title_txt, size=(500,600), 
+            style=wx.CAPTION|wx.SYSTEM_MENU)
+        self.panel = wx.Panel(self)
+        choice_txt = (_(u"It wasn't possible to guess the appropriate field "
+            u"type\nfor \"%(fldname)s\" because it only contained empty text in"
+            u"\nthe rows SOFA sampled.\n\nPlease select the data type you want "
+            u"this entire column imported as.") % {u"fldname": fldname})
+        lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_btns = wx.BoxSizer(wx.HORIZONTAL)
+        btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLDTYPE_NUMERIC)
+        btn_num.Bind(wx.EVT_BUTTON, self.on_num)
+        szr_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
+        btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE)
+        btn_date.Bind(wx.EVT_BUTTON, self.on_date)
+        szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING)
+        btn_text.Bind(wx.EVT_BUTTON, self.on_text)
+        szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
+        szr_btns.Add(btn_cancel, 0,  wx.LEFT|wx.RIGHT, 10)
+        szr_main.Add(lbl_choice, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_btns, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
+        self.panel.SetSizer(szr_main)
+        szr_main.SetSizeHints(self)
+        self.Layout()
+    
+    def on_num(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.RET_NUMERIC)
+    
+    def on_date(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.RET_DATE)
+        
+    def on_text(self, event):
+        self.Destroy()
+        self.SetReturnCode(mg.RET_TEXT)
+        
+    def on_cancel(self, event):
+        self.Destroy()
+        self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
+        # (MUST come after Destroy)
+
+
 class DlgFixMismatch(wx.Dialog):
     # weird bugs when using stdbtndialog here and calling dlg multiple times
     # actual cause not known but buggy original had a setup_btns method
@@ -167,15 +216,28 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
     
     STRING is the fallback.
     """
+    assessing_sample = True
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
         fldtype = mg.FLDTYPE_NUMERIC
     elif main_type_set == set([mg.VAL_DATE]):
         fldtype = mg.FLDTYPE_DATE
-    elif (main_type_set == set([mg.VAL_STRING]) 
-            or type_set == set([mg.VAL_EMPTY_STRING])):
+    elif main_type_set == set([mg.VAL_STRING]):
         fldtype = mg.FLDTYPE_STRING
+    elif type_set == set([mg.VAL_EMPTY_STRING]):
+        dlg = DlgChooseFldtype(fldname)
+        ret = dlg.ShowModal()
+        if ret == wx.ID_CANCEL:
+            raise Exception(u"Inconsistencies in data type.")
+        elif ret == mg.RET_NUMERIC:
+            fldtype = mg.FLDTYPE_NUMERIC
+        elif ret == mg.RET_DATE:
+            fldtype = mg.FLDTYPE_DATE
+        elif ret == mg.RET_TEXT:
+            fldtype = mg.FLDTYPE_STRING
+        else:
+            raise Exception(u"Unexpected return type from DlgChooseFldtype")
     elif len(main_type_set) > 1:
         # get user to choose
         fldtypes = {}
@@ -188,7 +250,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             dlg = DlgFixMismatch(fldname=fldname, 
                 fldtype_choices=fldtype_choices, fldtypes=fldtypes, 
                 faulty2missing_fld_list=faulty2missing_fld_list, 
-                details=first_mismatch, assessing_sample=True)
+                details=first_mismatch, assessing_sample=assessing_sample)
             ret = dlg.ShowModal()
             if ret == wx.ID_CANCEL:
                 raise Exception(u"Inconsistencies in data type.")         

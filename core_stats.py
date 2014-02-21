@@ -176,12 +176,11 @@ def get_unique_dim_vals(vals_used, dbe, flds, fld):
     """
     if dbe == mg.DBE_SQLITE and flds[fld][mg.FLD_BOLNUMERIC]:
         # SQLite sometimes returns strings even if REAL
-        # Add conditions: Only if sqlite and only if meant to be numeric
         try:
             vals = [float(x[0]) for x in vals_used]
             return vals
         except Exception:
-            pass
+            pass # leave them as strings
     vals = []
     for row_tup in vals_used:
         row_val = row_tup[0]
