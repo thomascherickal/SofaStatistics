@@ -371,8 +371,8 @@ def get_fldnames_from_header_row(row, headless=False, force_quickcheck=False):
     return importer.process_fldnames(orig_fldnames, headless, force_quickcheck)
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
-                 prog_steps_for_xml_steps, next_prog_val, has_header=True,
-                 testing=False):
+        prog_steps_for_xml_steps, next_prog_val, has_header=True, 
+        headless=False):
     """
     Returns fldtypes (dict with field names as keys) and rows (list of dicts).
     
@@ -434,7 +434,7 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
     for fldname, type_set, first_mismatch in zip(fldnames, col_type_sets, 
             fld_first_mismatches):
         fldtype = importer.get_best_fldtype(fldname, type_set,
-            faulty2missing_fld_list, first_mismatch, testing)
+            faulty2missing_fld_list, first_mismatch, headless)
         fldtypes[fldname] = fldtype
     return fldtypes, datarows
 

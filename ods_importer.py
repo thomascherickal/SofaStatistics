@@ -134,10 +134,10 @@ class OdsImporter(importer.FileImporter):
             raise Exception(_("Unable to extract or generate field names"))
         # Will expect exactly the same number of fields as we have names for.
         # Have to process twice as much before it will add another step on bar.
-        (fldtypes, 
-         rows) = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
+        fldtypes, rows = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
             ok_fldnames, faulty2missing_fld_list, prog_steps_for_xml_steps, 
-            next_prog_val=prog_step2, has_header=self.has_header)
+            next_prog_val=prog_step2, has_header=self.has_header,
+            headless=self.headless)
         if debug:
             if large:
                 print("%s" % rows[:20])

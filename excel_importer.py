@@ -195,7 +195,8 @@ class ExcelImporter(importer.FileImporter):
         fldtypes = []
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header, 
-                ok_fldname, ok_fldnames, faulty2missing_fld_list)
+                ok_fldname, ok_fldnames, faulty2missing_fld_list,
+                headless=self.headless)
             fldtypes.append(fldtype)            
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not has_rows:

@@ -779,7 +779,8 @@ class CsvImporter(importer.FileImporter):
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header,
                 ok_fldname, ok_fldnames, faulty2missing_fld_list, 
-                allow_none=False, comma_dec_sep_ok=not comma_delimiter)
+                allow_none=False, comma_dec_sep_ok=not comma_delimiter,
+                headless=self.headless)
             fldtypes.append(fldtype)
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not bolhas_rows:

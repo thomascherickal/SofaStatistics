@@ -69,9 +69,10 @@ class DlgChooseFldtype(wx.Dialog):
             style=wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
         choice_txt = (_(u"It wasn't possible to guess the appropriate field "
-            u"type\nfor \"%(fldname)s\" because it only contained empty text in"
-            u"\nthe rows SOFA sampled.\n\nPlease select the data type you want "
-            u"this entire column imported as.") % {u"fldname": fldname})
+            u"type for \"%(fldname)s\"\nbecause it only contained empty text in"
+            u" the rows SOFA sampled.\n\nPlease select the data type you want "
+            u"this entire column imported as. If in doubt, choose \"%(text)s\"") 
+            % {u"fldname": fldname, "text": mg.FLDTYPE_STRING})
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -206,13 +207,15 @@ def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
     return row1_strings_only and row2_has_non_strings
     
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
-        first_mismatch=u"", testing=False):
+        first_mismatch=u"", headless=False):
     """
     type_set may contain empty_str as well as actual types. Useful to remove
     empty str and see what is left.
     
     faulty2missing_fld_list -- so we can stay with the selected best type by 
     setting faulty values that don't match type to missing.
+    
+    headless -- shouldn't require user input. 
     
     STRING is the fallback.
     """
@@ -226,18 +229,21 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
     elif main_type_set == set([mg.VAL_STRING]):
         fldtype = mg.FLDTYPE_STRING
     elif type_set == set([mg.VAL_EMPTY_STRING]):
-        dlg = DlgChooseFldtype(fldname)
-        ret = dlg.ShowModal()
-        if ret == wx.ID_CANCEL:
-            raise Exception(u"Inconsistencies in data type.")
-        elif ret == mg.RET_NUMERIC:
-            fldtype = mg.FLDTYPE_NUMERIC
-        elif ret == mg.RET_DATE:
-            fldtype = mg.FLDTYPE_DATE
-        elif ret == mg.RET_TEXT:
-            fldtype = mg.FLDTYPE_STRING
+        if not headless:
+            dlg = DlgChooseFldtype(fldname)
+            ret = dlg.ShowModal()
+            if ret == wx.ID_CANCEL:
+                raise Exception(u"Needed a data type for \"%s\"." % fldname)
+            elif ret == mg.RET_NUMERIC:
+                fldtype = mg.FLDTYPE_NUMERIC
+            elif ret == mg.RET_DATE:
+                fldtype = mg.FLDTYPE_DATE
+            elif ret == mg.RET_TEXT:
+                fldtype = mg.FLDTYPE_STRING
+            else:
+                raise Exception(u"Unexpected return type from DlgChooseFldtype")
         else:
-            raise Exception(u"Unexpected return type from DlgChooseFldtype")
+            fldtype = mg.FLDTYPE_STRING
     elif len(main_type_set) > 1:
         # get user to choose
         fldtypes = {}
@@ -246,7 +252,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             fldtype_choices.append(mg.FLDTYPE_NUMERIC)
         if mg.VAL_DATE in main_type_set:
             fldtype_choices.append(mg.FLDTYPE_DATE)
-        if not testing:
+        if not headless:
             dlg = DlgFixMismatch(fldname=fldname, 
                 fldtype_choices=fldtype_choices, fldtypes=fldtypes, 
                 faulty2missing_fld_list=faulty2missing_fld_list, 
@@ -345,7 +351,7 @@ def process_tblname(rawname):
 
 def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames, 
         faulty2missing_fld_list, allow_none=True, comma_dec_sep_ok=False, 
-        testing=False):
+        headless=False):
     """
     NB client code gets number of fields in row 1. Then for each field, it 
     traverses rows (i.e. travels down a col, then down the next etc). If a row 
@@ -398,7 +404,7 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
                 u"value": val, u"fldtype": expected_fldtype})
     fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set, 
         faulty2missing_fld_list=faulty2missing_fld_list,
-        first_mismatch=first_mismatch, testing=testing)
+        first_mismatch=first_mismatch, headless=headless)
     return fldtype
 
 def is_blank_raw_val(raw_val):
