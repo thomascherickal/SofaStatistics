@@ -238,7 +238,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
     """
-    if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPT_LBLS:
+    if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPT_KEYS:
         raise Exception("Sorting by anything other than val or lbl fails if "
             "a multiseries chart because sorting by increasing or decreasing is"
             " based on data for the category _across_ series e.g. total for the"

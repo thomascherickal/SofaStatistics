@@ -1350,14 +1350,14 @@ def get_simple_barchart_script(ytitle2use, rotate, show_borders, css_fil,
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
-                    mg.SIMPLE_BARCHART, 
-                    dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-                    data_show="%(data_show)s")
+    mg.SIMPLE_BARCHART, 
+    dbe, cur, tbl, tbl_filt, 
+    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+    data_show=mg.%(data_show)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
@@ -1376,14 +1376,14 @@ def get_clustered_barchart_script(ytitle2use, rotate, show_borders, css_fil,
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
-                    mg.CLUSTERED_BARCHART, 
-                    dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-                    data_show="%(data_show)s")
+    mg.CLUSTERED_BARCHART, 
+    dbe, cur, tbl, tbl_filt, 
+    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+    data_show=mg.%(data_show)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.clustered_barchart_output(titles, subtitles,
@@ -1406,7 +1406,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
     var_role_cat, var_role_cat_name, var_role_cat_lbls, 
     var_role_series, var_role_series_name, var_role_series_lbls, 
     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt="%(sort_opt)s")
+    sort_opt=mg.%(sort_opt)s)
 chart_output = charting_output.piechart_output(titles, subtitles,
     chart_output_dets, inc_val_dets=%(inc_val_dets)s, 
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" % 
@@ -1427,8 +1427,8 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     var_role_cat, var_role_cat_name, var_role_cat_lbls,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
@@ -1452,8 +1452,8 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
     var_role_cat, var_role_cat_name, var_role_cat_lbls,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
