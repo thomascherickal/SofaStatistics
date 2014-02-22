@@ -280,7 +280,7 @@ def insert_data(row_idx, grid_data):
     """
     existing_var_names = [x[0] for x in grid_data]
     next_fldname = lib.get_next_fldname(existing_var_names)
-    row_data = [next_fldname, mg.FLDTYPE_NUMERIC]
+    row_data = [next_fldname, mg.FLDTYPE_NUMERIC_LBL]
     return row_data
 
 def cell_invalidation(frame, val, row, col, grid, col_dets):
@@ -324,8 +324,8 @@ def _invalid_fldtype(row, grid):
     field_type = grid.GetCellValue(row=row, col=1)
     if field_type.strip() == u"":
         return False, ""
-    if field_type not in [mg.FLDTYPE_NUMERIC, 
-            mg.FLDTYPE_STRING, mg.FLDTYPE_DATE]:
+    if field_type not in [mg.FLDTYPE_NUMERIC_LBL, 
+            mg.FLDTYPE_STRING_LBL, mg.FLDTYPE_DATE_LBL]:
         msg = _("%s is not a valid field type") % field_type
         return True, msg
     return False, u""
@@ -479,8 +479,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             {"col_label": _("Data Type"), 
              "coltype": settings_grid.COL_DROPDOWN, 
              "colwidth": 100,
-             "dropdown_vals": [mg.FLDTYPE_NUMERIC, mg.FLDTYPE_STRING, 
-                mg.FLDTYPE_DATE]},
+             "dropdown_vals": [mg.FLDTYPE_NUMERIC_LBL, mg.FLDTYPE_STRING_LBL, 
+                mg.FLDTYPE_DATE_LBL]},
         ]
         grid_size = (300,250)
         title = _("Configure Data Table")
@@ -560,7 +560,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         finally: # any initial content
             self.update_demo()
             
-    def get_demo_val(self, row_idx, col_label, lbl_type):
+    def get_demo_val(self, row_idx, col_label, lbl_type_key):
         """
         Get best possible demo value for display in absence of source data.
         """
@@ -570,7 +570,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             try:
                 val = random.choice(self.val_dics[col_label])
             except Exception:
-                val = lib.get_rand_val_of_type(lbl_type)
+                val = lib.get_rand_val_of_type(lbl_type_key)
         return val
     
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
@@ -580,7 +580,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         label_types = zip(design_flds_col_labels, design_flds_types)
         if debug: print("Label types:\n%s" % label_types)
         for col_label, lbl_type in label_types:
-            val2use = self.get_demo_val(row_idx, col_label, lbl_type)
+            lbl_type_key = mg.FLDTYPE_LBL2KEY[lbl_type]
+            val2use = self.get_demo_val(row_idx, col_label, lbl_type_key)
             row_lst.append(val2use)
         return row_lst
     
@@ -622,7 +623,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             if debug: print("Row dets:\n%s" % pprint.pformat(row_dets))
             for orig_fldname, new_fldname, col_label, lbl_type in row_dets:
                 if orig_fldname is None: # i.e. an inserted or added field
-                    rawval = self.get_demo_val(row_idx, col_label, lbl_type)
+                    lbl_type_key = mg.FLDTYPE_LBL2KEY[lbl_type]
+                    rawval = self.get_demo_val(row_idx, col_label, lbl_type_key)
                 else:
                     try:
                         rawval = row_dict[orig_fldname]
@@ -964,7 +966,6 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 return
         tblname = self.tblname_lst[0]
         self.tblname_validator.existing_name = tblname # otherwise, won't let us use this name if we started a new table, gave it a tentative name, and then saved it as the prerequisite for recoding it
-        # open recode dialog
         dlg = recode.DlgRecode(tblname, self.settings_data)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK: # run recode

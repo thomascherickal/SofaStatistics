@@ -279,11 +279,11 @@ def get_gen_fldtype(fldtype):
     Get general field type from specific.
     """
     if fldtype.lower() in dbe_sqlite.NUMERIC_TYPES:
-        gen_fldtype = mg.FLDTYPE_NUMERIC
+        gen_fldtype = mg.FLDTYPE_NUMERIC_LBL
     elif fldtype.lower() in dbe_sqlite.DATE_TYPES:
-        gen_fldtype = mg.FLDTYPE_DATE
+        gen_fldtype = mg.FLDTYPE_DATE_LBL
     else:
-        gen_fldtype = mg.FLDTYPE_STRING
+        gen_fldtype = mg.FLDTYPE_STRING_LBL
     return gen_fldtype
 
 def get_init_settings_data(default_dd, tblname):
@@ -903,7 +903,7 @@ def get_oth_name_types(settings_data):
     settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
     TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
-    oth_name_types = [(x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])
+    oth_name_types = [(x[mg.TBL_FLDNAME], mg.FLDTYPE_LBL2KEY[x[mg.TBL_FLDTYPE]])
         for x in settings_data if x[mg.TBL_FLDNAME] != mg.SOFA_ID]
     if not oth_name_types:
         raise Exception(_(u"Must always be at least one field in addition to "

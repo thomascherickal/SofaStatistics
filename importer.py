@@ -72,17 +72,17 @@ class DlgChooseFldtype(wx.Dialog):
             u"type for \"%(fldname)s\"\nbecause it only contained empty text in"
             u" the rows SOFA sampled.\n\nPlease select the data type you want "
             u"this entire column imported as. If in doubt, choose \"%(text)s\"") 
-            % {u"fldname": fldname, "text": mg.FLDTYPE_STRING})
+            % {u"fldname": fldname, "text": mg.FLDTYPE_STRING_LBL})
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLDTYPE_NUMERIC)
+        btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLDTYPE_NUMERIC_LBL)
         btn_num.Bind(wx.EVT_BUTTON, self.on_num)
         szr_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
-        btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE)
+        btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE_LBL)
         btn_date.Bind(wx.EVT_BUTTON, self.on_date)
         szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
-        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING_LBL)
         btn_text.Bind(wx.EVT_BUTTON, self.on_text)
         szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
@@ -151,15 +151,16 @@ class DlgFixMismatch(wx.Dialog):
             % types))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        if mg.FLDTYPE_NUMERIC in self.fldtype_choices:
-            btn_num = wx.Button(self.panel, mg.RET_NUMERIC, mg.FLDTYPE_NUMERIC)
+        if mg.FLDTYPE_NUMERIC_KEY in self.fldtype_choices:
+            btn_num = wx.Button(self.panel, mg.RET_NUMERIC, 
+                mg.FLDTYPE_NUMERIC_LBL)
             btn_num.Bind(wx.EVT_BUTTON, self.on_num)
             szr_btns.Add(btn_num, 0, wx.LEFT|wx.RIGHT, 10)
-        if mg.FLDTYPE_DATE in self.fldtype_choices:
-            btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE)
+        if mg.FLDTYPE_DATE_KEY in self.fldtype_choices:
+            btn_date = wx.Button(self.panel, mg.RET_DATE, mg.FLDTYPE_DATE_LBL)
             btn_date.Bind(wx.EVT_BUTTON, self.on_date)
             szr_btns.Add(btn_date, 0,  wx.LEFT|wx.RIGHT, 10)
-        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING)
+        btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING_LBL)
         btn_text.Bind(wx.EVT_BUTTON, self.on_text)
         szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
@@ -173,19 +174,19 @@ class DlgFixMismatch(wx.Dialog):
         self.Layout()
     
     def on_num(self, event):
-        self.fldtypes[self.fldname] = mg.FLDTYPE_NUMERIC
+        self.fldtypes[self.fldname] = mg.FLDTYPE_NUMERIC_KEY
         self.faulty2missing_fld_list.append(self.fldname)
         self.Destroy()
         self.SetReturnCode(mg.RET_NUMERIC)
     
     def on_date(self, event):
-        self.fldtypes[self.fldname] = mg.FLDTYPE_DATE
+        self.fldtypes[self.fldname] = mg.FLDTYPE_DATE_KEY
         self.faulty2missing_fld_list.append(self.fldname)
         self.Destroy()
         self.SetReturnCode(mg.RET_DATE)
         
     def on_text(self, event):
-        self.fldtypes[self.fldname] = mg.FLDTYPE_STRING
+        self.fldtypes[self.fldname] = mg.FLDTYPE_STRING_KEY
         self.Destroy()
         self.SetReturnCode(mg.RET_TEXT)
         
@@ -223,11 +224,11 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
-        fldtype = mg.FLDTYPE_NUMERIC
+        fldtype = mg.FLDTYPE_NUMERIC_KEY
     elif main_type_set == set([mg.VAL_DATE]):
-        fldtype = mg.FLDTYPE_DATE
+        fldtype = mg.FLDTYPE_DATE_KEY
     elif main_type_set == set([mg.VAL_STRING]):
-        fldtype = mg.FLDTYPE_STRING
+        fldtype = mg.FLDTYPE_STRING_KEY
     elif type_set == set([mg.VAL_EMPTY_STRING]):
         if not headless:
             dlg = DlgChooseFldtype(fldname)
@@ -235,23 +236,23 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             if ret == wx.ID_CANCEL:
                 raise Exception(u"Needed a data type for \"%s\"." % fldname)
             elif ret == mg.RET_NUMERIC:
-                fldtype = mg.FLDTYPE_NUMERIC
+                fldtype = mg.FLDTYPE_NUMERIC_KEY
             elif ret == mg.RET_DATE:
-                fldtype = mg.FLDTYPE_DATE
+                fldtype = mg.FLDTYPE_DATE_KEY
             elif ret == mg.RET_TEXT:
-                fldtype = mg.FLDTYPE_STRING
+                fldtype = mg.FLDTYPE_STRING_KEY
             else:
                 raise Exception(u"Unexpected return type from DlgChooseFldtype")
         else:
-            fldtype = mg.FLDTYPE_STRING
+            fldtype = mg.FLDTYPE_STRING_KEY
     elif len(main_type_set) > 1:
         # get user to choose
         fldtypes = {}
         fldtype_choices = []
         if mg.VAL_NUMERIC in main_type_set:
-            fldtype_choices.append(mg.FLDTYPE_NUMERIC)
+            fldtype_choices.append(mg.FLDTYPE_NUMERIC_KEY)
         if mg.VAL_DATE in main_type_set:
-            fldtype_choices.append(mg.FLDTYPE_DATE)
+            fldtype_choices.append(mg.FLDTYPE_DATE_KEY)
         if not headless:
             dlg = DlgFixMismatch(fldname=fldname, 
                 fldtype_choices=fldtype_choices, fldtypes=fldtypes, 
@@ -263,9 +264,9 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             else:
                 fldtype = fldtypes[fldname]
         else:
-            fldtype = mg.FLDTYPE_STRING
+            fldtype = mg.FLDTYPE_STRING_KEY
     else:
-        fldtype = mg.FLDTYPE_STRING    
+        fldtype = mg.FLDTYPE_STRING_KEY
     return fldtype
 
 def process_fldnames(raw_names, headless=False, force_quickcheck=False):
@@ -430,7 +431,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
     """
     debug = False
     ok_data = False        
-    if fldtype == mg.FLDTYPE_NUMERIC:
+    if fldtype == mg.FLDTYPE_NUMERIC_KEY:
         # must be numeric or empty string or dot (which we'll turn to NULL)
         if lib.is_numeric(raw_val, comma_dec_sep_ok):
             ok_data = True
@@ -450,7 +451,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
             val = u"NULL"
         else:
             pass # no need to set val - not ok_data so exception later
-    elif fldtype == mg.FLDTYPE_DATE:
+    elif fldtype == mg.FLDTYPE_DATE_KEY:
         # must be pytime or datetime string or usable date string
         # or empty string or dot (which we'll turn to NULL).
         if is_pytime:
@@ -477,7 +478,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
                 except Exception:
                     pass
                     # no need to set val - not ok_data so exception later
-    elif fldtype == mg.FLDTYPE_STRING:
+    elif fldtype == mg.FLDTYPE_STRING_KEY:
         # None or empty string we'll turn to NULL
         ok_data = True
         if is_blank_raw_val(raw_val):
@@ -537,7 +538,7 @@ def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes,
     fldtype = fldtypes[ok_fldname]
     val = get_val(feedback, rawval, is_pytime, fldtype, ok_fldname, 
         faulty2missing_fld_list, row_num, comma_dec_sep_ok)
-    if fldtype != mg.FLDTYPE_NUMERIC and val != u"NULL":
+    if fldtype != mg.FLDTYPE_NUMERIC_KEY and val != u"NULL":
         try:
             val = dbe_sqlite.quote_val(val)
         except Exception:

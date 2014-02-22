@@ -795,16 +795,16 @@ def get_overall_fldtype(type_set):
     main_type_set = type_set.copy()
     main_type_set.discard(mg.VAL_EMPTY_STRING)
     if main_type_set == set([mg.VAL_NUMERIC]):
-        fldtype = mg.FLDTYPE_NUMERIC
+        fldtype = mg.FLDTYPE_NUMERIC_KEY
     elif main_type_set == set([mg.VAL_DATE]):
-        fldtype = mg.FLDTYPE_DATE
+        fldtype = mg.FLDTYPE_DATE_KEY
     elif (main_type_set == set([mg.VAL_STRING]) 
             or type_set == set([mg.VAL_EMPTY_STRING])):
-        fldtype = mg.FLDTYPE_STRING
+        fldtype = mg.FLDTYPE_STRING_KEY
     else:
         if len(main_type_set) > 1:
             if debug: print(main_type_set)
-        fldtype = mg.FLDTYPE_STRING    
+        fldtype = mg.FLDTYPE_STRING_KEY   
     return fldtype
 
 def update_local_display(html_ctrl, str_content, wrap_text=False):
@@ -936,15 +936,15 @@ def get_var_dets(fil_var_dets):
             u"err": unicode(e)})
     return results
 
-def get_rand_val_of_type(lbl_type):
-    if lbl_type == mg.FLDTYPE_NUMERIC:
+def get_rand_val_of_type(lbl_type_key):
+    if lbl_type_key == mg.FLDTYPE_NUMERIC_KEY:
         vals_of_type = mg.NUM_DATA_SEQ
-    elif lbl_type == mg.FLDTYPE_STRING:
+    elif lbl_type_key == mg.FLDTYPE_STRING_KEY:
         vals_of_type = mg.STR_DATA_SEQ
-    elif lbl_type == mg.FLDTYPE_DATE:
+    elif lbl_type_key == mg.FLDTYPE_DATE_KEY:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
-        raise Exception(u"Unknown lbl_type in get_rand_val_of_type")
+        raise Exception(u"Unknown lbl_type_key in get_rand_val_of_type")
     return random.choice(vals_of_type)
 
 def safe_end_cursor():

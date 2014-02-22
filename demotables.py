@@ -87,7 +87,7 @@ class DemoTable(object):
                 else:
                     cellclass = CSS_DATACELL
                 # build data row list
-                raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC)
+                raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC_KEY)
                 num2display = lib.get_num2display(num=raw_val, 
                                                   output_type=colmeasure, 
                                                   inc_perc=self.show_perc)

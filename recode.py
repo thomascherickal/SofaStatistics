@@ -36,7 +36,7 @@ include in the update statement.
 """
 
 def make_when_clause(orig_clause, new, new_fldtype):
-    if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
+    if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
         new = valqtr(new, charset2try="utf-8")
     when_clause = u"            WHEN %s THEN %s" % (orig_clause, new)
     return when_clause
@@ -104,17 +104,19 @@ def process_orig(orig, fldname, fldtype):
         if l_part == MIN:
             has_min = True
         else:
-            if (fldtype == mg.FLDTYPE_NUMERIC and not lib.is_numeric(l_part)):
+            if (fldtype == mg.FLDTYPE_NUMERIC_KEY 
+                    and not lib.is_numeric(l_part)):
                 num_mismatch = True
-            elif (fldtype == mg.FLDTYPE_DATE 
+            elif (fldtype == mg.FLDTYPE_DATE_KEY
                     and not lib.is_std_datetime_str(l_part)):
                 date_mismatch = True
         if r_part == MAX:
             has_max = True
         else:
-            if (fldtype == mg.FLDTYPE_NUMERIC and not lib.is_numeric(r_part)):
+            if (fldtype == mg.FLDTYPE_NUMERIC_KEY 
+                    and not lib.is_numeric(r_part)):
                 num_mismatch = True
-            elif (fldtype == mg.FLDTYPE_DATE
+            elif (fldtype == mg.FLDTYPE_DATE_KEY
                     and not lib.is_std_datetime_str(r_part)):
                 date_mismatch = True
         if num_mismatch:
@@ -125,7 +127,7 @@ def process_orig(orig, fldname, fldtype):
             if debug: print(l_part, r_part)
             raise Exception(_("Only date values can be recoded for this "
                 "variable"))
-        if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
+        if fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
             l_prep = valqtr(l_part, charset2try="utf-8")
             r_prep = valqtr(r_part, charset2try="utf-8")
         else:
@@ -143,9 +145,9 @@ def process_orig(orig, fldname, fldtype):
                 orig_clause = u"%s BETWEEN %s AND %s" % (fld, l_prep, r_prep)
     # 3 Single value
     else:
-        if fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
+        if fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
             orig_clause = u"%s = %s" % (fld, valqtr(orig, charset2try="utf-8"))
-        elif fldtype == mg.FLDTYPE_NUMERIC:
+        elif fldtype == mg.FLDTYPE_NUMERIC_KEY:
             if not lib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
                     "are trying to recode a non-numeric value"))
@@ -163,9 +165,9 @@ def process_label(dict_labels, new_fldtype, new, label):
     debug = False
     if label == u"":
         return
-    if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
+    if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
         new = valqtr(new, charset2try="utf-8")
-    elif new_fldtype in (mg.FLDTYPE_NUMERIC):
+    elif new_fldtype in (mg.FLDTYPE_NUMERIC_KEY):
         new = float(new)
     if debug: print(new, label)
     dict_labels[new] = label
@@ -493,7 +495,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
                     new_fldtype))
             else: # REMAINING
                 # if multiple REMAINING clauses the last "wins"
-                if new_fldtype in (mg.FLDTYPE_STRING, mg.FLDTYPE_DATE):
+                if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
                     remaining_to = valqtr(new, charset2try="utf-8")
                 else:
                     remaining_to = new

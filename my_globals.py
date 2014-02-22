@@ -8,6 +8,12 @@ from subprocess import Popen, PIPE
 import sys
 import wx
 
+"""
+Nothing in here should be translated unless it is a label - preferably ending in 
+_LBL. This is to ensure headless scripts work and there is no reliance outside 
+of the GUI on settings only found when running in the GUI.
+"""
+
 # my_globals exists to reduce likelihood of circular imports.
 # It doesn't do any local importing at all until the last line, where it imports
 # config (used for initial config plus re-config).
@@ -530,16 +536,24 @@ VAL_EMPTY_STRING = u"empty string value"
 HAS_HEADER = 1966 # anything OK as long as no collision with wx.ID_CANCEL
 NO_HEADER = 1967
 # field type labels - must work as labels as well as consts
-FLDTYPE_NUMERIC = _("Numeric")
-FLDTYPE_STRING = _("Text")
-FLDTYPE_DATE = _("Date")
+FLDTYPE_NUMERIC_KEY = u"FLDTYPE_NUMERIC"
+FLDTYPE_STRING_KEY = u"FLDTYPE_STRING"
+FLDTYPE_DATE_KEY = u"FLDTYPE_DATE"
+FLDTYPE_NUMERIC_LBL = _("Numeric")
+FLDTYPE_STRING_LBL = _("Text")
+FLDTYPE_DATE_LBL = _("Date")
+FLDTYPE_LBL2KEY = {FLDTYPE_NUMERIC_LBL: FLDTYPE_NUMERIC_KEY,
+    FLDTYPE_STRING_LBL: FLDTYPE_STRING_KEY,
+    FLDTYPE_DATE_LBL: FLDTYPE_DATE_KEY,
+}
+
 GEN2SQLITE_DIC = {
-    FLDTYPE_NUMERIC: {"sqlite_type": "REAL", 
+    FLDTYPE_NUMERIC_KEY: {"sqlite_type": "REAL", 
             "check_clause": ("CHECK(typeof(%(fldname)s) = 'null' "
             "or is_numeric(%(fldname)s))")},
-    FLDTYPE_STRING: {"sqlite_type": "TEXT",
+    FLDTYPE_STRING_KEY: {"sqlite_type": "TEXT",
             "check_clause": ""},
-    FLDTYPE_DATE: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
+    FLDTYPE_DATE_KEY: {"sqlite_type": "DATETIME", # DATETIME not a native storage 
                 #class but can still be discovered via PRAGMA table_info()
             "check_clause": ("CHECK(typeof(%(fldname)s) = 'null' "
             "or is_std_datetime_str(%(fldname)s))")},
@@ -609,18 +623,22 @@ OK_DATE_FORMAT_EXAMPLES = None
 # preferences
 PREFS_KEY = u"Prefs"
 DEFAULT_LEVEL_KEY = u"default explanation level"
+
+# TO DO if ever utilised - split into keys and lbls - only translate the latter.
 LEVEL_FULL = _(u"Full Explanation")
 LEVEL_BRIEF = _(u"Brief Explanation")
 LEVEL_RESULTS_ONLY = _(u"Results Only")
 LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
+# end TO DO
 VERSION_CHECK_KEY = u"version checking level"
 VERSION_CHECK_NONE = _(u"No checking")
 VERSION_CHECK_MAJOR = _(u"Only report major upgrades")
 VERSION_CHECK_ALL = _(u"Report any version upgrades")
 VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
                       VERSION_CHECK_ALL]
-CHART_VALUES = _(u"Values")
-CHART_DESCRIBED = _(u"Described")
+CHART_VALUES_LBL = _(u"Values")
+CHART_DESCRIBED_LBL = _(u"Described")
+
 CHART_BY = _(u"By")
 CHARTS_CHART_BY_LBL = _(u"Charts By")
 CHART_SERIES_BY_LBL = _(u"Series By")
@@ -630,8 +648,8 @@ DATA_SHOW2_LBL_KEY = {SHOW_AVG_LBL: CHART_AVERAGED_LBL,
     SHOW_SUM_LBL: CHART_SUMMED_LBL}
 Y_AXIS_FREQ_LBL = _("Frequency")
 Y_AXIS_PERC_LBL = _(u"Percentage")
-X_AXIS = _(u"X-axis")
-Y_AXIS = _(u"Y-axis")
+X_AXIS_LBL = _(u"X-axis")
+Y_AXIS_LBL = _(u"Y-axis")
 # charts
 FLD_MEASURE = u"fld_measure"
 FLD_GROUP_BY = u"fld_gp_by"
@@ -686,7 +704,7 @@ CHART_CONFIG = {
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
@@ -716,7 +734,7 @@ CHART_CONFIG = {
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
@@ -732,7 +750,7 @@ CHART_CONFIG = {
     },
     PIE_CHART: {
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
@@ -762,7 +780,7 @@ CHART_CONFIG = {
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
@@ -792,7 +810,7 @@ CHART_CONFIG = {
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
@@ -804,7 +822,7 @@ CHART_CONFIG = {
     },
     HISTOGRAM: {
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_VALUES,
+            {LBL_KEY: CHART_VALUES_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_BIN}, # dropdown 1
@@ -816,11 +834,11 @@ CHART_CONFIG = {
     },
     SCATTERPLOT: {
         INDIV_VAL_KEY: [
-            {LBL_KEY: X_AXIS,
+            {LBL_KEY: X_AXIS_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_X_AXIS}, # dropdown 1
-            {LBL_KEY: Y_AXIS,
+            {LBL_KEY: Y_AXIS_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_Y_AXIS}, # dropdown 2
@@ -836,7 +854,7 @@ CHART_CONFIG = {
     },
     BOXPLOT: {
         INDIV_VAL_KEY: [
-            {LBL_KEY: CHART_DESCRIBED,
+            {LBL_KEY: CHART_DESCRIBED_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_DESC}, # dropdown 1
