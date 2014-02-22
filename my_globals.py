@@ -427,12 +427,20 @@ CURRENT_VDTS_PATH = u"current_vdts_path"
 CURRENT_SCRIPT_PATH = u"current_script_path"
 VDT_RET = u"vdt_ret"
 SCRIPT_RET = u"script_ret"
-VAR_TYPE_CAT = _("Nominal (names only)")
-VAR_TYPE_ORD = _("Ordinal (rank only)")
-VAR_TYPE_QUANT = _("Quantity (is an amount)")
-VAR_TYPES = [VAR_TYPE_CAT, VAR_TYPE_ORD, VAR_TYPE_QUANT]
-VAR_TYPE_TO_SHORT = {VAR_TYPE_CAT: _("nominal"), VAR_TYPE_ORD: _("ordinal"), 
-                     VAR_TYPE_QUANT: _("quantity")}
+VAR_TYPE_CAT_KEY = u"VAR_TYPE_CAT_KEY"
+VAR_TYPE_ORD_KEY = u"VAR_TYPE_ORD_KEY"
+VAR_TYPE_QUANT_KEY = u"VAR_TYPE_QUANT_KEY"
+VAR_TYPE_CAT_LBL = _("Nominal (names only)")
+VAR_TYPE_ORD_LBL = _("Ordinal (rank only)")
+VAR_TYPE_QUANT_LBL = _("Quantity (is an amount)")
+VAR_TYPE_KEYS = [VAR_TYPE_CAT_KEY, VAR_TYPE_ORD_KEY, VAR_TYPE_QUANT_KEY]
+VAR_TYPE_LBLS = [VAR_TYPE_CAT_LBL, VAR_TYPE_ORD_LBL, VAR_TYPE_QUANT_LBL]
+VAR_TYPE_LBL2KEY = {VAR_TYPE_CAT_LBL: VAR_TYPE_CAT_KEY, 
+    VAR_TYPE_ORD_LBL: VAR_TYPE_ORD_KEY, VAR_TYPE_QUANT_LBL: VAR_TYPE_QUANT_KEY,
+}
+VAR_TYPE_KEY2LBL = dict([(val, key) for key, val in VAR_TYPE_LBL2KEY.items()])
+VAR_TYPE_KEY2_SHORT_LBL = {VAR_TYPE_CAT_KEY: _("nominal"), 
+    VAR_TYPE_ORD_KEY: _("ordinal"), VAR_TYPE_QUANT_KEY: _("quantity")}
 VAR_IDX_CAT = 0
 VAR_IDX_ORD = 1
 VAR_IDX_QUANT = 2
@@ -631,11 +639,16 @@ LEVEL_RESULTS_ONLY = _(u"Results Only")
 LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
 # end TO DO
 VERSION_CHECK_KEY = u"version checking level"
-VERSION_CHECK_NONE = _(u"No checking")
-VERSION_CHECK_MAJOR = _(u"Only report major upgrades")
-VERSION_CHECK_ALL = _(u"Report any version upgrades")
-VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR, 
-                      VERSION_CHECK_ALL]
+VERSION_CHECK_NONE_KEY = u"VERSION_CHECK_NONE_KEY"
+VERSION_CHECK_MAJOR_KEY = u"VERSION_CHECK_MAJOR_KEY"
+VERSION_CHECK_ALL_KEY = u"VERSION_CHECK_ALL_KEY"
+VERSION_CHECK_NONE_LBL = _(u"No checking")
+VERSION_CHECK_MAJOR_LBL = _(u"Only report major upgrades")
+VERSION_CHECK_ALL_LBL = _(u"Report any version upgrades")
+VERSION_CHECK_OPT_KEYS = [VERSION_CHECK_NONE_KEY, VERSION_CHECK_MAJOR_KEY, 
+    VERSION_CHECK_ALL_KEY]
+VERSION_CHECK_OPT_LBLS = [VERSION_CHECK_NONE_LBL, VERSION_CHECK_MAJOR_LBL, 
+    VERSION_CHECK_ALL_LBL]
 CHART_VALUES_LBL = _(u"Values")
 CHART_DESCRIBED_LBL = _(u"Described")
 
@@ -691,25 +704,25 @@ CHART_CONFIG = {
     SIMPLE_BARCHART: {
         AGGREGATE_KEY: [
             {LBL_KEY: DATA_SHOW2_LBL_KEY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
@@ -717,33 +730,33 @@ CHART_CONFIG = {
     CLUSTERED_BARCHART: {
         AGGREGATE_KEY: [
             {LBL_KEY: DATA_SHOW2_LBL_KEY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
@@ -751,11 +764,11 @@ CHART_CONFIG = {
     PIE_CHART: {
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
@@ -763,33 +776,33 @@ CHART_CONFIG = {
     LINE_CHART: {
         AGGREGATE_KEY: [
             {LBL_KEY: DATA_SHOW2_LBL_KEY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
@@ -797,25 +810,25 @@ CHART_CONFIG = {
     AREA_CHART: {
         AGGREGATE_KEY: [
             {LBL_KEY: DATA_SHOW2_LBL_KEY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_AGG}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
             ],
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
@@ -823,11 +836,11 @@ CHART_CONFIG = {
     HISTOGRAM: {
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_VALUES_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_BIN}, # dropdown 1
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
             ],
@@ -835,19 +848,19 @@ CHART_CONFIG = {
     SCATTERPLOT: {
         INDIV_VAL_KEY: [
             {LBL_KEY: X_AXIS_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_X_AXIS}, # dropdown 1
             {LBL_KEY: Y_AXIS_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_Y_AXIS}, # dropdown 2
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             {LBL_KEY: CHARTS_CHART_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
             ],
@@ -855,15 +868,15 @@ CHART_CONFIG = {
     BOXPLOT: {
         INDIV_VAL_KEY: [
             {LBL_KEY: CHART_DESCRIBED_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT_KEY,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_DESC}, # dropdown 1
             {LBL_KEY: CHART_BY,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
             {LBL_KEY: CHART_SERIES_BY_LBL,
-             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
+             MIN_DATA_TYPE_KEY: VAR_TYPE_CAT_KEY,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
             ],

@@ -179,12 +179,18 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     notes = var_notes.get(var_name, u"")
     # if nothing recorded, choose useful default variable type
     if bolnumeric:
-        def_type = mg.VAR_TYPE_QUANT # have to trust the user somewhat!
+        def_type = mg.VAR_TYPE_QUANT_KEY # have to trust the user somewhat!
     elif boldatetime:
-        def_type = mg.VAR_TYPE_CAT # see notes when enabling under GetSettings
+        def_type = mg.VAR_TYPE_CAT_KEY # see notes when enabling under GetSettings
     else:
-        def_type = mg.VAR_TYPE_CAT
+        def_type = mg.VAR_TYPE_CAT_KEY
     var_type = var_types.get(var_name, def_type)
+    if var_type not in mg.VAR_TYPE_KEYS: # can remove this in late 2020 ;-) - break stuff then to clean the code up? 
+        old_mapping = {_("Nominal (names only)"): mg.VAR_TYPE_CAT_KEY,
+            _("Ordinal (rank only)"): mg.VAR_TYPE_ORD_KEY,
+            _("Quantity (is an amount)"): mg.VAR_TYPE_QUANT_KEY,
+        }
+        var_type = old_mapping.get(var_type, def_type)
     var_desc = {"label": var_label, "notes": notes, "type": var_type}
     getsettings = GetSettings(title, boltext, boldatetime, var_desc, 
         init_settings_data, settings_data, val_type)
@@ -205,7 +211,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     else:
         return False
     
-def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
+def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT_KEY):
     """
     Get filtered list of variable names according to minimum data type. Use the 
         information on the type of each variable to decide whether meets 
@@ -213,20 +219,21 @@ def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if min_data_type == mg.VAR_TYPE_CAT:
+    if min_data_type == mg.VAR_TYPE_CAT_KEY:
         var_names = [x for x in dd.flds]
-    elif min_data_type == mg.VAR_TYPE_ORD:
+    elif min_data_type == mg.VAR_TYPE_ORD_KEY:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
         var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-            var_types.get(x) in (None, mg.VAR_TYPE_ORD, mg.VAR_TYPE_QUANT)]
-    elif min_data_type == mg.VAR_TYPE_QUANT:
+            var_types.get(x) in (None, mg.VAR_TYPE_ORD_KEY, 
+            mg.VAR_TYPE_QUANT_KEY)]
+    elif min_data_type == mg.VAR_TYPE_QUANT_KEY:
         # check for numeric as well in case user has manually 
         # misconfigured var_type in vdts file.
         if debug:
             print(dd.flds)
         var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-            var_types.get(x) in (None, mg.VAR_TYPE_QUANT)]
+            var_types.get(x) in (None, mg.VAR_TYPE_QUANT_KEY)]
     else:
         raise Exception(u"get_approp_var_names received a faulty min_data_"
             u"type: %s" % min_data_type)
@@ -372,8 +379,9 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         self.txt_var_notes = wx.TextCtrl(self.panel, -1, self.var_desc["notes"],
             style=wx.TE_MULTILINE)
         self.rad_data_type = wx.RadioBox(self.panel, -1, _("Data Type"),
-            choices=mg.VAR_TYPES)
-        self.rad_data_type.SetStringSelection(self.var_desc["type"])
+            choices=mg.VAR_TYPE_LBLS)
+        self.rad_data_type.SetStringSelection(mg.VAR_TYPE_KEY2LBL[
+            self.var_desc["type"]])
         # if text or datetime, only enable categorical.
         # datetime cannot be quant (if a measurement of seconds etc would be 
         # numeric instead) and although ordinal, not used like that in any of 
@@ -424,7 +432,8 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         """
         self.var_desc["label"] = lib.fix_eols(self.txt_var_label.GetValue())
         self.var_desc["notes"] = lib.fix_eols(self.txt_var_notes.GetValue())
-        self.var_desc["type"] = self.rad_data_type.GetStringSelection()
+        self.var_desc["type"] = mg.VAR_TYPE_LBL2KEY[
+            self.rad_data_type.GetStringSelection()]
         self.tabentry.update_settings_data() # eol-safe already
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

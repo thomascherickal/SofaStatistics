@@ -186,9 +186,9 @@ class DimTree(object):
             label node tree (a tree of what we see in output) from that.
         """
         if self.tab_type == mg.ROW_STATS and tree == self.coltree:
-            min_data_type = mg.VAR_TYPE_ORD
+            min_data_type = mg.VAR_TYPE_ORD_KEY
         else:
-            min_data_type = mg.VAR_TYPE_CAT
+            min_data_type = mg.VAR_TYPE_CAT_KEY
         var_names = projects.get_approp_var_names(self.var_types, min_data_type)
         (sorted_choices, 
          sorted_vars) = lib.get_sorted_choice_items(dic_labels=self.var_labels, 

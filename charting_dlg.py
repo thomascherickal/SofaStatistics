@@ -583,7 +583,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except Exception:
             # OK if not a third drop down for chart
             lbl3 = u"%s:" % mg.CHARTS_CHART_BY_LBL
-            min_data_type3 = mg.VAR_TYPE_CAT
+            min_data_type3 = mg.VAR_TYPE_CAT_KEY
             inc_drop_select3 = True
         try:
             self.lbl_var3.SetLabel(lbl3)
@@ -614,7 +614,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except Exception:
             # OK if not a third drop down for chart
             lbl4 = u"%s:" % mg.CHARTS_CHART_BY_LBL
-            min_data_type4 = mg.VAR_TYPE_CAT
+            min_data_type4 = mg.VAR_TYPE_CAT_KEY
             inc_drop_select4 = True
         try:
             self.lbl_var4.SetLabel(lbl4)

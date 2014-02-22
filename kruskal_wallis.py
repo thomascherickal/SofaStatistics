@@ -12,7 +12,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = mg.CHART_AVERAGED_LBL
     range_gps = True
-    min_data_type = mg.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD_KEY
 
     def get_examples(self):
         eg1 = _("Answers the question, do 3 or more groups have a "

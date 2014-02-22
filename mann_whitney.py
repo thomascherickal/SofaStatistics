@@ -12,7 +12,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = _("Ranked")
     range_gps = False
-    min_data_type = mg.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD_KEY
 
     def get_examples(self):
         eg1 = _("Answers the question, do 2 groups have different results "

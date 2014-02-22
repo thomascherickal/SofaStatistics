@@ -11,7 +11,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
 
     averaged = mg.CHART_AVERAGED_LBL
     range_gps = False
-    min_data_type = mg.VAR_TYPE_QUANT
+    min_data_type = mg.VAR_TYPE_QUANT_KEY
 
     def get_examples(self):
         eg1 = _("Answers the question, do 2 groups have a different average?")

@@ -9,7 +9,7 @@ import paired2var
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
-    min_data_type = mg.VAR_TYPE_ORD
+    min_data_type = mg.VAR_TYPE_ORD_KEY
     
     def get_examples(self):
         eg1 = _("Answers the question, are the elements of paired sets of "

@@ -29,8 +29,7 @@ class DlgPrefs(wx.Dialog):
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.rad_versions = wx.RadioBox(self.panel, -1, _("Upgrade Checking"), 
-                                        choices=mg.VERSION_CHECK_OPTS, 
-                                        style=wx.RA_SPECIFY_ROWS)
+            choices=mg.VERSION_CHECK_OPT_LBLS, style=wx.RA_SPECIFY_ROWS)
         version_check_lev = prefs_dic_in[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
                                                            mg.VERSION_CHECK_ALL)
         self.rad_versions.SetStringSelection(version_check_lev)

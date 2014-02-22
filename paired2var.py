@@ -242,7 +242,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
                     u"In such cases the solution is to format the data columns "
                     u"to a numeric format in the spreadsheet and re-import it."
                     u"</p>") % 
-                    mg.VAR_TYPE_TO_SHORT.get(self.min_data_type, _("suitable")))
+                    mg.VAR_TYPE_KEY2_SHORT_LBL.get(self.min_data_type, 
+                        _("suitable")))
             try:
                 self.html.show_html(msg)
             except Exception: # no html ctrl yet so defer and display when ready
