@@ -49,12 +49,12 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst = [u"dp = 3"]
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         str_get_sample = (u"""
-sample_%%s = core_stats.get_list(dbe=u"%(dbe)s", cur=cur, 
+sample_%%s = core_stats.get_list(dbe=mg.%(dbe)s, cur=cur, 
         tbl=u"%(tbl)s", tbl_filt=tbl_filt, flds=flds, 
         fld_measure=u"%(fld_measure)s", fld_filter=u"%(fld_filter)s",
-        filter_val=%%s)""" % {u"dbe": dd.dbe, u"tbl": dd.tbl,
-                              u"fld_measure": lib.esc_str_input(var_ranked),
-                              u"fld_filter": lib.esc_str_input(var_gp)})
+        filter_val=%%s)""" % {u"dbe": mg.DBE_KEY2KEY_AS_STR[dd.dbe], 
+            u"tbl": dd.tbl, u"fld_measure": lib.esc_str_input(var_ranked),
+            u"fld_filter": lib.esc_str_input(var_gp)})
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         script_lst.append(str_get_sample % (u"a", val_str_quoted_a))

@@ -118,7 +118,7 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
                     row_val = u"-"
             labelled_cols.append(row_val)
             # include row_val in lbl list which the data will be sorted by
-            if col_sorting[idx_col] == mg.SORT_LBL:
+            if col_sorting[idx_col] == mg.SORT_LBL_KEY:
                 sorting_lbls.append(row_val)
             else:
                 sorting_lbls.append(raw_val) # no label
@@ -140,7 +140,7 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     # sort labelled data if appropriate
     if debug and verbose:
         print(u"Unsorted\n\n%s" % idx_and_data_rows)
-    #if mg.SORT_LBL in col_sorting:
+    #if mg.SORT_LBL_KEY in col_sorting:
     idx_and_data_rows.sort(key=lambda s: s.sort_idx)
     if debug and verbose:
         print(u"Sorted\n\n%s" % idx_and_data_rows)

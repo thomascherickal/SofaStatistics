@@ -31,9 +31,10 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                           % lib.ue(e))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"""
-sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=u"%(dbe)s", 
+sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.%(dbe)s, 
     cur=cur, tbl=u"%(tbl)s", tbl_filt=tbl_filt, 
-    fld_a=u"%(var_a)s", fld_b=u"%(var_b)s")""" % {u"dbe": dd.dbe, 
+    fld_a=u"%(var_a)s", fld_b=u"%(var_b)s")""" % 
+    {u"dbe": mg.DBE_KEY2KEY_AS_STR[dd.dbe], 
              u"tbl": dd.tbl, u"var_a": lib.esc_str_input(var_a), 
              u"var_b": lib.esc_str_input(var_b)})
         script_lst.append(u"dp = 3")

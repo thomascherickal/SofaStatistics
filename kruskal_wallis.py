@@ -10,7 +10,7 @@ import indep2var
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
-    averaged = mg.CHART_AVERAGED
+    averaged = mg.CHART_AVERAGED_LBL
     range_gps = True
     min_data_type = mg.VAR_TYPE_ORD
 
@@ -54,7 +54,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
                                                         val_a, val_b)
         vals_in_range = self.gp_vals_sorted[idx_val_a: idx_val_b + 1]
         str_get_sample = (u"%s = core_stats.get_list(" +
-                      u"dbe=u\"%s\", " % dd.dbe +
+                      u"dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe] +
                       u"cur=cur, tbl=u\"%s\"," % dd.tbl +
                       u"\n    tbl_filt=tbl_filt, " +
                       u"flds=flds, " +

@@ -267,7 +267,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                                          item=self.rowroot):
             self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
                               tree_labels_node=tree_row_labels.root_node, 
-                              dim=mg.ROWDIM)
+                              dim=mg.ROWDIM_KEY)
         # If no row variables, make a special row node.
         if tree_row_labels.get_depth() == 1:
             child = dimtables.LabelNode(label=mg.EMPTY_ROW_LBL)
@@ -294,18 +294,18 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         If not terminal, add a node for each var underneath 
           (e.g. Ethnicity and Age Gp) under each value node and 
           send through again.
-        dim -- mg.ROWDIM or mg.COLDIM
+        dim -- mg.ROWDIM_KEY or mg.COLDIM_KEY
         """
         debug = False
-        if dim == mg.COLDIM:
+        if dim == mg.COLDIM_KEY:
             tree = self.coltree
             item_conf = tree.GetItemPyData(tree_dims_item)
-        elif dim == mg.ROWDIM:
+        elif dim == mg.ROWDIM_KEY:
             tree = self.rowtree
             item_conf = tree.GetItemPyData(tree_dims_item)        
         if item_conf is None:
-            default_sort = (mg.SORT_NONE if self.tab_type == mg.DATA_LIST 
-                            else mg.SORT_VALUE)
+            default_sort = (mg.SORT_NONE_LBL if self.tab_type == mg.DATA_LIST 
+                            else mg.SORT_VALUE_LBL)
             item_conf = lib.ItemConfig(sort_order=default_sort)
         # 1) if col_no_vars, just the measures
         if tree_dims_item == self.col_no_vars_item:
@@ -325,7 +325,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         var_label = self.var_labels.get(var_name, var_name.title())
         var_node2add = dimtables.LabelNode(label=var_label)
         new_var_node = tree_labels_node.add_child(var_node2add)
-        if dim == mg.COLDIM and self.var_summarised:
+        if dim == mg.COLDIM_KEY and self.var_summarised:
             # 2) if row summ, vars and then measures
             """
             Each variable is terminal and has measures. Add measures.
@@ -347,7 +347,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 if i > 1:
                     break
                 subitems_lst.append(val_label)
-            if item_conf.sort_order == mg.SORT_LBL:
+            if item_conf.sort_order == mg.SORT_LBL_LBL:
                 subitems_lst.sort()
             i = len(subitems_lst) + 1 # so first filler is Val 2 if first 
             # value already filled
@@ -358,12 +358,12 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                 subitems_lst.append(mg.HAS_TOTAL)
             force_freq = True # TODO - get from GUI but better to KISS
             for j, subitem in enumerate(subitems_lst):
-                is_coltot = (item_conf.has_tot and dim == mg.COLDIM
+                is_coltot = (item_conf.has_tot and dim == mg.COLDIM_KEY
                              and j == len(subitems_lst)-1)
                 # make val node e.g. Male
                 subitem_node = dimtables.LabelNode(label=subitem)
                 new_var_node.add_child(subitem_node)   
-                if (is_terminal and dim == mg.COLDIM and self.has_col_measures):
+                if (is_terminal and dim == mg.COLDIM_KEY and self.has_col_measures):
                     # add measure label nodes
                     measures = item_conf.measures_lst
                     if not measures:
@@ -372,9 +372,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                                       force_freq)
                 else:
                     # for each child of tree_dims_item e.g. Eth and Age Gp
-                    if dim == mg.COLDIM:
+                    if dim == mg.COLDIM_KEY:
                         tree = self.coltree
-                    elif dim == mg.ROWDIM:
+                    elif dim == mg.ROWDIM_KEY:
                         tree = self.rowtree
                     child_items = lib.get_tree_ctrl_children(tree=tree, 
                                                             item=tree_dims_item)
@@ -389,9 +389,9 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
     
     def add_measures(self, node, measures, is_coltot=False, force_freq=False):
         sep_measures = measures[:]
-        if (force_freq and is_coltot and mg.ROWPCT in measures
-                and mg.FREQ not in measures):
-            sep_measures.append(mg.FREQ)
+        if (force_freq and is_coltot and mg.ROWPCT_LBL in measures
+                and mg.FREQ_LBL not in measures):
+            sep_measures.append(mg.FREQ_LBL)
         for measure in sep_measures:
             node.add_child(dimtables.LabelNode(label=measure, measure=measure))
     
@@ -407,6 +407,6 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         for dim_child_item in dim_children:
             self.add_subtree_to_label_tree(tree_dims_item=dim_child_item, 
                                          tree_labels_node=tree_labels.root_node, 
-                                         dim=mg.COLDIM)
+                                         dim=mg.COLDIM_KEY)
         return tree_labels
     

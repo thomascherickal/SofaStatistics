@@ -101,23 +101,31 @@ class DimTree(object):
         Used in set_initial_config() when setting up a fresh item.
         """
         self.default_item_confs = {
-            mg.FREQS: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE}, 
-                       mg.COLDIM: {MEASURES: None},},
-            mg.CROSSTAB: {mg.ROWDIM: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE},
-                          mg.COLDIM: {HAS_TOT: None, 
-                                      SORT_ORDER: mg.SORT_VALUE, 
-                                      MEASURES: None},},
-            mg.ROW_STATS: {mg.ROWDIM: {HAS_TOT: None},
-                           mg.COLDIM: {MEASURES: None},},
-            mg.DATA_LIST: {mg.COLDIM: {SORT_ORDER: mg.SORT_VALUE}}}
+            mg.FREQS: {
+                mg.ROWDIM_KEY: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE_LBL}, 
+                mg.COLDIM_KEY: {MEASURES: None},
+            },
+            mg.CROSSTAB: {
+                mg.ROWDIM_KEY: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE_LBL},
+                mg.COLDIM_KEY: {HAS_TOT: None, SORT_ORDER: mg.SORT_VALUE_LBL, 
+                    MEASURES: None},
+            },
+            mg.ROW_STATS: {
+                mg.ROWDIM_KEY: {HAS_TOT: None},
+                mg.COLDIM_KEY: {MEASURES: None},
+            },
+            mg.DATA_LIST: {
+                mg.COLDIM_KEY: {SORT_ORDER: mg.SORT_VALUE_LBL}
+            }
+        }
 
     def on_row_item_activated(self, event):
         "Activated row item in tree. Show config dialog."
-        self.config_dim(dim=mg.ROWDIM)
+        self.config_dim(dim=mg.ROWDIM_KEY)
     
     def on_col_item_activated(self, event):
         "Activated col item in tree. Show config dialog."
-        self.config_dim(dim=mg.COLDIM)
+        self.config_dim(dim=mg.COLDIM_KEY)
     
     def on_row_item_rclick(self, event):
         self.show_var_properties(self.rowtree, event)
@@ -152,14 +160,14 @@ class DimTree(object):
     
     def on_row_add(self, event):
         "Add row var under root"
-        self.try_adding(tree=self.rowtree, root=self.rowroot, dim=mg.ROWDIM, 
-                        oth_dim=mg.COLDIM, oth_dim_tree=self.coltree, 
+        self.try_adding(tree=self.rowtree, root=self.rowroot, dim=mg.ROWDIM_KEY, 
+                        oth_dim=mg.COLDIM_KEY, oth_dim_tree=self.coltree, 
                         oth_dim_root=self.colroot)
      
     def on_col_add(self, event):
         "Add column var under root"
-        self.try_adding(tree=self.coltree, root=self.colroot, dim=mg.COLDIM, 
-                        oth_dim=mg.ROWDIM, oth_dim_tree=self.rowtree, 
+        self.try_adding(tree=self.coltree, root=self.colroot, dim=mg.COLDIM_KEY, 
+                        oth_dim=mg.ROWDIM_KEY, oth_dim_tree=self.rowtree, 
                         oth_dim_root=self.rowroot)
     
     def get_selected_idxs(self, dim, sorted_choices):
@@ -228,8 +236,8 @@ class DimTree(object):
             (e.g. col_no_vars_item) rather than a normal dim variable.
         """
         dd = mg.DATADETS_OBJ
-        default_sort = (mg.SORT_NONE if self.tab_type == mg.DATA_LIST 
-                        else mg.SORT_VALUE)
+        default_sort = (mg.SORT_NONE_LBL if self.tab_type == mg.DATA_LIST 
+                        else mg.SORT_VALUE_LBL)
         item_conf = lib.ItemConfig(sort_order=default_sort)
         # reuse stored item config from same sort if set previously
         default_item_conf = self.default_item_confs[self.tab_type]
@@ -265,8 +273,8 @@ class DimTree(object):
         """
         tree = self.rowtree
         root = self.rowroot
-        dim = mg.ROWDIM
-        oth_dim = mg.COLDIM
+        dim = mg.ROWDIM_KEY
+        oth_dim = mg.COLDIM_KEY
         oth_dim_tree = self.coltree
         oth_dim_root = self.colroot
         selected_ids = tree.GetSelections()
@@ -293,8 +301,8 @@ class DimTree(object):
         """
         tree = self.coltree
         root = self.colroot
-        dim = mg.COLDIM
-        oth_dim = mg.ROWDIM
+        dim = mg.COLDIM_KEY
+        oth_dim = mg.ROWDIM_KEY
         oth_dim_tree = self.rowtree
         oth_dim_root = self.rowroot
         selected_ids = tree.GetSelections()
@@ -360,9 +368,9 @@ class DimTree(object):
                 item_conf = tree.GetItemPyData(ancestor)
                 if item_conf: #ignore root node
                     item_conf.measures_lst = []
-                    if item_conf.sort_order in [mg.SORT_INCREASING, 
-                                                mg.SORT_DECREASING]:
-                        item_conf.sort_order = mg.SORT_VALUE
+                    if item_conf.sort_order in [mg.SORT_INCREASING_LBL, 
+                                                mg.SORT_DECREASING_LBL]:
+                        item_conf.sort_order = mg.SORT_VALUE_LBL
                     tree.SetItemText(ancestor, item_conf.get_summary(), 1)                        
         tree.ExpandAll(root)
         tree.UnselectAll() # multiple
@@ -392,12 +400,12 @@ class DimTree(object):
             measures based on that selected item ready for reuse when adding 
             new items.
         """
-        if dim == mg.ROWDIM:
+        if dim == mg.ROWDIM_KEY:
             itemlbl = u"row"
             tree = self.rowtree
             root = self.rowroot
             btn_setup_func = self.setup_row_btns
-        elif dim == mg.COLDIM:
+        elif dim == mg.COLDIM_KEY:
             itemlbl = u"column"
             tree = self.coltree
             root = self.colroot
@@ -434,10 +442,10 @@ class DimTree(object):
         self.align_action_btns(live_demo)
 
     def on_row_delete(self, event):
-        self.on_item_delete(dim=mg.ROWDIM)
+        self.on_item_delete(dim=mg.ROWDIM_KEY)
 
     def on_col_delete(self, event):
-        self.on_item_delete(dim=mg.COLDIM)
+        self.on_item_delete(dim=mg.COLDIM_KEY)
 
     def config_dim(self, dim):
         """
@@ -446,12 +454,12 @@ class DimTree(object):
             make sense.
         """
         debug = False
-        if dim == mg.ROWDIM:
+        if dim == mg.ROWDIM_KEY:
             itemlbl = u"row"
             tree = self.rowtree
             root = self.rowroot
             no_vars_item = None
-        elif dim == mg.COLDIM:
+        elif dim == mg.COLDIM_KEY:
             itemlbl = u"column"
             tree = self.coltree
             root = self.colroot
@@ -489,14 +497,14 @@ class DimTree(object):
         rpt_config = mg.RPT_CONFIG[self.tab_type]
         title = _("Configure %s Item") % itemlbl.title()
         if (no_vars_item in selected_ids 
-                or (self.tab_type == mg.ROW_STATS and dim == mg.COLDIM)):
+                or (self.tab_type == mg.ROW_STATS and dim == mg.COLDIM_KEY)):
             sort_opt_allowed = mg.SORT_NO_OPTS
         elif self.tab_type == mg.DATA_LIST:
-            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPTS
+            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPT_LBLS
         elif not lib.item_has_children(tree, parent=selected_ids[0]):
-            sort_opt_allowed = mg.STD_SORT_OPTS
+            sort_opt_allowed = mg.STD_SORT_OPT_LBLS
         else:
-            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPTS
+            sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPT_LBLS
         horizontal = rpt_config[mg.MEASURES_HORIZ_KEY]
         if no_vars_item in selected_ids:
             has_vars = False
@@ -505,9 +513,9 @@ class DimTree(object):
         else:
             raise Exception(u"Configuring a %s but lacking either vars OR "
                             u"a config item" % itemlbl)
-        if dim == mg.ROWDIM:
+        if dim == mg.ROWDIM_KEY:
             measures = [] # only cols have measures
-        elif dim == mg.COLDIM:
+        elif dim == mg.COLDIM_KEY:
             # only show measures if has no children
             # include measures if the selected items have no children
             has_children = True
@@ -519,8 +527,8 @@ class DimTree(object):
             if not has_children:
                 measures = rpt_config[mg.COL_MEASURES_KEY][:] # copy so don't keep appending to original!
                 if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
-                    measures.append(mg.ROWPCT)
-        if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM) 
+                    measures.append(mg.ROWPCT_LBL)
+        if ((self.tab_type == mg.ROW_STATS and dim == mg.COLDIM_KEY) 
                 or self.tab_type == mg.DATA_LIST): # raw display is not controlled at item level but for report as a whole
             allow_tot = False
         else:
@@ -540,11 +548,11 @@ class DimTree(object):
 
     def on_row_config(self, event):
         "Configure row button clicked."
-        self.config_dim(dim=mg.ROWDIM)
+        self.config_dim(dim=mg.ROWDIM_KEY)
     
     def on_col_config(self, event):
         "Configure column button clicked."
-        self.config_dim(dim=mg.COLDIM)
+        self.config_dim(dim=mg.COLDIM_KEY)
 
     def update_default_item_confs(self, dim, item_config_dets):
         """
@@ -564,7 +572,7 @@ class DimTree(object):
     def add_default_column_config(self):
         self.col_no_vars_item = self.coltree.AppendItem(self.colroot, 
                                                         mg.COL_CONFIG_ITEM_LBL)
-        self.set_initial_config(self.coltree, mg.COLDIM, self.col_no_vars_item)
+        self.set_initial_config(self.coltree, mg.COLDIM_KEY, self.col_no_vars_item)
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
         self.coltree.ExpandAll(self.colroot)
         self.coltree.SelectItem(self.col_no_vars_item)
@@ -679,12 +687,12 @@ class DlgConfig(wx.Dialog):
             bx_measures = wx.StaticBox(self, -1, _("Measures"))
             direction = wx.HORIZONTAL if horizontal else wx.VERTICAL
             szr_measures = wx.StaticBoxSizer(bx_measures, direction)
-            for measure in self.measures:
-                label = mg.measures_long_lbl_dic[measure]
+            for measure_lbl in self.measures:
+                label = mg.MEASURE_LBLS_SHORT2LONG[measure_lbl]
                 chk = wx.CheckBox(self, -1, label, size=chk_size)
-                if measure in item_conf.measures_lst:
+                if measure_lbl in item_conf.measures_lst:
                     chk.SetValue(True)
-                self.measure_chks_dic[measure] = chk
+                self.measure_chks_dic[measure_lbl] = chk
                 szr_measures.Add(chk, 1, wx.ALL, 5)
             szr_main.Add(szr_measures, 1, wx.GROW|wx.ALL, 10)
         btn_cancel = wx.Button(self, wx.ID_CANCEL)
@@ -714,13 +722,13 @@ class DlgConfig(wx.Dialog):
         """
         debug = False
         # measures
-        measures_lst = []
+        measure_lbls_lst = []
         any_measures = False
-        for measure in self.measures:
-            ticked = self.measure_chks_dic[measure].GetValue()
+        for measure_lbl in self.measures:
+            ticked = self.measure_chks_dic[measure_lbl].GetValue()
             if ticked:
                 any_measures = True
-                measures_lst.append(measure)
+                measure_lbls_lst.append(measure_lbl)
         if self.measures and not any_measures:
             wx.MessageBox(_("Please select at least one measure"))
             return
@@ -728,11 +736,11 @@ class DlgConfig(wx.Dialog):
         has_tot = self.allow_tot and self.chk_total.GetValue()
         # sort order
         if self.sort_opt_allowed == mg.SORT_NO_OPTS:
-            sort_order = mg.SORT_VALUE
+            sort_order_lbl = mg.SORT_VALUE_LBL
         else:
             try:
                 idx_sort = self.rad_sort_opts.GetSelection()
-                sort_order = self.sort_opt_allowed[idx_sort]
+                sort_order_lbl = self.sort_opt_allowed[idx_sort]
             except IndexError:
                 raise Exception(u"Unexpected sort type")
         # apply configuration to GUI tree
@@ -740,8 +748,8 @@ class DlgConfig(wx.Dialog):
             existing_data = self.tree.GetItemPyData(node_id)
             var_name = existing_data.var_name
             bolnumeric = existing_data.bolnumeric
-            item_conf = lib.ItemConfig(sort_order, var_name, measures_lst, 
-                                       has_tot, bolnumeric)
+            item_conf = lib.ItemConfig(sort_order_lbl, var_name, 
+                measure_lbls_lst, has_tot, bolnumeric)
             self.tree.SetItemPyData(node_id, item_conf)        
             self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
         """

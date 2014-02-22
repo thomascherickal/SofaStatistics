@@ -9,7 +9,7 @@ import indep2var
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
 
-    averaged = mg.CHART_AVERAGED
+    averaged = mg.CHART_AVERAGED_LBL
     range_gps = False
     min_data_type = mg.VAR_TYPE_QUANT
 
@@ -50,12 +50,13 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         str_get_sample = (u"""
-sample_%%s = core_stats.get_list(dbe=u"%(dbe)s", cur=cur, 
+sample_%%s = core_stats.get_list(dbe=mg.%(dbe)s, cur=cur, 
     tbl=u"%(tbl)s", tbl_filt=tbl_filt, flds=flds, 
     fld_measure=u"%(var_avg)s", 
-    fld_filter=u"%(var_gp)s", filter_val=%%s)""" % {u"dbe": dd.dbe, 
-            u"tbl": dd.tbl, u"var_avg": lib.esc_str_input(var_avg),
-            u"var_gp": lib.esc_str_input(var_gp)})
+    fld_filter=u"%(var_gp)s", filter_val=%%s)""" % 
+    {u"dbe": mg.DBE_KEY2KEY_AS_STR[dd.dbe], u"tbl": dd.tbl, 
+    u"var_avg": lib.esc_str_input(var_avg), 
+    u"var_gp": lib.esc_str_input(var_gp)})
         script_lst.append(str_get_sample % (u"a", val_str_quoted_a))
         script_lst.append(str_get_sample % (u"b", val_str_quoted_b))
         script_lst.append(u"""

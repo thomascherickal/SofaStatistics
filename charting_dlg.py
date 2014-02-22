@@ -12,25 +12,24 @@ import getdata
 import indep2var
 import projects
 
-CUR_SORT_OPT = mg.SORT_VALUE
-CUR_DATA_OPT = mg.SHOW_FREQ
+CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
+CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
 ROTATE = False
 MAJOR = False
-# double as labels
-BARS_SORTED = u"bars"
-CLUSTERS_SORTED = u"clusters"
-SLICES_SORTED = u"slices"
-GROUPS_SORTED = u"groups"
+BARS_SORTED_LBL = u"bars"
+CLUSTERS_SORTED_LBL = u"clusters"
+SLICES_SORTED_LBL = u"slices"
+GROUPS_SORTED_LBL = u"groups"
 
 """
-If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE and will thus 
-    be sorted by values not labels and order of values determined by GROUP BY
-    in database engine used. See specifics in, for example, 
-    get_line_chart_script().
+If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE_LBL and will 
+thus be sorted by values not labels and order of values determined by GROUP BY
+in database engine used. See specifics in, for example, get_line_chart_script().
+
 Value dropdowns have to be built fresh each time the data source changes because
-    in Linux the process of changing the values list dynamically is far too slow 
-    when a non-system font is chosen. Much, much quicker to build a fresh one 
-    each time with the new list as the initial value.
+in Linux the process of changing the values list dynamically is far too slow 
+when a non-system font is chosen. Much, much quicker to build a fresh one each 
+time with the new list as the initial value.
 """
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
@@ -59,8 +58,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         cc = config_output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 
             "charting_output", "output", "getdata"]
-        global CUR_DATA_OPT
-        CUR_DATA_OPT = mg.SHOW_FREQ
+        global CUR_DATA_OPT_LBL
+        CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
         self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
         # up to 4 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
@@ -214,20 +213,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             height_init=myheight)
     
     def get_drop_val_opts(self, panel):
-        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPTS, 
-                              size=(90,-1))
+        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPT_LBLS, 
+            size=(90,-1))
         drop_opts.SetFont(mg.GEN_FONT)
-        idx_data_opt = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        idx_data_opt = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         drop_opts.SetSelection(idx_data_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_val)
         drop_opts.SetToolTipString(u"Report count(frequency), percentage, "
                                    u"average, or sum?")
         return drop_opts
     
-    def get_drop_sort_opts(self, panel, choices=mg.STD_SORT_OPTS):
+    def get_drop_sort_opts(self, panel, choices=mg.STD_SORT_OPT_LBLS):
         drop_opts = wx.Choice(panel, -1, choices=choices, size=(100,-1))
         drop_opts.SetFont(mg.GEN_FONT)
-        idx_current_sort_opt = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+        idx_current_sort_opt = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         drop_opts.SetSelection(idx_current_sort_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_sort)
         drop_opts.SetToolTipString(_(u"Sort order for categories"))
@@ -241,7 +240,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_bar_val = self.get_drop_val_opts(self.panel_bar_chart)
         lbl_sort = wx.StaticText(self.panel_bar_chart, -1, 
-                                 _(u"Sort order\nof %s:") % BARS_SORTED)
+                                 _(u"Sort order\nof %s:") % BARS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_bar_sort = self.get_drop_sort_opts(self.panel_bar_chart)
         self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
@@ -272,10 +271,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_clust_val = self.get_drop_val_opts(self.panel_clust_bar)
         lbl_sort = wx.StaticText(self.panel_clust_bar, -1, 
-                                 _(u"Sort order\nof %s:") % CLUSTERS_SORTED)
+                                 _(u"Sort order\nof %s:") % CLUSTERS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar,
-                                             choices=mg.SORT_VAL_AND_LABEL_OPTS)
+            choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
         self.chk_clust_borders = wx.CheckBox(self.panel_clust_bar, -1, 
                                              _("Bar borders?"))
@@ -300,7 +299,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         lbl_sort = wx.StaticText(self.panel_pie_chart, -1, 
-                                 _(u"Sort order\nof %s:") % SLICES_SORTED)
+                                 _(u"Sort order\nof %s:") % SLICES_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_pie_sort = self.get_drop_sort_opts(self.panel_pie_chart)
         self.chk_val_dets = wx.CheckBox(self.panel_pie_chart, -1, 
@@ -324,10 +323,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_line_val = self.get_drop_val_opts(self.panel_line_chart)
         lbl_sort = wx.StaticText(self.panel_line_chart, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart,
-                                             choices=mg.SORT_VAL_AND_LABEL_OPTS)
+            choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
                                          _("Trend line?"))
@@ -368,7 +367,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_area_val = self.get_drop_val_opts(self.panel_area_chart)
         lbl_sort = wx.StaticText(self.panel_area_chart, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_area_sort = self.get_drop_sort_opts(self.panel_area_chart)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
@@ -432,10 +431,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_boxplot = wx.Panel(self.panel_mid)
         lbl_sort = wx.StaticText(self.panel_boxplot, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED)
+                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_box_sort = self.get_drop_sort_opts(self.panel_boxplot, 
-                                            choices=mg.SORT_VAL_AND_LABEL_OPTS)
+            choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
         self.szr_boxplot.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_boxplot.Add(self.drop_box_sort, 0, wx.TOP, 5)
@@ -525,7 +524,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         show_agg, has_agg_config = self.get_agg_dets()
         if show_agg and has_agg_config:
-            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY][CUR_DATA_OPT]
+            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY][CUR_DATA_OPT_LBL]
         else:
             lbl1 = u"%s:" % chart_config1[mg.LBL_KEY]
         try:
@@ -583,7 +582,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_drop_select3 = chart_config3[mg.INC_SELECT_KEY]
         except Exception:
             # OK if not a third drop down for chart
-            lbl3 = u"%s:" % mg.CHARTS_CHART_BY
+            lbl3 = u"%s:" % mg.CHARTS_CHART_BY_LBL
             min_data_type3 = mg.VAR_TYPE_CAT
             inc_drop_select3 = True
         try:
@@ -614,7 +613,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_drop_select4 = chart_config4[mg.INC_SELECT_KEY]
         except Exception:
             # OK if not a third drop down for chart
-            lbl4 = u"%s:" % mg.CHARTS_CHART_BY
+            lbl4 = u"%s:" % mg.CHARTS_CHART_BY_LBL
             min_data_type4 = mg.VAR_TYPE_CAT
             inc_drop_select4 = True
         try:
@@ -708,30 +707,30 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_drop_sort(self, event):
         debug = False
-        global CUR_SORT_OPT
+        global CUR_SORT_OPT_LBL
         drop = event.GetEventObject()
         try:
             idx_sel = drop.GetSelection()
-            CUR_SORT_OPT = mg.STD_SORT_OPTS[idx_sel]
+            CUR_SORT_OPT_LBL = mg.STD_SORT_OPT_LBLS[idx_sel]
         except IndexError:
             pass
         except AttributeError:
-            CUR_SORT_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE
-        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT)
+            CUR_SORT_OPT_LBL = drop.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE_LBL
+        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT_LBL)
 
     def on_drop_val(self, event):
         debug = False
-        global CUR_DATA_OPT
+        global CUR_DATA_OPT_LBL
         # http://www.blog.pythonlibrary.org/2011/09/20/...
         # ... wxpython-binding-multiple-widgets-to-the-same-handler/
         drop = event.GetEventObject()
         try:
             idx_sel = drop.GetSelection()
-            CUR_DATA_OPT = mg.DATA_SHOW_OPTS[idx_sel]
+            CUR_DATA_OPT_LBL = mg.DATA_SHOW_OPT_LBLS[idx_sel]
         except IndexError:
             pass
         except AttributeError:
-            CUR_DATA_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ
+            CUR_DATA_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ_LBL
         if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
         self.setup_var_dropdowns() # e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
@@ -878,7 +877,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.bmp_to_rollback_to = self.bmp_btn_bar_chart
 
     def get_agg_dets(self):
-        show_agg = CUR_DATA_OPT in mg.AGGREGATE_DATA_SHOW_OPTS
+        show_agg = CUR_DATA_OPT_LBL in mg.AGGREGATE_DATA_SHOW_OPT_LBLS
         has_agg_config = mg.AGGREGATE_KEY in mg.CHART_CONFIG[self.chart_type]
         return show_agg, has_agg_config
 
@@ -926,24 +925,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_bar_chart
         btn_bmp_sel = self.bmp_btn_bar_chart_sel
         panel = self.panel_bar_chart
-        self.drop_bar_val.SetSelection(mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT))
-        self.drop_bar_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        self.drop_bar_val.SetSelection(mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL))
+        self.drop_bar_sort.SetSelection(mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL))
         self.chk_simple_bar_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_clustered_bar_chart(self, event):
-        global CUR_SORT_OPT
+        global CUR_SORT_OPT_LBL
         self.chart_type = mg.CLUSTERED_BARCHART
         btn = self.btn_clust_bar
         btn_bmp = self.bmp_btn_clust_bar
         btn_bmp_sel = self.bmp_btn_clust_bar_sel
         panel = self.panel_clust_bar
-        idx_val = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        idx_val = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         try:
-            idx_sort = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+            idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         except ValueError: # doesn't have increasing, or decreasing
-            CUR_SORT_OPT = mg.SORT_VALUE
-            idx_sort = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+            CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
+            idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_clust_val.SetSelection(idx_val)
         self.drop_clust_sort.SetSelection(idx_sort)
         self.chk_clust_bar_rotate.SetValue(ROTATE)
@@ -955,22 +954,22 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_pie_chart
         btn_bmp_sel = self.bmp_btn_pie_chart_sel
         panel = self.panel_pie_chart
-        self.drop_pie_sort.SetSelection(mg.STD_SORT_OPTS.index(CUR_SORT_OPT))
+        self.drop_pie_sort.SetSelection(mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL))
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_line_chart(self, event):
-        global CUR_SORT_OPT
+        global CUR_SORT_OPT_LBL
         self.chart_type = mg.LINE_CHART
         btn = self.btn_line_chart
         btn_bmp = self.bmp_btn_line_chart
         btn_bmp_sel = self.bmp_btn_line_chart_sel
         panel = self.panel_line_chart
-        idx_val = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
+        idx_val = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         try:
-            idx_sort = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+            idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         except ValueError: # doesn't have increasing, or decreasing
-            CUR_SORT_OPT = mg.SORT_VALUE
-            idx_sort = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+            CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
+            idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_line_val.SetSelection(idx_val)
         self.drop_line_sort.SetSelection(idx_sort)
         self.chk_line_rotate.SetValue(ROTATE)
@@ -984,8 +983,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn_bmp = self.bmp_btn_area_chart
         btn_bmp_sel = self.bmp_btn_area_chart_sel
         panel = self.panel_area_chart
-        idx_val = mg.DATA_SHOW_OPTS.index(CUR_DATA_OPT)
-        idx_sort = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+        idx_val = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
+        idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_area_val.SetSelection(idx_val)
         self.drop_area_sort.SetSelection(idx_sort)
         self.chk_area_rotate.SetValue(ROTATE)
@@ -1009,17 +1008,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_boxplot(self, event):
-        global CUR_SORT_OPT
+        global CUR_SORT_OPT_LBL
         self.chart_type = mg.BOXPLOT
         btn = self.btn_boxplot
         btn_bmp = self.bmp_btn_boxplot
         btn_bmp_sel = self.bmp_btn_boxplot_sel
         panel = self.panel_boxplot
         try:
-            idx_sort = mg.SORT_VAL_AND_LABEL_OPTS.index(CUR_SORT_OPT)
+            idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         except ValueError: # doesn't have increasing, or decreasing
-            CUR_SORT_OPT = mg.SORT_VALUE
-            idx_sort = mg.STD_SORT_OPTS.index(CUR_SORT_OPT)
+            CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
+            idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_box_sort.SetSelection(idx_sort)
         self.chk_boxplot_rotate.SetValue(ROTATE)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
@@ -1298,15 +1297,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 raise Exception(u"Cannot generate %s script if category field "
                     u"hasn't been set." % self.chart_type)
         if self.chart_type in mg.CHARTS_WITH_YTITLE_OPTIONS:
-            if CUR_DATA_OPT == mg.SHOW_FREQ:
+            if CUR_DATA_OPT_LBL == mg.SHOW_FREQ_LBL:
                 ytitle2use = u"mg.Y_AXIS_FREQ_LBL"
-            elif CUR_DATA_OPT == mg.SHOW_PERC:
+            elif CUR_DATA_OPT_LBL == mg.SHOW_PERC_LBL:
                 ytitle2use = u"mg.Y_AXIS_PERC_LBL"
-            elif CUR_DATA_OPT in (mg.SHOW_AVG, mg.SHOW_SUM):
+            elif CUR_DATA_OPT_LBL in (mg.SHOW_AVG_LBL, mg.SHOW_SUM_LBL):
                 if agg_fldlbl is None:
                     raise Exception(u"Aggregated variable label not supplied.")
                 ytitle2use = (u'u"Mean %s"' % agg_fldlbl 
-                    if CUR_DATA_OPT == mg.SHOW_AVG 
+                    if CUR_DATA_OPT_LBL == mg.SHOW_AVG_LBL
                     else u'u"Sum of %s"' % agg_fldlbl)
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(get_simple_barchart_script(ytitle2use, rotate, 
@@ -1349,7 +1348,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 def get_simple_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
                                css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = u"""
+    script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
                     mg.SIMPLE_BARCHART, 
                     dbe, cur, tbl, tbl_filt, 
@@ -1364,17 +1363,18 @@ y_title = %(ytitle2use)s
 chart_output = charting_output.simple_barchart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
+    css_idx=%(css_idx)s, page_break_after=False)""" % 
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
            u"ytitle2use": ytitle2use, u"rotate": rotate,
            u"show_borders": show_borders, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx}
+           u"css_idx": css_idx})
     return script
 
 def get_clustered_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
                                   css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = u"""
+    script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
                     mg.CLUSTERED_BARCHART, 
                     dbe, cur, tbl, tbl_filt, 
@@ -1389,28 +1389,29 @@ y_title = %(ytitle2use)s
 chart_output = charting_output.clustered_barchart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)    
-    """ % {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
+    css_idx=%(css_idx)s, page_break_after=False)""" % 
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
            u"ytitle2use": ytitle2use, u"rotate": rotate, 
            u"show_borders": show_borders, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx}
+           u"css_idx": css_idx})
     return script
 
 def get_pie_chart_script(css_fil, css_idx, inc_val_dets):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = u"""
+    script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART, 
-                    dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt="%(sort_opt)s")
+    dbe, cur, tbl, tbl_filt, 
+    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    var_role_cat, var_role_cat_name, var_role_cat_lbls, 
+    var_role_series, var_role_series_name, var_role_series_lbls, 
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    sort_opt="%(sort_opt)s")
 chart_output = charting_output.piechart_output(titles, subtitles,
-            chart_output_dets, inc_val_dets=%(inc_val_dets)s, 
-            css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"sort_opt": CUR_SORT_OPT, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx, u"inc_val_dets": inc_val_dets}
+    chart_output_dets, inc_val_dets=%(inc_val_dets)s, 
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" % 
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"css_fil": esc_css_fil, 
+    u"css_idx": css_idx, u"inc_val_dets": inc_val_dets})
     return script
 
 def get_line_chart_script(ytitle2use, rotate, major_ticks, inc_trend, 
@@ -1421,24 +1422,24 @@ x_title = var_role_cat_name
 y_title = %(ytitle2use)s""" % {u"ytitle2use": ytitle2use})
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART, 
-                    dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-                    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
+    dbe, cur, tbl, tbl_filt, 
+    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
+    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
     inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" %
-                {u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
-                 u"rotate": rotate, u"major_ticks": major_ticks, 
-                 u"xy_titles": xy_titles, u"inc_trend": inc_trend, 
-                 u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
-                 u"css_idx": css_idx})
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
+    u"rotate": rotate, u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
+    u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
+    u"css_idx": css_idx})
     return script
 
 def get_area_chart_script(ytitle2use, rotate, major_ticks, css_fil, css_idx):
@@ -1446,29 +1447,29 @@ def get_area_chart_script(ytitle2use, rotate, major_ticks, css_fil, css_idx):
     dd = mg.DATADETS_OBJ
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART, 
-                    dbe, cur, tbl, tbl_filt, 
-                    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
-                    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
+    dbe, cur, tbl, tbl_filt, 
+    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    sort_opt="%(sort_opt)s", rotate=%(rotate)s, 
+    data_show="%(data_show)s", major_ticks=%(major_ticks)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
     major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)""" %
-        {u"dbe": dd.dbe, u"sort_opt": CUR_SORT_OPT, u"data_show": CUR_DATA_OPT, 
-         u"rotate": rotate, u"major_ticks": major_ticks, 
-         u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, 
-         u"css_idx": css_idx})
+    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
+    u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
+    u"rotate": rotate, u"major_ticks": major_ticks, 
+    u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 
 def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
-    script = u"""
+    script = (u"""
 (overall_title, 
 chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
     var_role_bin, var_role_bin_name, var_role_charts, var_role_charts_name, 
@@ -1478,14 +1479,14 @@ chart_output = charting_output.histogram_output(titles, subtitles,
     show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
         u"inc_normal": inc_normal, u"show_borders": show_borders, 
-        u"css_fil": esc_css_fil, u"css_idx": css_idx}
+        u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 
 def get_scatterplot_script(css_fil, css_idx, show_borders, inc_regression):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     regression = "True" if inc_regression else "False"
-    script = u"""
+    script = (u"""
 (overall_title, 
  scatterplot_dets) = charting_output.get_scatterplot_dets(dbe, cur, tbl, 
     tbl_filt, flds, var_role_x_axis, var_role_x_axis_name, 
@@ -1498,13 +1499,13 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
     add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
-        u"show_borders": show_borders, u"regression": regression}
+        u"show_borders": show_borders, u"regression": regression})
     return script
 
 def get_boxplot_script(rotate, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
-    script = u"""
+    script = (u"""
 (xaxis_dets, xmin, xmax, ymin, ymax, 
  max_label_len, max_lbl_lines, 
  overall_title, chart_dets, 
@@ -1520,6 +1521,7 @@ chart_output = charting_output.boxplot_output(titles, subtitles,
             xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets, 
             xmin, xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"sort_opt": CUR_SORT_OPT, 
-           u"rotate": rotate, u"css_idx": css_idx}
+    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, 
+        u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+           u"rotate": rotate, u"css_idx": css_idx})
     return script

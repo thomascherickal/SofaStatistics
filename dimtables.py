@@ -90,16 +90,14 @@ class DimNode(tree.Node):
     label - will use fld if no label supplied (and fld available) - e.g.
         fld=gender, fld.title() = Gender.
     labels - a dictionary of labels e.g. {"1": "Male", "2": "Female"}
-    measures - e.g. FREQ
+    measures - e.g. FREQ_KEY
     has_tot - boolean
-    sort_order -- mg.SORT_VALUE, mg.SORT_LBL, mg.SORT_INCREASING, 
-        mg.SORT_DECREASING
+    sort_order -- mg.SORT_VALUE_KEY etc
     bolnumeric - so can set up filters correctly e.g. gender = "1" or 
         gender = 1 as appropriate
     """
     def __init__(self, fld=None, label="", labels=None, measures=None, 
-                 has_tot=False, sort_order=mg.SORT_VALUE, bolnumeric=False):
-        ""
+            has_tot=False, sort_order=mg.SORT_VALUE_KEY, bolnumeric=False):
         self.fld = fld
         self.filt_flds = [] # only built when added as child to another DimNode
         if not label and fld is not None:
@@ -553,7 +551,7 @@ class LiveTable(DimTable):
         for child in self.tree_rows.root_node.children:
             self.add_subtree_to_label_tree(tree_dims_node=child, 
                                     tree_labels_node=tree_row_labels.root_node,
-                                    dim=mg.ROWDIM, 
+                                    dim=mg.ROWDIM_KEY, 
                                     oth_dim_root=self.tree_cols.root_node)
         if tree_row_labels.get_depth() == 1 and self.row_var_optional:
             tree_row_labels.add_child(LabelNode(label=mg.EMPTY_ROW_LBL))
@@ -570,13 +568,13 @@ class LiveTable(DimTable):
             for child in self.tree_cols.root_node.children:
                 self.add_subtree_to_label_tree(tree_dims_node=child, 
                                     tree_labels_node=tree_col_labels.root_node,
-                                    dim=mg.COLDIM, 
+                                    dim=mg.COLDIM_KEY, 
                                     oth_dim_root=self.tree_rows.root_node)
         else:
             self.add_subtree_to_label_tree(
                                     tree_dims_node=self.tree_cols.root_node, 
                                     tree_labels_node=tree_col_labels.root_node,
-                                    dim=mg.COLDIM, 
+                                    dim=mg.COLDIM_KEY, 
                                     oth_dim_root=self.tree_rows.root_node)
         return tree_col_labels
           
@@ -591,13 +589,13 @@ class LiveTable(DimTable):
         debug = False
         has_fld = tree_dims_node.fld # None or a string        
         filt_flds = tree_dims_node.filt_flds
-        if dim == mg.ROWDIM:
+        if dim == mg.ROWDIM_KEY:
             if not has_fld:
                 raise Exception(u"All row nodes must have a variable field "
                                 u"specified")
             self.add_subtree_if_vals(tree_dims_node, tree_labels_node, 
                                      oth_dim_root, dim, filt_flds)
-        elif dim == mg.COLDIM:
+        elif dim == mg.COLDIM_KEY:
             if has_fld:
                 if self.var_summarised:
                     if debug: print(tree_dims_node)
@@ -783,7 +781,7 @@ class LiveTable(DimTable):
         if terminal_var:
             var_measures = tree_dims_node.measures
             if not var_measures: # they unticked everything!
-                var_measures = [mg.FREQ]
+                var_measures = [mg.FREQ_KEY]
         for val, unused, val_label in val_freq_label_lst:
             # e.g. male, female
             # add level 2 to the data tree - the value nodes (plus total?); 
@@ -797,13 +795,13 @@ class LiveTable(DimTable):
                                                      val, mg.GTE_EQUALS)
                 if debug: print(clause)
                 val_node_filts.append(clause)
-            is_coltot=(is_tot and dim == mg.COLDIM)
+            is_coltot=(is_tot and dim == mg.COLDIM_KEY)
             val_node = node_lev1.add_child(LabelNode(label=val_label,
                                                      filts=val_node_filts))
             # if node has children, send through again to add further subtree
             if terminal_var: # a terminal node - add measures
                 # only gen and sum table cols can have measures
-                if dim == mg.COLDIM and self.has_col_measures:
+                if dim == mg.COLDIM_KEY and self.has_col_measures:
                     self.add_measures(label_node=val_node, 
                                     measures=var_measures, is_coltot=is_coltot, 
                                     filt_flds=filt_flds, filts=val_node_filts,
@@ -834,17 +832,18 @@ class LiveTable(DimTable):
                      filts, force_freq=False):
         """
         Add measure label nodes under label node.
+        
         If a column total with rowpct, and frequencies not selected, force it in 
-            anyway. Shouldn't have pcts without a sense of total N.
+        anyway. Shouldn't have pcts without a sense of total N.
         """
         debug = False
         if debug: print("is_coltot: %s; measures: %s" % (is_coltot, measures))
         sep_measures = measures[:]
-        if (force_freq and is_coltot and mg.ROWPCT in measures
-                and mg.FREQ not in measures):
-            sep_measures.append(mg.FREQ)
+        if (force_freq and is_coltot and mg.ROWPCT_KEY in measures
+                and mg.FREQ_KEY not in measures):
+            sep_measures.append(mg.FREQ_KEY)
         for measure in sep_measures:
-            label = measure
+            label = mg.MEASURE_KEY2LBL[measure]
             measure_node = LabelNode(label, filts, measure, is_coltot)
             measure_node.filt_flds = filt_flds
             label_node.add_child(measure_node)
@@ -916,9 +915,8 @@ class GenTable(LiveTable):
         return tot4dim_filt_lst
     
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
-                               col_measures_lst, col_filters_lst, col_tots_lst, 
-                               col_filt_flds_lst, row_label_rows_lst, 
-                               data_cells_n, col_term_nodes, css_idx):
+            col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
         """
         Get list of row data. Each row in the list is represented by a row of 
             strings to concatenate, one per data point.
@@ -943,7 +941,7 @@ class GenTable(LiveTable):
         for (row_filter, 
              row_filt_flds) in zip(row_filters_lst, row_filt_flds_lst):
             row_filts_tot4col_lst = self.get_dim_filts_4_oth_dim_tot_lst(
-                                                      row_filter, row_filt_flds)
+                row_filter, row_filt_flds)
             first = True # styling
             col_zipped = zip(col_measures_lst, col_filters_lst, col_tots_lst, 
                              col_filt_flds_lst)
@@ -958,20 +956,20 @@ class GenTable(LiveTable):
                     cellclass = CSS_DATACELL
                 # build data row list
                 data_item_presn_lst.append((u"<td class='%s'>" % cellclass, 
-                                           colmeasure, u"</td>"))
+                    mg.MEASURE_KEY2LBL[colmeasure], u"</td>"))
                 # build SQL clauses for next SQL query
                 clause = self.get_func_clause(measure=colmeasure,
-                                  row_filters_lst=row_filter, 
-                                  col_filts_tot4row_lst=col_filts_tot4row_lst,
-                                  col_filters_lst=col_filter, 
-                                  row_filts_tot4col_lst=row_filts_tot4col_lst,
-                                  is_coltot=coltot)
+                    row_filters_lst=row_filter, 
+                    col_filts_tot4row_lst=col_filts_tot4row_lst,
+                    col_filters_lst=col_filter, 
+                    row_filts_tot4col_lst=row_filts_tot4col_lst,
+                    is_coltot=coltot)
                 SQL_table_select_clauses_lst.append(clause)
                 # process SQL queries when number of clauses reaches threshold
                 if (len(SQL_table_select_clauses_lst) == max_select_vars
                         or i == data_cells_n - 1):
-                    SQL_select_results = \
-                                 self.get_data_sql(SQL_table_select_clauses_lst)
+                    SQL_select_results = self.get_data_sql(
+                        SQL_table_select_clauses_lst)
                     if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
                     results += self.cur.fetchone()
@@ -999,7 +997,7 @@ class GenTable(LiveTable):
             ancestors e.g. If Gender > AgeGp in row, the filtering to apply 
             might be Gender=1 and AgeGp=3.  For the total for AgeGp we would 
             have Gender=1 and AgeGp not missing.
-        measure -- e.g. FREQ
+        measure -- e.g. FREQ_KEY
         row_filters_lst -- data in the original dataset will be counted if it 
             meets the filter criteria.  ) if not meeting criteria, 1 if it does.
         col_filts_tot4row_lst -- as above but the final col is only required to
@@ -1037,9 +1035,9 @@ class GenTable(LiveTable):
             print("Total for col: %s" % tot4col)
             print("Total for all: %s" % tot4all)
         # NB measures are off the terminal columns
-        if measure == mg.FREQ:
+        if measure == mg.FREQ_KEY:
             func_clause = freq if not is_coltot else tot4row
-        elif measure == mg.COLPCT:
+        elif measure == mg.COLPCT_KEY:
             if not is_coltot:
                 num = freq
                 den = tot4col
@@ -1050,7 +1048,7 @@ class GenTable(LiveTable):
             template = self.if_clause % (NOTNULL % perc, perc, 0)
             if debug: print(template)
             func_clause = template
-        elif measure == mg.ROWPCT:
+        elif measure == mg.ROWPCT_KEY:
             if not is_coltot:
                 perc = u"100.0*(%s)/(%s)" % (freq, tot4row) # not integer div
                 template = self.if_clause % (NOTNULL % perc, perc, 0)
@@ -1088,7 +1086,6 @@ class SummTable(LiveTable):
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
                                                        css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
-        data_item_lst = []
         """
         col_measures_lst -- 
         """
@@ -1161,8 +1158,8 @@ class SummTable(LiveTable):
              u"tblname": getdata.tblname_qtr(self.dbe, self.tbl),
              u"overall_filter": overall_filter,
              u"and_or_where": u"AND" if overall_filter else u"WHERE"})
-        sql_for_raw_only = [mg.MEDIAN, mg.MODE, mg.LOWER_QUARTILE, 
-                            mg.UPPER_QUARTILE, mg.IQR, mg.STD_DEV]
+        sql_for_raw_only = [mg.MEDIAN_KEY, mg.MODE_KEY, mg.LOWER_QUARTILE_KEY, 
+            mg.UPPER_QUARTILE_KEY, mg.IQR_KEY, mg.STD_DEV_KEY]
         if measure in sql_for_raw_only:
             self.cur.execute(SQL_get_vals)
             raw_vals = self.cur.fetchall() # sometimes returns REALS as strings
@@ -1170,7 +1167,7 @@ class SummTable(LiveTable):
             # SQLite sometimes returns strings even if REAL
             data = [float(x[0]) for x in raw_vals]
             if debug: print(data)
-        if measure == mg.MIN:
+        if measure == mg.MIN_KEY:
             SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
@@ -1179,7 +1176,7 @@ class SummTable(LiveTable):
                 data_val = self.cur.fetchone()[0]
             except Exception:
                 raise Exception(u"Unable to get minimum of %s." % col_fld)
-        elif measure == mg.MAX:
+        elif measure == mg.MAX_KEY:
             SQL_get_max = (u"SELECT MAX(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
@@ -1188,7 +1185,7 @@ class SummTable(LiveTable):
                 data_val = self.cur.fetchone()[0]
             except Exception:
                 raise Exception(u"Unable to get maximum of %s." % col_fld)
-        elif measure == mg.RANGE:
+        elif measure == mg.RANGE_KEY:
             SQL_get_range = (u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " %
                              {u"fld": self.quote_obj(col_fld)} +
                              u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
@@ -1198,7 +1195,7 @@ class SummTable(LiveTable):
                 data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
             except Exception:
                 raise Exception(u"Unable to get range of %s." % col_fld)
-        elif measure == mg.SUM:
+        elif measure == mg.SUM_KEY:
             SQL_get_sum = (u"SELECT SUM(%s) " % self.quote_obj(col_fld) +
                            u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
                            + overall_filter)
@@ -1207,7 +1204,7 @@ class SummTable(LiveTable):
                 data_val = self.cur.fetchone()[0]
             except Exception:
                 raise Exception(u"Unable to calculate sum of %s." % col_fld)
-        elif measure == mg.MEAN:
+        elif measure == mg.MEAN_KEY:
             val2float = getdata.get_val2float_func(self.dbe)
             SQL_get_mean = u"""SELECT AVG(%s) 
                     FROM %s %s""" % (val2float(self.quote_obj(col_fld)),
@@ -1218,7 +1215,7 @@ class SummTable(LiveTable):
                 data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
             except Exception:
                 raise Exception(u"Unable to calculate mean of %s." % col_fld)
-        elif measure == mg.MEDIAN:
+        elif measure == mg.MEDIAN_KEY:
             try:
                 data_val = dp2_tpl % round(numpy.median(data),2)
             except Exception:
@@ -1231,7 +1228,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate median for %s."
                                     % col_fld)
-        elif measure == mg.MODE:
+        elif measure == mg.MODE_KEY:
             try:
                 maxfreq, mode = core_stats.mode(data)
                 n_modes = len(mode)
@@ -1250,7 +1247,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate mode for %s."
                                     % col_fld)
-        elif measure == mg.LOWER_QUARTILE:
+        elif measure == mg.LOWER_QUARTILE_KEY:
             try:
                 lq, unused = core_stats.get_quartiles(data)
                 data_val = dp2_tpl % round(lq, 2)
@@ -1264,7 +1261,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate lower quartile "
                                     u"for %s." % col_fld)
-        elif measure == mg.UPPER_QUARTILE:
+        elif measure == mg.UPPER_QUARTILE_KEY:
             try:
                 unused, uq = core_stats.get_quartiles(data)
                 data_val = dp2_tpl % round(uq, 2)
@@ -1278,7 +1275,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate upper quartile "
                                     u"for %s." % col_fld)
-        elif measure == mg.IQR:
+        elif measure == mg.IQR_KEY:
             try:
                 lq, uq = core_stats.get_quartiles(data)
                 data_val = dp2_tpl % round(uq-lq, 2)
@@ -1292,7 +1289,7 @@ class SummTable(LiveTable):
                 else:
                     raise Exception(u"Unable to calculate inter-quartile range "
                                     u"for %s." % col_fld)
-        elif measure == mg.SUMM_N:
+        elif measure == mg.SUMM_N_KEY:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
                                  overall_filter)
@@ -1301,7 +1298,7 @@ class SummTable(LiveTable):
                 data_val = u"N=%s" % self.cur.fetchone()[0]
             except Exception:
                 raise Exception(u"Unable to calculate N for %s." % col_fld)
-        elif measure == mg.STD_DEV:
+        elif measure == mg.STD_DEV_KEY:
             try:
                 data_val = dp2_tpl % round(numpy.std(data, ddof=1),2) # use ddof=1 for 
                                                             # sample sd

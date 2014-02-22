@@ -530,7 +530,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                 if item_conf is not None:
                     item_conf.measures_lst = []
                     self.rowtree.SetItemText(tree_dims_item, 
-                        item_conf.get_summary(), 1)    
+                        item_conf.get_summary(), 1)
         else:
             self.rowtree.DeleteChildren(self.rowroot)
         # link to appropriate demo table type
@@ -712,7 +712,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                 + u"titles=%s," % unicode(titles)
                 + u"\n    subtitles=%s," % unicode(subtitles)
                 + u"\n    tab_type=%s," % self.tab_type
-                + u"\n    dbe=u\"%s\", " % dd.dbe
+                + u"\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
                 + u"tbl=u\"%s\", " % dd.tbl 
                 + u"tbl_filt=tbl_filt," 
                 + u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
@@ -722,7 +722,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                 + u"titles=%s," % unicode(titles) 
                 + u"\n    subtitles=%s," % unicode(subtitles) 
                 + u"\n    tab_type=%s," % self.tab_type 
-                + u"\n    dbe=u\"%s\", " % dd.dbe 
+                + u"\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
                 + u"tbl=u\"%s\", " % dd.tbl 
                 + u"tbl_filt=tbl_filt," 
                 + u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
@@ -733,14 +733,14 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
                 else u"False")
             script_lst.append(u"""
 tab_test = rawtables.RawTable(titles=%(titles)s, 
-    subtitles=%(subtitles)s, dbe=u\"%(dbe)s\", col_names=col_names, 
+    subtitles=%(subtitles)s, dbe=mg.%(dbe)s, col_names=col_names, 
     col_labels=col_labels, col_sorting=col_sorting, flds=flds, 
     var_labels=var_labels, val_dics=val_dics, tbl=u\"%(tbl)s\",
     tbl_filt=tbl_filt, cur=cur, add_total_row=%(tot_rows)s,
     first_col_as_label=%(first_label)s)""" % {u"titles": unicode(titles), 
-                u"subtitles": unicode(subtitles), u"dbe": dd.dbe, 
-                u"tbl": dd.tbl, u"tot_rows": tot_rows, 
-                u"first_label": first_label})
+            u"subtitles": unicode(subtitles), 
+            u"dbe": mg.DBE_KEY2KEY_AS_STR[dd.dbe], u"tbl": dd.tbl, 
+            u"tot_rows": tot_rows, u"first_label": first_label})
         if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"tab_test.prep_table(%s)" % css_idx)
             script_lst.append(u"max_cells = %s" % mg.MAX_CELLS_IN_REPORT_TABLE)
@@ -793,8 +793,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         child_node_label = self.g.next()
         item_conf = tree.GetItemPyData(child)
         measures_lst = item_conf.measures_lst
-        measures = u", ".join([(u"mg." + mg.script_export_measures_dic[x]) 
-            for x in measures_lst])
+        measures = u", ".join([(u"mg." + mg.MEASURE_LBL2KEY[x]) for x 
+            in measures_lst])
         if measures:
             measures_arg = u", \n    measures=[%s]" % measures
         else:
@@ -803,8 +803,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             tot_arg = u", \n    has_tot=True"
         else:
             tot_arg = u""
-        sort_order_arg = (u", \n    sort_order=u\"%s\"" %
-            item_conf.sort_order)
+        sort_order_arg = (u", \n    sort_order=mg.%s" %
+            mg.SORT_LBL2KEY[item_conf.sort_order])
         numeric_arg = u", \n    bolnumeric=%s" % item_conf.bolnumeric
         fldname = (_("Column configuration") if child_fldname is None
             else child_fldname)

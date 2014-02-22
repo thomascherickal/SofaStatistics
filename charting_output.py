@@ -108,7 +108,7 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if not var_role_cat:
         raise Exception(u"All general charts require a category variable to be "
             u"identified")
-    is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPTS)
+    is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS)
     agg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_agg) if is_agg
         else u" ")
     sql_dic = {u"tbl": tbl_quoted,
@@ -184,11 +184,11 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         cartesian_joiner, SQL_cat)
     if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
     # 2) Now get measures field with all grouping vars ready to join to full list
-    if data_show not in mg.AGGREGATE_DATA_SHOW_OPTS:
+    if data_show not in mg.AGGREGATE_DATA_SHOW_OPT_KEYS:
         sql_dic[u"val2show"] = u" COUNT(*) "
-    elif data_show == mg.SHOW_AVG:
+    elif data_show == mg.SHOW_AVG_KEY:
         sql_dic[u"val2show"] = u" AVG(%(var_role_agg)s) " % sql_dic
-    elif data_show == mg.SHOW_SUM:
+    elif data_show == mg.SHOW_SUM_KEY:
         sql_dic[u"val2show"] = u" SUM(%(var_role_agg)s) " % sql_dic
     else:
         raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
@@ -238,7 +238,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
     """
-    if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPTS:
+    if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPT_LBLS:
         raise Exception("Sorting by anything other than val or lbl fails if "
             "a multiseries chart because sorting by increasing or decreasing is"
             " based on data for the category _across_ series e.g. total for the"
@@ -258,7 +258,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
             perc = 0
         else:
             perc = 100*(measure/float(tot_measures))
-        y_val = perc if data_show == mg.SHOW_PERC else measure
+        y_val = perc if data_show == mg.SHOW_PERC_KEY else measure
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
         tooltip_dets = [itemlbl,] if itemlbl else []
@@ -267,7 +267,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
             tooltip_dets.append(u"y-val: %s" % measure2show)
         else:
             tooltip_dets.append(u"%s" % measure2show)
-        if data_show not in mg.AGGREGATE_DATA_SHOW_OPTS: # OK to show percentage
+        if data_show not in mg.AGGREGATE_DATA_SHOW_OPT_KEYS: # OK to show percentage
             tooltip_dets.append(u"%s%%" % round(perc,1))
         tooltip = u"<br>".join(tooltip_dets)
         sorted_tooltips.append(tooltip)
@@ -369,7 +369,8 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls,
         var_role_charts, var_role_charts_name, var_role_charts_lbls,
-        sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ, major_ticks=False):
+        sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
+        major_ticks=False):
     """
     Structure data for general charts (use different processes preparing data 
         for histograms, scatterplots etc).
@@ -541,7 +542,8 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         var_role_cat, var_role_cat_name, var_role_cat_lbls, 
         var_role_series, var_role_series_name, var_role_series_lbls, 
         var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-        sort_opt, rotate=False, data_show=mg.SHOW_FREQ, major_ticks=False):
+        sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
+        major_ticks=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
         VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
@@ -583,7 +585,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
-    dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPTS else 0
+    dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS else 0
     chart_output_dets = structure_gen_data(chart_type, raw_data, xlblsdic, 
         var_role_agg, var_role_agg_name, var_role_agg_lbls,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
@@ -683,7 +685,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         cat_vals = [x[0] for x in cur.fetchall()]
         # sort appropriately
         cat_vals_and_lbls = [(x, var_role_cat_lbls.get(x, x)) for x in cat_vals]
-        if sort_opt == mg.SORT_LBL:
+        if sort_opt == mg.SORT_LBL_KEY:
             cat_vals_and_lbls.sort(key=itemgetter(1))
         sorted_cat_vals = [x[0] for x in cat_vals_and_lbls]
         if debug: print(sorted_cat_vals)

@@ -53,13 +53,14 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
         script_lst.append(u"""
 (chisq, p, vals_a, vals_b, lst_obs, lst_exp, 
- min_count, perc_cells_lt_5, df) = core_stats.pearsons_chisquare(dbe=u"%(dbe)s",
+ min_count, perc_cells_lt_5, df) = core_stats.pearsons_chisquare(dbe=mg.%(dbe)s,
     db=u"%(db)s", cur=cur, tbl=u"%(tbl)s",
     flds=flds, fld_a=u"%(fld_a)s", fld_b=u"%(fld_b)s",
     tbl_filt=u\"\"\" %(tbl_filt)s \"\"\",
     where_tbl_filt=\"\"\" %(where_tbl_filt)s \"\"\",
     and_tbl_filt=\"\"\" %(and_tbl_filt)s \"\"\")""" %
-            {u"dbe": dd.dbe, u"db": dd.db, u"tbl": dd.tbl, 
+            {u"dbe": mg.DBE_KEY2KEY_AS_STR[dd.dbe], u"db": dd.db, 
+            u"tbl": dd.tbl, 
              u"fld_a": lib.esc_str_input(var_a),
              u"fld_b": lib.esc_str_input(var_b), u"tbl_filt": tbl_filt,
              u"where_tbl_filt": where_tbl_filt, u"and_tbl_filt": and_tbl_filt})

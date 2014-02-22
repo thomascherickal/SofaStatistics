@@ -211,7 +211,7 @@ def fix_eols(orig):
     return fixed
 
 def get_num2display(num, output_type, inc_perc=True):
-    if output_type == mg.FREQ:
+    if output_type == mg.FREQ_KEY:
         num2display = unicode(num)
     else:
         if inc_perc:
@@ -361,11 +361,11 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     In-place sort value labels list according to sort option selected.
     http://www.python.org/dev/peps/pep-0265/
     """
-    if sort_order == mg.SORT_INCREASING:
+    if sort_order == mg.SORT_INCREASING_KEY:
         vals_etc_lst.sort(key=itemgetter(idx_measure))
-    elif sort_order == mg.SORT_DECREASING:
+    elif sort_order == mg.SORT_DECREASING_KEY:
         vals_etc_lst.sort(key=itemgetter(idx_measure), reverse=True)
-    elif sort_order == mg.SORT_LBL:
+    elif sort_order == mg.SORT_LBL_KEY:
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
 def get_sorted_vals(sort_order, vals, lbls):
@@ -375,12 +375,12 @@ def get_sorted_vals(sort_order, vals, lbls):
     
     http://www.python.org/dev/peps/pep-0265/
     """
-    if sort_order == mg.SORT_INCREASING:
+    if sort_order == mg.SORT_INCREASING_KEY:
         sorted_vals = sorted(vals)
-    elif sort_order == mg.SORT_DECREASING:
+    elif sort_order == mg.SORT_DECREASING_KEY:
         sorted_vals = sorted(vals)
         sorted_vals.sort(reverse=True)
-    elif sort_order == mg.SORT_LBL:
+    elif sort_order == mg.SORT_LBL_KEY:
         val_lbls = [(x, lbls.get(x, unicode(x))) for x in vals]
         val_lbls.sort(key=itemgetter(1))
         sorted_vals = [x[0] for x in val_lbls]
@@ -1823,11 +1823,11 @@ class ItemConfig(object):
         if total_part:
             str_parts.append(total_part)
         # ordinary sorting by freq (may include rows and cols)
-        order2lbl_dic = {mg.SORT_NONE: u"Not Sorted",
-            mg.SORT_VALUE: u"Sort by Value", 
-            mg.SORT_LBL: _("Sort by Label"),
-            mg.SORT_INCREASING: _("Sort by Freq (Asc)"),
-            mg.SORT_DECREASING: _("Sort by Freq (Desc)")}
+        order2lbl_dic = {mg.SORT_NONE_KEY: u"Not Sorted",
+            mg.SORT_VALUE_KEY: u"Sort by Value", 
+            mg.SORT_LBL_KEY: _("Sort by Label"),
+            mg.SORT_INCREASING_KEY: _("Sort by Freq (Asc)"),
+            mg.SORT_DECREASING_KEY: _("Sort by Freq (Desc)")}
         sort_order_part = order2lbl_dic.get(self.sort_order)        
         if sort_order_part:
             str_parts.append(sort_order_part)

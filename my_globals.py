@@ -72,39 +72,56 @@ CI_EXPLAN = (u"We are 95%% certain that the true value of the mean is within "
     u"this interval. But it could still lie anywhere outside of those bounds.")
 # stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
+# NOTE - GUI consumes labels (so translated strings are needed); script consumes untranslated keys so scripts can run safely headless
 # Making tables ******************************************************
-# can use content of constant as a short label
-FREQ = _("Freq")
-ROWPCT = _("Row %")
-COLPCT = _("Col %")
-SUM = _("Sum")
-MEAN = _("Mean")
-MEDIAN = _("Median")
-MODE = _("Mode")
-SUMM_N = u"N" # N used in Summary tables
-STD_DEV = _("Std Dev")
-MIN = _("Min")
-MAX = _("Max")
-RANGE = _("Range")
-LOWER_QUARTILE = _("L. Quartile")
-UPPER_QUARTILE = _("U. Quartile")
-IQR = _(u"IQR") # Inter-Quartile Range
-measures_long_lbl_dic = {FREQ: _("Frequency"), 
-                         ROWPCT: _("Row %"),
-                         COLPCT: _("Column %"),
-                         SUM: _("Sum"), 
-                         MEAN: _("Mean"),
-                         MEDIAN: _("Median"),
-                         MODE: _("Mode"),
-                         SUMM_N: "N",
-                         STD_DEV: _("Standard Deviation"),
-                         MIN: _("Minimum"),
-                         MAX: _("Maximum"),
-                         RANGE: _("Range"),
-                         LOWER_QUARTILE: _("Lower Quartile"),
-                         UPPER_QUARTILE: _("Upper Quartile"),
-                         IQR: _("Inter-Quartile Range"),
-                         }
+FREQ_KEY = u"FREQ_KEY"
+ROWPCT_KEY = u"ROWPCT_KEY"
+COLPCT_KEY = u"COLPCT_KEY"
+SUM_KEY = u"SUM_KEY"
+MEAN_KEY = u"MEAN_KEY"
+MEDIAN_KEY = u"MEDIAN_KEY"
+MODE_KEY = u"MODE_KEY"
+SUMM_N_KEY = u"SUMM_N_KEY"
+STD_DEV_KEY = u"STD_DEV_KEY"
+MIN_KEY = u"MIN_KEY"
+MAX_KEY = u"MAX_KEY"
+RANGE_KEY = u"RANGE_KEY"
+LOWER_QUARTILE_KEY = u"LOWER_QUARTILE_KEY"
+UPPER_QUARTILE_KEY = u"UPPER_QUARTILE_KEY"
+IQR_KEY = u"IQR_KEY" # Inter-Quartile Range
+FREQ_LBL = _("Freq")
+ROWPCT_LBL = _("Row %")
+COLPCT_LBL = _("Col %")
+SUM_LBL = _("Sum")
+MEAN_LBL = _("Mean")
+MEDIAN_LBL = _("Median")
+MODE_LBL = _("Mode")
+SUMM_N_LBL = u"N" # N used in Summary tables
+STD_DEV_LBL = _("Std Dev")
+MIN_LBL = _("Min")
+MAX_LBL = _("Max")
+RANGE_LBL = _("Range")
+LOWER_QUARTILE_LBL = _("L. Quartile")
+UPPER_QUARTILE_LBL = _("U. Quartile")
+IQR_LBL = _(u"IQR") # Inter-Quartile Range
+
+MEASURE_LBLS_SHORT2LONG = {
+    FREQ_LBL: _("Frequency"), 
+    ROWPCT_LBL: _("Row %"),
+    COLPCT_LBL: _("Column %"),
+    SUM_LBL: _("Sum"), 
+    MEAN_LBL: _("Mean"),
+    MEDIAN_LBL: _("Median"),
+    MODE_LBL: _("Mode"),
+    SUMM_N_LBL: "N",
+    STD_DEV_LBL: _("Standard Deviation"),
+    MIN_LBL: _("Minimum"),
+    MAX_LBL: _("Maximum"),
+    RANGE_LBL: _("Range"),
+    LOWER_QUARTILE_LBL: _("Lower Quartile"),
+    UPPER_QUARTILE_LBL: _("Upper Quartile"),
+    IQR_LBL: _("Inter-Quartile Range"),
+}
 HAS_TOTAL = _("Total") # doubles as display label
 FREQS = 0 # indexes in tab type
 CROSSTAB = 1
@@ -127,77 +144,100 @@ NEEDS_ROWS_KEY = u"needs_row_key"
 QUICK_IF_BELOW_KEY = u"quick_live_below_key" # safe assumption that we can run 
     # live demo output if table has less than this records
 RPT_CONFIG = {
-    FREQS: {COL_MEASURES_KEY: [FREQ, COLPCT], 
-            VAR_SUMMARISED_KEY: False,
-            NEEDS_ROWS_KEY: True,
-            ROWPCT_AN_OPTION_KEY: True,
-            MEASURES_HORIZ_KEY: True,
-            DEFAULT_MEASURE_KEY: FREQ,
-            QUICK_IF_BELOW_KEY: 1000 if debug else 5000}, # 5000
-    CROSSTAB: {COL_MEASURES_KEY: [FREQ, COLPCT], 
-               VAR_SUMMARISED_KEY: False,
-               NEEDS_ROWS_KEY: True,
-               ROWPCT_AN_OPTION_KEY: True,
-               MEASURES_HORIZ_KEY: True,
-               DEFAULT_MEASURE_KEY: FREQ,
-               QUICK_IF_BELOW_KEY: 1000 if debug else 4000}, # 4000
-    ROW_STATS: {COL_MEASURES_KEY: [MEAN, STD_DEV, MEDIAN, MODE, SUMM_N, 
-                                   MIN, MAX, RANGE,
-                                   LOWER_QUARTILE, UPPER_QUARTILE, IQR, SUM],
-               VAR_SUMMARISED_KEY: True,
-               NEEDS_ROWS_KEY: False,
-               ROWPCT_AN_OPTION_KEY: False, 
-               MEASURES_HORIZ_KEY: False,
-               DEFAULT_MEASURE_KEY: MEAN,
-               QUICK_IF_BELOW_KEY: 1000 if debug else 2000}, # 2000
+    FREQS: {COL_MEASURES_KEY: [FREQ_LBL, COLPCT_LBL], 
+        VAR_SUMMARISED_KEY: False,
+        NEEDS_ROWS_KEY: True,
+        ROWPCT_AN_OPTION_KEY: True,
+        MEASURES_HORIZ_KEY: True,
+        DEFAULT_MEASURE_KEY: FREQ_LBL,
+        QUICK_IF_BELOW_KEY: 1000 if debug else 5000}, # 5000
+    CROSSTAB: {COL_MEASURES_KEY: [FREQ_LBL, COLPCT_LBL], 
+        VAR_SUMMARISED_KEY: False,
+        NEEDS_ROWS_KEY: True,
+        ROWPCT_AN_OPTION_KEY: True,
+        MEASURES_HORIZ_KEY: True,
+        DEFAULT_MEASURE_KEY: FREQ_LBL,
+        QUICK_IF_BELOW_KEY: 1000 if debug else 4000}, # 4000
+    ROW_STATS: {COL_MEASURES_KEY: [MEAN_LBL, STD_DEV_LBL, MEDIAN_LBL, MODE_LBL, 
+            SUMM_N_LBL, MIN_LBL, MAX_LBL, RANGE_LBL, LOWER_QUARTILE_LBL, 
+            UPPER_QUARTILE_LBL, IQR_LBL, SUM_LBL],
+        VAR_SUMMARISED_KEY: True,
+        NEEDS_ROWS_KEY: False,
+        ROWPCT_AN_OPTION_KEY: False, 
+        MEASURES_HORIZ_KEY: False,
+        DEFAULT_MEASURE_KEY: MEAN_LBL,
+        QUICK_IF_BELOW_KEY: 1000 if debug else 2000}, # 2000
     DATA_LIST: {COL_MEASURES_KEY: [],
-                VAR_SUMMARISED_KEY: False, 
-                NEEDS_ROWS_KEY: False,
-                ROWPCT_AN_OPTION_KEY: False,
-                MEASURES_HORIZ_KEY: True,
-                DEFAULT_MEASURE_KEY: None,
-                QUICK_IF_BELOW_KEY: 750},
+        VAR_SUMMARISED_KEY: False, 
+        NEEDS_ROWS_KEY: False,
+        ROWPCT_AN_OPTION_KEY: False,
+        MEASURES_HORIZ_KEY: True,
+        DEFAULT_MEASURE_KEY: None,
+        QUICK_IF_BELOW_KEY: 750},
   }
 MAX_CELLS_IN_REPORT_TABLE = 100000 if debug else 5000
 MAX_VAL_LEN_IN_SQL_CLAUSE = 90
 COL_CONFIG_ITEM_LBL = _("Column configuration")
 # dimension trees
-ROWDIM = _("row") #double as labels
-COLDIM = _("column")
+ROWDIM_KEY = u"ROWDIM_KEY"
+COLDIM_KEY = u"COLDIM_KEY"
+ROWDIM_LBL = _(u"row")
+COLDIM_LBL = _(u"column")
+DIM_KEY2LBL = {ROWDIM_KEY: ROWDIM_LBL, COLDIM_KEY: COLDIM_LBL}
 # actual options selected ...
-SORT_VALUE = _(u"By Value") # double as labels
-SORT_NONE = _(u"None")
-SORT_LBL = _(u"By Label")
-SORT_INCREASING = _(u"Increasing")
-SORT_DECREASING = _(u"Decreasing")
+# never mix translated labels and SOFA arguments - creates major issues when not using GUI but scripts
+SORT_VALUE_KEY = u"SORT_VALUE_KEY"
+SORT_NONE_KEY = u"SORT_NONE_KEY"
+SORT_LBL_KEY = u"SORT_LBL_KEY"
+SORT_INCREASING_KEY = u"SORT_INCREASING_KEY"
+SORT_DECREASING_KEY = u"SORT_DECREASING_KEY"
+SORT_VALUE_LBL = _(u"By Value")
+SORT_NONE_LBL = _(u"None")
+SORT_LBL_LBL = _(u"By Label")
+SORT_INCREASING_LBL = _(u"Increasing")
+SORT_DECREASING_LBL = _(u"Decreasing")
 SORT_NO_OPTS = []
-STD_SORT_OPTS = [SORT_VALUE, SORT_LBL, SORT_INCREASING, SORT_DECREASING]
-SORT_VAL_AND_LABEL_OPTS = [SORT_VALUE, SORT_LBL]
-BOX_PLOT_SORT_OPTS = [SORT_VALUE, SORT_LBL]
-SHOW_FREQ = _(u"Count")
-SHOW_PERC = _(u"Percent")
-SHOW_AVG = _(u"Mean")
-SHOW_SUM = _(u"Sum")
-DATA_SHOW_OPTS = [SHOW_FREQ, SHOW_PERC, SHOW_AVG, SHOW_SUM]
-AGGREGATE_DATA_SHOW_OPTS = [SHOW_AVG, SHOW_SUM]
+STD_SORT_OPT_LBLS = [SORT_VALUE_LBL, SORT_LBL_LBL, SORT_INCREASING_LBL, 
+    SORT_DECREASING_LBL]
+SORT_VAL_AND_LABEL_OPT_LBLS = [SORT_VALUE_LBL, SORT_LBL_LBL]
+SORT_LBL2KEY = {SORT_VALUE_LBL: SORT_VALUE_KEY, SORT_NONE_LBL: SORT_NONE_KEY,
+    SORT_LBL_LBL: SORT_LBL_KEY, SORT_INCREASING_LBL: SORT_INCREASING_KEY,
+    SORT_DECREASING_LBL: SORT_DECREASING_KEY} # in the GUI we work with drop downs and indexes using labels - only use keys at last step when writing scripts
+
+SHOW_FREQ_KEY = u"SHOW_FREQ_KEY"
+SHOW_PERC_KEY = u"SHOW_PERC_KEY"
+SHOW_AVG_KEY = u"SHOW_AVG_KEY"
+SHOW_SUM_KEY = u"SHOW_SUM_KEY"
+SHOW_FREQ_LBL = _(u"Count")
+SHOW_PERC_LBL = _(u"Percent")
+SHOW_AVG_LBL = _(u"Mean")
+SHOW_SUM_LBL = _(u"Sum")
+DATA_SHOW_OPT_LBLS = [SHOW_FREQ_LBL, SHOW_PERC_LBL, SHOW_AVG_LBL, SHOW_SUM_LBL]
+DATA_SHOW_LBL2KEY = {SHOW_FREQ_KEY: SHOW_FREQ_LBL, SHOW_PERC_KEY: SHOW_PERC_LBL, 
+    SHOW_AVG_KEY: SHOW_AVG_LBL, SHOW_SUM_KEY: SHOW_SUM_LBL}
+AGGREGATE_DATA_SHOW_OPT_KEYS = [SHOW_AVG_KEY, SHOW_SUM_KEY]
+AGGREGATE_DATA_SHOW_OPT_LBLS = [SHOW_AVG_LBL, SHOW_SUM_LBL]
+
 # content of constant and constant (ready to include in exported script)
 # e.g. "dimtables.%s" "ROWPCT"
-script_export_measures_dic = {FREQ: u"FREQ", 
-    ROWPCT: u"ROWPCT",
-    COLPCT: u"COLPCT",
-    SUM: u"SUM", 
-    MEAN: u"MEAN",
-    MEDIAN: u"MEDIAN", 
-    MODE: u"MODE",
-    SUMM_N: u"SUMM_N",
-    STD_DEV: u"STD_DEV",
-    MIN: u"MIN",
-    MAX: u"MAX",
-    RANGE: u"RANGE",
-    LOWER_QUARTILE: u"LOWER_QUARTILE",
-    UPPER_QUARTILE: u"UPPER_QUARTILE",
-    IQR: u"IQR",
+MEASURE_LBL2KEY = {
+    FREQ_LBL: FREQ_KEY, 
+    ROWPCT_LBL: ROWPCT_KEY,
+    COLPCT_LBL: COLPCT_KEY,
+    SUM_LBL: SUM_KEY, 
+    MEAN_LBL: MEAN_KEY,
+    MEDIAN_LBL: MEDIAN_KEY, 
+    MODE_LBL: MODE_KEY,
+    SUMM_N_LBL: SUMM_N_KEY,
+    STD_DEV_LBL: STD_DEV_KEY,
+    MIN_LBL: MIN_KEY,
+    MAX_LBL: MAX_KEY,
+    RANGE_LBL: RANGE_KEY,
+    LOWER_QUARTILE_LBL: LOWER_QUARTILE_KEY,
+    UPPER_QUARTILE_LBL: UPPER_QUARTILE_KEY,
+    IQR_LBL: IQR_KEY,
 }
+MEASURE_KEY2LBL = dict([(val, key) for key, val in MEASURE_LBL2KEY.items()])
 GROUPING_PLACEHOLDER = 1
 # Used to make it easy to slice into html and replace titles and subtitles only.
 # Changing the return values of get html functions to get html_pre_title, 
@@ -457,6 +497,14 @@ DBE_MS_ACCESS = u"MS Access"
 DBE_MS_SQL = u"MS SQL Server"
 DBE_PGSQL = u"PostgreSQL"
 DBE_CUBRID = u"CUBRID"
+DBE_KEY2KEY_AS_STR = { # Too late to split into keys and labels - all over users' existing proj files
+    DBE_SQLITE: u"DBE_SQLITE",
+    DBE_MYSQL: u"DBE_MYSQL",
+    DBE_MS_ACCESS: u"DBE_MS_ACCESS",
+    DBE_MS_SQL: u"DBE_MS_SQL",
+    DBE_PGSQL: u"DBE_PGSQL",
+    DBE_CUBRID: u"DBE_CUBRID",
+}
 MUST_DEL_TMP = False
 DBE_PROBLEM = []
 DBES = []
@@ -572,11 +620,12 @@ VERSION_CHECK_OPTS = [VERSION_CHECK_NONE, VERSION_CHECK_MAJOR,
 CHART_VALUES = _(u"Values")
 CHART_DESCRIBED = _(u"Described")
 CHART_BY = _(u"By")
-CHARTS_CHART_BY = _(u"Charts By")
-CHART_SERIES_BY = _(u"Series By")
-CHART_AVERAGED = _(u"Averaged")
-CHART_SUMMED = _(u"Summed")
-DATA_SHOW2_LBL_KEY = {SHOW_AVG: CHART_AVERAGED, SHOW_SUM: CHART_SUMMED}
+CHARTS_CHART_BY_LBL = _(u"Charts By")
+CHART_SERIES_BY_LBL = _(u"Series By")
+CHART_AVERAGED_LBL = _(u"Averaged")
+CHART_SUMMED_LBL = _(u"Summed")
+DATA_SHOW2_LBL_KEY = {SHOW_AVG_LBL: CHART_AVERAGED_LBL, 
+    SHOW_SUM_LBL: CHART_SUMMED_LBL}
 Y_AXIS_FREQ_LBL = _("Frequency")
 Y_AXIS_PERC_LBL = _(u"Percentage")
 X_AXIS = _(u"X-axis")
@@ -629,7 +678,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -639,7 +688,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -659,7 +708,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
@@ -673,7 +722,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -685,7 +734,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -705,7 +754,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
@@ -719,7 +768,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 2
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -735,7 +784,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 3
@@ -745,7 +794,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 1
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -757,7 +806,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_QUANT,
              INC_SELECT_KEY: False,
              VAR_ROLE_KEY: VAR_ROLE_BIN}, # dropdown 1
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 2
@@ -777,7 +826,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
-            {LBL_KEY: CHARTS_CHART_BY,
+            {LBL_KEY: CHARTS_CHART_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CHARTS}, # dropdown 4
@@ -793,7 +842,7 @@ CHART_CONFIG = {
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_CATEGORY}, # dropdown 2
-            {LBL_KEY: CHART_SERIES_BY,
+            {LBL_KEY: CHART_SERIES_BY_LBL,
              MIN_DATA_TYPE_KEY: VAR_TYPE_CAT,
              INC_SELECT_KEY: True,
              VAR_ROLE_KEY: VAR_ROLE_SERIES}, # dropdown 3
