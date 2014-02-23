@@ -771,10 +771,11 @@ class CsvImporter(importer.FileImporter):
                 # empty strings or whatever later.
             gauge_val = i*steps_per_item
             progbar.SetValue(gauge_val)
-            i2break = (ROWS_TO_SHOW_USER if self.has_header 
-                else ROWS_TO_SHOW_USER - 1)
-            if i == i2break:
-                break
+            if not self.headless:
+                i2break = (ROWS_TO_SHOW_USER if self.has_header 
+                    else ROWS_TO_SHOW_USER - 1)
+                if i == i2break:
+                    break
         fldtypes = []
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header,

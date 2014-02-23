@@ -143,10 +143,12 @@ class DlgFixMismatch(wx.Dialog):
                 u"\n%(details)s"
                 u"\n\nPlease select the data type you want this entire column "
                 u"imported as.") % {u"fldname": fldname, 
-                u"data_type": fldtypes[fldname], u"details": details})
+                u"data_type": mg.FLDTYPE_KEY2LBL[fldtypes[fldname]], 
+                u"details": details})
         lbl_choice = wx.StaticText(self.panel, -1, choice_txt)
-        types = u" or ".join(["\"%s\"" % x for x in self.fldtype_choices])
-        lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s ,"
+        types = u" or ".join(["\"%s\"" % mg.FLDTYPE_KEY2LBL[x] for x 
+            in self.fldtype_choices])
+        lbl_implications = wx.StaticText(self.panel, -1, _(u"If you choose %s,"
             u" any values that are not of that type will be turned to missing."
             % types))
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -402,7 +404,8 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
         if len(main_type_set) > 1 and not first_mismatch:
             # identify row and value to report to user
             first_mismatch = (FIRST_MISMATCH_TPL % {u"row": row_num, 
-                u"value": val, u"fldtype": expected_fldtype})
+                u"value": val, 
+                u"fldtype": expected_fldtype})
     fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set, 
         faulty2missing_fld_list=faulty2missing_fld_list,
         first_mismatch=first_mismatch, headless=headless)
@@ -492,7 +495,7 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
             val = u"NULL" # replace faulty value with a null
         else:
             details = FIRST_MISMATCH_TPL % {u"row": row_num, u"value": raw_val, 
-                u"fldtype": fldtype}
+                u"fldtype": mg.FLDTYPE_KEY2LBL[fldtype]}
             raise my_exceptions.Mismatch(fldname=ok_fldname,
                 expected_fldtype=fldtype, details=details)
     return val

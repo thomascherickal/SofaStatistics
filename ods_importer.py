@@ -26,10 +26,11 @@ class OdsImporter(importer.FileImporter):
     """
     
     def __init__(self, parent, file_path, tblname, headless, 
-            headless_has_header):
+            headless_has_header, force_quickcheck=False):
         importer.FileImporter.__init__(self, parent, file_path, tblname,
             headless, headless_has_header)
         self.ext = u"ODS"
+        self.force_quickcheck = force_quickcheck
 
     def has_header_row(self, strdata):
         """
@@ -79,7 +80,8 @@ class OdsImporter(importer.FileImporter):
                 tbl = ods_reader.get_tbl(tree)
                 # much less efficient if no header supplied
                 ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
-                    rows_to_sample=ROWS_TO_SAMPLE, headless=self.headless)
+                    rows_to_sample=ROWS_TO_SAMPLE, headless=self.headless,
+                    force_quickcheck=self.force_quickcheck)
                 if not ok_fldnames:
                     raise Exception(_("Unable to extract or generate field "
                         "names"))

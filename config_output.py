@@ -97,18 +97,18 @@ def update_var_dets(dlg):
      dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
 # explanation level
-def get_szr_level(parent, panel, horiz=True):
-    """
-    Get self.szr_level with radio widgets. 
-    """
-    hv_style = wx.RA_SPECIFY_COLS if horiz else wx.RA_SPECIFY_ROWS
-    parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
-        choices=mg.LEVELS, style=hv_style)
-    parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
-    parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
-    parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
-    parent.rad_level.Enable(False)
-    return parent.szr_level
+#def get_szr_level(parent, panel, horiz=True):
+#    """
+#    Get self.szr_level with radio widgets. 
+#    """
+#    hv_style = wx.RA_SPECIFY_COLS if horiz else wx.RA_SPECIFY_ROWS
+#    parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
+#        choices=mg.LEVELS, style=hv_style)
+#    parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
+#    parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
+#    parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
+#    parent.rad_level.Enable(False)
+#    return parent.szr_level
 
 def style2path(style):
     "Get full path of css file from style name alone"
@@ -843,13 +843,13 @@ class ConfigUI(object):
             cc[mg.CURRENT_CSS_PATH] = style2path(style)
         
     # explanation level
-    def get_szr_level(self, panel):
-        """
-        Get self.szr_level with radio widgets. 
-        """
-        szr_level = get_szr_level(self, panel)
-        self.rad_level.Enable(False)
-        return szr_level
+    #def get_szr_level(self, panel):
+    #    """
+    #    Get self.szr_level with radio widgets. 
+    #    """
+    #    szr_level = get_szr_level(self, panel)
+    #    self.rad_level.Enable(False)
+    #    return szr_level
     
     def on_btn_expand(self, event):
         output.display_report(self, self.content2expand, self.url_load)

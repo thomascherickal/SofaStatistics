@@ -360,7 +360,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         
     def setup_vars(self, var_a=True, var_b=True, var=None):
         var_names = projects.get_approp_var_names(self.var_types,
-            min_data_type=mg.VAR_TYPE_QUANT)
+            min_data_type=mg.VAR_TYPE_QUANT_KEY)
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
             dic_labels=self.var_labels, vals=var_names)
         if var_a:

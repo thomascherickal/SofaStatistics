@@ -7,7 +7,7 @@ import pprint
 import wx
 
 import my_globals as mg
-import config_output
+#import config_output
 import config_globals
 
 
@@ -21,8 +21,7 @@ class DlgPrefs(wx.Dialog):
             as well, and the sizer is shared code as well.
         """
         wx.Dialog.__init__(self, parent=parent, title=_("Preferences"), 
-                           style=wx.CAPTION|wx.SYSTEM_MENU, 
-                           pos=(mg.HORIZ_OFFSET+100,300))
+            style=wx.CAPTION|wx.SYSTEM_MENU, pos=(mg.HORIZ_OFFSET+100,300))
         if not prefs_dic_in or mg.PREFS_KEY not in prefs_dic_in:
             prefs_dic_in = {mg.PREFS_KEY: {}}
         self.parent = parent
@@ -31,15 +30,23 @@ class DlgPrefs(wx.Dialog):
         self.rad_versions = wx.RadioBox(self.panel, -1, _("Upgrade Checking"), 
             choices=mg.VERSION_CHECK_OPT_LBLS, style=wx.RA_SPECIFY_ROWS)
         version_check_lev = prefs_dic_in[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
-                                                           mg.VERSION_CHECK_ALL)
-        self.rad_versions.SetStringSelection(version_check_lev)
+            mg.VERSION_CHECK_ALL_KEY)
+        if version_check_lev not in mg.VERSION_CHECK_OPT_KEYS: # can remove this in late 2020 ;-) - break stuff then to clean the code up? 
+            old_mapping = {u"No checking": mg.VERSION_CHECK_NONE_KEY,
+                _(u"Only report major upgrades"): mg.VERSION_CHECK_MAJOR_KEY,
+                _(u"Report any version upgrades"): mg.VERSION_CHECK_ALL_KEY,
+            }
+            version_check_lev = old_mapping.get(version_check_lev, 
+                mg.VERSION_CHECK_ALL_KEY)
+        self.rad_versions.SetStringSelection(
+            mg.VERSION_CHECK_KEY2LBL[version_check_lev])
         self.szr_versions = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_versions.Add(self.rad_versions, 0, wx.RIGHT, 10)
         self.rad_versions.Enable(True)
-        self.szr_level = config_output.get_szr_level(self, self.panel, 
-                                                     horiz=False)
+        #self.szr_level = config_output.get_szr_level(self, self.panel, 
+        #    horiz=False)
         self.szr_main.Add(self.szr_versions, 0, wx.ALL, 10)
-        self.szr_main.Add(self.szr_level, 0, wx.ALL, 10)
+        #self.szr_main.Add(self.szr_level, 0, wx.ALL, 10)
         self.setup_btns()
         self.szr_main.Add(self.szr_std_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
@@ -68,10 +75,10 @@ class DlgPrefs(wx.Dialog):
     def on_ok(self, event):
         # collect prefs.  Do it all from scratch here
         prefs_dic_out = {mg.PREFS_KEY: {}}
-        prefs_dic_out[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY] = \
-            self.rad_level.GetStringSelection()
+        #prefs_dic_out[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY] = \
+        #    self.rad_level.GetStringSelection()
         prefs_dic_out[mg.PREFS_KEY][mg.VERSION_CHECK_KEY] = \
-            self.rad_versions.GetStringSelection()
+            mg.VERSION_CHECK_LBL2KEY[self.rad_versions.GetStringSelection()]
         # create updated prefs file
         prefs_path = os.path.join(mg.INT_PATH, mg.INT_PREFS_FILE)
         f = codecs.open(prefs_path, "w", "utf-8")

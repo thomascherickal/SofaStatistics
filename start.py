@@ -552,9 +552,9 @@ class StartFrame(wx.Frame):
             prefs_dic = config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
                 fil_name=mg.INT_PREFS_FILE)
             version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
-                mg.VERSION_CHECK_ALL)
+                mg.VERSION_CHECK_ALL_KEY)
         except Exception, e:
-            version_lev = mg.VERSION_CHECK_ALL
+            version_lev = mg.VERSION_CHECK_ALL_KEY
         return version_lev
     
     def get_new_version(self, version_lev):
@@ -564,7 +564,7 @@ class StartFrame(wx.Frame):
         debug = False
         new_version = u""
         try:
-            if version_lev != mg.VERSION_CHECK_NONE:
+            if version_lev != mg.VERSION_CHECK_NONE_KEY:
                 new_version = self.get_latest_version(version_lev)
         except Exception, e:
             pass
@@ -970,8 +970,8 @@ class StartFrame(wx.Frame):
         """
         import urllib # http://docs.python.org/library/urllib.html
         debug = False
-        file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK 
-            if version_lev == mg.VERSION_CHECK_MAJOR 
+        file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK
+            if version_lev == mg.VERSION_CHECK_MAJOR_KEY
             else mg.SOFASTATS_VERSION_CHECK)
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
@@ -1349,7 +1349,7 @@ class StartFrame(wx.Frame):
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt_pref = _("Set preferences e.g. format for entering dates")
+        txt_pref = _("Set preferences")
         panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
             self.max_help_text_width), wx.Rect(self.main_left, 
             self.help_text_top, self.help_text_width, 260))

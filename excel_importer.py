@@ -189,8 +189,9 @@ class ExcelImporter(importer.FileImporter):
             sample_data.append(rowdict)
             gauge_val = row_idx*steps_per_item
             progbar.SetValue(gauge_val)
-            if row_idx == (ROWS_TO_SAMPLE - 1):
-                break
+            if not self.headless:
+                if row_idx == (ROWS_TO_SAMPLE - 1):
+                    break
             row_idx += 1
         fldtypes = []
         for ok_fldname in ok_fldnames:
@@ -201,7 +202,7 @@ class ExcelImporter(importer.FileImporter):
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not has_rows:
             raise Exception(u"No data to import")
-        return fldtypes, sample_data 
+        return fldtypes, sample_data
 
     def import_content(self, progbar, import_status, lbl_feedback):
         """
@@ -231,6 +232,8 @@ class ExcelImporter(importer.FileImporter):
             raise Exception(u"Unable to read spreadsheet."
                 u"\nCaused by error: %s" % lib.ue(e))
         default_dd = getdata.get_default_db_dets()
+        if self.headless:
+            ROWS_TO_SAMPLE = n_datarows
         sample_n = min(ROWS_TO_SAMPLE, n_datarows)
         items_n = n_datarows + sample_n
         steps_per_item = importer.get_steps_per_item(items_n)

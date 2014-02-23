@@ -209,7 +209,8 @@ def get_col_rep(el_attribs):
         colrep = 1
     return colrep
 
-def get_ok_fldnames(tbl, has_header, rows_to_sample, headless):
+def get_ok_fldnames(tbl, has_header, rows_to_sample, headless, 
+        force_quickcheck=False):
     """
     Get cleaned field names. Will be used to create row dicts as required by
         importer.add_to_tmp_tbl().
@@ -221,7 +222,8 @@ def get_ok_fldnames(tbl, has_header, rows_to_sample, headless):
         rows = get_rows(tbl, inc_empty=False, n=1)
         try:
             row = rows[0]
-            ok_fldnames = get_fldnames_from_header_row(row, headless)
+            ok_fldnames = get_fldnames_from_header_row(row, headless,
+                force_quickcheck)
         except IndexError:
             raise Exception(_("Need at least one row to import"))
     else:

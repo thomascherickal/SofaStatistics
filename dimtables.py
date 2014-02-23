@@ -982,9 +982,9 @@ class GenTable(LiveTable):
         # build the body row html
         for row in row_label_rows_lst:
             for unused in col_term_nodes:
+                output_type = mg.MEASURE_LBL2KEY[data_item_presn_lst[i][1]]
                 num2display = lib.get_num2display(num=results[i], 
-                                  output_type=data_item_presn_lst[i][1], 
-                                  inc_perc=self.show_perc)
+                    output_type=output_type, inc_perc=self.show_perc)
                 row.append(data_item_presn_lst[i][0] 
                            + num2display + data_item_presn_lst[i][2])
                 i=i+1

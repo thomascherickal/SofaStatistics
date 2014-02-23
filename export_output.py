@@ -1033,7 +1033,7 @@ def copy_output():
         os.remove(delme)
     hdr, img_items, unused = get_hdr_and_items(mg.INT_REPORT_PATH, DIAGNOSTIC)
     msgs = [] # not used in this case
-    export2imgs(hdr, img_items=img_items, save2report_path=True, 
+    export2imgs(hdr, img_items=img_items, save2report_path=False, 
         report_path=mg.INT_REPORT_PATH, alternative_path=mg.INT_COPY_IMGS_PATH,  
         output_dpi=PRINT_DPI, gauge_start_imgs=0, headless=False, 
         export_status=export_status, steps_per_img=GAUGE_STEPS, msgs=msgs, 

@@ -63,24 +63,22 @@ class DemoTable(object):
         return row_label_rows_lst
 
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
-                                  col_measures_lst, col_filters_lst, 
-                                  col_tots_lst, col_filt_flds_lst, 
-                                  row_label_rows_lst, data_cells_n,
-                                  col_term_nodes, css_idx):
+            col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
         """
         Get list of row data. Each row in the list is represented
         by a row of strings to concatenate, one per data point.
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
-                                                       css_idx)
+            css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
         for unused in row_filters_lst:
             first = True
             for (colmeasure, unused, 
-                 unused, unused) in zip(col_measures_lst, col_filters_lst, 
-                                        col_tots_lst, col_filt_flds_lst):
+                unused, unused) in zip(col_measures_lst, col_filters_lst, 
+                    col_tots_lst, col_filt_flds_lst):
                 if first:
                     cellclass = CSS_FIRST_DATACELL
                     first = False
@@ -89,10 +87,10 @@ class DemoTable(object):
                 # build data row list
                 raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC_KEY)
                 num2display = lib.get_num2display(num=raw_val, 
-                                                  output_type=colmeasure, 
-                                                  inc_perc=self.show_perc)
-                data_item_presn_lst.append(u"<td class='%s'>%s</td>" % \
-                                           (cellclass, num2display))
+                    output_type=mg.MEASURE_LBL2KEY[colmeasure], 
+                    inc_perc=self.show_perc)
+                data_item_presn_lst.append(u"<td class='%s'>%s</td>" %
+                    (cellclass, num2display))
                 i=i+1
         i=0
         # put the cell data (inc html) into the right places
