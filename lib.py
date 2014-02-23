@@ -917,9 +917,15 @@ def get_var_dets(fil_var_dets):
         exec var_dets in var_dets_dic
         try: # puts out results in form which should work irrespective of surrounding encoding of script. E.g. labels={u'1': u'R\xe9parateurs de lampe \xe0 p\xe9trole',
             orig_var_types = var_dets_dic["var_types"]
-            var_types = dict([(key, 
-                mg.VAR_TYPE_LBL2KEY.get(val, mg.VAR_TYPE_CAT_KEY)) for key, val 
-                in orig_var_types.items()])
+            var_types = {}
+            for key, orig_type in orig_var_types.items():
+                # if type not in new list, get from old list
+                if orig_type in mg.VAR_TYPE_KEYS:
+                    new_type = orig_type
+                else:
+                    new_type = mg.VAR_TYPE_LBL2KEY.get(orig_type, 
+                        mg.VAR_TYPE_CAT_KEY)
+                var_types[key] = new_type
             results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
                 var_types, var_dets_dic["val_dics"])
         except Exception, e:
