@@ -1072,19 +1072,19 @@ class SummTable(LiveTable):
     row_var_optional = True
     
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
-                               col_measures_lst, col_filters_lst, 
-                               col_tots_lst, col_filt_flds_lst, 
-                               row_label_rows_lst, data_cells_n, 
-                               col_term_nodes, css_idx):
+            col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
         """
-        Get list of row data. Each row in the list is represented
-            by a row of strings to concatenate, one per data point.
+        Get list of row data. Each row in the list is represented by a row of 
+        strings to concatenate, one per data point.
+        
         Get data values one at a time (no batches unlike Gen Tables) and add to 
-            html chunks.
+        html chunks.
+        
         Example data if two col variables - mean, median, mean, median
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
-                                                       css_idx)
+            css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         """
         col_measures_lst -- 
@@ -1092,11 +1092,11 @@ class SummTable(LiveTable):
         debug = False
         if debug: print(col_measures_lst)
         data_item_lst = []
-        for (row_filter, 
-             row_filt_flds) in zip(row_filters_lst, row_filt_flds_lst):
+        for row_filter, row_filt_flds in zip(row_filters_lst, 
+                row_filt_flds_lst):
             first = True # styling
             col_zipped = zip(col_measures_lst, col_filters_lst, 
-                             col_filt_flds_lst)
+                col_filt_flds_lst)
             for (colmeasure, col_filter, col_filt_flds) in col_zipped:
                 col_fld = col_filt_flds[0]
                 # styling
@@ -1107,7 +1107,7 @@ class SummTable(LiveTable):
                     cellclass = CSS_DATACELL
                 data_val = self.get_data_val(colmeasure, col_fld, row_filter)
                 data_item_lst.append(u"<td class='%s'>%s</td>" %
-                                     (cellclass, data_val))
+                    (cellclass, data_val))
         i=0
         for row in row_label_rows_lst:
             for unused in col_term_nodes:
@@ -1168,18 +1168,18 @@ class SummTable(LiveTable):
             data = [float(x[0]) for x in raw_vals]
             if debug: print(data)
         if measure == mg.MIN_KEY:
-            SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(col_fld) +
-                           u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
-                           + overall_filter)
+            SQL_get_min = (u"SELECT MIN(%s) " % self.quote_obj(col_fld)
+                + u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
+                + overall_filter)
             try:
                 self.cur.execute(SQL_get_min)
                 data_val = self.cur.fetchone()[0]
             except Exception:
                 raise Exception(u"Unable to get minimum of %s." % col_fld)
         elif measure == mg.MAX_KEY:
-            SQL_get_max = (u"SELECT MAX(%s) " % self.quote_obj(col_fld) +
-                           u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
-                           + overall_filter)
+            SQL_get_max = (u"SELECT MAX(%s) " % self.quote_obj(col_fld)
+                + u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
+                + overall_filter)
             try:
                 self.cur.execute(SQL_get_max)
                 data_val = self.cur.fetchone()[0]
@@ -1187,9 +1187,8 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to get maximum of %s." % col_fld)
         elif measure == mg.RANGE_KEY:
             SQL_get_range = (u"SELECT (MAX(%(fld)s) - MIN(%(fld)s)) " %
-                             {u"fld": self.quote_obj(col_fld)} +
-                             u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
-                             + overall_filter)
+                {u"fld": self.quote_obj(col_fld)} + u"FROM " 
+                + getdata.tblname_qtr(self.dbe, self.tbl) + overall_filter)
             try:
                 self.cur.execute(SQL_get_range)
                 data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
@@ -1197,8 +1196,8 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to get range of %s." % col_fld)
         elif measure == mg.SUM_KEY:
             SQL_get_sum = (u"SELECT SUM(%s) " % self.quote_obj(col_fld) +
-                           u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
-                           + overall_filter)
+                u"FROM " + getdata.tblname_qtr(self.dbe, self.tbl) 
+                + overall_filter)
             try:
                 self.cur.execute(SQL_get_sum)
                 data_val = self.cur.fetchone()[0]
@@ -1207,9 +1206,8 @@ class SummTable(LiveTable):
         elif measure == mg.MEAN_KEY:
             val2float = getdata.get_val2float_func(self.dbe)
             SQL_get_mean = u"""SELECT AVG(%s) 
-                    FROM %s %s""" % (val2float(self.quote_obj(col_fld)),
-                                     getdata.tblname_qtr(self.dbe, self.tbl), 
-                                     overall_filter)
+                FROM %s %s""" % (val2float(self.quote_obj(col_fld)),
+                getdata.tblname_qtr(self.dbe, self.tbl), overall_filter)
             try:
                 self.cur.execute(SQL_get_mean)
                 data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
@@ -1222,12 +1220,12 @@ class SummTable(LiveTable):
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
-                            u"Unable to calculate median for %s. " % col_fld +
-                            u"The field contains at least one non-numeric " +
-                            u"value: \"%s\"" % bad_val)
+                        u"Unable to calculate median for %s. " % col_fld
+                        + u"The field contains at least one non-numeric "
+                        + u"value: \"%s\"" % bad_val)
                 else:
-                    raise Exception(u"Unable to calculate median for %s."
-                                    % col_fld)
+                    raise Exception(u"Unable to calculate median for %s." %
+                        col_fld)
         elif measure == mg.MODE_KEY:
             try:
                 maxfreq, mode = core_stats.mode(data)
@@ -1241,12 +1239,12 @@ class SummTable(LiveTable):
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
-                            u"Unable to calculate mode for %s. " % col_fld +
-                            u"The field contains at least one non-numeric " +
-                            u"value: \"%s\"" % bad_val)
+                        u"Unable to calculate mode for %s. " % col_fld
+                        + u"The field contains at least one non-numeric "
+                        + u"value: \"%s\"" % bad_val)
                 else:
-                    raise Exception(u"Unable to calculate mode for %s."
-                                    % col_fld)
+                    raise Exception(u"Unable to calculate mode for %s." %
+                        col_fld)
         elif measure == mg.LOWER_QUARTILE_KEY:
             try:
                 lq, unused = core_stats.get_quartiles(data)
@@ -1260,7 +1258,7 @@ class SummTable(LiveTable):
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate lower quartile "
-                                    u"for %s." % col_fld)
+                        u"for %s." % col_fld)
         elif measure == mg.UPPER_QUARTILE_KEY:
             try:
                 unused, uq = core_stats.get_quartiles(data)
@@ -1274,7 +1272,7 @@ class SummTable(LiveTable):
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate upper quartile "
-                                    u"for %s." % col_fld)
+                        u"for %s." % col_fld)
         elif measure == mg.IQR_KEY:
             try:
                 lq, uq = core_stats.get_quartiles(data)
@@ -1288,11 +1286,11 @@ class SummTable(LiveTable):
                         u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate inter-quartile range "
-                                    u"for %s." % col_fld)
+                        u"for %s." % col_fld)
         elif measure == mg.SUMM_N_KEY:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
-                                 overall_filter)
+                    overall_filter)
             try:
                 self.cur.execute(SQL_get_n)
                 data_val = u"N=%s" % self.cur.fetchone()[0]
@@ -1300,19 +1298,18 @@ class SummTable(LiveTable):
                 raise Exception(u"Unable to calculate N for %s." % col_fld)
         elif measure == mg.STD_DEV_KEY:
             try:
-                data_val = dp2_tpl % round(numpy.std(data, ddof=1),2) # use ddof=1 for 
-                                                            # sample sd
+                data_val = dp2_tpl % round(numpy.std(data, ddof=1),2) # use ddof=1 for sample sd
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     raise Exception(
-                            u"Unable to calculate standard deviation for " +
-                            u" %s. " % col_fld +
-                            u"The field contains at least one non-numeric " +
-                            u"value: \"%s\"" % bad_val)
+                        u"Unable to calculate standard deviation for "
+                        + u" %s. " % col_fld
+                        + u"The field contains at least one non-numeric "
+                        + u"value: \"%s\"" % bad_val)
                 else:
                     raise Exception(u"Unable to calculate standard deviation "
-                                    u"for %s." % col_fld)
+                        u"for %s." % col_fld)
         else:
             raise Exception(u"Measure not available")
         try:
