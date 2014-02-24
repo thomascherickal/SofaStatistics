@@ -110,6 +110,7 @@ RANGE_LBL = _("Range")
 LOWER_QUARTILE_LBL = _("L. Quartile")
 UPPER_QUARTILE_LBL = _("U. Quartile")
 IQR_LBL = _(u"IQR") # Inter-Quartile Range
+NO_CALC_LBL = _(u"Can't calc") # keep as short as possible because appears in table cells
 
 MEASURE_LBLS_SHORT2LONG = {
     FREQ_LBL: _("Frequency"), 
