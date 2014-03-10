@@ -208,7 +208,25 @@ def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
     non_string_set = set(non_str_types) # ignore EMPTY
     row2_has_non_strings = len(row2_types_set.intersection(non_string_set)) > 0
     return row1_strings_only and row2_has_non_strings
-    
+
+def get_sample_rows(file_path):
+    debug = False
+    try:
+        f = open(file_path) # don't use "U" - let it fail if necessary
+            # and suggest an automatic cleanup.
+        sample_rows = []
+        for i, row in enumerate(f):
+            if i < 20:
+                if debug: print(row)
+                sample_rows.append(row)
+    except IOError:
+            raise Exception(u"Unable to find file \"%s\" for importing. "
+                u"Please check that file exists." % file_path)
+    except Exception, e:
+        raise Exception(u"Unable to open and sample file. "
+            u"\nCaused by error: %s" % lib.ue(e))
+    return sample_rows
+
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
         first_mismatch=u"", headless=False):
     """
@@ -981,7 +999,7 @@ class DlgImportFileSelect(wx.Dialog):
             and possibly inspection of sample of rows (e.g. csv dialect).
         """
         title = _(u"Select file to import") + \
-            u" (csv/xls/xlsx/ods/Google spreadsheet)"
+            u" (csv/tsv/tab/xls/xlsx/ods/Google spreadsheet)"
         wx.Dialog.__init__(self, parent=parent, title=title, size=(550,300), 
             style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
             pos=(mg.HORIZ_OFFSET+100,-1))
@@ -1221,18 +1239,19 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             return
     # identify file type
     unused, extension = get_file_start_ext(file_path)
-    if extension.lower() == u".csv":
+    if extension.lower() in (u".csv", u".tsv", u".tab"):
         self.file_type = FILE_CSV
     elif extension.lower() == u".txt":
         if headless:
             self.file_type = FILE_CSV
         else:
-            ret = wx.MessageBox(_("SOFA imports txt files as csv files.\n\n"
-                "Is your txt file a valid csv file?"), caption=_("CSV FILE?"), 
+            ret = wx.MessageBox(_(u"SOFA imports txt files as csv or "
+                u"tab-delimited files.\n\nIs your txt file a valid csv or "
+                u"tab-delimited file?"), caption=_("CSV FILE?"), 
                 style=wx.YES_NO)
             if ret == wx.NO:
-                wx.MessageBox(_("Unable to import txt files unless csv "
-                    "format inside"))
+                wx.MessageBox(_(u"Unable to import txt files unless csv or "
+                    u"tab-delimited format inside"))
                 self.align_btns_to_importing(importing=False)
                 return
             else:

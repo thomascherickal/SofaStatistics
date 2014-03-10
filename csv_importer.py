@@ -22,6 +22,7 @@ ROWS_TO_SHOW_USER = 10 # need to show enough to choose encoding
 ERR_NO_DELIM = u"Could not determine delimiter"
 ERR_NEW_LINE_IN_UNQUOTED = u"new-line character seen in unquoted field"
 ERR_NEW_LINE_IN_STRING = u"newline inside string" #  # Shouldn't happen now I 
+TAB = u"TAB"
 # process complete file in csv2utf8_bytelines() rather than trying to limit to 
 # n lines for sample to display etc. Would sometimes break inside a string.
 # Have to wait for cvs reader stage to be able to reliably tell when a line 
@@ -58,7 +59,8 @@ def consolidate_line_seps(mystr):
 def ok_delimiter(delimiter):
     try:
         ord_delimiter = ord(delimiter)
-        if not 31 < ord_delimiter < 127:
+        printable = (31 < ord_delimiter < 127)
+        if not (printable or u"\t"):
             raise Exception(u"The auto-detected delimiter is unprintable.") 
     except Exception:
         raise Exception(u"Unable to assess the auto-detected delimiter")
@@ -92,30 +94,13 @@ def get_possible_encodings(file_path, delimiter):
             continue
     return possible_encodings
 
-def get_sample_rows(file_path):
-    debug = False
-    try:
-        f = open(file_path) # don't use "U" - let it fail if necessary
-            # and suggest an automatic cleanup.
-        sample_rows = []
-        for i, row in enumerate(f):
-            if i < 20:
-                if debug: print(row)
-                sample_rows.append(row)
-    except IOError:
-            raise Exception(u"Unable to find file \"%s\" for importing. "
-                u"Please check that file exists." % file_path)
-    except Exception, e:
-        raise Exception(u"Unable to open and sample csv file. "
-            u"\nCaused by error: %s" % lib.ue(e))
-    return sample_rows
-
 def get_dialect(sniff_sample):
     debug = False
     try:
         sniffer = csv.Sniffer()
         try:
-            dialect = sniffer.sniff(sniff_sample)
+            if debug: print(sniff_sample)
+            dialect = sniffer.sniff(sniff_sample, delimiters=["\t", ",", ";"]) # feeding in tab as part of delimiters means it is picked up even if field contents are not quoted
         except Exception, e:
             if lib.ue(e).startswith(ERR_NO_DELIM):
                 dialect = MyDialect() # try a safe one of my own
@@ -554,6 +539,20 @@ def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
         wx.MessageBox("Adding %s to list" % encoding)
     return utf8_bytelines
 
+def TAB2delim(raw):
+    if raw.lower() == TAB.lower():
+        delim = "\t"
+    else:
+        delim = raw
+    return delim
+
+def delim2TAB(raw):
+    if raw == "\t":
+        delim2display = TAB
+    else:
+        delim2display = raw
+    return delim2display
+
 
 class DlgImportDisplay(wx.Dialog):
     
@@ -581,11 +580,12 @@ class DlgImportDisplay(wx.Dialog):
         szr_options = wx.BoxSizer(wx.HORIZONTAL)
         szr_header = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.StdDialogButtonSizer()
-        lbl_instructions = wx.StaticText(panel, -1, _("If the fields are not "
-            "separated correctly, enter a different delimiter (\",\" and \";\" "
-            "are common choices).\n\nDoes the text look correct? If not, try "
-            "another encoding."))
-        self.udelimiter = self.dialect.delimiter.decode("utf8")
+        lbl_instructions = wx.StaticText(panel, -1, _(u"If the fields are not "
+            u"separated correctly, enter a different delimiter. "
+            u"\",\" and \";\" are common choices.\n\nOr if the "
+            u"fields should be tab-separated enter TAB.\n\nDoes the text look "
+            u"correct? If not, try another encoding."))
+        self.udelimiter = delim2TAB(self.dialect.delimiter.decode("utf8"))
         lbl_delim = wx.StaticText(panel, -1, _("Delimiter"))
         self.txt_delim = wx.TextCtrl(panel, -1, self.udelimiter)
         self.txt_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
@@ -625,7 +625,10 @@ class DlgImportDisplay(wx.Dialog):
         self.Layout()
     
     def update_delim(self):
-        self.udelimiter = self.txt_delim.GetValue()
+        entered_delim = TAB2delim(self.txt_delim.GetValue())
+        if entered_delim.lower() in (TAB[:1].lower(), TAB[:2].lower()):
+            return # otherwise a partial TAB will fail when the user tries to enter it
+        self.udelimiter = TAB2delim(self.txt_delim.GetValue())
         try:
             self.dialect.delimiter = self.udelimiter.encode("utf8")
             self.set_display()
@@ -809,7 +812,7 @@ class CsvImporter(importer.FileImporter):
         encoding used to create them in the first place. That's why the user is
         given a choice. Could use chardets somehow as well.
         """
-        sample_rows = get_sample_rows(self.file_path)
+        sample_rows = importer.get_sample_rows(self.file_path)
         sniff_sample = "".join(sample_rows) # not u"" but ""
             # otherwise error: "delimiter" must be an 1-character string
         dialect = get_dialect(sniff_sample)
