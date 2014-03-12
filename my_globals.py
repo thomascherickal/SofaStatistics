@@ -1014,7 +1014,7 @@ config_globals.set_SCRIPT_PATH()
 config_globals.set_ok_date_formats()
 config_globals.set_DEFAULT_LEVEL()
 config_globals.import_dbe_plugins() # as late as possible because uses local 
-    # modules e.g. lib, my_exceptions
+    # modules e.g. my_exceptions
 LABEL_FONT = None # will be set after wx.App started
 BTN_FONT = None
 BTN_BOLD_FONT = None

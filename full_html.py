@@ -6,6 +6,7 @@ import os
 import traceback
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -41,7 +42,7 @@ else:
                 raise my_exceptions.ComtypesException()
             else:
                 raise Exception(_(u"Problem importing wx.lib.iewin.") +
-                            u"\nCaused by errors:\n\n%s" % lib.ue(e))
+                    u"\nCaused by errors:\n\n%s" % b.ue(e))
         
         class FullHTML(ie.IEHtmlWindow): #@UndefinedVariable
         

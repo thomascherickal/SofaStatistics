@@ -6,6 +6,7 @@ from __future__ import division # so 5/2 = 2.5 not 2 !
 import wx
 import pprint
 
+import basic_lib as b
 import my_globals as mg
 if mg.PLATFORM == mg.MAC:
     try:
@@ -66,7 +67,7 @@ def get_con_cur_for_db(con_dets_mysql, db):
         con = mysql.connect(**con_dets_mysql)
     except Exception, e:
         raise Exception(u"Unable to connect to MySQL db. "
-                        u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     cur = con.cursor() # must return tuples not dics
     return con, cur
 

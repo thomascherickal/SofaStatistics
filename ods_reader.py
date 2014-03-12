@@ -3,6 +3,7 @@ import wx
 import xml.etree.ElementTree as etree
 import zipfile
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import importer
@@ -428,7 +429,7 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
             wx.Yield()
         except Exception, e:
             raise Exception(u"Error getting details from row %s."
-                u"\nCaused by error: %s" % (row_num, lib.ue(e)))
+                u"\nCaused by error: %s" % (row_num, b.ue(e)))
     """
     2) Get user decisions on each field where there are potentially more than 
     one data type.

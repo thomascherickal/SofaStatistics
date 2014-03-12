@@ -1,5 +1,6 @@
 from __future__ import print_function
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -59,7 +60,7 @@ class DemoTable(object):
                                         data_cells_n, col_term_nodes, css_idx)
         except Exception, e:
             row_label_rows_lst = [u"<td>Problem getting table output: "
-                                  u"Orig error: %s</td>" % lib.ue(e)]
+                u"Orig error: %s</td>" % b.ue(e)]
         return row_label_rows_lst
 
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
@@ -132,7 +133,7 @@ class DemoTable(object):
             raise
         except Exception, e:
             wx.MessageBox(_("Unable to make report. Error details: %s") % 
-                lib.ue(e))
+                b.ue(e))
             raise
         html.append(main_html)
         html.append(u"\n</table>")

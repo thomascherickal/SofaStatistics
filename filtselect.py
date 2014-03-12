@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import getdata
@@ -281,8 +282,7 @@ class DlgFiltSelect(wx.Dialog):
                     return
             except Exception, e:
                 lib.safe_end_cursor()
-                wx.MessageBox(_("Problem with design of filter: %s") % 
-                              lib.ue(e))
+                wx.MessageBox(_("Problem with design of filter: %s") % b.ue(e))
                 self.txt_val.SetFocus()
                 return
         else:

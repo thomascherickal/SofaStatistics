@@ -5,6 +5,7 @@ import pprint
 import wx #@UnusedImport
 import wx.grid
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import config_output
@@ -861,11 +862,11 @@ class TblEditor(wx.Dialog):
         except Exception, e:
             if self.debug or debug: 
                 print(u"update_cell failed to save %s. " %
-                      self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
-                      % lib.ue(e))
+                    self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
+                    % b.ue(e))
             bol_updated_cell = False
             wx.MessageBox(_("Unable to save change to database. %s") % 
-                          lib.ue(e))
+                b.ue(e))
         if self.dbtbl.row_vals_dic.get(row):
             del self.dbtbl.row_vals_dic[row] # force a fresh read
         self.dbtbl.grid.ForceRefresh()

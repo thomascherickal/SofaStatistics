@@ -3,6 +3,7 @@ from __future__ import print_function
 import datetime
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import lib
@@ -142,7 +143,7 @@ class ExcelImporter(importer.FileImporter):
                 val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
             except Exception, e:
                 raise Exception(u"Problem with value in field \"%s\", row %s. "
-                    u"Orig error: %s" % (fldnames[colx], rowx+1, lib.ue(e)))
+                    u"Orig error: %s" % (fldnames[colx], rowx+1, b.ue(e)))
             rowvals.append(val2use)
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
@@ -230,7 +231,7 @@ class ExcelImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to read spreadsheet."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         default_dd = getdata.get_default_db_dets()
         if self.headless:
             ROWS_TO_SAMPLE = n_datarows

@@ -6,6 +6,7 @@ import os
 import wx #@UnusedImport
 import wx.html
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -224,7 +225,7 @@ def get_sample_rows(file_path):
                 u"Please check that file exists." % file_path)
     except Exception, e:
         raise Exception(u"Unable to open and sample file. "
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     return sample_rows
 
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list, 
@@ -314,7 +315,7 @@ def process_fldnames(raw_names, headless=False, force_quickcheck=False):
                     raw_name = raw_name.decode("utf-8")
                 except UnicodeDecodeError, e:
                     raise Exception(u"Unable to process raw field name."
-                        u"\nCaused by error: %s" % lib.ue(e))
+                        u"\nCaused by error: %s" % b.ue(e))
             name = raw_name.replace(u" ", u"_")
             if len(name) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
                 # just truncate - let the get_unique_fldnames function handle the shortened names as it normally would
@@ -329,7 +330,7 @@ def process_fldnames(raw_names, headless=False, force_quickcheck=False):
         raise Exception(u"Field names should be supplied in a list")
     except Exception, e:
         raise Exception(u"Problem processing field names list."
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     quickcheck = False
     n_names = len(names)
     if n_names > 50:
@@ -658,7 +659,7 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
             progbar.SetValue(gauge_val)
         except Exception, e:
             raise Exception(u"Unable to add row %s.\nCaused by error: %s"
-                % (row_num, lib.ue(e)))
+                % (row_num, b.ue(e)))
     con.commit()
 
 def get_steps_per_item(items_n):
@@ -809,7 +810,7 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
         con.commit()
     except Exception, e:
         raise Exception(u"Unable to rename temporary table."
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     progbar.SetValue(GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -1349,7 +1350,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             raise
         else:
             wx.MessageBox(_("Unable to import data after getting "
-                u"parameters\n\nError") + u": %s" % lib.ue(e))
+                u"parameters\n\nError") + u": %s" % b.ue(e))
             lib.safe_end_cursor()
     if proceed:
         try:
@@ -1362,12 +1363,12 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             if headless: # although should never occur when headless
                 raise
             else:
-                wx.MessageBox(lib.ue(e))
+                wx.MessageBox(b.ue(e))
         except my_exceptions.ImportCancel, e:
             lib.safe_end_cursor()
             self.import_status[mg.CANCEL_IMPORT] = False # reinit
             if not headless: # should never occur when headless
-                wx.MessageBox(lib.ue(e))
+                wx.MessageBox(b.ue(e))
         except Exception, e:
             if headless:
                 raise
@@ -1375,6 +1376,6 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 self.progbar.SetValue(0)
                 lib.safe_end_cursor()
                 wx.MessageBox(_(u"Unable to import data\n\nHelp available "
-                    u"at %s\n\n") % mg.CONTACT + u"Error: %s" % lib.ue(e))
+                    u"at %s\n\n") % mg.CONTACT + u"Error: %s" % b.ue(e))
     if not headless:
         self.align_btns_to_importing(importing=False)

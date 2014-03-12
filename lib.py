@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
+from __future__ import absolute_import
 
 import codecs
 import datetime
@@ -18,9 +19,9 @@ import urllib
 import wx
 
 # only import my_globals from local modules
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
-import core_stats
 
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
@@ -51,32 +52,6 @@ def get_gettext_setup_txt():
         bits.append(u"except (ValueError, KeyError):")
         bits.append(u"    pass # OK if unable to set environment settings.")
     return "\n".join(bits)
-
-def get_indiv_regression_msg(list_x, list_y, series_lbl):
-    try:
-        (slope, intercept, 
-         unused, unused, unused) = core_stats.linregress(list_x, list_y)
-    except Exception:
-        return mg.REGRESSION_ERR
-    dp = 3
-    indiv_regression_msg = (u"Slope: %s; Intercept: %s" % 
-        (round(slope, dp), round(intercept, dp)))
-    if series_lbl:
-        indiv_regression_msg = u"%s: %s" % (series_lbl, 
-            indiv_regression_msg)
-    return indiv_regression_msg
-
-def get_regression_dets(list_x, list_y):
-    try:
-        (slope, intercept, r, 
-         unused, unused) = core_stats.linregress(list_x, list_y)
-    except Exception, e:
-        raise Exception(u"Unable to get regression details. Orig error: %s" % e) 
-    x0 = min(list_x)
-    x1 = max(list_x)
-    y0 = (x0*slope) + intercept
-    y1 = (x1*slope) + intercept
-    return slope, intercept, r, y0, y1
 
 def formatnum(num):
     try:
@@ -228,24 +203,6 @@ def mustreverse():
     #return True #testing
     return current_lang_rtl() and mg.PLATFORM == mg.WINDOWS
 
-def get_normal_ys(vals, bins):
-    """
-    Get np array of y values for normal distribution curve with given values 
-    and bins.
-    """
-    if len(vals) < 2:
-        raise Exception(_(u"Need multiple values to calculate normal curve."))
-    debug = False
-    import pylab
-    mu = core_stats.mean(vals)
-    sigma = core_stats.stdev(vals)
-    if debug: print(bins, mu, sigma)
-    if sigma == 0:
-        raise Exception(u"Unable to get y-axis values for normal curve with a "
-            u"sigma of 0.")
-    norm_ys = pylab.normpdf(bins, mu, sigma)
-    return norm_ys
-
 def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, 
               pystr_use_double_quotes=True, charset2try=u"utf-8"):
     """
@@ -302,7 +259,7 @@ def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote,
                     sql_str_literal_quote, sql_esc_str_literal_quote)
         except AttributeError, e:
             raise Exception(u"Inappropriate attempt to quote non-string value."
-                u"\nCaused by error: %s" % ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         if pystr_use_double_quotes:
             # 2) do Python escaping
             pystr_esc_val = val.replace(u'"', u'\"')
@@ -322,17 +279,6 @@ def get_p(p, dp):
         p_format = u"%%.%sf" % dp
         p_str = p_format % round(p, dp)
     return p_str
-
-def get_exec_ready_text(text):
-    """
-    test -- often the result of f.read()
-    
-    exec can't handle some Windows scripts e.g. print("Hello world")\r\n
-    you can see
-    """
-    debug = False
-    if debug: print(repr(text)) # look for terminating \r\n on Windows sometimes
-    return text.replace(u"\r", u"")
 
 def dates_1900_to_datetime(days_since_1900):
     DATETIME_ZERO = datetime.datetime(1899, 12, 30, 0, 0, 0)
@@ -401,7 +347,7 @@ def extract_dojo_style(css_fil):
     except ValueError, e:
         raise my_exceptions.MalformedCssDojo(css)
     text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
-    css_dojo = get_exec_ready_text(text)
+    css_dojo = b.get_exec_ready_text(text)
     css_dojo_dic = {}
     try:
         exec css_dojo in css_dojo_dic
@@ -409,11 +355,11 @@ def extract_dojo_style(css_fil):
         wx.MessageBox(_(u"Syntax error in dojo settings in css file"
             u" \"%(css_fil)s\"."
             u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
-            u"css_dojo": css_dojo, u"err": ue(e)})
+            u"css_dojo": css_dojo, u"err": b.ue(e)})
         raise
     except Exception, e:
         wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
-            u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": ue(e)})
+            u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": b.ue(e)})
         raise
     return (css_dojo_dic[u"outer_bg"], 
         css_dojo_dic[u"inner_bg"], # grid_bg
@@ -511,37 +457,6 @@ def get_bins(min_val, max_val):
             lower_limit, upper_limit, n_bins))
     return n_bins, lower_limit, upper_limit
 
-def saw_toothing(y_vals, period, start_idx=0):
-    """
-    Sawtoothing is where every nth bin has values, but the others have none.
-    """
-    period_vals = y_vals[start_idx::period]
-    sum_period = sum(period_vals)
-    sum_all = sum(y_vals)
-    sum_non_period = sum_all - sum_period
-    return sum_non_period == 0
-
-def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
-    """
-    Look for sawtoothing on commonly found periods (5 and 2).  If found, reduce
-    bins until problem gone or too few bins to keep shrinking.
-    """
-    debug = False
-    while n_bins > 5:
-        if saw_toothing(y_vals, period=5):
-            shrink_factor = 5.0
-        elif saw_toothing(y_vals, period=2):
-            shrink_factor = 2.0
-        elif saw_toothing(y_vals, period=2, start_idx=1):
-            shrink_factor = 2.0
-        else:
-            break
-        n_bins = int(math.ceil(n_bins/shrink_factor))
-        (y_vals, start, 
-            bin_width, unused) = core_stats.histogram(raw_data, n_bins)
-        if debug: print(y_vals)
-    return y_vals, start, bin_width
-
 def version_a_is_newer(version_a, version_b):
     """
     Must be able to process both version details or error raised.
@@ -598,30 +513,6 @@ def get_unicode_datestamp():
             except Exception:
                 u_datestamp = u"date-time unrecorded" # TODO -chardet?
     return u_datestamp
-
-def ue(e):
-    """
-    Return unicode string version of error reason
-    
-    unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
-    
-    str(e).decode("utf8", ...) handles "找不到指定的模块。"
-    """
-    debug = False
-    try:
-        unicode_e = unicode(e)
-    except UnicodeDecodeError:
-        try:
-            unicode_e = str(e).decode(locale.getpreferredencoding())
-        except UnicodeDecodeError:
-            try:
-                unicode_e = str(e).decode("utf8", "replace")
-            except UnicodeDecodeError:
-                unicode_e = u"Problem getting error reason"
-    if debug: 
-        print("unicode_e has type %s" % type(unicode_e))
-        print(repr(u"unicode_e is %s" % unicode_e))
-    return unicode_e
 
 cp1252 = {
     # from http://www.microsoft.com/typography/unicode/1252.htm
@@ -875,23 +766,23 @@ def esc_str_input(raw):
         new_str = raw.replace("%", "%%")
     except Exception, e:
         raise Exception(u"Unable to escape str input."
-                        u"\nCaused by error: %s" % ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     return new_str
 
 def get_invalid_var_dets_msg(fil_var_dets):
     debug = False
     try:
         f = codecs.open(fil_var_dets, "U", encoding="utf-8")
-        var_dets_txt = get_exec_ready_text(text=f.read())
+        var_dets_txt = b.get_exec_ready_text(text=f.read())
         f.close()
-        var_dets = clean_boms(var_dets_txt)
+        var_dets = b.clean_boms(var_dets_txt)
         var_dets_dic = {}
         exec var_dets in var_dets_dic
         if debug: wx.MessageBox(u"%s got a clean bill of health from "
             u"get_invalid_var_dets_msg()!" % fil_var_dets)
         return None
     except Exception, e:
-        return ue(e)
+        return b.ue(e)
 
 def get_var_dets(fil_var_dets):
     """
@@ -908,9 +799,9 @@ def get_var_dets(fil_var_dets):
         f = codecs.open(fil_var_dets, "U", encoding="utf-8")
     except IOError:
         return empty_var_dets
-    var_dets_txt = get_exec_ready_text(text=f.read())
+    var_dets_txt = b.get_exec_ready_text(text=f.read())
     f.close()
-    var_dets = clean_boms(var_dets_txt)
+    var_dets = b.clean_boms(var_dets_txt)
     var_dets_dic = {}
     results = empty_var_dets # init
     try: # http://docs.python.org/reference/simple_stmts.html
@@ -931,7 +822,7 @@ def get_var_dets(fil_var_dets):
         except Exception, e:
             wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
                 u"var_notes, var_types, and val_dics. "
-                u"Please check file. Orig error: %s" % (fil_var_dets, ue(e)))
+                u"Please check file. Orig error: %s" % (fil_var_dets, b.ue(e)))
     except SyntaxError, e:
         wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
@@ -1313,59 +1204,6 @@ def dic2unicode(mydic, indent=1):
     ustr += u"}"
     return ustr
 
-def clean_boms(orig_utf8):
-    """
-    Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
-    '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
-    
-    From codecs:
-    
-    BOM_UTF8 = '\xef\xbb\xbf'
-
-    BOM_UTF32 = '\xff\xfe\x00\x00'
-    BOM64_LE = '\xff\xfe\x00\x00'
-    BOM_UTF32_LE = '\xff\xfe\x00\x00'
-    
-    BOM_UTF16_BE = '\xfe\xff'
-    BOM32_BE = '\xfe\xff'
-    BOM_BE = '\xfe\xff'
-    
-    BOM_UTF16 = '\xff\xfe'
-    BOM = '\xff\xfe'
-    BOM_LE = '\xff\xfe'
-    BOM_UTF16_LE = '\xff\xfe'
-    BOM32_LE = '\xff\xfe'
-    
-    BOM_UTF32_BE = '\x00\x00\xfe\xff'
-    BOM64_BE = '\x00\x00\xfe\xff'
-    """
-    try:
-        str_orig = orig_utf8.encode("utf-8")
-    except UnicodeEncodeError:
-        raise Exception("cleans_boms() must be supplied a utf-8 unicode string")
-    if str_orig.startswith(codecs.BOM_UTF8): # '\xef\xbb\xbf'
-        len2rem = len(unicode(codecs.BOM_UTF8, "utf-8"))# 3 long in byte str, 1 in unicode str
-        bom_stripped = orig_utf8[len2rem:] # strip it off 
-        return bom_stripped
-    # that was the only one we strip BOM off. The rest need it.
-    if str_orig.startswith(codecs.BOM_UTF32): # '\xff\xfe\x00\x00'
-        possible_encodings = ["utf-32",]
-    elif str_orig.startswith(codecs.BOM_UTF16_BE): # '\xfe\xff'
-        possible_encodings = ["utf-16", "utf-32"]
-    elif str_orig.startswith(codecs.BOM_UTF16): # '\xff\xfe'
-        possible_encodings = ["utf-16", "utf-32"]
-    elif str_orig.startswith(codecs.BOM_UTF32_BE): # '\x00\x00\xfe\xff'
-        possible_encodings = ["utf-32",]
-    else:
-        return orig_utf8
-    # Handle those needing to be decoded
-    for possible_encoding in possible_encodings + ["utf-8",]:
-        try:
-            fixed = orig_utf8.decode(possible_encoding)
-            return fixed
-        except Exception:
-            pass
-    return u"" # last ditch attempt to return something
 
 if mg.PLATFORM == mg.WINDOWS:
     exec u"import pywintypes"

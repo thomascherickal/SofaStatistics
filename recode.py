@@ -4,6 +4,7 @@
 import pprint
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import config_output
@@ -566,7 +567,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
                 fldtype, dict_labels)
         except Exception, e:
             wx.MessageBox(_("Problem with your recode configuration."
-                "\nCaused by error: %s") % lib.ue(e))
+                "\nCaused by error: %s") % b.ue(e))
             return
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         # insert new field just after the source field
@@ -586,7 +587,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
                 "cells are edited."))
         except Exception, e:
             raise Exception(_("Problem recoding table."
-                "\nCaused by error: %s") % lib.ue(e))
+                "\nCaused by error: %s") % b.ue(e))
         self.update_labels(new_fldname, dict_labels)
         self.Destroy()
         self.SetReturnCode(wx.ID_OK)

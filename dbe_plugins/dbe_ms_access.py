@@ -11,6 +11,7 @@ import pprint
 import win32com.client #@UnresolvedImport
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -103,10 +104,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         con = adodbapi.connect(DSN)
     except Exception, e:
         raise Exception(u"Unable to connect to MS Access database using "
-                        u"supplied database: %s, user: %s, "
-                        % (database, user) + 
-                        u"pwd: %s, or mdw: %s.\nCaused by error: %s" % 
-                        (pwd, mdw, lib.ue(e)))
+            u"supplied database: %s, user: %s, " % (database, user) + 
+            u"pwd: %s, or mdw: %s.\nCaused by error: %s" % (pwd, mdw, b.ue(e)))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
     if not has_tbls(cur, db):

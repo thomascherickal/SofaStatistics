@@ -126,8 +126,8 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     (y_vals, start, 
      bin_width, unused) = core_stats.histogram(vals, n_bins, 
         defaultreallimits=[lower_limit, upper_limit])
-    y_vals, start, bin_width = lib.fix_sawtoothing(vals, n_bins, y_vals, start, 
-        bin_width)    
+    y_vals, start, bin_width = core_stats.fix_sawtoothing(vals, n_bins, y_vals, 
+        start, bin_width)    
     if thumbnail:
         n_bins = round(n_bins/2, 0)
         if n_bins < 5: 
@@ -147,7 +147,7 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     n, bins, patches = axes.hist(vals, n_bins, normed=1, range=(lower_limit, 
         upper_limit), facecolor=bar_colour, edgecolor=line_colour)
     if debug: print(n, bins, patches)
-    norm_ys = lib.get_normal_ys(vals, bins)
+    norm_ys = core_stats.get_normal_ys(vals, bins)
     # ensure enough y-axis to show all of normpdf
     ymin, ymax = axes.get_ylim()
     if debug:

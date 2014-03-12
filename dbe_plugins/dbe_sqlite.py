@@ -1,3 +1,7 @@
+
+
+
+
 import sqlite3 as sqlite
 import os
 import pprint
@@ -5,10 +9,10 @@ import re
 import wx #@UnusedImport
 import wx.grid
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
-import getdata
 import settings_grid
 
 Row = sqlite.Row # @UndefinedVariable - needed for making cursor return dicts
@@ -80,7 +84,7 @@ def get_con(con_dets, db, add_checks=False):
         sqlite_con_dets_str = lib.dic2unicode(con_dets_sqlite)
     except Exception, e:
         raise Exception(u"Unable to extract connection details from %s."
-            u"\nCaused by error: %s" % (con_dets_sqlite, lib.ue(e)))
+            u"\nCaused by error: %s" % (con_dets_sqlite, b.ue(e)))
     # any connection details for this database?
     try:
         con_dets_sqlite_db = con_dets_sqlite[db]
@@ -94,11 +98,11 @@ def get_con(con_dets, db, add_checks=False):
         if u"/home/g/Documents/sofastats" in sqlite_con_dets_str:
             raise Exception(u"Problem with default project file. Delete "
                 u"%s and restart SOFA.\nCaused by error %s." %
-                (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), lib.ue(e)))
+                (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), b.ue(e)))
         else:
             raise Exception(u"Unable to make connection with db '%s' "
                 u"using: %s\nCaused by error: %s" % 
-                (db, lib.escape_pre_write(sqlite_con_dets_str), lib.ue(e)))
+                (db, lib.escape_pre_write(sqlite_con_dets_str), b.ue(e)))
     if mg.USE_SQLITE_UDFS:
         print("*"*60)
         print("Overriding so can open sofa_db in SOFA")
@@ -165,10 +169,10 @@ def get_unsorted_tblnames(cur, db):
     try:
         cur.execute(SQL_get_tbls)
     except Exception, e:
-        if lib.ue(e).startswith(u"malformed database schema"):
+        if b.ue(e).startswith(u"malformed database schema"):
             raise my_exceptions.MalformedDb()
         else:
-            print(lib.ue(e))
+            print(b.ue(e))
             raise
     tbls = [x[0] for x in cur.fetchall()]
     return tbls
@@ -492,9 +496,9 @@ def valid_fldnames_block(block):
         cur.execute(sql_drop)
         con.commit()
     except Exception, e:
-        if debug: print(lib.ue(e))
+        if debug: print(b.ue(e))
         valid = False
-        err = lib.ue(e)
+        err = b.ue(e)
     finally:
         cur.close()
         con.close()
@@ -519,7 +523,7 @@ def valid_name(name, is_tblname=True):
     err = ""
     try:
         if is_tblname:
-            tblname = getdata.tblname_qtr(mg.DBE_SQLITE, name)
+            tblname = quote_obj(name)
             fldname = u"safefldname"
         else:
             tblname = u"safetblname"
@@ -543,8 +547,8 @@ def valid_name(name, is_tblname=True):
         con.commit()
     except Exception, e:
         valid = False
-        if debug: print(lib.ue(e))
-        err = lib.ue(e)
+        if debug: print(b.ue(e))
+        err = b.ue(e)
     finally:
         cur.close()
         con.close()

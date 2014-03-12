@@ -4,6 +4,7 @@ import locale
 
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import getdata
@@ -722,7 +723,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                  unused, unused, unused, unused, unused) = self.get_drop_vals()
             except Exception, e:
                 wx.MessageBox(u"Unable to get script to make output. "
-                              u"Orig error: %s" % lib.ue(e))
+                    u"Orig error: %s" % b.ue(e))
             # group a must be lower than group b
             selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.gp_vals_sorted[selection_idx_a]

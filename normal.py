@@ -4,6 +4,7 @@
 import pylab
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -121,7 +122,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
             line_colour=line_colour, inc_attrib=True)
     except Exception, e:
         raise my_exceptions.OutputException(u"Unable to produce histogram. "
-            u"Reason: %s" % lib.ue(e))
+            u"Reason: %s" % b.ue(e))
     output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
         ext=mg.RPT_SUBFOLDER_SUFFIX)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 

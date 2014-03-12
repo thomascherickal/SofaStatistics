@@ -17,6 +17,7 @@ import string
 import wx #@UnusedImport
 import wx.grid
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import config_output
@@ -48,7 +49,7 @@ def reset_default_dd(tbl=None, add_checks=False):
             print(dd.cur.fetchone())
     except Exception, e:
         raise Exception(u"Problem resetting dd with tbl %s."
-                        u"\nCaused by error: %s" % (tbl, lib.ue(e)))   
+            u"\nCaused by error: %s" % (tbl, b.ue(e)))   
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
@@ -815,13 +816,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             make_strict_typing_tbl(orig_tblname, oth_name_types, 
                 self.settings_data)
         except sqlite.IntegrityError, e: #@UndefinedVariable
-            if debug: print(lib.ue(e))
+            if debug: print(b.ue(e))
             strict_cleanup(restore_tblname=orig_tblname)
             raise FldMismatchException
         except Exception, e:
             strict_cleanup(restore_tblname=orig_tblname)
             raise Exception(u"Problem making strictly-typed table."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         copy_orig_tbl(orig_tblname)
         wipe_tbl(orig_tblname)
         final_name = self.tblname_lst[0] # may have been renamed
@@ -834,7 +835,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             restore_copy_tbl(orig_tblname) # effectively removes tmp_tbl 2
             dd.set_tbl(tbl=orig_tblname)
             raise Exception(u"Problem making redesigned table."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         wipe_tbl(mg.TMP_TBLNAME2)
     
     def make_changes(self):
@@ -960,7 +961,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                     return
                 except Exception, e:
                     wx.MessageBox(_(u"Unable to modify table."
-                        u"\nCaused by error: %s") % lib.ue(e))
+                        u"\nCaused by error: %s") % b.ue(e))
                     return
             else:
                 return
@@ -1021,7 +1022,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                     return
                 except Exception, e:
                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
-                        " %s") % lib.ue(e))
+                        " %s") % b.ue(e))
                     return
             elif self.changes_made: # not in tableconf. Must've been in recoding
                 self.exiting = True

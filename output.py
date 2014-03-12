@@ -73,6 +73,7 @@ import traceback
 import urllib
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -519,14 +520,14 @@ def get_css_dets():
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        content = lib.clean_boms(f.read())
+        content = b.clean_boms(f.read())
         f.close()
         if content:
             try:
                 idx_start = content.index(mg.CSS_FILS_START_TAG) + len("<!--")
                 idx_end = content.index("-->")
                 css_fils_str = content[idx_start: idx_end]
-                css_fils_str = lib.get_exec_ready_text(text=css_fils_str)
+                css_fils_str = b.get_exec_ready_text(text=css_fils_str)
                 css_dets_dic = {}
                 exec css_fils_str in css_dets_dic
                 css_fils = css_dets_dic[u"css_fils"]
@@ -601,7 +602,7 @@ def percent_encode(url2esc):
         perc_url = urllib.quote(url2esc_str)
     except Exception, e:
         raise Exception(u"Unable to percent encode \"%s\". Orig error: %s" % 
-            (url2esc, lib.ue(e)))
+            (url2esc, b.ue(e)))
     return perc_url
 
 def fix_perc_encodings_for_win(mystr):
@@ -635,7 +636,7 @@ def extract_title_subtitle(txt):
         if debug:
             print(txt)
         raise Exception(u"Unable to extract title and subtitle. Orig error: %s" 
-            % lib.ue(e))
+            % b.ue(e))
 
 def extract_tbl_only(tbl_item):
     """
@@ -657,7 +658,7 @@ def extract_tbl_only(tbl_item):
         tbl_only = u"<h2>%s</h2>\n<h2>%s</h2>\n%s" % (title, subtitle, tbl_html)
     except Exception, e:
         msg = (u"Unable to extract report table html and title from "
-            u"input. Orig error: %s" % lib.ue(e))
+            u"input. Orig error: %s" % b.ue(e))
         if debug: print(msg)
         raise Exception(msg)
     return tbl_only
@@ -861,7 +862,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
     if existing_report:
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        existing_html = lib.clean_boms(f.read())
+        existing_html = b.clean_boms(f.read())
         existing_has_dojo = hdr_has_dojo(existing_html)
         has_dojo = (new_has_dojo or existing_has_dojo)
         if has_dojo:
@@ -906,7 +907,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
             raise Exception(u"Unable to save to report. You might need to "
                 u"check and correct the path to the report.")
     except Exception, e:
-        raise Exception(u"Unable to save to report. Orig error: %s" % lib.ue(e))
+        raise Exception(u"Unable to save to report. Orig error: %s" % b.ue(e))
     css_fils_str = '[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
     f.write(hdr)
@@ -938,7 +939,7 @@ def export_script(script, css_fils, new_has_dojo=False):
         "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
         f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "U", "utf-8")
-        existing_script = lib.clean_boms(f.read())             
+        existing_script = b.clean_boms(f.read())             
         f.close()
     else:
         existing_script = None
@@ -1066,19 +1067,19 @@ def generate_script(modules, css_fils, new_has_dojo, inner_script,
         f.close()
     except Exception, e:
         raise Exception(u"Unable to make the script needed to make the output."
-            u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % b.ue(e))
 
 def run_script():
     try:
         f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
         script_txt = f.read()
         f.close()
-        script_txt = lib.get_exec_ready_text(text=script_txt)
-        script = lib.clean_boms(script_txt)    
+        script_txt = b.get_exec_ready_text(text=script_txt)
+        script = b.clean_boms(script_txt)    
         script = script[script.index(mg.MAIN_SCRIPT_START):]
     except Exception, e:
         raise Exception(u"Unable to read part of script for execution."
-            u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % b.ue(e))
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_MS_ACCESS:
         orig_projdic = dd.proj_dic
@@ -1089,12 +1090,12 @@ def run_script():
         dummy_dic = {}
         exec script in dummy_dic
     except my_exceptions.OutputException, e:
-        wx.MessageBox(lib.ue(e))
+        wx.MessageBox(b.ue(e))
         raise my_exceptions.NeedViableInput
     except Exception, e:
         print("Unable to run report: %s" % traceback.format_exc())
         raise Exception(_(u"Unable to run script to generate report. Caused by "
-            u"error: %s") % lib.ue(e))
+            u"error: %s") % b.ue(e))
     finally:
         if dd.dbe == mg.DBE_MS_ACCESS: 
             dd.set_proj_dic(orig_projdic)
@@ -1116,12 +1117,12 @@ def get_raw_results():
     verbose = False
     try:
         with codecs.open(mg.INT_REPORT_PATH, "U", "utf-8") as f:
-            raw_results = lib.clean_boms(f.read())
+            raw_results = b.clean_boms(f.read())
             f.close()
         if debug and verbose: print(raw_results)
     except Exception, e:
         raise Exception(u"Unable to read local copy of output report."
-            u"\nOrig error: %s" % lib.ue(e))
+            u"\nOrig error: %s" % b.ue(e))
     return raw_results
 
 def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
@@ -1140,10 +1141,10 @@ def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     except my_exceptions.MalformedHtml, e:
         raise Exception(_("Problems with the content of the report you are "
             u"saving to. Please fix, or delete report and start again. Caused "
-            u"by error: %s") % lib.ue(e))
+            u"by error: %s") % b.ue(e))
     except Exception, e:
         raise Exception(u"Problem running report.\n"
-            u"Caused by error: %s" % lib.ue(e))
+            u"Caused by error: %s" % b.ue(e))
 
 def get_abs_content(raw_display_content, add_to_report):
     """
@@ -1208,10 +1209,10 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
         except Exception, e:
             if add_to_report:
                 raise Exception(u"Problems getting copy of output to display."
-                    u"\nOrig error: %s" % lib.ue(e))
+                    u"\nOrig error: %s" % b.ue(e))
             else:
                 raise Exception(u"Problems getting content to display on "
-                    u"screen.\nOrig error: %s" % lib.ue(e))
+                    u"screen.\nOrig error: %s" % b.ue(e))
         if add_to_report:
             esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
             gui_display_content = (abs_above_inner_body + mg.BODY_START + 
@@ -1222,9 +1223,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
                 + u"<p>%s</p>" % filt_msg + abs_inner_body)
         if debug: print(abs_inner_body)
     except my_exceptions.NeedViableInput, e:
-        return False, u"<p>%s</p>" % lib.ue(e)
+        return False, u"<p>%s</p>" % b.ue(e)
     except Exception, e:
-        return False, u"<h1>Ooops!</h1><p>%s</p>" % lib.ue(e)
+        return False, u"<h1>Ooops!</h1><p>%s</p>" % b.ue(e)
     if debug: 
         print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 
             gui_display_content))

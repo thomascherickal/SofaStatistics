@@ -17,6 +17,7 @@ from operator import itemgetter
 import pprint
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -579,7 +580,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         cur.execute(SQL_raw_data)
     except Exception, e:
         raise Exception(u"Unable to get raw data for chart. Orig error: %s" % 
-            lib.ue(e))
+            b.ue(e))
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     if not raw_data:
@@ -937,8 +938,8 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
      bin_width, unused) = core_stats.histogram(combined_vals, n_bins, 
         defaultreallimits=[lower_limit, upper_limit])
     (unused, combined_start, 
-     bin_width) = lib.fix_sawtoothing(combined_vals, n_bins, combined_y_vals, 
-        combined_start, bin_width)
+     bin_width) = core_stats.fix_sawtoothing(combined_vals, n_bins, 
+         combined_y_vals, combined_start, bin_width)
     # put any temporary hack overrides for combined_start, bin_width below here**************
     #combined_start = 100 # or whatever the starting number for the bins should be
     #bin_width = 10 # or whatever the width of the bins should be
@@ -990,7 +991,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
         maxval = bin_end
         xaxis_dets = [(x+1, u"") for x in range(n_bins)]
         if inc_normal: # some things are done in code above that aren't needed if not generating norm curve but easier to leave in
-            norm_ys = list(lib.get_normal_ys(vals4norm, np.array(bins)))
+            norm_ys = list(core_stats.get_normal_ys(vals4norm, np.array(bins)))
             sum_yval = sum(y_vals)
             sum_norm_ys = sum(norm_ys)
             norm_multiplier = sum_yval/(1.0*sum_norm_ys)
@@ -1128,7 +1129,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
             if inc_regression:
                 try:
                     (unused, unused, unused, 
-                     y0, y1) = lib.get_regression_dets(list_x, list_y)
+                     y0, y1) = core_stats.get_regression_dets(list_x, list_y)
                     line_lst = [y0, y1]
                 except Exception:
                     pass
@@ -2519,8 +2520,8 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
         line_lst = series_det[mg.LINE_LST]
         if inc_regression:
             if line_lst is not None:
-                indiv_regression_msg = lib.get_indiv_regression_msg(list_x, 
-                    list_y, series_lbl)
+                indiv_regression_msg = core_stats.get_indiv_regression_msg(
+                    list_x, list_y, series_lbl)
                 indiv_regression_msgs.append(indiv_regression_msg)
             else:
                 indiv_regression_msgs.append(mg.REGRESSION_ERR)
@@ -2731,8 +2732,8 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         if inc_regression:
             inc_regression_js = "true"
             if line_lst is not None:
-                indiv_regression_msg = lib.get_indiv_regression_msg(list_x, 
-                    list_y, series_lbl)
+                indiv_regression_msg = core_stats.get_indiv_regression_msg(
+                    list_x, list_y, series_lbl)
                 indiv_regression_msgs.append(indiv_regression_msg)
                 y0, y1 = line_lst
                 line_coords = [(min(list_x), y0), (max(list_x), y1)]

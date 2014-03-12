@@ -11,6 +11,7 @@ import os
 import xlwt #@UnresolvedImport
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -207,7 +208,7 @@ class DlgExportData(wx.Dialog):
             except my_exceptions.ExportCancel:
                 wx.MessageBox(u"Export Cancelled")
             except Exception, e:
-                msg = (u"Problem exporting output. Orig error: %s" % lib.ue(e))
+                msg = (u"Problem exporting output. Orig error: %s" % b.ue(e))
                 if debug: print(msg)
                 wx.MessageBox(msg)
                 self.progbar.SetValue(0)

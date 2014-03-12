@@ -1,6 +1,7 @@
 import os
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -474,7 +475,7 @@ class DlgStatsSelect(wx.Dialog):
         except Exception, e:
             msg = _("Unable to open report table")
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by error: %s" % (msg, lib.ue(e)))
+            raise Exception(u"%s.\nCaused by error: %s" % (msg, b.ue(e)))
         finally:
             lib.safe_end_cursor()
             event.Skip()

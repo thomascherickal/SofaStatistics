@@ -3,6 +3,7 @@ import codecs
 import os
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import config_globals
 import lib
@@ -74,9 +75,9 @@ class DlgProjSelect(wx.Dialog):
     def get_notes(self, fil_proj):
         proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_txt = lib.get_exec_ready_text(text=f.read())
+        proj_txt = b.get_exec_ready_text(text=f.read())
         f.close()
-        proj_cont = lib.clean_boms(proj_txt)
+        proj_cont = b.clean_boms(proj_txt)
         proj_dic = {}
         try:
             exec proj_cont in proj_dic
@@ -119,7 +120,7 @@ class DlgProjSelect(wx.Dialog):
                 fil_proj=fil_proj)
         except Exception, e:
             wx.MessageBox(u"Unable to open project dialog for %s. "
-                u"Orig error: %s" % (fil_proj, lib.ue(e)))
+                u"Orig error: %s" % (fil_proj, b.ue(e)))
             return
         # refresh projects list and display accordingly
         ret = dlgProj.ShowModal()
@@ -172,7 +173,7 @@ class DlgProjSelect(wx.Dialog):
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                 u"check name of file and its contents using %(def_proj)s as "
                 u"example.\nCaused by error: %(err)s") % 
-                {u"def_proj": mg.DEFAULT_PROJ, u"err": lib.ue(e)})
+                {u"def_proj": mg.DEFAULT_PROJ, u"err": b.ue(e)})
             return
         lib.safe_end_cursor()
         self.Destroy()

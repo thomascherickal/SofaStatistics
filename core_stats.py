@@ -8,6 +8,8 @@ import decimal
 import math
 from types import IntType, FloatType, ListType, TupleType
 import numpy as np
+
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -31,6 +33,79 @@ The "minus 3" at the end of this formula is often explained as a correction to
     http://en.wikipedia.org/wiki/Kurtosis
 """
 FISHER_KURTOSIS_ADJUSTMENT = 3.0
+
+def saw_toothing(y_vals, period, start_idx=0):
+    """
+    Sawtoothing is where every nth bin has values, but the others have none.
+    """
+    period_vals = y_vals[start_idx::period]
+    sum_period = sum(period_vals)
+    sum_all = sum(y_vals)
+    sum_non_period = sum_all - sum_period
+    return sum_non_period == 0
+
+def fix_sawtoothing(raw_data, n_bins, y_vals, start, bin_width):
+    """
+    Look for sawtoothing on commonly found periods (5 and 2).  If found, reduce
+    bins until problem gone or too few bins to keep shrinking.
+    """
+    debug = False
+    while n_bins > 5:
+        if saw_toothing(y_vals, period=5):
+            shrink_factor = 5.0
+        elif saw_toothing(y_vals, period=2):
+            shrink_factor = 2.0
+        elif saw_toothing(y_vals, period=2, start_idx=1):
+            shrink_factor = 2.0
+        else:
+            break
+        n_bins = int(math.ceil(n_bins/shrink_factor))
+        (y_vals, start, 
+            bin_width, unused) = histogram(raw_data, n_bins)
+        if debug: print(y_vals)
+    return y_vals, start, bin_width
+
+def get_normal_ys(vals, bins):
+    """
+    Get np array of y values for normal distribution curve with given values 
+    and bins.
+    """
+    if len(vals) < 2:
+        raise Exception(_(u"Need multiple values to calculate normal curve."))
+    debug = False
+    import pylab
+    mu = mean(vals)
+    sigma = stdev(vals)
+    if debug: print(bins, mu, sigma)
+    if sigma == 0:
+        raise Exception(u"Unable to get y-axis values for normal curve with a "
+            u"sigma of 0.")
+    norm_ys = pylab.normpdf(bins, mu, sigma)
+    return norm_ys
+
+def get_regression_dets(list_x, list_y):
+    try:
+        slope, intercept, r, unused, unused = linregress(list_x, list_y)
+    except Exception, e:
+        raise Exception(u"Unable to get regression details. Orig error: %s" % e) 
+    x0 = min(list_x)
+    x1 = max(list_x)
+    y0 = (x0*slope) + intercept
+    y1 = (x1*slope) + intercept
+    return slope, intercept, r, y0, y1
+
+def get_indiv_regression_msg(list_x, list_y, series_lbl):
+    try:
+        slope, intercept, unused, unused, unused = linregress(list_x, list_y)
+    except Exception:
+        return mg.REGRESSION_ERR
+    dp = 3
+    indiv_regression_msg = (u"Slope: %s; Intercept: %s" % 
+        (round(slope, dp), round(intercept, dp)))
+    if series_lbl:
+        indiv_regression_msg = u"%s: %s" % (series_lbl, 
+            indiv_regression_msg)
+    return indiv_regression_msg
 
 def unique(sample):
     """
@@ -948,7 +1023,7 @@ def pearsonr(x,y):
         x = map(float,x)
         y = map(float,y)
     except ValueError, e:
-        raise Exception(u"Unable to calculate Pearson's R.  %s" % lib.ue(e))
+        raise Exception(u"Unable to calculate Pearson's R.  %s" % b.ue(e))
     xmean = mean(x)
     ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)

@@ -11,6 +11,7 @@ import pprint
 import wx #@UnusedImport
 import wx.html
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -102,7 +103,7 @@ def get_dialect(sniff_sample):
             if debug: print(sniff_sample)
             dialect = sniffer.sniff(sniff_sample, delimiters=["\t", ",", ";"]) # feeding in tab as part of delimiters means it is picked up even if field contents are not quoted
         except Exception, e:
-            if lib.ue(e).startswith(ERR_NO_DELIM):
+            if b.ue(e).startswith(ERR_NO_DELIM):
                 dialect = MyDialect() # try a safe one of my own
             else:
                 raise
@@ -117,10 +118,10 @@ def get_dialect(sniff_sample):
                 u"Microsoft-only format."
                 u"\n\nIf saving as csv in in Excel, make sure to select "
                 u" 'Yes' to leave out features incompatible with csv."
-                u"\n\nCaused by error: %s\n" % lib.ue(e))
+                u"\n\nCaused by error: %s\n" % b.ue(e))
     except Exception, e:
         raise Exception(u"Unable to open and sample csv file. "
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     return dialect
 
 def fix_text(file_path):
@@ -203,9 +204,9 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
         prob_has_hdr = sniffer.has_header(hdr_sample)
     except csv.Error, e:
         lib.safe_end_cursor()
-        if lib.ue(e).startswith(ERR_NO_DELIM):
+        if b.ue(e).startswith(ERR_NO_DELIM):
             pass # I'll have to try it myself
-        elif lib.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
+        elif b.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
             fix_text(file_path)
     except Exception, e: # If everything else succeeds don't let this stop things
         pass
@@ -282,7 +283,7 @@ class UnicodeCsvReader(object):
                 **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv reader. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         self.i = 0
         
     def __iter__(self):
@@ -306,10 +307,10 @@ class UnicodeCsvReader(object):
                         rowvals.append(uval)
                     except Exception, e:
                         raise Exception(u"Problem decoding values. "
-                            u"\nCaused by error: %s" % lib.ue(e))
+                            u"\nCaused by error: %s" % b.ue(e))
             except Exception, e:
                 raise Exception(u"Problem with csv file on row %s, item %s. " %
-                    (self.i, j) + u"\nCaused by error: %s" % lib.ue(e))
+                    (self.i, j) + u"\nCaused by error: %s" % b.ue(e))
             yield rowvals
             
 
@@ -330,7 +331,7 @@ class UnicodeCsvDictReader(object):
                 dialect=dialect, **kwargs)
         except Exception, e:
             raise Exception(u"Unable to start internal csv dict reader. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         self.fieldnames = self.csv_dictreader.fieldnames
         self.i = 0 if fieldnames else 1 # if no fieldnames, row 1 was consumed
     
@@ -370,7 +371,7 @@ class UnicodeCsvDictReader(object):
                     unicode_key_value_tups.append(tuple(uni_key_val))
             except Exception, e:
                 raise Exception(u"Problem with csv file on row %s. " % self.i +
-                    u"\nCaused by error: %s" % lib.ue(e))
+                    u"\nCaused by error: %s" % b.ue(e))
             yield dict(unicode_key_value_tups)
 
 def escape_double_quotes_in_uni_lines(lines, delimiter):
@@ -415,7 +416,7 @@ def escape_double_quotes_in_uni_lines(lines, delimiter):
                     .replace(tmpchar_delim, doub_delim))
             except Exception, e:
                 raise Exception(u"Error escaping double quotes on line %s" % i +
-                    u"\nCaused by error: %s" % lib.ue(e))
+                    u"\nCaused by error: %s" % b.ue(e))
         escaped_lines.append(final_line)
     return escaped_lines
 
@@ -427,7 +428,7 @@ def encode_lines_as_utf8(uni_lines):
             utf8_encoded_lines.append(utf8_encoded_line)
         except Exception, e:
             raise Exception(u"Unable to encode decoded data as utf8. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
     return utf8_encoded_lines
 
 def get_decoded_unilines(file_path, bom2rem, encoding):
@@ -517,7 +518,7 @@ def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
                          u"Cannot use the encoding supplied to decode.")
     except Exception, e:
         raise Exception(u"Unable to recode CSV content. Orig error: %s" % 
-            lib.ue(e))
+            b.ue(e))
     # no boms to guide us - try what we have and see if it "works".
     # Note - may get something malformed which fails after the file read when we 
     # try to iterate through lines.
@@ -527,7 +528,7 @@ def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
             f = codecs.open(file_path, encoding=encoding, errors=errors)
         except IOError, e:
             raise Exception(u"Unable to open file for re-encoding. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         for line in f:
             unilines.append(line)
     if not unilines:
@@ -663,7 +664,7 @@ class DlgImportDisplay(wx.Dialog):
         except Exception, e:
             msg = (u"Unable to display the first lines of this CSV file using "
                 u"the first selected encoding (%s).\n\nOrig error: %s" % 
-                (self.encoding, lib.ue(e)))
+                (self.encoding, b.ue(e)))
             return msg, 100
         try:
             # don't use dict reader - consumes first row when we don't know
@@ -674,7 +675,7 @@ class DlgImportDisplay(wx.Dialog):
                 dialect=self.dialect)
         except csv.Error, e:
             lib.safe_end_cursor()
-            if lib.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
+            if b.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
                 fix_text(self.file_path)
                 raise my_exceptions.ImportNeededFix
             else:
@@ -682,7 +683,7 @@ class DlgImportDisplay(wx.Dialog):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         try:
             i = 0
             strdata = []
@@ -693,7 +694,7 @@ class DlgImportDisplay(wx.Dialog):
                         break
         except csv.Error, e:
             lib.safe_end_cursor()
-            if lib.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
+            if b.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
                 raise Exception(u"Problem with row %s - line break in the "
                     u"middle of a field." % str(i+1))
             else:
@@ -708,7 +709,7 @@ class DlgImportDisplay(wx.Dialog):
                 self.html_content.SetPage(content)
             except Exception, e:
                 wx.MessageBox(u"Unable to use the delimiter character supplied."
-                    u"\nCaused by error: %s" % lib.ue(e))
+                    u"\nCaused by error: %s" % b.ue(e))
     
     def on_btn_cancel(self, event):
         self.Destroy()
@@ -857,7 +858,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         if not self.headless:
             wx.BeginBusyCursor()
         if self.has_header:
@@ -870,7 +871,7 @@ class CsvImporter(importer.FileImporter):
                 # get_sample_with_dets()
                 lib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
-                    u"\nCaused by error: %s" % lib.ue(e)) 
+                    u"\nCaused by error: %s" % b.ue(e)) 
             ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames,
                 self.headless, self.force_quickcheck)
         else: # get number of fields from first row (not consumed because not 
@@ -883,7 +884,7 @@ class CsvImporter(importer.FileImporter):
                 # get_sample_with_dets()
                 lib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
-                    u"\nCaused by error: %s" % lib.ue(e)) 
+                    u"\nCaused by error: %s" % b.ue(e)) 
             for row in tmp_reader:
                 if debug: print(row)
                 ok_fldnames = [mg.NEXT_FLDNAME_TEMPLATE % (x+1,) 
@@ -922,7 +923,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get initial csv details. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         comma_delimiter = has_comma_delim(dialect)
         try:
             # estimate number of rows (only has to be good enough for progress)
@@ -936,7 +937,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to get count of rows. "
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         try:
             utf8_encoded_csv_data = csv2utf8_bytelines(self.file_path, 
                 encoding, dialect.delimiter, strict=False)
@@ -946,7 +947,7 @@ class CsvImporter(importer.FileImporter):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
-                u"\nCaused by error: %s" % lib.ue(e)) 
+                u"\nCaused by error: %s" % b.ue(e)) 
         default_dd = getdata.get_default_db_dets()
         sample_n = min(ROWS_TO_SHOW_USER, rows_n)
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step

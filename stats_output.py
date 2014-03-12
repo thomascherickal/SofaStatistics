@@ -3,6 +3,7 @@ import numpy as np
 import boomslang
 import pylab
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import charting_pylab
@@ -174,7 +175,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                 mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                (histlbl, lib.ue(e)))
+                (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
@@ -333,7 +334,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
                 mg.IMG_SRC_END))
         except Exception, e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-                (histlbl, lib.ue(e)))
+                (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = (mg.CSS_SUFFIX_TEMPLATE %
@@ -372,7 +373,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
-            (histlbl, lib.ue(e)))
+            (histlbl, b.ue(e)))
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -502,7 +503,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
-    slope, intercept, r, y0, y1 = lib.get_regression_dets(list_x, list_y)
+    slope, intercept, r, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
     line_lst = [y0, y1]
     html = []
     footnotes = []
@@ -546,7 +547,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
-    slope, intercept, r, y0, y1 = lib.get_regression_dets(list_x, list_y)
+    slope, intercept, r, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
     line_lst = [y0, y1]
     html = []
     footnotes = []

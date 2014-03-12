@@ -2,6 +2,7 @@ from __future__ import print_function
 import math
 import numpy
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -543,7 +544,7 @@ class LiveTable(DimTable):
                                        data_cells_n, col_term_nodes, css_idx)
         except Exception, e:
             row_label_rows_lst = [u"<td>Problem getting table output: "
-                                  u"Orig error: %s</td>" % lib.ue(e)]
+                u"Orig error: %s</td>" % b.ue(e)]
         return row_label_rows_lst
     
     def get_row_dets(self, css_idx):

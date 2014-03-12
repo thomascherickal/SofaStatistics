@@ -3,6 +3,7 @@
 
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import paired2var
@@ -41,7 +42,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             var_a, label_a, var_b, label_b = self.get_drop_vals()
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
-                          % lib.ue(e))
+                % b.ue(e))
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 

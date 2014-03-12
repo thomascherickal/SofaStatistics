@@ -80,6 +80,16 @@ if show_early_steps:
 gettext.install(domain='sofastats', localedir=localedir, unicode=True)
 if show_early_steps: print(u"Just installed gettext")
 try:
+    import basic_lib as b
+except Exception, e:
+    msg = (u"Problem importing basic_lib. %s" % traceback.format_exc())
+    if show_early_steps: 
+        print(msg)
+        raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
+            # to user.  Unlike when a GUI msg possible later on. In those cases
+            # just let that step happen.
+    raise Exception(msg)
+try:
     import my_globals as mg # has translated text
 except Exception, e:
     msg = u"Problem with importing my_globals. %s" % traceback.format_exc()
@@ -112,7 +122,7 @@ class ErrMsgFrame(wx.Frame):
         etc, version number etc.
         """
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
-        error_msg = lib.ue(e)
+        error_msg = b.ue(e)
         mybreak = u"\n" + u"*"*30 + u"\n"
         err_msg_fname = u"sofastats_error_details.txt"
         if not raw_error_msg:
@@ -260,7 +270,7 @@ def make_local_subfolders(local_path, local_subfolders):
         if show_early_steps: print(u"Made local folder successfully.")
     except Exception, e:
         raise Exception(u"Unable to make local SOFA path \"%s\"." % local_path +
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
     for local_subfolder in local_subfolders: # create required subfolders
         try:
             os.mkdir(os.path.join(local_path, local_subfolder))
@@ -268,7 +278,7 @@ def make_local_subfolders(local_path, local_subfolders):
                 print(u"Added %s successfully." % local_subfolder)
         except Exception, e:
             raise Exception(u"Unable to make local subfolder \"%s\"." % 
-                local_subfolder + u"\nCaused by error: %s" % lib.ue(e))
+                local_subfolder + u"\nCaused by error: %s" % b.ue(e))
     print(u"Made local subfolders under \"%s\"" % local_path)
 
 def run_test_code(script):
@@ -280,9 +290,9 @@ def run_test_code(script):
     if not os.path.exists(test_path):
         return
     f = codecs.open(test_path, "r", "utf-8")
-    test_code = lib.get_exec_ready_text(text=f.read())
+    test_code = b.get_exec_ready_text(text=f.read())
     f.close()
-    test_code = lib.clean_boms(test_code)
+    test_code = b.clean_boms(test_code)
     test_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html
@@ -290,7 +300,7 @@ def run_test_code(script):
     except SyntaxError, e:
         raise Exception(_(u"Syntax error in test script \"%(test_path)s\"."
             u"\nCaused by error: %(err)s") % {u"test_path": test_path, 
-            u"err": lib.ue(e)})
+            u"err": b.ue(e)})
     except Exception, e:
         raise Exception(_(u"Error running test script \"%(test_path)s\"."
             u"\nCaused by errors:\n\n%(err)s") % {u"test_path": test_path, 
@@ -312,7 +322,7 @@ def populate_css_path(prog_path, local_path):
             if show_early_steps: print(u"Just copied %s" % style)
         except Exception, e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path."
-                u"\nCaused by error: %s" % lib.ue(e) +
+                u"\nCaused by error: %s" % b.ue(e) +
                 u"\nprog_path: %s" % prog_path +
                 u"\nlocal_path: %s" % local_path +
                 u"\nFile location details: %s" % sys.path)
@@ -372,7 +382,7 @@ def populate_extras_path(prog_path, local_path):
             if show_early_steps: print(u"Just copied %s" % extra)
         except Exception, e:
             raise Exception(u"Problem populating report extras path."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
     print(u"Populated report extras path under %s" % local_path)
 
 def populate_local_paths(prog_path, local_path, default_proj):
@@ -443,7 +453,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
             u"It may be best to delete your local sofastats folder "
             u"e.g. C:\\Users\\username\\sofastats or C:\\Documents "
             u"and Settings\\username\\sofastats"
-            u"\nCaused by error: %s" % lib.ue(e))
+            u"\nCaused by error: %s" % b.ue(e))
 
 def store_version(local_path):
     f = codecs.open(os.path.join(local_path, mg.VERSION_FILE), "w", "utf-8")
@@ -549,7 +559,7 @@ def setup_folders():
                 store_version(mg.LOCAL_PATH)
         except Exception, e:
             raise Exception(u"Unable to make local sofa folders in \"%s.\""
-                % mg.LOCAL_PATH + u"\nCaused by error: %s" % lib.ue(e))
+                % mg.LOCAL_PATH + u"\nCaused by error: %s" % b.ue(e))
         run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
         # 2) Modify existing local SOFA folder if version change require it
         existing_local = not local_path_setup_needed
@@ -575,7 +585,7 @@ def setup_folders():
                     except Exception, e:
                         raise Exception(u"Unable to make report extras "
                             u"path \"%s\"." % REPORT_EXTRAS_PATH
-                            + u"\nCaused by error: %s" % lib.ue(e))
+                            + u"\nCaused by error: %s" % b.ue(e))
                     populate_extras_path(prog_path, mg.LOCAL_PATH)
                     archive_older_default_report()
                     store_version(mg.LOCAL_PATH) # update it so only done once
@@ -583,13 +593,13 @@ def setup_folders():
                 raise Exception(u"Problem modifying your local sofastats "
                     u"folder. One option is to delete the \"%s\" folder and let"
                     u" SOFA make a fresh one.\nCaused by error: %s" %
-                    (mg.LOCAL_PATH, lib.ue(e)))
+                    (mg.LOCAL_PATH, b.ue(e)))
         # 3) Make a fresh recovery folder if needed
         try:
             freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
         except Exception, e:
             raise Exception(u"Problem freshening your recovery folder \"%s\"."
-                u"\nCaused by error: %s" % (prog_path, lib.ue(e)))
+                u"\nCaused by error: %s" % (prog_path, b.ue(e)))
         # 4) ensure the internal copy images path exists
         try:
             os.mkdir(mg.INT_COPY_IMGS_PATH)
@@ -599,7 +609,7 @@ def setup_folders():
         if show_early_steps: 
             print(u"Problem running initial setup - about to make msg.")
         msg = (u"Problem running initial setup.\nCaused by error: %s" % 
-            lib.ue(e))
+            b.ue(e))
         if show_early_steps: 
             print(msg)
             print(traceback.format_exc())
@@ -624,13 +634,13 @@ try:
     about = u"quotes"
     import quotes #@UnusedImport
 except my_exceptions.ComtypesException, e:
-    msgapp = ErrMsgApp(lib.ue(e))
+    msgapp = ErrMsgApp(b.ue(e))
 except my_exceptions.InconsistentFileDate, e:
-    msgapp = ErrMsgApp(lib.ue(e))
+    msgapp = ErrMsgApp(b.ue(e))
 except Exception, e:
     msg = (u"Problem with second round of local importing while "
        u"importing %s." % about +
-       u"\nCaused by error: %s" % lib.ue(e) +
+       u"\nCaused by error: %s" % b.ue(e) +
        u"\n\nMore details that may help developer:\n%s" % 
        traceback.format_exc())
     msgapp = ErrMsgApp(msg)

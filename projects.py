@@ -5,6 +5,7 @@ import os
 import pprint
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import getdata
@@ -637,9 +638,9 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         """
         proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
         f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_txt = lib.get_exec_ready_text(text=f.read())
+        proj_txt = b.get_exec_ready_text(text=f.read())
         f.close()
-        proj_cont = lib.clean_boms(proj_txt)
+        proj_cont = b.clean_boms(proj_txt)
         proj_dic = {}
         try:
             exec proj_cont in proj_dic
@@ -647,13 +648,13 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             wx.MessageBox(
                 _(u"Syntax error in project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                u"err": lib.ue(e)})
+                u"err": b.ue(e)})
             raise
         except Exception, e:
             wx.MessageBox(
                 _(u"Error processing project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                u"err": lib.ue(e)})
+                u"err": b.ue(e)})
             raise
         try:
             self.proj_name = filname2projname(fil_proj)
@@ -678,7 +679,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                 "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
                 u"def_proj": mg.DEFAULT_PROJ})
             raise Exception(u"Key error reading from proj_dic."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         except Exception, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
                 "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
@@ -827,7 +828,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                 wx.MessageBox(_(u"Unable to save project file. Please check "
                     u"\"%(fil_name)s\" is a valid file name."
                     u"\n\nCaused by error: %(err)s") % {u"fil_name": fil_name, 
-                    u"err": lib.ue(e)})
+                    u"err": b.ue(e)})
                 return
             f.write(u"# Windows file paths _must_ have double not single "
                 u"backslashes")

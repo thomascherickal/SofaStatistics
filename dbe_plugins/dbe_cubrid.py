@@ -16,6 +16,7 @@ import os
 import wx
 import pprint
 
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import lib
@@ -80,7 +81,7 @@ def get_con_cur_for_db(con_dets_cubrid, db):
         con = cubrid.connect(con_url)
     except Exception, e:
         raise Exception(u"Unable to connect to CUBRID db using %s. "
-                        u"\nCaused by error: %s" % (con_url, lib.ue(e)))
+            u"\nCaused by error: %s" % (con_url, b.ue(e)))
     cur = con.cursor() # must return tuples not dics
     return con, cur
 

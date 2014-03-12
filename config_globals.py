@@ -1,6 +1,7 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 
+from __future__ import absolute_import
 import codecs
 import os
 import subprocess
@@ -16,6 +17,7 @@ This module is used immediately after my_globals is loaded and needs to complete
     the correctness of what is in my_globals at the time they are called.
 """
 
+import basic_lib as b
 import my_globals as mg
 
 def set_SCRIPT_PATH():
@@ -61,9 +63,8 @@ def import_dbe_plugin(dbe_plugin):
         else:
             raise Exception(u"Unknown database engine plug-in type")
     except ImportError, e:
-        import lib
         raise Exception(u"Import error with \"%s\". Caused by error: %s" % 
-                        (dbe_plugin, lib.ue(e)))
+            (dbe_plugin, b.ue(e)))
     return mod
 
 def import_dbe_plugins():
@@ -74,17 +75,16 @@ def import_dbe_plugins():
     """
     for dbe_plugin, dbe_mod_name in mg.DBE_PLUGINS:
         wrong_os = (dbe_plugin in [mg.DBE_MS_ACCESS, mg.DBE_MS_SQL] 
-                    and mg.PLATFORM != mg.WINDOWS)
+            and mg.PLATFORM != mg.WINDOWS)
         dbe_plugin_mod = os.path.join(mg.SCRIPT_PATH, u"dbe_plugins", 
-                                      u"%s.py" % dbe_mod_name)
+            u"%s.py" % dbe_mod_name)
         if os.path.exists(dbe_plugin_mod):
             if not wrong_os:
                 try:
                     dbe_mod = import_dbe_plugin(dbe_plugin)
                 except Exception, e:
-                    import lib
                     msg = (u"Not adding dbe plugin %s. " % dbe_plugin +
-                           u"\nReason: %s" % lib.ue(e))
+                        u"\nReason: %s" % b.ue(e))
                     print(msg)
                     mg.DBE_PROBLEM.append(msg)
                     continue # skip bad module
@@ -109,10 +109,9 @@ def get_date_fmt():
                 import win32api
                 import win32con
             except ImportError, e:
-                import lib
                 raise Exception(_("Problem with Windows modules. Did all steps "
-                          "in installation succeed? You may need to "
-                          "install again.\nError caused by: %s" % lib.ue(e)))
+                    "in installation succeed? You may need to install again."
+                    "\nError caused by: %s" % b.ue(e)))
             rkey = win32api.RegOpenKey(win32con.HKEY_CURRENT_USER, 
                                        'Control Panel\\International')
             raw_d_fmt = win32api.RegQueryValueEx(rkey, "iDate")[0]
@@ -138,8 +137,7 @@ def get_date_fmt():
             print(u"Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
             d_fmt = default_d_fmt
     except Exception, e:
-        import lib
-        print(u"Unable to get date format.\nCaused by error: %s" % lib.ue(e))
+        print(u"Unable to get date format.\nCaused by error: %s" % b.ue(e))
         d_fmt = default_d_fmt
     return d_fmt
 
@@ -183,24 +181,23 @@ def get_settings_dic(subfolder, fil_name):
     Returns settings_dic with keys for each setting.
     Used for project dics, preferences dics etc.
     """
-    import lib
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
     try:
         f = codecs.open(settings_path, "U", encoding="utf-8")
     except IOError, e:
         raise Exception("Unable to get settings from non-existent file %s"
                         % settings_path)
-    settings_cont = lib.get_exec_ready_text(text=f.read())
+    settings_cont = b.get_exec_ready_text(text=f.read())
     f.close()
-    settings_cont = lib.clean_boms(settings_cont)
+    settings_cont = b.clean_boms(settings_cont)
     settings_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html
         exec settings_cont in settings_dic
     except SyntaxError, e:
         err_msg = _(u"Syntax error in settings file \"%(fil_name)s\"."
-                    u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
-                                                    u"details": lib.ue(e)}
+            u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
+            u"details": b.ue(e)}
         try:
             wx.MessageBox(err_msg) # only works if wx.App up.
             raise
@@ -208,8 +205,8 @@ def get_settings_dic(subfolder, fil_name):
             raise Exception(err_msg)
     except Exception, e:
         err_msg = _(u"Error processing settings file \"%(fil_name)s\"."
-                    u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
-                                                    u"details": lib.ue(e)}
+            u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
+            u"details": b.ue(e)}
         try:
             wx.MessageBox(err_msg)
             raise
@@ -233,11 +230,11 @@ def set_DEFAULT_LEVEL(ignore_prefs=False):
     if not ignore_prefs:
         try:
             prefs_dic = get_settings_dic(subfolder=mg.INT_FOLDER, 
-                                         fil_name=mg.INT_PREFS_FILE)
-            stored_lev = prefs_dic[mg.PREFS_KEY][mg.DEFAULT_LEVEL_KEY]
+                fil_name=mg.INT_PREFS_FILE)
+            stored_lev = (prefs_dic.get(mg.PREFS_KEY, {})
+                .get(mg.DEFAULT_LEVEL_KEY))
             if stored_lev not in mg.LEVELS:
-                import lib
-                raise Exception("Invalid stored level: %s" % lib.ue(stored_lev))
+                raise Exception("Invalid stored level: %s" % b.ue(stored_lev))
             mg.DEFAULT_LEVEL = stored_lev
         except Exception:
             mg.DEFAULT_LEVEL = mg.LEVEL_BRIEF

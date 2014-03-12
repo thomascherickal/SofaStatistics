@@ -1,10 +1,13 @@
 # should be imported before any modules which rely on mg.DATADETS_OBJ as dd object
 
 from __future__ import print_function
+from __future__ import absolute_import
+
 import pprint
 import sys
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import config_globals
@@ -159,11 +162,11 @@ class DataDets(object):
         except KeyError, e:
             self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to read project dictionary for required "
-                u"keys.\nCaused by error: %s" % lib.ue(e))
+                u"keys.\nCaused by error: %s" % b.ue(e))
         except Exception, e:
             self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to set proj dic."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         # only change if successful
         self.con_dets = con_dets
         self.default_dbs = default_dbs
@@ -205,7 +208,7 @@ class DataDets(object):
                 default_tbls, db, tbl, add_checks)
         except Exception, e:
             raise Exception(u"Unable to get dbe resources."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         self.dbe = dbe # only change if getting dbe resources worked
         if debug: print(u"Finished getting dbe resources")
         self.con = dbe_resources[mg.DBE_CON]
@@ -262,7 +265,7 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
         sofa_default_db_cur.execute(SQL_get_tbls)
     except Exception, e:
         raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
-            u"default db\nCaused by error: %s" % lib.ue(e))
+            u"default db\nCaused by error: %s" % b.ue(e))
 
 def reset_main_con_if_sofa_default(tblname=None, add_checks=False):
     """
@@ -582,8 +585,8 @@ def insert_row(tbl_dd, data):
     except Exception, e:
         if debug: print(u"Failed to insert row. SQL: %s, Data: %s" %
             (SQL_insert, unicode(data_tup)) + u"\n\nCaused by error: %s" % 
-            lib.ue(e))
-        return False, u"%s" % lib.ue(e)
+            b.ue(e))
+        return False, u"%s" % b.ue(e)
 
 def delete_row(id_fld, row_id):
     """
@@ -606,8 +609,8 @@ def delete_row(id_fld, row_id):
         return True, None
     except Exception, e:
         if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
-            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % lib.ue(e))
-        return False, u"%s" % lib.ue(e)
+            (SQL_delete, row_id) + u"\n\nOriginal error: %s" % b.ue(e))
+        return False, u"%s" % b.ue(e)
 
 def readonly_enablement(chk_readonly):
     """
@@ -635,7 +638,7 @@ def open_database(parent, event):
             dd.cur.execute(SQL_get_count)
         except Exception, e:
             wx.MessageBox(_(u"Problem opening selected table."
-                u"\nCaused by error: %s") % lib.ue(e))
+                u"\nCaused by error: %s") % b.ue(e))
         res = dd.cur.fetchone()
         if res is None:
             rows_n = 0
@@ -704,7 +707,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
         except Exception, e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
                 " provided.\nCaused by error: %(e)s") % {"oth_dbe": oth_dbe, 
-                "e": lib.ue(e)})
+                "e": b.ue(e)})
     db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     drop_dbs = wx.Choice(panel, -1, choices=db_choice_items,
         size=(mg.STD_DROP_WIDTH,-1))
@@ -813,7 +816,7 @@ def refresh_db_dets(parent):
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
     except Exception, e:
         wx.MessageBox(_("Experienced problem refreshing database details.") +
-            u"\nCaused by error %s" % lib.ue(e))
+            u"\nCaused by error %s" % b.ue(e))
         # roll back
         orig_db_choice_item = parent.db_choice_items[orig_selected_dbe_db_idx]
         orig_db, orig_dbe = extract_db_dets(orig_db_choice_item)

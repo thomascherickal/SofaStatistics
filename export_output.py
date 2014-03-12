@@ -13,7 +13,6 @@ the best doc string to read.
 When creating images, splits by divider SOFA puts between all chunks of content.
 Namely mg.OUTPUT_ITEM_DIVIDER.
 """
-
 import codecs
 from collections import namedtuple
 import datetime
@@ -25,6 +24,7 @@ import sys
 import pyPdf
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -243,8 +243,7 @@ class DlgExportOutput(wx.Dialog):
                 lib.safe_end_cursor()
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
-                wx.MessageBox(u"Unable to export PDF. Orig error: %s" % 
-                    lib.ue(e))
+                wx.MessageBox(u"Unable to export PDF. Orig error: %s" % b.ue(e))
                 return
         if do_imgs:
             try:
@@ -259,7 +258,7 @@ class DlgExportOutput(wx.Dialog):
                     wx.MessageBox(u"Export Cancelled")
                 except Exception, e:
                     msg = (u"Problem exporting output. Orig error: %s" % 
-                        lib.ue(e))
+                        b.ue(e))
                     if debug: print(msg)
                     wx.MessageBox(msg)
                 self.progbar.SetValue(0)
@@ -279,7 +278,7 @@ class DlgExportOutput(wx.Dialog):
                     wx.MessageBox(u"Export Cancelled")
                 except Exception, e:
                     msg = (u"Problem exporting output. Orig error: %s" % 
-                        lib.ue(e))
+                        b.ue(e))
                     if debug: print(msg)
                     wx.MessageBox(msg)
                 self.progbar.SetValue(0)
@@ -327,7 +326,7 @@ class DlgExportOutput(wx.Dialog):
 def get_raw_html(report_path):
     try:
         with codecs.open(report_path, "U", "utf-8") as f:
-            raw_html = lib.clean_boms(f.read())
+            raw_html = b.clean_boms(f.read())
             f.close()
     except IOError:
         raise Exception(u"Unable to get items from report file - it doesn't "
@@ -602,7 +601,7 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
                 shutil.copyfile(src, dst)
             except Exception, e:
                 msg = (u"Unable to copy existing image file. Orig error: %s" % 
-                    lib.ue(e))
+                    b.ue(e))
                 if not headless:
                     wx.MessageBox(msg)
                 else:
@@ -748,7 +747,7 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
         if debug: print("Initial processing of %s complete" % html_path)
     except Exception, e:
         raise Exception(u"get_raw_pdf command failed: %s. Orig error: %s" % 
-            (cmd_make_pdf, lib.ue(e)))
+            (cmd_make_pdf, b.ue(e)))
     return pdf_path
 
 def fix_pdf(raw_pdf, final_pdf):
@@ -777,7 +776,7 @@ def fix_pdf(raw_pdf, final_pdf):
         if debug: print(u"Fixed \"%s\"" % final_pdf)
     except Exception, e:
         raise Exception(u"fix_pdf command for \"%s\" failed: %s. "
-            u"Orig error: %s" % (raw_pdf, cmd_fix_pdf, lib.ue(e)))
+            u"Orig error: %s" % (raw_pdf, cmd_fix_pdf, b.ue(e)))
 
 def get_pdf_page_count(pdf_path):
     try:
@@ -785,7 +784,7 @@ def get_pdf_page_count(pdf_path):
         pdf_im = pyPdf.PdfFileReader(file(pdf_path.encode(encoding2use), "rb"))
     except Exception, e:
         raise Exception(u"Problem getting PDF page count. Orig error: %s" % 
-            lib.ue(e))
+            b.ue(e))
     n_pages = pdf_im.getNumPages()
     return n_pages
 
@@ -800,11 +799,11 @@ def html2pdf(html_path, pdf_path, as_pre_img=False):
     try:
         raw_pdf = get_raw_pdf(html_path, RAWPDF_PATH, width, height)
     except Exception, e:
-        raise Exception(u"Unable to make raw PDF: Orig error: %s" % lib.ue(e))
+        raise Exception(u"Unable to make raw PDF: Orig error: %s" % b.ue(e))
     try:
         fix_pdf(raw_pdf, pdf_path)
     except Exception, e:
-        raise Exception(u"Unable to fix raw PDF: Orig error: %s" % lib.ue(e))
+        raise Exception(u"Unable to fix raw PDF: Orig error: %s" % b.ue(e))
     
 def u2utf8(unicode_txt):
     # http://stackoverflow.com/questions/1815427/...
@@ -856,7 +855,7 @@ def pdf2png_ghostscript(png2read_path, i, pdf_path, dpi):
         shellit(cmd_pdf2png)
     except Exception, e:
         raise Exception(u"pdf2png_ghostscript command failed: %s. "
-            u"Orig error: %s" % (cmd_pdf2png, lib.ue(e)))
+            u"Orig error: %s" % (cmd_pdf2png, b.ue(e)))
     
 def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext, 
         bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=300):
@@ -881,33 +880,33 @@ def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext,
         except Exception, e:
             if i == 0:
                 raise Exception(u"Unable to convert PDF using ghostscript. "
-                    u"Orig error: %s" % lib.ue(e))
+                    u"Orig error: %s" % b.ue(e))
             else:
                 # Not a problem if fails to read page 2 etc if not multipage
                 if debug: 
                     print(u"Failed to convert page idx %s PDF (%s) into image. "
                         u"Probably not a multipage PDF. Orig error: %s" % (i, 
-                        pdf_path, lib.ue(e)))
+                        pdf_path, b.ue(e)))
                 return None
             
         try: # can read directly from PDF because IM knows where GS is
             im.read(u2utf8(cheap_dpi_png2read_path)) # will fail on page idx 1 if not multipage PDF
         except Exception, e:
             raise Exception(u"Failed to read PDF (%s) into image. "
-                u"Orig error: %s" % (pdf_path, lib.ue(e)))
+                u"Orig error: %s" % (pdf_path, b.ue(e)))
     else:
         try: # can read directly from PDF because IM knows where GS is
             im.read(u2utf8(orig_pdf)) # will fail on page idx 1 if not multipage PDF
         except Exception, e:
             if i == 0:
                 raise Exception(u"Failed to read PDF (%s) into image. "
-                    u"Orig error: %s" % (pdf_path, lib.ue(e)))
+                    u"Orig error: %s" % (pdf_path, b.ue(e)))
             else:
                 # Not a problem if fails to read page 2 etc if not multipage
                 if debug: 
                     print(u"Failed to read page idx %s PDF (%s) into image. "
                         u"Probably not a multipage PDF. Orig error: %s" % (i, 
-                        pdf_path, lib.ue(e)))
+                        pdf_path, b.ue(e)))
                 return None
     if debug: print(u"About to set border colour for image")
     im.borderColor(u2utf8(bgcolour))
@@ -916,7 +915,7 @@ def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext,
     try:
         im.trim() # sometimes the PDF has an empty page at the end. Trim hates that and dies even though we don't need that page as an image.
     except Exception, e:
-        if debug: print(u"Failed with im.trim(). Orig error: %s" % lib.ue(e))
+        if debug: print(u"Failed with im.trim(). Orig error: %s" % b.ue(e))
         return None
     if debug: print(u"Just trimmed image")
     get_dims_only_pth = os.path.join(mg.INT_PATH, u"get_dims_only.png")
@@ -952,7 +951,7 @@ def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext,
     try:
         im.trim()
     except Exception, e:
-        if debug: print(u"Failed with im.trim(). Orig error: %s" % lib.ue(e))
+        if debug: print(u"Failed with im.trim(). Orig error: %s" % b.ue(e))
         return None
     if debug: print(u"Just trimmed")
     suffix = "" if i == 0 else "_%02i" % i
@@ -979,7 +978,7 @@ def pdf2img_pythonmagick(pdf_path, img_pth_no_ext,
                 img_pth_no_ext, bgcolour, output_dpi)
         except Exception, e:
             raise Exception(u"Failed to convert PDF into image using "
-                u"PythonMagick. Orig error: %s" % lib.ue(e))
+                u"PythonMagick. Orig error: %s" % b.ue(e))
         if debug: print(u"img_made: %s" % img_made)
         imgs_made.append(img_made)
     return imgs_made
@@ -1015,8 +1014,7 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
         except Exception, e:
             if debug: 
                 print(u"Failed to read PDF into image. Did you manually install"
-                    u" the ImageMagick package first? Orig error: %s" % 
-                    lib.ue(e))
+                    u" the ImageMagick package first? Orig error: %s" % b.ue(e))
             break
         imgs_made.append(img_made)
     return imgs_made

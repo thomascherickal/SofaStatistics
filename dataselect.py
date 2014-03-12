@@ -2,6 +2,7 @@ from __future__ import print_function
 import pprint
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import config_globals
 import lib
@@ -155,8 +156,8 @@ class DlgDataSelect(wx.Dialog):
                 self.reset_tbl_dropdown()
                 self.ctrl_enablement()
             except Exception, e:
-                wx.MessageBox(u"Unable to delete \"%s\". Caused by error: %s"\
-                              % (dd.tbl, lib.ue(e)))
+                wx.MessageBox(u"Unable to delete \"%s\". Caused by error: %s"
+                    % (dd.tbl, b.ue(e)))
         event.Skip()
 
     def on_design(self, event):

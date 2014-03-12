@@ -12,6 +12,7 @@ import win32com.client #@UnresolvedImport
 import wx
 import pprint
 
+import basic_lib as b
 import my_globals as mg
 import dbe_plugins.dbe_globals as dbe_globals
 import my_exceptions
@@ -125,9 +126,9 @@ def get_con_cur_for_db(host, user, pwd, db):
         con = adodbapi.connect(DSN)
     except Exception, e:
         raise Exception(u"Unable to connect to MS SQL Server with "
-                        u"database %s; and supplied connection: " % db +
-                        u"host: %s; user: %s; pwd: %s." % (host, user, pwd) +
-                        u"\nCaused by error: %s" % lib.ue(e))
+            u"database %s; and supplied connection: " % db
+            + u"host: %s; user: %s; pwd: %s." % (host, user, pwd)
+            + u"\nCaused by error: %s" % b.ue(e))
     cur = con.cursor()
     cur.adoconn = con.adoConn # (need to access from just the cursor) 
     return con, cur

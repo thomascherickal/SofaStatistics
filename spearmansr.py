@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import paired2var
@@ -41,7 +42,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
             var_a, label_a, var_b, label_b = self.get_drop_vals()
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
-                          % lib.ue(e))
+                % b.ue(e))
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         script_lst.append(u"""
 sample_a, sample_b, data_tups = core_stats.get_paired_data(

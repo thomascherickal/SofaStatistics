@@ -6,6 +6,7 @@ import locale
 import wx #@UnusedImport
 import wx.gizmos
 
+import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
@@ -646,7 +647,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             except my_exceptions.MissingCss, e:
                 lib.update_local_display(self.html, 
                     _(u"Please check the CSS file exists or set another."
-                    u"\nCaused by error: %s") % lib.ue(e), wrap_text=True)
+                    u"\nCaused by error: %s") % b.ue(e), wrap_text=True)
                 lib.safe_end_cursor()
                 event.Skip()
                 return
@@ -916,7 +917,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             except my_exceptions.MissingCss, e:
                 lib.update_local_display(self.html, _("Please check the CSS "
                     "file exists or set another. Caused by error: %s") 
-                    % lib.ue(e), wrap_text=True)
+                    % b.ue(e), wrap_text=True)
                 lib.safe_end_cursor()
                 return demo_was_live
             except my_exceptions.TooFewValsForDisplay:

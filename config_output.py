@@ -5,6 +5,7 @@ import locale
 import os
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import config_globals
@@ -12,7 +13,7 @@ import lib
 try:
     import export_output as export
 except ImportError, e:
-    print(u"Problem with export_output. Orig error: %s" % lib.ue(e))
+    print(u"Problem with export_output. Orig error: %s" % b.ue(e))
 import getdata
 import output
 #import projects
@@ -570,7 +571,7 @@ class ConfigUI(object):
             dd.cur.execute(s)
             rows_n = dd.cur.fetchone()[0]
         except Exception, e:
-            if debug: print(u"Unable to count rows. Orig error: %s" % lib.ue(e))
+            if debug: print(u"Unable to count rows. Orig error: %s" % b.ue(e))
             rows_n = 0
         return rows_n
     
@@ -743,7 +744,7 @@ class ConfigUI(object):
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
-                % lib.ue(e))
+                % b.ue(e))
     
     def get_script_output(self, get_script_args, new_has_dojo, 
             allow_add2rpt=True):
@@ -755,7 +756,7 @@ class ConfigUI(object):
             script = self.get_script(css_idx, *get_script_args)
         except Exception, e:
             raise Exception("Problem getting script. Orig error: %s" % 
-                lib.ue(e))
+                b.ue(e))
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT
         (bolran_report, 
          str_content) = output.run_report(self.output_modules, add_to_report, 
@@ -784,7 +785,7 @@ class ConfigUI(object):
             self.run_report(get_script_args, new_has_dojo)
         except my_exceptions.MissingCss, e:    
             lib.update_local_display(self.html, _("Please check the CSS file "
-                "exists or set another. Caused by error: %s") % lib.ue(e), 
+                "exists or set another. Caused by error: %s") % b.ue(e), 
                 wrap_text=True)
             lib.safe_end_cursor()
         event.Skip()

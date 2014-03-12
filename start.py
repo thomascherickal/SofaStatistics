@@ -55,7 +55,6 @@ if platform.system() == u"Windows":
             def write(self, data):
                 pass
         sys.stdout = NullWriter()
-
 import setup # if any modules are going to fail, it will be when this imported
 # wipe the next line once we pass March 2013 (plus one that uses installed_version later)
 installed_version = setup.get_installed_version_local_path() # must run before everything gets changed in setup_folders!
@@ -69,7 +68,6 @@ import os
 import traceback
 import wx
 if show_early_steps: print(u"Imported wx successfully.")
-
 import sqlite3 as sqlite
 "Import hyperlink"
 try:
@@ -85,6 +83,8 @@ except ImportError: # if it's not there locally, try the wxPython lib.
             raw_input(setup.INIT_DEBUG_MSG)
         raise Exception(msg)
 if show_early_steps: print(u"Imported hl successfully.")
+import basic_lib as b
+if show_early_steps: print(u"Imported basic_lib successfully.")
 import my_globals as mg
 if show_early_steps: print(u"Imported my_globals successfully.")
 import lib
@@ -149,7 +149,7 @@ class SofaApp(wx.App):
             return True
         except Exception, e: # frame will close by itself now
             raise Exception(u"Problem initialising application. "
-                u"Original error: %s" % lib.ue(e))
+                u"Original error: %s" % b.ue(e))
     
     def setup_i18n(self):
         """
@@ -162,14 +162,14 @@ class SofaApp(wx.App):
             mg.CANON_NAME = canon_name
         except Exception, e:
             raise Exception(u"Unable to get canon name. Original error: %s" 
-                % lib.ue(e))
+                % b.ue(e))
         try:
             mytrans = gettext.translation(u"sofastats", mg.LANGDIR, 
                 languages=[canon_name,], fallback=True)
             mytrans.install(unicode=True) # must set explicitly here for Mac
         except Exception, e:
             raise Exception(u"Problem installing translation. "
-                u"Original error: %s" % lib.ue(e))
+                u"Original error: %s" % b.ue(e))
         if mg.PLATFORM == mg.LINUX:
             try: # to get some language settings to display properly:
                 os.environ['LANG'] = u"%s.UTF-8" % canon_name
@@ -502,7 +502,7 @@ class StartFrame(wx.Frame):
         except Exception, e:
             lib.safe_end_cursor()
             raise Exception(u"Problem setting up help images."
-                u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         # upgrade available?
         version_lev = self.get_version_lev()
         if show_more_steps: print(u"Got version level")
@@ -888,10 +888,10 @@ class StartFrame(wx.Frame):
         try:
             # read date from file if possible
             f = codecs.open(sofastats_connect_fil, "U", encoding="utf-8")
-            connect_cont = lib.get_exec_ready_text(text=f.read())
+            connect_cont = b.get_exec_ready_text(text=f.read())
             f.close()
             if show_more_steps: print(u"Just got connection details")
-            connect_cont = lib.clean_boms(connect_cont)
+            connect_cont = b.clean_boms(connect_cont)
             connect_dic = {}
             # http://docs.python.org/reference/simple_stmts.html
             exec connect_cont in connect_dic
@@ -952,7 +952,7 @@ class StartFrame(wx.Frame):
                     raise Exception("Unable to update sofastats connect date")                
             except Exception, e:
                 if debug: print(u"Unable to connect to sofastatistics.com."
-                    u"/nCaused by error: %s" % lib.ue(e))
+                    u"/nCaused by error: %s" % b.ue(e))
                 pass # Don't make a fuss if fails to contact main website.
         lib.safe_end_cursor()
     
@@ -981,7 +981,7 @@ class StartFrame(wx.Frame):
             if debug: print("Checked new version: %s" % new_version)
         except Exception, e:
             raise Exception(u"Unable to extract latest sofa version."
-                u"/nCaused by error: %s" % lib.ue(e))
+                u"/nCaused by error: %s" % b.ue(e))
         return new_version
             
     def on_show(self, event):
@@ -990,7 +990,7 @@ class StartFrame(wx.Frame):
     def on_paint_err_msg(self, e):
         wx.MessageBox(u"Problem displaying start form. Please email the lead "
             u"developer for help - %s\n\nCaused by error: %s" % (mg.CONTACT, 
-            lib.ue(e)))
+            b.ue(e)))
     
     def on_paint(self, event):
         """
@@ -1177,7 +1177,7 @@ class StartFrame(wx.Frame):
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to open report table dialog."
-                "\nCaused by error: %s") % lib.ue(e)
+                "\nCaused by error: %s") % b.ue(e)
             print(traceback.format_exc())
             wx.MessageBox(msg)
         finally:

@@ -11,6 +11,7 @@ from __future__ import print_function
 import os
 import wx
 
+import basic_lib as b
 import my_globals as mg
 import googleapi.gdata.spreadsheet.service as gdata_spreadsheet_service
 import googleapi.gdata.docs.service as gdata_docs_service
@@ -194,12 +195,12 @@ class DlgGdataDownload(wx.Dialog):
         except socket.gaierror, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem signing in. Are you connected to the "
-                            "Internet?\nCaused by error: %s") % lib.ue(e))
+                "Internet?\nCaused by error: %s") % b.ue(e))
             return
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem signing in.\nCaused by error: %s") % 
-                          lib.ue(e))
+                b.ue(e))
             return
         try:    
             self.spreadsheet_dets_lst = \
@@ -207,7 +208,7 @@ class DlgGdataDownload(wx.Dialog):
         except Exception, e:
             lib.safe_end_cursor()
             wx.MessageBox(_("Problem getting spreadsheet details."
-                            "\nCaused by error: %s") % lib.ue(e))
+                "\nCaused by error: %s") % b.ue(e))
             return
         spreadsheets = [x[SPREADSHEET_NAME] for x in self.spreadsheet_dets_lst]
         if not spreadsheets:
@@ -239,7 +240,7 @@ class DlgGdataDownload(wx.Dialog):
             gd_client.ClientLogin(email, pwd)
         except gdata_service.Error, e:
             if debug:
-                print(u"Caused by error: %s" % lib.ue(e))
+                print(u"Caused by error: %s" % b.ue(e))
             raise Exception(u"Problem signing into Google account with email "
                             u"and password details supplied.")
         return gd_client
@@ -252,7 +253,7 @@ class DlgGdataDownload(wx.Dialog):
             gs_client.ClientLogin(email, pwd)
         except gdata_service.BadAuthentication, e:
             if debug:
-                print(u"Caused by error: %s" % lib.ue(e))
+                print(u"Caused by error: %s" % b.ue(e))
             raise Exception(u"Problem signing into Google account with email "
                             u"and password details supplied.")
         return gs_client

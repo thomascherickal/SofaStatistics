@@ -6,6 +6,7 @@ from __future__ import print_function
 import wx
 import pprint
 
+import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import lib
@@ -21,7 +22,7 @@ except ImportError, e:
             u"9.1\\bin\" is added to your Windows PATH variable. See "
             u"http://geekswithblogs.net/renso/archive/2009/10/21/"
             u"how-to-set-the-windows-path-in-windows-7.aspx\nReason: %s" % 
-            lib.ue(e))
+            b.ue(e))
 
 # http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = u"bigint" # "signed eight-byte integer"
@@ -116,11 +117,11 @@ def get_con_resources(con_dets, default_dbs, db=None):
         user = con_dets_pgsql.get("user")
         if user != 'postgres' and not db:
             msg = (u"Unable to connect to PostgreSQL db. A default database "
-                  u"is required unless the user is 'postgres'."
-                  u"\nCaused by error: %s" % lib.ue(e))
+                u"is required unless the user is 'postgres'."
+                u"\nCaused by error: %s" % b.ue(e))
         else:
             msg = (u"Unable to connect to PostgreSQL db."
-                   u"\nCaused by error: %s" % lib.ue(e))
+                u"\nCaused by error: %s" % b.ue(e))
         raise Exception(msg)
     cur = con.cursor() # must return tuples not dics
     # get database name
