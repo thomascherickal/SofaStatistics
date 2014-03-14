@@ -544,20 +544,6 @@ def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
         wx.MessageBox("Adding %s to list" % encoding)
     return utf8_bytelines
 
-def TAB2delim(raw):
-    if raw.lower() == TAB.lower():
-        delim = "\t"
-    else:
-        delim = raw
-    return delim
-
-def delim2TAB(raw):
-    if raw == "\t":
-        delim2display = TAB
-    else:
-        delim2display = raw
-    return delim2display
-
 
 class DlgImportDisplay(wx.Dialog):
     
@@ -583,36 +569,40 @@ class DlgImportDisplay(wx.Dialog):
         panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_options = wx.BoxSizer(wx.HORIZONTAL)
-        szr_header = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.StdDialogButtonSizer()
         lbl_instructions = wx.StaticText(panel, -1, _(u"If the fields are not "
-            u"separated correctly, enter a different delimiter. "
-            u"\",\" and \";\" are common choices.\n\nOr if the "
-            u"fields should be tab-separated enter TAB.\n\nDoes the text look "
-            u"correct? If not, try another encoding."))
-        self.udelimiter = delim2TAB(self.dialect.delimiter.decode("utf8"))
-        lbl_delim = wx.StaticText(panel, -1, _("Delimiter"))
-        self.txt_delim = wx.TextCtrl(panel, -1, self.udelimiter)
-        self.txt_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
-        lbl_encoding = wx.StaticText(panel, -1, _("Encoding"))
+            u"separated correctly, enter a different delimiter."
+            u"\n\nDoes the text look correct? If not, try another encoding."))
+        self.udelimiter = self.dialect.delimiter.decode("utf8")
+        lbl_delim = wx.StaticText(panel, -1, _("Delimiter:"))
+        self.rad_text = wx.RadioButton(panel, -1, u"Character", 
+            style=wx.RB_GROUP)
+        self.rad_text.Bind(wx.EVT_RADIOBUTTON, self.on_rad_text)
+        self.char_delim = wx.TextCtrl(panel, -1, self.udelimiter, size=(25,-1))
+        self.char_delim.Bind(wx.EVT_CHAR, self.on_delim_change)
+        self.rad_tab = wx.RadioButton(panel, -1, u"Tab")
+        self.rad_tab.Bind(wx.EVT_RADIOBUTTON, self.on_rad_tab)
+        tab_delim = (self.udelimiter == "\t")
+        if tab_delim:
+            self.rad_tab.SetValue(True)
+            self.char_delim.Disable()
+        lbl_encoding = wx.StaticText(panel, -1, _("Encoding:"))
         self.drop_encodings = wx.Choice(panel, -1, choices=encodings)
         self.drop_encodings.SetSelection(0)
         self.drop_encodings.Bind(wx.EVT_CHOICE, self.on_sel_encoding)
-        self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row"))
+        self.chk_has_header = wx.CheckBox(panel, -1, _("Has header row (Note - "
+            u"SOFA cannot handle multiple header rows)"))
         self.chk_has_header.SetValue(probably_has_hdr)
-        lbl_hdr_warning = wx.StaticText(panel, -1, _(u"Note - SOFA cannot "
-            u"handle multiple header rows."))
-        szr_options.Add(lbl_delim, 0, wx.RIGHT, 5)
-        szr_options.Add(self.txt_delim, 0, wx.RIGHT, 10)
-        szr_options.Add(lbl_encoding, 0, wx.RIGHT, 5)
+        szr_options.Add(lbl_delim, 0, wx.RIGHT, 10)
+        szr_options.Add(self.rad_text)
+        szr_options.Add(self.char_delim, 0, wx.RIGHT, 15)
+        szr_options.Add(self.rad_tab, 0, wx.RIGHT, 20)
+        szr_options.Add(lbl_encoding, 0, wx.LEFT|wx.RIGHT, 5)
         szr_options.Add(self.drop_encodings, 0, wx.RIGHT, 10)
-        szr_header.Add(self.chk_has_header, 0)
-        szr_header.Add(lbl_hdr_warning, 0)
-        szr_options.Add(szr_header, 0)
         content, content_height = self.get_content()
         if debug: print(content)
         self.html_content = wx.html.HtmlWindow(panel, -1, 
-            size=(500,content_height))
+            size=(500, content_height))
         self.html_content.SetPage(content)
         btn_cancel = wx.Button(panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
@@ -622,18 +612,34 @@ class DlgImportDisplay(wx.Dialog):
         szr_btns.AddButton(btn_ok)
         szr_btns.Realize()
         szr_main.Add(lbl_instructions, 0, wx.ALL, 10)
-        szr_main.Add(szr_options, 0, wx.GROW|wx.ALL, 10)
+        szr_main.Add(szr_options, 0, wx.ALL, 10)
+        szr_main.Add(self.chk_has_header, 0, wx.BOTTOM|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(self.html_content, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
     
+    def on_rad_tab(self, event):
+        self.udelimiter = "\t"
+        self.char_delim.Value = u""
+        self.char_delim.Disable()
+        self.update_delim()
+        
+    def on_rad_text(self, event):
+        self.char_delim.Value = u""
+        self.char_delim.Enable()
+        self.char_delim.SetFocus()
+    
     def update_delim(self):
-        entered_delim = TAB2delim(self.txt_delim.GetValue())
-        if entered_delim.lower() in (TAB[:1].lower(), TAB[:2].lower()):
-            return # otherwise a partial TAB will fail when the user tries to enter it
-        self.udelimiter = TAB2delim(self.txt_delim.GetValue())
+        tab_delim = self.rad_tab.GetValue()
+        if tab_delim:
+            self.udelimiter = "\t"
+        else:
+            raw_text_delim = self.char_delim.GetValue()
+            if len(raw_text_delim) > 1:
+                self.char_delim.SetValue(raw_text_delim[0])
+            self.udelimiter = self.char_delim.GetValue()
         try:
             self.dialect.delimiter = self.udelimiter.encode("utf8")
             self.set_display()

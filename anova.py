@@ -34,23 +34,22 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
              label_b, unused, 
              label_avg) = self.get_drop_vals()
             self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the "
-                                       u"groups between \"%(a)s\" and "
-                                       u"\"%(b)s\"?") % {"avg": label_avg, 
-                                                    "a": label_a, "b": label_b})
+                u"groups between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
+                "a": label_a, "b": label_b})
         except Exception:
             self.lbl_phrase.SetLabel(u"")
 
     def add_other_var_opts(self, szr):
         self.lbl_algorithm = wx.StaticText(self.panel_vars, -1, 
-                                           _("Algorithm: "))
+            _("Algorithm: "))
         self.lbl_algorithm.SetFont(mg.LABEL_FONT)
         self.rad_precision = wx.RadioButton(self.panel_vars, -1, _("Precision"), 
-                                            style=wx.RB_GROUP)
+            style=wx.RB_GROUP)
         self.rad_precision.SetFont(mg.GEN_FONT)
         self.rad_speed = wx.RadioButton(self.panel_vars, -1, _("Speed"))
         self.rad_speed.SetFont(mg.GEN_FONT)
         self.rad_speed.SetToolTipString(_("Precision is the best choice unless "
-                                         "too slow"))
+            "too slow"))
         self.rad_speed.SetValue(True)
         szr_algorithm = wx.BoxSizer(wx.HORIZONTAL)
         szr_algorithm.Add(self.lbl_algorithm, 0)
@@ -97,7 +96,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"raw_samples = %s" % samples)
         script_lst.append(u"raw_sample_dets = zip(raw_labels, raw_samples)")
         script_lst.append(u"sample_dets = [x for x in raw_sample_dets "
-                          u"if len(x[1]) > 0]")
+            u"if len(x[1]) > 0]")
         script_lst.append(u"labels = [x[0] for x in sample_dets]")
         script_lst.append(u"samples = [x[1] for x in sample_dets]")
         script_lst.append(u"""
@@ -106,25 +105,23 @@ if len(samples) < 2:
         script_lst.append(u'label_a = u"""%s"""' % label_a)
         script_lst.append(u'label_b = u"""%s"""' % label_b)
         script_lst.append(u'label_avg = u"""%s"""' % label_avg)
-        
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
-                          else "False"))
+            else "False"))
         script_lst.append(u"report_name = u\"%s\"" % 
-                          lib.escape_pre_write(report_name))
-        
+            lib.escape_pre_write(report_name))
         high = self.rad_precision.GetValue()
         script_lst.append(u"""
 (p, F, dics, sswn, dfwn, mean_squ_wn, 
  ssbn, dfbn, mean_squ_bn) = core_stats.anova(samples, labels, high=%s)""" % 
-                                                                          high)
+            high)
         script_lst.append(u"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
-            mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg,
-            add_to_report, report_name, 
-            css_fil=u"%(css_fil)s", 
-            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
-            page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+    mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg,
+    add_to_report, report_name, 
+    css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
+    page_break_after=False)""" %
+    {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)
 
