@@ -234,6 +234,7 @@ class ExcelImporter(importer.FileImporter):
                 u"\nCaused by error: %s" % b.ue(e))
         default_dd = getdata.get_default_db_dets()
         if self.headless:
+            global ROWS_TO_SAMPLE
             ROWS_TO_SAMPLE = n_datarows
         sample_n = min(ROWS_TO_SAMPLE, n_datarows)
         items_n = n_datarows + sample_n

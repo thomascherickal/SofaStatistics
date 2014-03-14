@@ -282,8 +282,12 @@ class UnicodeCsvReader(object):
             self.csv_reader = csv.reader(utf8_encoded_csv_data, dialect=dialect, 
                 **kwargs)
         except Exception, e:
-            raise Exception(u"Unable to start internal csv reader. "
-                u"\nCaused by error: %s" % b.ue(e))
+            if u"1-character" in b.ue(e):
+                raise Exception(u"Problem importing file with delimiter "
+                    u"supplied: %s" % dialect.delimiter)
+            else:
+                raise Exception(u"Unable to start internal csv reader. "
+                    u"\nCaused by error: %s" % b.ue(e))
         self.i = 0
         
     def __iter__(self):

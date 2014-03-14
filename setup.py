@@ -312,9 +312,8 @@ def populate_css_path(prog_path, local_path):
     If something is wrong identifying script path, here is where it will fail 
     first.
     """
-    
     styles = [mg.DEFAULT_STYLE, u"grey spirals.css", u"lucid spirals.css", 
-        u"pebbles.css"]
+        u"pebbles.css", u"prestige (print).css", u"prestige (screen).css", ]
     for style in styles:
         try:
             shutil.copy(os.path.join(prog_path, mg.CSS_FOLDER, style), 
@@ -331,8 +330,8 @@ def populate_css_path(prog_path, local_path):
 def populate_extras_path(prog_path, local_path):
     extras = [u"arc.xd.js", u"blank.gif", u"blank.htm", u"dojo.xd.js", 
         u"gradient.xd.js", u"grey_spirals.gif", u"lucid_spirals.gif", 
-        u"pebbles.gif", u"popupMenuBg.gif", u"sofastats_charts.js", 
-        u"sofastatsdojo_minified.js", 
+        u"pebbles.gif", u"popupMenuBg.gif", u"prestige_spirals.gif",
+        u"sky.jpg", u"sofastats_charts.js", u"sofastatsdojo_minified.js", 
         u"tooltipConnectorDown-defbrown.gif",
         u"tooltipConnectorDown-defbrown.png",
         u"tooltipConnectorDown.gif",
