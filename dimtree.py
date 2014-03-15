@@ -490,7 +490,7 @@ class DimTree(object):
                 break
         if have_children_mismatch:
             msg = _("If configuring multiple items at once, they must all have "
-                    "children or none can have children")
+                "children or none can have children")
             wx.MessageBox(msg)
             return
         # ok to open config dlg
@@ -512,7 +512,7 @@ class DimTree(object):
             has_vars = True
         else:
             raise Exception(u"Configuring a %s but lacking either vars OR "
-                            u"a config item" % itemlbl)
+                u"a config item" % itemlbl)
         if dim == mg.ROWDIM_KEY:
             measures = [] # only cols have measures
         elif dim == mg.COLDIM_KEY:
@@ -533,14 +533,18 @@ class DimTree(object):
             allow_tot = False
         else:
             allow_tot = has_vars
+            
+            
         any_config2get = (allow_tot or measures or sort_opt_allowed)
         if any_config2get:
+            show_select_toggle = (self.tab_type == mg.ROW_STATS 
+                and tree == self.coltree)
             if debug: print("Some config to get.")
             parent = self
             rets_dic = {ITEM_CONFIG: None} # use it to grab deep copy of object
             dlg = DlgConfig(parent, self.var_labels, selected_ids, tree, title,
-                            allow_tot, measures, sort_opt_allowed, rets_dic, 
-                            horizontal)
+                allow_tot, measures, sort_opt_allowed, rets_dic, horizontal,
+                show_select_toggle)
             ret = dlg.ShowModal()
             if ret == wx.ID_OK:
                 self.update_default_item_confs(dim, rets_dic[ITEM_CONFIG])
@@ -642,12 +646,14 @@ class DimTree(object):
 class DlgConfig(wx.Dialog):
     
     def __init__(self, parent, var_labels, node_ids, tree, title, allow_tot, 
-                 measures, sort_opt_allowed, rets_dic, horizontal=True):
+            measures, sort_opt_allowed, rets_dic, horizontal=True, 
+            show_select_toggle=False):
         """
         Collects configuration details for rows and cols.
         node_ids -- list, even if only one item selected.
         """
         wx.Dialog.__init__(self, parent, id=-1, title=title)
+        self.button2showall = True
         self.node_ids = node_ids
         first_node_id = node_ids[0]
         self.tree = tree
@@ -666,15 +672,14 @@ class DlgConfig(wx.Dialog):
             box_misc = wx.StaticBox(self, -1, _("Misc"))
             szr_misc = wx.StaticBoxSizer(box_misc, wx.VERTICAL)
             self.chk_total = wx.CheckBox(self, -1, mg.HAS_TOTAL, 
-                                         size=chk_size)
+                size=chk_size)
             if item_conf.has_tot:
                 self.chk_total.SetValue(True)
             szr_misc.Add(self.chk_total, 0, wx.LEFT, 5)
             szr_main.Add(szr_misc, 0, wx.GROW|wx.ALL, 10)
         if self.sort_opt_allowed != mg.SORT_NO_OPTS:
             self.rad_sort_opts = wx.RadioBox(self, -1, _("Sort order"),
-                                             choices=self.sort_opt_allowed, 
-                                             size=(-1,50))
+                choices=self.sort_opt_allowed, size=(-1,50))
             # set selection according to existing item_conf
             try:
                 idx_sort_opt = self.sort_opt_allowed.index(item_conf.sort_order)
@@ -687,6 +692,11 @@ class DlgConfig(wx.Dialog):
             bx_measures = wx.StaticBox(self, -1, _("Measures"))
             direction = wx.HORIZONTAL if horizontal else wx.VERTICAL
             szr_measures = wx.StaticBoxSizer(bx_measures, direction)
+            if show_select_toggle:
+                self.btn_select_toggle = wx.Button(self, -1, mg.SELECT_ALL_LBL)
+                self.btn_select_toggle.Bind(wx.EVT_BUTTON, 
+                    self.on_btn_select_toggle)
+                szr_measures.Add(self.btn_select_toggle, 0, wx.TOP, 5)
             for measure_lbl in self.measures:
                 label = mg.MEASURE_LBLS_SHORT2LONG[measure_lbl]
                 chk = wx.CheckBox(self, -1, label, size=chk_size)
@@ -713,7 +723,18 @@ class DlgConfig(wx.Dialog):
         szr_main.SetSizeHints(self)
         self.SetSizer(szr_main)
         self.Fit()
-             
+    
+    def on_btn_select_toggle(self, event):
+        enable = self.button2showall
+        # actually select/unselect everything
+        for measure_chk in self.measure_chks_dic.values():
+            measure_chk.SetValue(enable)
+        # handle button and its state
+        btn_select_lbl = (mg.UNSELECT_ALL_LBL if self.button2showall 
+            else mg.SELECT_ALL_LBL)
+        self.btn_select_toggle.SetLabel(btn_select_lbl)
+        self.button2showall = not self.button2showall
+       
     def on_ok(self, event):
         """
         Store selection details into item conf dets object.
