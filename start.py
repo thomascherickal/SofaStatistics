@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -968,20 +968,22 @@ class StartFrame(wx.Frame):
         """
         Is there a new version or a new major version?
         """
-        import urllib # http://docs.python.org/library/urllib.html
+        import requests
         debug = False
         file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK
             if version_lev == mg.VERSION_CHECK_MAJOR_KEY
             else mg.SOFASTATS_VERSION_CHECK)
         url2open = u"http://www.sofastatistics.com/%s" % file2read
         try:
-            url_reply = urllib.urlopen(url2open)
+            url_reply = requests.get(url2open, timeout=4) # timeout affects time waiting for server. If can't get to server at all, dies instantly which is good.
             new_version = u"%s" % url_reply.read().strip()
             url_reply.close()
             if debug: print("Checked new version: %s" % new_version)
         except Exception, e:
-            raise Exception(u"Unable to extract latest sofa version."
-                u"/nCaused by error: %s" % b.ue(e))
+            msg = (u"Unable to extract latest sofa version."
+                u"\nCaused by error: %s" % b.ue(e))
+            if debug: print(msg)
+            raise Exception(msg)
         return new_version
             
     def on_show(self, event):

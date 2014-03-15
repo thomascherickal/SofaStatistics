@@ -141,7 +141,7 @@ DATA_LIST_LBL = _("Data List")
 TAB_TYPE2LBL = {FREQS: FREQS_LBL, CROSSTAB: CROSSTAB_LBL, 
                 ROW_STATS: ROW_STATS_LBL, DATA_LIST: DATA_LIST_LBL}
 SELECT_ALL_LBL = _(u"Select All")
-UNSELECT_ALL_LBL = _(u"Unselect All")
+DESELECT_ALL_LBL = _(u"Deselect All")
 MAX_MODES = 10
 EMPTY_ROW_LBL = u""
 COL_MEASURES_KEY = u"Col measures key"

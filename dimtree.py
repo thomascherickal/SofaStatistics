@@ -730,7 +730,7 @@ class DlgConfig(wx.Dialog):
         for measure_chk in self.measure_chks_dic.values():
             measure_chk.SetValue(enable)
         # handle button and its state
-        btn_select_lbl = (mg.UNSELECT_ALL_LBL if self.button2showall 
+        btn_select_lbl = (mg.DESELECT_ALL_LBL if self.button2showall 
             else mg.SELECT_ALL_LBL)
         self.btn_select_toggle.SetLabel(btn_select_lbl)
         self.button2showall = not self.button2showall
