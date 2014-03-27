@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup
 show_more_steps = True
@@ -957,7 +957,7 @@ class StartFrame(wx.Frame):
         lib.safe_end_cursor()
     
     def update_sofastats_connect_date(self, sofastats_connect_fil, 
-            days2wait=120):
+            days2wait=30):
         f = codecs.open(sofastats_connect_fil, "w", encoding="utf-8")
         next_check_date = (datetime.datetime.today() +
             datetime.timedelta(days=days2wait)).strftime('%Y-%m-%d')
@@ -968,7 +968,7 @@ class StartFrame(wx.Frame):
         """
         Is there a new version or a new major version?
         """
-        import requests
+        import requests #@UnresolvedImport
         debug = False
         file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK
             if version_lev == mg.VERSION_CHECK_MAJOR_KEY

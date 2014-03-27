@@ -20,7 +20,7 @@ of the GUI on settings only found when running in the GUI.
 
 debug = False
 
-VERSION = u"1.4.3"
+VERSION = u"1.4.4"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -140,7 +140,7 @@ ROW_STATS_LBL = _("Row Stats")
 DATA_LIST_LBL = _("Data List")
 TAB_TYPE2LBL = {FREQS: FREQS_LBL, CROSSTAB: CROSSTAB_LBL, 
                 ROW_STATS: ROW_STATS_LBL, DATA_LIST: DATA_LIST_LBL}
-SELECT_ALL_LBL = _(u"Select All")
+SELECT_ALL_LBL = u"  " + _(u"Select All") + u"  " # so wide enough when changed to deselect no matter what the translation
 DESELECT_ALL_LBL = _(u"Deselect All")
 MAX_MODES = 10
 EMPTY_ROW_LBL = u""
