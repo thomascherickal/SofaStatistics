@@ -10,6 +10,7 @@ import lib
 import getdata
 import config_output
 import full_html
+import output
 import projects
 
 def get_range_idxs(vals, val_a, val_b):
@@ -44,7 +45,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     
     def __init__(self, title, takes_range=False):
         self.exiting = False
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
@@ -695,7 +696,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             putting output in special location (INT_REPORT_PATH) and into report 
             file, and finally, display html output.
         """
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 

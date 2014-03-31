@@ -198,7 +198,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         self.exiting = False
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         self.title = _("Make Report Table")
         wx.Dialog.__init__(self, parent=None, id=-1, title=self.title, 
             pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
@@ -432,7 +432,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
 
     def update_css(self):
         "Update css, including for demo table"
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         config_output.ConfigUI.update_css(self)
         self.demo_tab.fil_css = cc[mg.CURRENT_CSS_PATH]
         self.update_demo_display()

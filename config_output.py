@@ -8,7 +8,6 @@ import wx
 import basic_lib as b
 import my_globals as mg
 import my_exceptions
-import config_globals
 import lib
 try:
     import export_output as export
@@ -75,25 +74,12 @@ class DlgGetTest(wx.Dialog):
         szr.SetSizeHints(self)
         szr.Layout()
        
-        
-def get_cc():
-    debug = False
-    if not mg.CURRENT_CONFIG:
-        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-            fil_name=mg.DEFAULT_PROJ)
-        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
-            mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
-            mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
-            mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
-        if debug: print("Updated mg.CURRENT_CONFIG")
-    return mg.CURRENT_CONFIG
-
 def update_var_dets(dlg):
     """
     Update all variable details, including those already displayed.
     Even if errors etc will set something, even if empty dicts.
     """
-    cc = get_cc()
+    cc = output.get_cc()
     (dlg.var_labels, dlg.var_notes, 
      dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
 
@@ -131,7 +117,7 @@ class DlgVarConfig(wx.Dialog):
         autoupdate. Leave that for the parent dialog this returns to.
     """
     def __init__(self, parent, readonly, ret_dic, vdt_file=None):
-        cc = get_cc()
+        cc = output.get_cc()
         wx.Dialog.__init__(self, parent=parent, title=_(u"Select variable "
             u"details file with labels etc appropriate to your data"), 
             style=wx.CAPTION|wx.SYSTEM_MENU, pos=(mg.HORIZ_OFFSET+100,100))
@@ -373,7 +359,7 @@ class ConfigUI(object):
             project dialog need to have option of taking from proj file.
         """
         self.panel_with_add2report = panel
-        cc = get_cc()
+        cc = output.get_cc()
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         if show_run_btn:
             self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(170,-1))
@@ -486,7 +472,7 @@ class ConfigUI(object):
 
     def get_style_selector(self, panel, as_list=True, css_file=None):
         debug = False
-        cc = get_cc()
+        cc = output.get_cc()
         # style config details
         if debug: print(os.listdir(mg.CSS_PATH))
         style_choices = [x[:-len(".css")] for x in os.listdir(mg.CSS_PATH) 
@@ -525,7 +511,7 @@ class ConfigUI(object):
         """
         Return the settings selected
         """
-        cc = get_cc()
+        cc = output.get_cc()
         ret_dic = {}
         dlg = DlgVarConfig(self, self.readonly, ret_dic, self.vdt_file)
         ret = dlg.ShowModal()
@@ -641,7 +627,7 @@ class ConfigUI(object):
     # report output
     def on_btn_report_path(self, event):
         "Open dialog and takes the report file selected (if any)"
-        cc = get_cc()
+        cc = output.get_cc()
         dlg_get_file = wx.FileDialog(self, 
             _("Choose or create a report output file:"), 
             defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
@@ -691,7 +677,7 @@ class ConfigUI(object):
                 idx_export_sel))
 
     def on_sel_export_report(self, event):
-        cc = get_cc()
+        cc = output.get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
             try:
@@ -712,7 +698,7 @@ class ConfigUI(object):
                 {u"report_extras_folder": mg.REPORT_EXTRAS_FOLDER,
                 u"rpt_root": rpt_root, u"reports_path": mg.REPORTS_PATH})
             return
-        cc = get_cc()
+        cc = output.get_cc()
         dlg = export.DlgExportOutput(title=u"Export Report", 
             report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True)
         dlg.ShowModal()
@@ -749,7 +735,7 @@ class ConfigUI(object):
     def get_script_output(self, get_script_args, new_has_dojo, 
             allow_add2rpt=True):
         debug = False
-        cc = get_cc()
+        cc = output.get_cc()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         css_fils, css_idx = output.get_css_dets()
         try:
@@ -795,7 +781,7 @@ class ConfigUI(object):
         Open report in user's default web browser.
         """
         debug = False
-        cc = get_cc()
+        cc = output.get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
             try:
@@ -817,7 +803,7 @@ class ConfigUI(object):
     def on_report_file_lost_focus(self, event):
         "Reset report output file"
         if self.autoupdate:
-            cc = get_cc()
+            cc = output.get_cc()
             cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
     
@@ -836,7 +822,7 @@ class ConfigUI(object):
         "Update css, including for demo table"
         debug = False
         if self.autoupdate:
-            cc = get_cc()
+            cc = output.get_cc()
             style = self.style_selector.GetStringSelection()
             if style == u"":
                 return

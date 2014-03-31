@@ -75,9 +75,9 @@ import wx
 
 import basic_lib as b
 import my_globals as mg
+import config_globals
 import lib
 import my_exceptions
-import config_output
 import showhtml
 
 # do not use os.linesep for anything going to be read and exec'd
@@ -506,7 +506,7 @@ def get_css_dets():
     If not there (empty report or manually broken by user?) make and use a new
         one using cc[mg.CURRENT_CSS_PATH].
     """
-    cc = config_output.get_cc()
+    cc = get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
             "Continue using the default style instead?") % 
@@ -690,7 +690,7 @@ def rel2abs_rpt_img_links(str_html):
     """
     debug = False
     verbose = False
-    cc = config_output.get_cc()
+    cc = get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
     report_path = os.path.join(report_path, u"")
     report_path = percent_encode(report_path)
@@ -855,7 +855,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     integers.
     """
     debug = False
-    cc = config_output.get_cc()
+    cc = get_cc()
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None # init
     n_charts_in_new = get_makechartRenumbers_n(new_html)
@@ -931,10 +931,22 @@ def _strip_script(script):
     except ValueError:
         stripped = script
     return stripped
+        
+def get_cc():
+    debug = False
+    if not mg.CURRENT_CONFIG:
+        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
+            fil_name=mg.DEFAULT_PROJ)
+        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
+            mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
+            mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
+            mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
+        if debug: print("Updated mg.CURRENT_CONFIG")
+    return mg.CURRENT_CONFIG
 
 def export_script(script, css_fils, new_has_dojo=False):
     dd = mg.DATADETS_OBJ
-    cc = config_output.get_cc()
+    cc = get_cc()
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
         "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
@@ -1188,7 +1200,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    cc = config_output.get_cc()
+    cc = get_cc()
     source = get_source(dd.db, dd.tbl)
     tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)

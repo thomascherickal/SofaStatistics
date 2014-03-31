@@ -251,7 +251,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
 
     def on_btn_run(self, event):
         # get settings
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             # set vals and data_label

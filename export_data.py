@@ -15,8 +15,8 @@ import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
-import config_output
 import getdata
+import output
 
 GAUGE_STEPS = 100
 
@@ -109,7 +109,7 @@ class DlgExportData(wx.Dialog):
         wx.BeginBusyCursor()
         inc_lbls = self.chk_inc_lbls.IsChecked()
         dd = mg.DATADETS_OBJ
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         extra_lbl = u"_with_labels" if inc_lbls else u""
         filname_csv = u"%s%s.csv" % (dd.tbl, extra_lbl)
         filname_xls = u"%s%s.xls" % (dd.tbl, extra_lbl)

@@ -10,6 +10,7 @@ import my_globals as mg
 import lib
 import getdata
 import config_output
+import output
 import settings_grid
 
 BROKEN_VDT_MSG = _(u"This field is numeric, so any non-numeric keys in the "
@@ -83,7 +84,7 @@ def update_val_labels(val_dics, var_name, val_type, keyvals):
     
 def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
-    cc = config_output.get_cc()
+    cc = output.get_cc()
     f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
     f.write(u"var_labels=" + lib.dic2unicode(var_labels))
     f.write(u"\n\nvar_notes=" + lib.dic2unicode(var_notes))
@@ -726,7 +727,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         if ret_dic:
             self.vdt_file = ret_dic[mg.VDT_RET]
         else: # cancelled presumably
-            cc = config_output.get_cc()
+            cc = output.get_cc()
             self.vdt_file = cc[mg.CURRENT_VDTS_PATH] 
         self.set_extra_dets(vdt_file=self.vdt_file, 
             script_file=self.script_file) # so opens proj settings with these same settings even if not saved yet.

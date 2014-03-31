@@ -8,6 +8,7 @@ import lib
 import config_output
 import full_html
 import getdata
+import output
 import projects
 
 
@@ -19,7 +20,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
     """
     
     def __init__(self, title):
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
             pos=(mg.HORIZ_OFFSET,0), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|\
@@ -339,7 +340,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             putting output in special location (INT_REPORT_PATH) and into report 
             file, and finally, display html output.
         """
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH],

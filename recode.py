@@ -7,9 +7,9 @@ import wx
 import basic_lib as b
 import my_globals as mg
 import lib
-import config_output
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
+import output
 import projects
 import settings_grid
 
@@ -222,7 +222,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         mg.TBL_FLDNAME, mg.TBL_FLDNAME_ORIG, mg.TBL_FLDTYPE, 
         mg.TBL_FLDTYPE_ORIG.
         """
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         self.tblname = tblname
         self.warned = [] # For cell_response_func.  Lists vars warned about.
         col_dets = [

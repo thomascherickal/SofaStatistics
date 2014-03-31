@@ -10,6 +10,7 @@ import config_output
 import full_html
 import getdata
 import indep2var
+import output
 import projects
 
 CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
@@ -55,7 +56,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.exiting = False
         self.title = title
         self.SetFont(mg.GEN_FONT)
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         self.output_modules = ["my_globals as mg", "core_stats", 
             "charting_output", "output", "getdata"]
         global CUR_DATA_OPT_LBL
@@ -1025,13 +1026,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         
     def on_btn_run(self, event):
         # get settings
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 
-                             cc[mg.CURRENT_REPORT_PATH]]
+                cc[mg.CURRENT_REPORT_PATH]]
             config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
-                                              new_has_dojo=True)
+                new_has_dojo=True)
 
     def on_btn_script(self, event):
         # TODO NB will have new_has_dojo=True

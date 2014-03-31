@@ -8,6 +8,7 @@ import my_globals as mg
 import config_globals
 import lib
 import config_output
+import output
 import projects
 
 
@@ -162,7 +163,7 @@ class DlgProjSelect(wx.Dialog):
             wx.BeginBusyCursor()
             dic2restore = dd.proj_dic
             dd.set_proj_dic(proj_dic, dic2restore)
-            cc = config_output.get_cc()
+            cc = output.get_cc()
             cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
             cc[mg.CURRENT_CSS_PATH] = proj_dic[mg.PROJ_FIL_CSS]
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]

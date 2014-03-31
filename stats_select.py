@@ -7,6 +7,7 @@ import lib
 import my_exceptions
 import config_output
 import normal
+import output
 import projects
 
 TEST_ANOVA = _("ANOVA")
@@ -19,8 +20,8 @@ TEST_TTEST_INDEP = _("t-test - independent")
 TEST_TTEST_PAIRED = _("t-test - paired")
 TEST_WILCOXON = _("Wilcoxon Signed Ranks")
 STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
-               TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, 
-               TEST_TTEST_PAIRED, TEST_WILCOXON]
+    TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, TEST_TTEST_PAIRED, 
+    TEST_WILCOXON]
 
 
 class DlgStatsSelect(wx.Dialog):
@@ -399,7 +400,7 @@ class DlgStatsSelect(wx.Dialog):
               "Table") % self.groups_label)
     
     def examine_normality(self):
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         dlg = normal.DlgNormality(self, self.var_labels, self.var_notes, 
@@ -485,7 +486,7 @@ class DlgStatsSelect(wx.Dialog):
         event.Skip()
     
     def on_type_btn(self, event):
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         updated = set() # will get populated with a True to indicate update
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])

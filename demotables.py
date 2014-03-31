@@ -4,7 +4,6 @@ import basic_lib as b
 import my_globals as mg
 import lib
 import my_exceptions
-import config_output
 import dimtables
 import output
 import rawtables
@@ -106,7 +105,7 @@ class DemoTable(object):
         Get demo HTML for table.
         """
         debug = False
-        cc = config_output.get_cc()
+        cc = output.get_cc()
         # sort titles out first
         if self.txt_titles.GetValue():
             self.titles = [u"%s" % x for x 
