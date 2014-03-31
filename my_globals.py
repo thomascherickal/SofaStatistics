@@ -1005,18 +1005,6 @@ LOCALPHRASE = u"WSGosset" # must be 8 long exactly
 USERNAME = u"username"
 DISPLAYNAME = u"displayname"
 CONTROLVAR = u"control"
-
-# ////////////////////////////////////////////////////////////
-# leaving all this to the end is mainly about avoiding circular import problems
-# also about keeping functions to the end so that my_globals is easier to grasp 
-# at a glance (basically it just defined things - nothing is run until below)
-import config_globals # can rely on everything at least having been defined in
-    # my_globals (even as None) before it configures globals
-config_globals.set_SCRIPT_PATH()
-config_globals.set_ok_date_formats()
-config_globals.set_DEFAULT_LEVEL()
-config_globals.import_dbe_plugins() # as late as possible because uses local 
-    # modules e.g. my_exceptions
 LABEL_FONT = None # will be set after wx.App started
 BTN_FONT = None
 BTN_BOLD_FONT = None

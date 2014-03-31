@@ -1246,4 +1246,3 @@ def display_report(parent, str_content, url_load=False):
         content=str_content, url_load=url_load)
     dlg.ShowModal()
     lib.safe_end_cursor() # again to be sure
-    

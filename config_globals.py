@@ -10,11 +10,12 @@ import wx
 
 """
 Anything called here should rely as little as possible on modules other than 
-    my_globals itself. The goal is to avoid circular importing.
+my_globals itself. The goal is to avoid circular importing.
+    
 This module is used immediately after my_globals is loaded and needs to complete 
-    any config (of my_globals) before other local modules are loaded so they can 
-    be assumed to be safe to start.  Other modules need to be able to rely on 
-    the correctness of what is in my_globals at the time they are called.
+any config (of my_globals) before other local modules are loaded so they can be 
+assumed to be safe to start. Other modules need to be able to rely on the 
+correctness of what is in my_globals at the time they are called.
 """
 
 import basic_lib as b

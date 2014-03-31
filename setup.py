@@ -99,9 +99,9 @@ except Exception, e:
     raise Exception(msg)
 mg.LOCALEDIR = localedir
 try:
-    import lib
-    import config_globals #@UnusedImport
     import my_exceptions
+    import config_globals #@UnusedImport
+    import lib
 except Exception, e:
     msg = (u"Problem with first round of local importing. %s" %
         traceback.format_exc())
@@ -110,6 +110,18 @@ except Exception, e:
         raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
             # to user.  Unlike when a GUI msg possible later on. In those cases
             # just let that step happen.
+    raise Exception(msg)
+try:
+    config_globals.set_SCRIPT_PATH()
+    config_globals.set_ok_date_formats()
+    config_globals.set_DEFAULT_LEVEL()
+    config_globals.import_dbe_plugins() # as late as possible because uses local 
+        # modules e.g. my_exceptions, lib
+except Exception, e:
+    msg = (u"Problem with configuring globals. %s" % traceback.format_exc())
+    if show_early_steps: 
+        print(msg)
+        raw_input(INIT_DEBUG_MSG)
     raise Exception(msg)
 
 # Give the user something if the program fails at an early stage before anything
