@@ -430,12 +430,13 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f.close()
         if show_early_steps: print(u"Just read default project")
         for path in settings_subfolders:
+            old_path = u"/home/g/Documents/sofastats/%s/" % path
             new_path = lib.escape_pre_write(os.path.join(mg.LOCAL_PATH, 
                 path, u""))
-            new_path = new_path.replace('"', '""')
-            proj_str = proj_str.replace(u"/home/g/Documents/sofastats/%s/" % 
-                path, new_path)
-            if show_early_steps: print(u"Just modified %s" % path)
+            #new_path = new_path.replace('"', '""')
+            proj_str = proj_str.replace(old_path, new_path)
+            if show_early_steps: print(u"Just modified %s to %s" % (old_path, 
+                new_path))
         # add MS Access and SQL Server into mix if Windows
         if mg.PLATFORM == mg.WINDOWS:
             proj_str = proj_str.replace(u"default_dbs = {",

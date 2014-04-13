@@ -74,6 +74,9 @@ def get_possible_encodings(file_path, delimiter):
     """
     Get list of encodings which potentially work for a sample. Fast enough not 
     to have to sacrifice code readability etc for performance.
+    
+    See http://rspeer.github.io/blog/2014/03/30/unicode-deadbeef/ for defense of
+    whitelisting encodings.
     """
     debug = False
     local_encoding = locale.getpreferredencoding()

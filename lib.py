@@ -1210,7 +1210,7 @@ if mg.PLATFORM == mg.WINDOWS:
 
 def escape_pre_write(txt):
     "Useful when writing a path to a text file etc"
-    return txt.replace("\\", "\\\\")
+    return txt.replace("\\", "\\\\").replace('"', '\"').replace("'", "\'")
 
 def get_file_name(path):
     "Works on Windows paths as well"
