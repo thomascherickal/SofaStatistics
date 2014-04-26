@@ -34,8 +34,8 @@ def quote_obj(raw_val):
 
 def quote_val(raw_val, charset2try="iso-8859-1"):
     return lib.quote_val(raw_val, sql_str_literal_quote=u"'", 
-                         sql_esc_str_literal_quote=u"''", 
-                         pystr_use_double_quotes=True, charset2try=charset2try)
+        sql_esc_str_literal_quote=u"''", pystr_use_double_quotes=True, 
+        charset2try=charset2try)
 
 def val2float(raw_val):
     return u"cast(%s as float)" % raw_val
@@ -50,7 +50,7 @@ def get_first_sql(tblname, top_n, order_val=None):
         
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
-            placeholder, get_summable, gte_not_equals, cartesian_joiner)
+        placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_DSN(provider, host, user, pwd, db):
     """
@@ -67,15 +67,16 @@ def get_DSN(provider, host, user, pwd, db):
 def get_dbs(host, user, pwd, default_dbs, db=None):
     """
     Get dbs and the db to use.  Exclude master.
+    
     NB need to use a separate connection here with db Initial Catalog
-        undefined.        
+    undefined.        
     """
     DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=u"")
     try:
         con = adodbapi.connect(DSN)
     except Exception:
         raise Exception(u"Unable to connect to MS SQL Server with host: "
-                        u"%s; user: %s; and pwd: %s" % (host, user, pwd))
+            u"%s; user: %s; and pwd: %s" % (host, user, pwd))
     cur = con.cursor() # must return tuples not dics
     cur.adoconn = con.adoConn # (need to access from just the cursor)
     try: # MS SQL Server 2000
@@ -94,7 +95,7 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
             dbs.append(db4list)
     if not dbs:
         raise Exception(_("Unable to find any databases that have tables "
-                          "and you have permission to access."))
+            "and you have permission to access."))
     dbs_lc = [x.lower() for x in dbs]
     # get db (default if possible otherwise first)
     # NB db must be accessible from connection
@@ -111,7 +112,7 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     else:
         if db.lower() not in dbs_lc:
             raise Exception(u"Database \"%s\" not available " % db +
-                            u"from supplied connection")
+                u"from supplied connection")
     cur.close()
     con.close()
     return dbs, db
@@ -142,9 +143,11 @@ def get_dbs_list(con_dets, default_dbs):
 def get_con_resources(con_dets, default_dbs, db=None):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
-        no db, so must identify one, but when selecting dbe-db in dropdowns, 
-        there will be a db.
+    no db, so must identify one, but when selecting dbe-db in dropdowns, there 
+    will be a db.
+    
     If no db defined, use default if possible, or first with tables.
+    
     Returns dict with con, cur, dbs, db.
     """
     con_dets_mssql = con_dets.get(mg.DBE_MS_SQL)
@@ -157,7 +160,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     set_db_in_con_dets(con_dets_mssql, db)
     con, cur = get_con_cur_for_db(host, user, pwd, db)     
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: dbs,
-                     mg.DBE_DB: db}
+        mg.DBE_DB: db}
     return con_resources
 
 def get_tbls(cur, db):
@@ -190,7 +193,7 @@ def get_flds(cur, db, tbl):
     Returns details for set of fields given database, table, and cursor.
     NUMERIC_SCALE - number of significant digits to right of decimal point.
     NUMERIC_SCALE should be Null if not numeric (but is in fact 255 so 
-        I must set to None!).
+    I must set to None!).
     """
     debug = False
     #http://msdn.microsoft.com/en-us/library/aa155430(office.10).aspx
@@ -217,7 +220,7 @@ def get_flds(cur, db, tbl):
         fldtype = dbe_globals.get_ado_dict().get(col.Type)
         if not fldtype:
             raise Exception(u"Not an MS SQL Server ADO field type %d"
-                            % col.Type)
+                % col.Type)
         bolnumeric = fldtype in dbe_globals.NUMERIC_TYPES
         try:
             bolautonum = col.Properties(u"AutoIncrement").Value
@@ -238,24 +241,24 @@ def get_flds(cur, db, tbl):
         num_prec = col.Precision
         bolsigned = True if bolnumeric else None
         min_val, max_val = dbe_globals.get_min_max(fldtype, num_prec, 
-                                                   dec_pts)
+            dec_pts)
         dets_dic = {
-                    mg.FLD_SEQ: extras[fldname][0],
-                    mg.FLD_BOLNULLABLE: bolnullable,
-                    mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
-                    mg.FLD_COLUMN_DEFAULT: default,
-                    mg.FLD_BOLTEXT: fld_txt,
-                    mg.FLD_TEXT_LENGTH: col.DefinedSize,
-                    mg.FLD_CHARSET: extras[fldname][1],
-                    mg.FLD_BOLNUMERIC: bolnumeric,
-                    mg.FLD_BOLAUTONUMBER: bolautonum,
-                    mg.FLD_DECPTS: dec_pts,
-                    mg.FLD_NUM_WIDTH: num_prec,
-                    mg.FLD_BOL_NUM_SIGNED: bolsigned,
-                    mg.FLD_NUM_MIN_VAL: min_val,
-                    mg.FLD_NUM_MAX_VAL: max_val,
-                    mg.FLD_BOLDATETIME: boldatetime, 
-                    }
+            mg.FLD_SEQ: extras[fldname][0],
+            mg.FLD_BOLNULLABLE: bolnullable,
+            mg.FLD_DATA_ENTRY_OK: boldata_entry_ok,
+            mg.FLD_COLUMN_DEFAULT: default,
+            mg.FLD_BOLTEXT: fld_txt,
+            mg.FLD_TEXT_LENGTH: col.DefinedSize,
+            mg.FLD_CHARSET: extras[fldname][1],
+            mg.FLD_BOLNUMERIC: bolnumeric,
+            mg.FLD_BOLAUTONUMBER: bolautonum,
+            mg.FLD_DECPTS: dec_pts,
+            mg.FLD_NUM_WIDTH: num_prec,
+            mg.FLD_BOL_NUM_SIGNED: bolsigned,
+            mg.FLD_NUM_MIN_VAL: min_val,
+            mg.FLD_NUM_MAX_VAL: max_val,
+            mg.FLD_BOLDATETIME: boldatetime, 
+        }
         flds[fldname] = dets_dic
     debug = False 
     if debug:
@@ -281,7 +284,7 @@ def get_index_dets(cur, db, tbl):
             has_unique = True
         fldnames = [x.Name for x in index.Columns]
         idx_dic = {mg.IDX_NAME: index.Name, mg.IDX_IS_UNIQUE: index.Unique, 
-                   mg.IDX_FLDS: fldnames}
+            mg.IDX_FLDS: fldnames}
         idxs.append(idx_dic)
     cat = None
     debug = False
@@ -294,36 +297,35 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     bx_mssql= wx.StaticBox(scroll, -1, u"Microsoft SQL Server")
     # default database
     parent.lbl_mssql_default_db = wx.StaticText(scroll, -1, 
-                                                _("Default Database:"))
+        _("Default Database:"))
     parent.lbl_mssql_default_db.SetFont(lblfont)
     mssql_default_db = parent.mssql_default_db if parent.mssql_default_db \
         else u""
     parent.txt_mssql_default_db = wx.TextCtrl(scroll, -1, mssql_default_db, 
-                                           size=(250,-1))
+        size=(250,-1))
     parent.txt_mssql_default_db.Enable(not readonly)
     parent.txt_mssql_default_db.SetToolTipString(_("Default database"
-                                                   " (optional)"))
+        " (optional)"))
     # default table
     parent.lbl_mssql_default_tbl = wx.StaticText(scroll, -1, 
-                                                 _("Default Table:"))
+        _("Default Table:"))
     parent.lbl_mssql_default_tbl.SetFont(lblfont)
-    mssql_default_tbl = parent.mssql_default_tbl if parent.mssql_default_tbl \
-        else u""
+    mssql_default_tbl = (parent.mssql_default_tbl if parent.mssql_default_tbl
+        else u"")
     parent.txt_mssql_default_tbl = wx.TextCtrl(scroll, -1, mssql_default_tbl, 
-                                               size=(250,-1))
+        size=(250,-1))
     parent.txt_mssql_default_tbl.Enable(not readonly)
     parent.txt_mssql_default_tbl.SetToolTipString(_("Default table (optional)"))
     # host
     parent.lbl_mssql_host = wx.StaticText(scroll, -1, 
-                                          _("Host - (local) if your machine:"))
+        _("Host - (local) if your machine:"))
     parent.lbl_mssql_host.SetFont(lblfont)
     mssql_host = parent.mssql_host
     parent.txt_mssql_host = wx.TextCtrl(scroll, -1, mssql_host, size=(100,-1))
     parent.txt_mssql_host.Enable(not readonly)
     # 1433 is the default port for MS SQL Server
     parent.txt_mssql_host.SetToolTipString(_("Host e.g. (local), or "
-                                             "190.190.200.100,1433, or "
-                                             "my-svr-01,1433"))
+        "190.190.200.100,1433, or my-svr-01,1433"))
     # user
     parent.lbl_mssql_user = wx.StaticText(scroll, -1, _("User - e.g. root:"))
     parent.lbl_mssql_user.SetFont(lblfont)
@@ -333,11 +335,11 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mssql_user.SetToolTipString(_("User e.g. root"))
     # password
     parent.lbl_mssql_pwd = wx.StaticText(scroll, -1, 
-                                         _("Password - space if none:"))
+        _("Password - space if none:"))
     parent.lbl_mssql_pwd.SetFont(lblfont)
     mssql_pwd = parent.mssql_pwd if parent.mssql_pwd else ""
     parent.txt_mssql_pwd = wx.TextCtrl(scroll, -1, mssql_pwd, size=(100,-1),
-                                       style=wx.TE_PASSWORD)
+        style=wx.TE_PASSWORD)
     parent.txt_mssql_pwd.Enable(not readonly)
     parent.txt_mssql_pwd.SetToolTipString(_("Password"))
     #2 MS SQL SERVER
@@ -347,14 +349,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr_mssql_inner_top = wx.BoxSizer(wx.HORIZONTAL)
     # default database
     szr_mssql_inner_top.Add(parent.lbl_mssql_default_db, 0, 
-                            wx.LEFT|wx.RIGHT, 5)
+        wx.LEFT|wx.RIGHT, 5)
     szr_mssql_inner_top.Add(parent.txt_mssql_default_db, 0, 
-                            wx.GROW|wx.RIGHT, 10)
+        wx.GROW|wx.RIGHT, 10)
     # default table
     szr_mssql_inner_top.Add(parent.lbl_mssql_default_tbl, 0, 
-                            wx.LEFT|wx.RIGHT, 5)
+        wx.LEFT|wx.RIGHT, 5)
     szr_mssql_inner_top.Add(parent.txt_mssql_default_tbl, 0, 
-                            wx.GROW|wx.RIGHT, 10)
+        wx.GROW|wx.RIGHT, 10)
     #4 MSSQL INNER BOTTOM
     szr_mssql_inner_btm = wx.BoxSizer(wx.HORIZONTAL)
     # host 
@@ -415,7 +417,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     mssql_pwd = parent.txt_mssql_pwd.GetValue()
     has_mssql_con = mssql_host and mssql_user and mssql_pwd
     dirty = (mssql_host or mssql_user or mssql_pwd or mssql_default_db 
-             or mssql_default_tbl)
+        or mssql_default_tbl)
     incomplete_mssql = dirty and not has_mssql_con
     if incomplete_mssql:
         wx.MessageBox(_("The SQL Server details are incomplete"))
@@ -426,6 +428,6 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         if mssql_default_tbl else None
     if mssql_host and mssql_user and mssql_pwd:
         con_dets_mssql = {"host": mssql_host, "user": mssql_user, 
-                           "passwd": mssql_pwd}
+            "passwd": mssql_pwd}
         con_dets[mg.DBE_MS_SQL] = con_dets_mssql
     return incomplete_mssql, has_mssql_con

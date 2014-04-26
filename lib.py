@@ -40,7 +40,7 @@ def get_gettext_setup_txt():
     bits = []
     bits.append(u"try:")
     bits.append(u"    mytrans = gettext.translation(u'sofastats', \"%s\"," % 
-        mg.LANGDIR)
+        escape_pre_write(mg.LANGDIR))
     bits.append(u"        languages=[u'%s',], fallback=True)" % mg.CANON_NAME)
     bits.append(u"    mytrans.install(unicode=True)")
     bits.append(u"except Exception, e:")
@@ -1209,8 +1209,14 @@ if mg.PLATFORM == mg.WINDOWS:
     exec u"import pywintypes"
 
 def escape_pre_write(txt):
-    "Useful when writing a path to a text file etc"
-    return txt.replace("\\", "\\\\").replace('"', '\"').replace("'", "\'")
+    """
+    Useful when writing a path to a text file etc.
+    Note - must escape your escapes.
+    """
+    esctxt = txt.replace("\\", "\\\\")
+    esctxt = esctxt.replace('"', '\\"')
+    esctxt = esctxt.replace("'", "\\'")
+    return esctxt
 
 def get_file_name(path):
     "Works on Windows paths as well"

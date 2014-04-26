@@ -1003,8 +1003,8 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport numpy as np")
     f.write(u"\nimport os")
     f.write(u"\nimport sys")
-    f.write(u"\ngettext.install(domain='sofastats', localedir='%s', "
-        u"unicode=False)" % mg.LOCALEDIR)
+    f.write(u"\ngettext.install(domain='sofastats', localedir=\"%s\", "
+        u"unicode=False)" % lib.escape_pre_write(mg.LOCALEDIR))
     f.write(u"\n" + lib.get_gettext_setup_txt())
     f.write(u"\nsys.path.append(u'%s')" % lib.escape_pre_write(mg.SCRIPT_PATH))
     for module in modules:
@@ -1012,8 +1012,9 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport my_exceptions")
     f.write(u"""\n\nfil = codecs.open(u"%s",""" %
         lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
-    css_fils_str = u'[u"' + u'",\nu"'.join(css_fils) + u'"]'
-    f.write(u"\ncss_fils=%s" % lib.escape_pre_write(css_fils_str))
+    css_fils_esc = [lib.escape_pre_write(x) for x in css_fils]
+    css_fils_str = u'[u"' + u'",\nu"'.join(css_fils_esc) + u'"]'
+    f.write(u"\ncss_fils=%s" % css_fils_str)
     has_dojo = new_has_dojo # always for making single output item e.g. chart
     has_dojo_str = u"True" if has_dojo else u"False"
     f.write(u"\nfil.write(output.get_html_hdr(\"Report(s)\", css_fils, "
@@ -1035,7 +1036,7 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
     con_dets_str = lib.dic2unicode(dd.con_dets)
-    f.write(u"\n" + u"con_dets = %s" % lib.escape_pre_write(con_dets_str))
+    f.write(u"\n" + u"con_dets = %s" % con_dets_str.replace(u"\\", u"\\\\"))
     default_dbs_str = lib.dic2unicode(dd.default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
     default_tbls_str = lib.dic2unicode(dd.default_tbls)
