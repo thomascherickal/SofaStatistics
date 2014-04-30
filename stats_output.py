@@ -26,8 +26,8 @@ def add_footnotes(footnotes, html):
         html.append(footnote % {u"ftnum": next_ft})
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
-        mean_squ_bn, label_a, label_b, label_avg, add_to_report, report_name, 
-        css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+        mean_squ_bn, label_gp, label_a, label_b, label_avg, add_to_report, 
+        report_name, css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
         page_break_after=False):
     debug = False
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -39,9 +39,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
     footnotes = []
     html = []
-    title = _(u"Results of ANOVA test of average %(avg)s for groups from"
-        u" \"%(a)s\" to \"%(b)s\"") % {u"avg": label_avg, u"a": label_a, 
-        u"b": label_b}
+    title = _(u"Results of ANOVA test of average %(avg)s for %(label_gp)s "
+        u"groups from \"%(a)s\" to \"%(b)s\"") % {u"label_gp": label_gp, 
+        u"avg": label_avg, u"a": label_a, u"b": label_b}
     html_title = u"<h2>%s</h2>" % title
     html.append(mg.TBL_TITLE_START + html_title + mg.TBL_TITLE_END)
     html.append(u"\n\n<h3>" + mg.TBL_SUBTITLE_START 
@@ -182,8 +182,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
-        dp, indep, css_idx, html):
+def ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df, 
+        label_avg, dp, indep, css_idx, html):
     """
     Footnotes are autonumbered at end. The links to them will need numbering 
         though.
@@ -196,7 +196,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     footnotes = []
     if indep:
         title = (_(u"Results of Independent Samples t-test of average "
-            u"\"%(avg)s\" for \"%(a)s\" vs \"%(b)s\"") % {"avg": label_avg, 
+            u"\"%(avg)s\" for %(label_gp)s groups \"%(a)s\" vs \"%(b)s\"") % 
+            {"label_gp": label_gp, "avg": label_avg, 
             "a": dic_a[mg.STATS_DIC_LBL], "b": dic_b[mg.STATS_DIC_LBL]})
     else:
         title = (_("Results of Paired Samples t-test of \"%(a)s\" vs \"%(b)s\"") 
@@ -301,8 +302,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     add_footnotes(footnotes, html)
     return title
 
-def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg, 
-        add_to_report, report_name, css_fil, css_idx=0, dp=3, 
+def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df, 
+        label_avg, add_to_report, report_name, css_fil, css_idx=0, dp=3, 
         level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     """
     Returns HTML table ready to display.
@@ -311,8 +312,8 @@ def ttest_indep_output(sample_a, sample_b, t, p, dic_a, dic_b, df, label_avg,
     """
     html = []
     indep = True
-    title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
-        label_avg, dp, indep, css_idx, html)
+    title = ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, 
+        dic_b, df, label_avg, dp, indep, css_idx, html)
     output.append_divider(html, title, indiv_title=u"")
     sample_dets = [(u"a", sample_a, dic_a["label"]), 
         (u"b", sample_b, dic_b["label"])]
@@ -354,8 +355,9 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     """
     html = []
     indep = False
-    title = ttest_basic_results(sample_a, sample_b, t, p, dic_a, dic_b, df, 
-        label_avg, dp, indep, css_idx, html)
+    label_gp = None
+    title = ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, 
+        dic_b, df, label_avg, dp, indep, css_idx, html)
     output.append_divider(html, title, indiv_title=u"")
     # histogram
     histlbl = u"Differences between %s and %s" % (dic_a["label"], 
@@ -383,21 +385,22 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     html_str = u"\n".join(html)
     return html_str
 
-def mann_whitney_output(u, p, dic_a, dic_b, z, label_ranked, css_fil, css_idx=0, 
-        dp=3, level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil, 
+        css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     footnotes = []
+    label_gp
     label_a = dic_a[mg.STATS_DIC_LBL]
     label_b = dic_b[mg.STATS_DIC_LBL]
     n_a = dic_a[mg.STATS_DIC_N]
     n_b = dic_b[mg.STATS_DIC_N]
     title = (_(u"Results of Mann Whitney U Test of \"%(ranked)s\" for "
-        u"\"%(a)s\" vs \"%(b)s\"") % {"ranked": label_ranked, "a": label_a, 
-        "b": label_b})
+        u"%(label_gp)s \"%(a)s\" vs \"%(b)s\"") % {"label_gp": label_gp, 
+        "ranked": label_ranked, "a": label_a, "b": label_b})
     title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
         mg.TBL_TITLE_END)
     html.append(title_html)
@@ -784,8 +787,9 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"frequency")
 
-def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil, 
-        css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+def kruskal_wallis_output(h, p, label_gp, label_a, label_b, dics, df, label_avg, 
+        css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
+        page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -793,8 +797,8 @@ def kruskal_wallis_output(h, p, label_a, label_b, dics, df, label_avg, css_fil,
     html = []
     footnotes = []
     title = (_(u"Results of Kruskal-Wallis H test of average %(avg)s for "
-        u"groups from \"%(a)s\" to \"%(b)s\"") % {"avg": label_avg, 
-        "a": label_a, "b": label_b})
+        u"%(label_gp)s groups from \"%(a)s\" to \"%(b)s\"") % 
+        {"label_gp": label_gp, "avg": label_avg, "a": label_a, "b": label_b})
     title_html = u"%s\n<h2>%s</h2>\n%s" % (mg.TBL_TITLE_START, title,
         mg.TBL_TITLE_END)
     html.append(title_html)

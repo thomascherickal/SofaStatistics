@@ -653,37 +653,38 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
     def get_drop_vals(self):
         """
         Get values (in unicode form) from main drop downs.
+        
         Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
-            label_b, var_avg, label_avg.
+        label_b, var_avg, label_avg.
         """
         dd = mg.DATADETS_OBJ
         selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
-                                      item_val=var_gp)
+            item_val=var_gp)
         var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.drop_group_a.GetSelection()
         if selection_idx_a == -1:
             raise Exception(u"Unable to set values for groups a and b. Check "
-                            u"your data and any filtering applied.")
+                u"your data and any filtering applied.")
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.any2unicode(val_a_raw)
         label_a = lib.get_item_label(item_labels=val_dic, 
-                                     item_val=val_a_raw)
+            item_val=val_a_raw)
         selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
         val_b = lib.any2unicode(val_b_raw)
         label_b = lib.get_item_label(item_labels=val_dic, 
-                                     item_val=val_b_raw)
+            item_val=val_b_raw)
         # the avg variable(s)
         selection_idx_avg = self.drop_avg.GetSelection()
         var_avg = self.sorted_var_names_avg[selection_idx_avg]
         label_avg = lib.get_item_label(item_labels=self.var_labels, 
-                                       item_val=var_avg)
+            item_val=var_avg)
         return (var_gp_numeric, var_gp, label_gp, val_a, label_a, 
-                val_b, label_b, var_avg, label_avg)
+            val_b, label_b, var_avg, label_avg)
         
     def on_averaged_sel(self, event):        
         self.update_phrase()

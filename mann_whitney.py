@@ -42,7 +42,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
-            (var_gp_numeric, var_gp, unused, val_a, label_a, 
+            (var_gp_numeric, var_gp, label_gp, val_a, label_a, 
              val_b, label_b, var_ranked, label_ranked) = self.get_drop_vals()
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
@@ -63,17 +63,18 @@ sample_%%s = core_stats.get_list(dbe=mg.%(dbe)s, cur=cur,
         script_lst.append(u"""
 if len(sample_a) < 2 or len(sample_b) < 2:
     raise my_exceptions.TooFewSamplesForAnalysis""")
+        script_lst.append(u"label_gp = u\"%s\"" % label_gp)
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
         script_lst.append(u"u, p, dic_a, dic_b, z = " + \
             u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
         script_lst.append(u"""
-mann_whitney_output = stats_output.mann_whitney_output(u, p, dic_a, dic_b, z,
-            label_ranked, css_fil=u"%(css_fil)s", 
-            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
-            page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+mann_whitney_output = stats_output.mann_whitney_output(u, p, label_gp, dic_a, 
+    dic_b, z, label_ranked, css_fil=u"%(css_fil)s", 
+    css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
+    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil), 
+    u"css_idx": css_idx})
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)
 

@@ -29,13 +29,14 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         Update phrase based on GroupBy, Group A, Group B, and Averaged by field.
         """
         try:
-            (unused, unused, unused, unused, 
+            (unused, unused, label_gp, unused, 
              label_a, unused, 
              label_b, unused, 
              label_avg) = self.get_drop_vals()
-            self.lbl_phrase.SetLabel(_("Does average %(avg)s vary in the "
-                u"groups between \"%(a)s\" and \"%(b)s\"?") % {"avg": label_avg, 
-                "a": label_a, "b": label_b})
+            self.lbl_phrase.SetLabel(_("Does average %(avg)s vary for the "
+                u"%(label_gp)s groups between \"%(a)s\" and \"%(b)s\"?") % 
+                {"label_gp": label_gp, "avg": label_avg, "a": label_a, 
+                "b": label_b})
         except Exception:
             self.lbl_phrase.SetLabel(u"")
 
@@ -61,7 +62,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
-            (var_gp_numeric, var_gp, unused, val_a, 
+            (var_gp_numeric, var_gp, label_gp, val_a, 
              label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
@@ -72,7 +73,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         lst_labels = []
         # need sample for each of the values in range
         idx_val_a, idx_val_b = indep2var.get_range_idxs(self.gp_vals_sorted, 
-                                                        val_a, val_b)
+            val_a, val_b)
         vals_in_range = self.gp_vals_sorted[idx_val_a: idx_val_b + 1]
         str_get_sample = (u"""
 %%s = core_stats.get_list(dbe=mg.%(dbe)s, cur=cur, tbl=u"%(tbl)s", 
@@ -102,6 +103,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         script_lst.append(u"""
 if len(samples) < 2:
     raise my_exceptions.TooFewSamplesForAnalysis""")
+        script_lst.append(u'label_gp = u"""%s"""' % label_gp)
         script_lst.append(u'label_a = u"""%s"""' % label_a)
         script_lst.append(u'label_b = u"""%s"""' % label_b)
         script_lst.append(u'label_avg = u"""%s"""' % label_avg)
@@ -116,9 +118,8 @@ if len(samples) < 2:
             high)
         script_lst.append(u"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
-    mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_a, label_b, label_avg,
-    add_to_report, report_name, 
-    css_fil=u"%(css_fil)s", 
+    mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_gp, label_a, label_b, 
+    label_avg, add_to_report, report_name, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
     page_break_after=False)""" %
     {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
