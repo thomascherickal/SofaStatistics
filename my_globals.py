@@ -598,6 +598,7 @@ TMP_TBLNAME = u"sofa_tmp_tbl"
 TMP_TBLNAME2 = u"sofa_tmp_tbl2"
 STRICT_TMP_TBL = u"tmp_strict"
 SOFA_ID = u"sofa_id"
+WAS_SOFA_ID = u"was_%s" % SOFA_ID
 # demo data
 NUM_DATA_SEQ = (1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 12.0, 35.0)
 # http://statistics.gmu.edu/pages/famous.html and 

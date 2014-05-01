@@ -152,6 +152,8 @@ class DlgExportData(wx.Dialog):
         colnames2use = [det.col_name for det in all_col_dets]
         raw_list = [colnames2use,]
         for idx_col, colname2use in enumerate(colnames2use):
+            if colname2use == mg.SOFA_ID:
+                colname2use = mg.WAS_SOFA_ID
             col_style = xlwt.XFStyle()
             det = all_col_dets[idx_col]
             if det.numeric:
@@ -221,6 +223,13 @@ class DlgExportData(wx.Dialog):
                 quoting=csv.QUOTE_MINIMAL)
             for i, row in enumerate(raw_list, 1):
                 try:
+                    if i == 1: # header
+                        header_row = []
+                        for item in row:
+                            if item == mg.SOFA_ID:
+                                item = mg.WAS_SOFA_ID
+                            header_row.append(item)
+                        row = header_row
                     csv_writer.writerow(row)
                 except Exception, e:
                     raise Exception(u"Unable to write row %s to csv file. "
