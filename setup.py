@@ -641,6 +641,8 @@ try:
     import getdata #@UnusedImport
     about = u"projects"
     import projects #@UnusedImport
+    about = u"projects_gui"
+    import projects_gui #@UnusedImport
     about = u"projselect"
     import projselect #@UnusedImport
     about = u"quotes"

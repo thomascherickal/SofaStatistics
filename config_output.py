@@ -13,6 +13,7 @@ try:
     import export_output as export
 except ImportError, e:
     print(u"Problem with export_output. Orig error: %s" % b.ue(e))
+import db_grid
 import getdata
 import output
 #import projects
@@ -73,29 +74,6 @@ class DlgGetTest(wx.Dialog):
         self.SetSizer(szr)
         szr.SetSizeHints(self)
         szr.Layout()
-       
-def update_var_dets(dlg):
-    """
-    Update all variable details, including those already displayed.
-    Even if errors etc will set something, even if empty dicts.
-    """
-    cc = output.get_cc()
-    (dlg.var_labels, dlg.var_notes, 
-     dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-
-# explanation level
-#def get_szr_level(parent, panel, horiz=True):
-#    """
-#    Get self.szr_level with radio widgets. 
-#    """
-#    hv_style = wx.RA_SPECIFY_COLS if horiz else wx.RA_SPECIFY_ROWS
-#    parent.rad_level = wx.RadioBox(panel, -1, _("Output Level"), 
-#        choices=mg.LEVELS, style=hv_style)
-#    parent.rad_level.SetStringSelection(mg.DEFAULT_LEVEL)
-#    parent.szr_level = wx.BoxSizer(wx.HORIZONTAL)
-#    parent.szr_level.Add(parent.rad_level, 0, wx.RIGHT, 10)
-#    parent.rad_level.Enable(False)
-#    return parent.szr_level
 
 def style2path(style):
     "Get full path of css file from style name alone"
@@ -517,7 +495,7 @@ class ConfigUI(object):
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET] # main place this gets set
-            update_var_dets(dlg=self)
+            output.update_var_dets(dlg=self)
         dlg.Destroy()
         return ret_dic
 
@@ -617,7 +595,7 @@ class ConfigUI(object):
         self.filters()
         
     def on_open(self, event):
-        getdata.open_database(self, event)
+        db_grid.open_database(self, event)
     
     def has_expected_subfolder(self, rpt_root):
         # see if has js support etc in subfolder

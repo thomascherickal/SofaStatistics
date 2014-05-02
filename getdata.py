@@ -13,7 +13,6 @@ import my_exceptions
 import config_globals
 import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
-import db_grid
 debug = False
 
 # data resources
@@ -623,46 +622,6 @@ def readonly_enablement(chk_readonly):
         readonly = (dd.tbl == mg.DEMO_TBL)
         chk_readonly.SetValue(readonly)
     chk_readonly.Enable(not sofa_default_db)
-
-def open_database(parent, event):
-    debug = False
-    dd = mg.DATADETS_OBJ
-    if not dd.has_unique:
-        msg = _(u"Table \"%s\" cannot be opened because it lacks a unique "
-            u"index. You can still use it for analysis though.")
-        wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
-    else:
-        SQL_get_count = (u"SELECT COUNT(*) FROM %s" % tblname_qtr(dd.dbe, 
-            dd.tbl))
-        try:
-            dd.cur.execute(SQL_get_count)
-        except Exception, e:
-            wx.MessageBox(_(u"Problem opening selected table."
-                u"\nCaused by error: %s") % b.ue(e))
-        res = dd.cur.fetchone()
-        if res is None:
-            rows_n = 0
-            if debug: print(u"Unable to get first item from %s." % 
-                SQL_get_count)
-        else:
-            rows_n = res[0]
-        if rows_n > 200000: # fast enough as long as column resizing is off
-            if wx.MessageBox(_("This table has %s rows. "
-                    "Do you wish to open it?") % rows_n, 
-                    caption=_("LONG REPORT"), style=wx.YES_NO) == wx.NO:
-                return
-        wx.BeginBusyCursor()
-        # protect linked non-SOFA databases from inadvertent changes
-        readonly = False
-        if parent.chk_readonly.IsEnabled():
-            readonly = parent.chk_readonly.IsChecked()
-        set_colwidths = True if rows_n < 1000 else False
-        dlg = db_grid.TblEditor(parent, parent.var_labels, parent.var_notes, 
-            parent.var_types, parent.val_dics, readonly, 
-            set_colwidths=set_colwidths)
-        lib.safe_end_cursor()
-        dlg.ShowModal()
-    event.Skip()
 
 # Assumption - drop_tbls is always named as such
 def data_dropdown_settings_correct(parent):

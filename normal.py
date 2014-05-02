@@ -374,7 +374,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
             self.drop_var_b.SetSelection(idx_b)
 
     def refresh_vars(self):
-        config_output.update_var_dets(dlg=self)
+        output.update_var_dets(dlg=self)
         
     def get_var_a(self):
         idx = self.drop_var_a.GetSelection()

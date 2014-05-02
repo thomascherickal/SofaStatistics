@@ -10,6 +10,7 @@ import config_output
 import db_grid
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import getdata
+import output
 import projects
 import table_config
 
@@ -31,7 +32,7 @@ class DlgDataSelect(wx.Dialog):
             _("Choose an existing data table ..."), size=(480,20))
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
             fil_name=proj_name)
-        config_output.update_var_dets(dlg=self)
+        output.update_var_dets(dlg=self)
         self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
         self.chk_readonly.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))
@@ -139,7 +140,7 @@ class DlgDataSelect(wx.Dialog):
         self.ctrl_enablement()
 
     def on_open(self, event):
-        getdata.open_database(self, event)
+        db_grid.open_database(self, event)
     
     def on_delete(self, event):
         """
@@ -194,7 +195,7 @@ class DlgDataSelect(wx.Dialog):
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=returned_tblname)
             if debug: print(u"Flds after: %s" % dd.flds)
             self.reset_tbl_dropdown()
-            config_output.update_var_dets(dlg=self)
+            output.update_var_dets(dlg=self)
     
     def on_new(self, event):
         """

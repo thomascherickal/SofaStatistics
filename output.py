@@ -83,6 +83,15 @@ import showhtml
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
 
+def update_var_dets(dlg):
+    """
+    Update all variable details, including those already displayed.
+    Even if errors etc will set something, even if empty dicts.
+    """
+    cc = get_cc()
+    (dlg.var_labels, dlg.var_notes, 
+     dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+     
 def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     debug = False
     imgs_path = os.path.join(os.path.splitext(report_path)[0] + ext, u"")
