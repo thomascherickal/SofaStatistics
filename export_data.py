@@ -141,29 +141,36 @@ class DlgExportData(wx.Dialog):
                     False, val_dics.get(orig_colname))) # labels are not dates or numeric
             else:
                 col_lbl_statuses.append(False)
-        book = xlwt.Workbook(encoding='utf8')
-        sheet = book.add_sheet('%s output' % dd.tbl)
-        style_bold_12pt = xlwt.XFStyle()
-        font = xlwt.Font()
-        font.name = 'Arial'
-        font.bold = True
-        font.height = 12*20 #12pt
-        style_bold_12pt.font = font
+        n_cols = len(all_col_dets)
+        do_spreadsheet = (n_cols <= 256)
+        if not do_spreadsheet:
+            wx.MessageBox(u"Too many columns (%s) for an xls spreadsheet. Only "
+                u"making the csv" % n_cols)
+        if do_spreadsheet:   
+            book = xlwt.Workbook(encoding='utf8')
+            sheet = book.add_sheet('%s output' % dd.tbl[:20])
+            style_bold_12pt = xlwt.XFStyle()
+            font = xlwt.Font()
+            font.name = 'Arial'
+            font.bold = True
+            font.height = 12*20 #12pt
+            style_bold_12pt.font = font
         colnames2use = [det.col_name for det in all_col_dets]
         raw_list = [colnames2use,]
         for idx_col, colname2use in enumerate(colnames2use):
             if colname2use == mg.SOFA_ID:
                 colname2use = mg.WAS_SOFA_ID
-            col_style = xlwt.XFStyle()
-            det = all_col_dets[idx_col]
-            if det.numeric:
-                alignment = xlwt.Alignment()
-                alignment.horz = xlwt.Alignment.HORZ_RIGHT
-                col_style.alignment = alignment
-            sheet.col(idx_col).set_style(col_style)
-            if det.isdate:
-                sheet.col(idx_col).width = 256*20  
-            sheet.write(0, idx_col, colname2use, style_bold_12pt) # actual hdr row content
+            if do_spreadsheet:
+                col_style = xlwt.XFStyle()
+                det = all_col_dets[idx_col]
+                if det.numeric:
+                    alignment = xlwt.Alignment()
+                    alignment.horz = xlwt.Alignment.HORZ_RIGHT
+                    col_style.alignment = alignment
+                sheet.col(idx_col).set_style(col_style)
+                if det.isdate:
+                    sheet.col(idx_col).width = 256*20  
+                sheet.write(0, idx_col, colname2use, style_bold_12pt) # actual hdr row content
         # get data from SQL line by line
         colnames_clause = u", ".join([objqtr(x) for x in orig_col_names])
         SQL_get_data = u"""SELECT %s 
@@ -182,25 +189,27 @@ class DlgExportData(wx.Dialog):
                 idx_final_cols = 0 # have to manage these ourselves
                 for idx_orig_col, val in enumerate(row):
                     has_lbl = col_lbl_statuses[idx_orig_col]
-                    if all_col_dets[idx_final_cols].isdate:
-                        if isinstance(val, datetime.datetime):
-                            val2use = val
+                    if do_spreadsheet:
+                        if all_col_dets[idx_final_cols].isdate:
+                            if isinstance(val, datetime.datetime):
+                                val2use = val
+                            else:
+                                try:
+                                    val2use = lib.get_datetime_from_str(val)
+                                except Exception:
+                                    val2use = u""
+                            sheet.write(idx_row, idx_final_cols, val2use, 
+                                date_style)
                         else:
-                            try:
-                                val2use = lib.get_datetime_from_str(val)
-                            except Exception:
-                                val2use = u""
-                        sheet.write(idx_row, idx_final_cols, val2use, 
-                            date_style)
-                    else:
-                        sheet.write(idx_row, idx_final_cols, val)
+                            sheet.write(idx_row, idx_final_cols, val)
                     row_raw.append(unicode(val)) # must be a string
                     idx_final_cols += 1
                     if has_lbl:
                         det = all_col_dets[idx_final_cols] 
                         lbl2show = (det.valdic.get(val, val) if det.valdic 
                             else val)
-                        sheet.write(idx_row, idx_final_cols, lbl2show)
+                        if do_spreadsheet:
+                            sheet.write(idx_row, idx_final_cols, lbl2show)
                         row_raw.append(unicode(lbl2show)) # must be a string
                         idx_final_cols += 1
                 raw_list.append(row_raw)
@@ -235,7 +244,8 @@ class DlgExportData(wx.Dialog):
                     raise Exception(u"Unable to write row %s to csv file. "
                         u"Orig error: %s" % (i, e))
             f_csv.close()
-        book.save(filpath_xls)
+        if do_spreadsheet:
+            book.save(filpath_xls)
         self.progbar.SetValue(GAUGE_STEPS)
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
