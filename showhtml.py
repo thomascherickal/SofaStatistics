@@ -4,8 +4,15 @@ import os
 
 import my_globals as mg
 import lib
-import my_exceptions
 import full_html
+
+def display_report(parent, str_content, url_load=False):
+    # display results
+    wx.BeginBusyCursor()
+    dlg = DlgHTML(parent=parent, title=_("Report"), url=None, 
+        content=str_content, url_load=url_load)
+    dlg.ShowModal()
+    lib.safe_end_cursor() # again to be sure
 
 def get_html(title, content, template, root="", file_name="", print_folder=""):
     """
@@ -34,6 +41,7 @@ def get_html_header(title, header_template):
     hdr = hdr.replace("%title%", title)
     fil.close()
     return hdr
+
 
 class DlgHTML(wx.Dialog):
     "Show HTML window with content displayed"    

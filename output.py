@@ -78,7 +78,6 @@ import my_globals as mg
 import config_globals
 import lib
 import my_exceptions
-import showhtml
 
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.
@@ -1261,10 +1260,3 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
             # halting otherwise-successful analysis.
     return True, gui_display_content
 
-def display_report(parent, str_content, url_load=False):
-    # display results
-    wx.BeginBusyCursor()
-    dlg = showhtml.DlgHTML(parent=parent, title=_("Report"), url=None, 
-        content=str_content, url_load=url_load)
-    dlg.ShowModal()
-    lib.safe_end_cursor() # again to be sure

@@ -1147,8 +1147,8 @@ class StartFrame(wx.Frame):
 
     def on_import_click(self, event):
         # open import data dialog
-        import importer
-        dlg = importer.DlgImportFileSelect(self)
+        import importer_gui
+        dlg = importer_gui.DlgImportFileSelect(self)
         dlg.ShowModal()
         event.Skip()
         

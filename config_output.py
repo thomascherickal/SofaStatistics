@@ -16,6 +16,7 @@ except ImportError, e:
 import db_grid
 import getdata
 import output
+import showhtml
 #import projects
 import traceback
 #import filtselect # prevent circular import (inherits from Dlg not loaded yet)
@@ -817,7 +818,7 @@ class ConfigUI(object):
     #    return szr_level
     
     def on_btn_expand(self, event):
-        output.display_report(self, self.content2expand, self.url_load)
+        showhtml.display_report(self, self.content2expand, self.url_load)
         event.Skip()
             
     def on_btn_close(self, event):

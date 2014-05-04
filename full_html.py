@@ -8,7 +8,6 @@ import wx
 
 import basic_lib as b
 import my_globals as mg
-import lib
 import my_exceptions
 import output
 use_renderer = True # False if renderer not available and other testing required
