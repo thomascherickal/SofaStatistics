@@ -419,7 +419,10 @@ class GetSettings(settings_grid.DlgSettingsEntry):
             "'Soccer', 'Badminton', 'Skiing' etc)."
             "\n\n* Example of Ordinal (ranked) data: ratings of restaurant "
             "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
-            "\n\n* Example of Quantity (amount) data: height in cm."))
+            "\n\n* Example of Quantity (amount) data: height in cm."
+            "\n\nDatetime data is ordinal (ordered) of course, but SOFA treats "
+            "it as categorical because it isn't generally used in statistical "
+            "tests as ordinal data."))
 
     def on_ok(self, event):
         """

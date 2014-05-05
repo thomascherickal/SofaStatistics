@@ -1,7 +1,3 @@
-
-
-
-
 import sqlite3 as sqlite
 import os
 import pprint
