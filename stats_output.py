@@ -141,10 +141,24 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         try:
             (unused, p_arr, cskew, 
              unused, ckurtosis, unused) = core_stats.normaltest(sample)
-            kurt = tpl % round(ckurtosis, dp)
-            skew = tpl % round(cskew, dp)
-            overall_p = lib.get_p(p_arr[0], dp)
-            results += (kurt, skew, overall_p)
+            extra_results = []
+            try:
+                kurt = tpl % round(ckurtosis, dp)
+                extra_results.append(kurt)
+            except Exception:
+                extra_results.append(_("Unable to calculate kurtosis"))
+            try:
+                skew = tpl % round(cskew, dp)
+                extra_results.append(skew)
+            except Exception:
+                extra_results.append(_("Unable to calculate skew"))
+            try:
+                overall_p = lib.get_p(p_arr[0], dp)
+                extra_results.append(overall_p)
+            except Exception:
+                extra_results.append(_(u"Unable to calculate overall p for "
+                    u"normality test"),)
+            results += tuple(extra_results)
         except Exception:
             results += (_("Unable to calculate kurtosis"), 
                 _("Unable to calculate skew"),
