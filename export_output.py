@@ -715,7 +715,7 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
     try:
         url = output.path2url(html_path)
         cmd_make_pdf = u"cmd_make_pdf not successfully generated yet"
-        if mg.PLATFORM == mg.LINUX:
+        if mg.PLATFORM != mg.WINDOWS:
             cmd_make_pdf = (u'wkhtmltopdf %s %s "%s" "%s" ' % (width, height, 
                 url, pdf_path))
         else:
@@ -998,8 +998,9 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
         try:
             # Note - change density before setting input image otherwise 72 dpi 
             # no matter what you subsequently do with -density
-            cmd = ('convert.exe -density %s -borderColor "%s" -border %s -trim '
-                '"%s" "%s"' % (output_dpi, u2utf8(bgcolour), "1x1", 
+            convert = 'convert.exe' if mg.PLATFORM == mg.WINDOWS else 'convert'
+            cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
+                '"%s" "%s"' % (convert, output_dpi, u2utf8(bgcolour), "1x1", 
                 u2utf8(orig_pdf), img_made))
             retcode = subprocess.call(cmd, shell=True)
             if retcode < 0:
