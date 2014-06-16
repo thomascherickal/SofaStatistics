@@ -633,11 +633,6 @@ class ConfigUI(object):
         dlg_get_file.Destroy()
 
     def on_btn_export(self, event):
-        if mg.PLATFORM == mg.MAC:
-            wx.MessageBox(u"Sorry - I haven't been able to get exporting to "
-                u"work on Macs yet. Please contact %s if you would like details"
-                u" or if you are a Python developer and can help." % mg.CONTACT)
-            return
         idx_export_sel = self.drop_export.GetSelection()
         if idx_export_sel == 0:
             if self.export_output_enabled:

@@ -2,10 +2,6 @@
 # -*- coding: utf-8 -*-
 
 """
-Sorry - I haven't been able to get exporting to work on Macs yet. Please contact 
-the project if you would like details or if you are a Python developer and can 
-help.
-
 export2pdf(), export2spreadsheet(), and export2imgs() do the real work and can 
 be scripted outside the GUI. Set headless = True when calling. export2imgs has 
 the best doc string to read.
