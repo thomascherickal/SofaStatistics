@@ -9,10 +9,8 @@ import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import lib
-try:
-    import export_output as export
-except ImportError, e:
-    print(u"Problem with export_output. Orig error: %s" % b.ue(e))
+import export_output
+import export_output_gui
 import db_grid
 import getdata
 import output
@@ -673,7 +671,7 @@ class ConfigUI(object):
                 u"rpt_root": rpt_root, u"reports_path": mg.REPORTS_PATH})
             return
         cc = output.get_cc()
-        dlg = export.DlgExportOutput(title=u"Export Report", 
+        dlg = export_output_gui.DlgExportOutput(title=u"Export Report", 
             report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True)
         dlg.ShowModal()
 
@@ -683,14 +681,14 @@ class ConfigUI(object):
             self.update_demo_display() # so mg.INT_REPORT_PATH includes the latest title
         except AttributeError:
             pass
-        dlg = export.DlgExportOutput(title=u"Export Output", 
+        dlg = export_output_gui.DlgExportOutput(title=u"Export Output", 
             report_path=mg.INT_REPORT_PATH, save2report_path=False)
         dlg.ShowModal()
     
     def on_sel_copy_output(self, event):
         wx.BeginBusyCursor()
         try:
-            export.copy_output()
+            export_output.copy_output()
             lib.safe_end_cursor()
             """
             Copying to the clipboard does not actually copy anything, it just 

@@ -1,17 +1,86 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-
 """
+GENERAL ********************
 export2pdf(), export2spreadsheet(), and export2imgs() do the real work and can 
 be scripted outside the GUI. Set headless = True when calling. export2imgs has 
 the best doc string to read.
 
-When creating images, splits by divider SOFA puts between all chunks of content.
-Namely mg.OUTPUT_ITEM_DIVIDER.
+The starting point is always HTML. If a report, will have lots of individual 
+items to extract and convert into images/pdfs and/or spreadsheet tables.
+
+Splits HTML by divider SOFA puts between all chunks of content. Namely 
+mg.OUTPUT_ITEM_DIVIDER.
+
+IMAGES *********************
+
+For images, there are two situations:
+
+1) images that were created by matplotlib that are already created and were only 
+linked to by the HTML. We just need to relocate a copy and rename these.
+
+2) images which only exist when rendered by a web browser which can handle 
+javascript and SVG.
+
+For each split item, a separate HTML file must be made, rendered within 
+wkhtmltopdf, and the PDF converted into an image.
+
+Because we don't know the final size of the output image we have to start with 
+an oversized version which is then autocropped down to the correct size. If we 
+did this on the full-resolution image it would take far too long (cropping is a 
+very computer-intensive process) so we use a different approach to get a cropped 
+high-resolution image output. We make the very low-resolution version and then
+read its dimension properties. We can use these to make a final output instead 
+of having to crop down from an oversized version. Even though we are not using
+autocropping to get the dimensions anymore we still need to use it. Because we 
+are reading our dimensions from a low-resolution image there is a margin of 
+error when translating to the high-resolution version so it is safest to add a 
+slight bit of padding to the outside of our dimensions and then autocrop from 
+there. Still an expensive process but we are doing very little of it. 
+
+SPLITTING OUTPUT ************
+
+Use SOFA Python code to split output into individual HTML items (if a chart 
+series we split these into individual charts). Each will have the massive HTML 
+header (css and javascript etc) plus a tiny end bit (close body and html tags). 
+Store the temp HTML output in the _internal folder.
+
+Also split out any text in same order so that numbering can be sequential. Store 
+names inside html original so we can name “001 - Gender by Ethnicity.png” etc.
+
+http://www.imagemagick.org/Magick++/Image.html#Image%20Manipulation%20Methods
+http://www.imagemagick.org/Usage/crop/#trim. A trick that works is to add a 
+border of the colour you want to trim, then_ trim.
+
+trim() -- Trim edges that are the background color from the image.
+
+trimming is very slow at higher dpis so we can do a quick, dirty version at a 
+lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough 
+dimensions to crop.
+
+We can (approximately) translate from size at lower dpi to larger based on quick 
+job done at lower dpi. Add a few pixels around to be safe. [update - for some 
+reason, takes more, best to add a fair few and then trim the final]
+20 130x138
+40 261x277
+80 518x550
+160 1038x1100
+
+For multipage images, use [idx] notation after .pdf
+http://stackoverflow.com/questions/4809314/...
+    ...imagemagick-is-converting-only-the-first-page-of-the-pdf
+
+Packaging Notes:
+Wkhtmltopdf - Packaged for Ubuntu and cross-platform. An active projects but 
+some tricky bugs too: Problems with space between characters wkhtmltopdf > 0.9.0
+ImageMagick - Packaged for Ubuntu and cross-platform. imagemagick > 8.0.0
+PythonMagick - http://www.imagemagick.org/download/python/
+    python-pythonmagick > 0.9.0
+Note -- enable images saved to be in high resolution for publishing purposes.
+Warn users it will take longer (give an estimate) and show progress on a bar.
 """
 import codecs
 from collections import namedtuple
-import datetime
 import os
 import shutil
 import subprocess
@@ -58,265 +127,12 @@ DIAGNOSTIC = False
 if DIAGNOSTIC:
     wx.MessageBox("Diagnostic mode is on :-). Be ready to take screen-shots.")
 
-"""
-Idea - put into large pages, then use PythonMagick to auto-crop. Then I don't 
-have to know exact dimensions.
-
-Use SOFA Python code to split output into individual images (split chart series 
-into individual charts). Each will have the massive html header (css and 
-javascript etc) plus a tiny end bit (close body and html tags). Store in 
-_internal folder.
-
-Also split out any text in same order so that numbering can be sequential. Store 
-names inside html original so we can name “001 - Gender by Ethnicity.png” etc.
-
-http://www.imagemagick.org/Magick++/Image.html#Image%20Manipulation%20Methods
-http://www.imagemagick.org/Usage/crop/#trim
-A trick that works is to add a border of the colour you want to trim,
-then_ trim.
-
-trim() -- Trim edges that are the background color from the image.
-
-trimming is very slow at higher dpis so we can do a quick, dirty version at a 
-lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough 
-dimensions to crop.
-
-We can (approximately) translate from size at lower dpi to larger based on quick 
-job done at lower dpi. Add a few pixels around to be safe. [update - for some 
-reason, takes more, best to add a fair few and then trim the final]
-20 130x138
-40 261x277
-80 518x550
-160 1038x1100
-
-For multipage images, use [idx] notation after .pdf
-http://stackoverflow.com/questions/4809314/...
-    ...imagemagick-is-converting-only-the-first-page-of-the-pdf
-
-Packaging Notes:
-Wkhtmltopdf - Packaged for Ubuntu and cross-platform. An active projects but 
-some tricky bugs too: Problems with space between characters wkhtmltopdf > 0.9.0
-ImageMagick - Packaged for Ubuntu and cross-platform. imagemagick > 8.0.0
-PythonMagick - http://www.imagemagick.org/download/python/
-    python-pythonmagick > 0.9.0
-Note -- enable images saved to be in high resolution for publishing purposes.
-Warn users it will take longer (give an estimate) and show progress on a bar.
-"""
-
 output_item = namedtuple('output_item', 'title, content')
 
 
 class Prog2console(object):
     def SetValue(self, value):
         print(u"Current progress: %s ..." % str(value).rjust(3))
-
-
-class DlgExportOutput(wx.Dialog):
-    
-    def __init__(self, title, report_path, save2report_path=True):
-        """
-        save2report_path -- output goes into the report folder. If False, 
-        exporting output to a temporary desktop folder for the user to look at. 
-        """
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-            pos=(mg.HORIZ_OFFSET+200, 300), style=wx.MINIMIZE_BOX|
-            wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
-            wx.CAPTION|wx.CLIP_CHILDREN)
-        self.save2report_path = save2report_path
-        if OVERRIDE_FOLDER:
-            self.save2report_path = True
-        self.report_path = report_path
-        szr = wx.BoxSizer(wx.VERTICAL)
-        self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
-        if self.save2report_path:
-            report_name = os.path.split(report_path)[1]
-            msg = u"Export \"%s\"" % report_name
-        else:
-            msg = u"Export content currently displayed in SOFA"
-        lbl_msg = wx.StaticText(self, -1, msg)
-        szr.Add(lbl_msg, 0, wx.ALL, 10)
-        szr_pdf_or_tbls = wx.BoxSizer(wx.VERTICAL)
-        szr_left_and_right = wx.BoxSizer(wx.HORIZONTAL)
-        self.chk_pdf = wx.CheckBox(self, -1, _("Export as PDF"))
-        self.chk_pdf.Bind(wx.EVT_CHECKBOX, self.on_chk_pdf)
-        self.chk_tbls = wx.CheckBox(self, -1, _("Export to spreadsheet (report "
-            u"tables only)"))
-        self.chk_tbls.Bind(wx.EVT_CHECKBOX, self.on_chk_tbls)
-        szr_pdf_or_tbls.Add(self.chk_pdf, 0, wx.ALL, 10)
-        szr_pdf_or_tbls.Add(self.chk_tbls, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        ln_split = wx.StaticLine(self, style=wx.LI_VERTICAL)
-        szr_left_and_right.Add(szr_pdf_or_tbls)
-        szr_left_and_right.Add(ln_split, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_imgs = wx.BoxSizer(wx.VERTICAL)
-        self.chk_imgs = wx.CheckBox(self, -1, _("Export as Images"))
-        self.chk_imgs.Bind(wx.EVT_CHECKBOX, self.on_chk_imgs)
-        self.choice_dpis = [
-            (_(u"Draft Quality (%s dpi)") % DRAFT_DPI, DRAFT_DPI), 
-            (_(u"Screen Quality (%s dpi)") % SCREEN_DPI, SCREEN_DPI), 
-            (_(u"Print Quality (%s dpi)") % PRINT_DPI, PRINT_DPI),
-            (_(u"High Quality (%s dpi)") % HIGH_QUAL_DPI, HIGH_QUAL_DPI),
-            (_(u"Top Quality (%s dpi)") % TOP_DPI, TOP_DPI),
-        ]
-        choices = [x[0] for x in self.choice_dpis]
-        self.drop_dpi = wx.Choice(self, -1, choices=choices)
-        idx_print = 2
-        self.drop_dpi.SetSelection(idx_print)
-        self.drop_dpi.SetToolTipString(u"The more dots per inch (dpi) the "
-            u"higher the quality but the slower the export process.")
-        szr_imgs.Add(self.chk_imgs, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        szr_imgs.Add(self.drop_dpi, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szr_left_and_right.Add(szr_imgs, 0)
-        szr.Add(szr_left_and_right, 0) 
-        self.btn_cancel = wx.Button(self, wx.ID_CANCEL)
-        self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
-        self.btn_cancel.Enable(False)
-        self.btn_export = wx.Button(self, -1, u"Export")
-        self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
-        self.btn_export.Enable(False)
-        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=0)
-        szr_btns.AddGrowableCol(1,2) # idx, propn
-        szr_btns.Add(self.btn_cancel, 0)
-        szr_btns.Add(self.btn_export, 0, wx.ALIGN_RIGHT)       
-        self.progbar = wx.Gauge(self, -1, GAUGE_STEPS, size=(-1, 20),
-            style=wx.GA_PROGRESSBAR)
-        self.btn_close = wx.Button(self, wx.ID_CLOSE)
-        self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
-        szr.Add(szr_btns, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        szr.Add(self.progbar, 0, wx.GROW|wx.ALIGN_RIGHT|wx.ALL, 10)
-        szr.Add(self.btn_close, 0, wx.ALIGN_RIGHT|wx.ALL, 10)
-        self.SetSizer(szr)
-        szr.SetSizeHints(self)
-        szr.Layout()
-    
-    def on_btn_export(self, event):
-        debug = False
-        headless = False
-        if DIAGNOSTIC: debug = True
-        self.progbar.SetValue(0)
-        wx.BeginBusyCursor()
-        do_pdf = self.chk_pdf.IsChecked()
-        do_imgs = self.chk_imgs.IsChecked()
-        do_tbls = self.chk_tbls.IsChecked()
-        if not (do_pdf or do_imgs or do_tbls):
-            self.align_btns_to_exporting(exporting=False)
-            wx.MessageBox(u"Please select a format(s) to export in.")
-            return
-        self.align_btns_to_exporting(exporting=True)
-        msgs = []
-        if self.save2report_path:
-            foldername = None
-            temp_desktop_path = None
-        else:
-            # save to folder on desktop
-            ts = datetime.datetime.now().strftime('%b %d %I-%M %p').strip()
-            foldername = u"SOFA export %s" % ts
-            desktop = os.path.join(mg.HOME_PATH, u"Desktop")
-            temp_desktop_path = os.path.join(desktop, foldername)
-            if debug: print(temp_desktop_path)
-            try:
-                os.mkdir(temp_desktop_path)
-            except OSError:
-                pass # already there
-        hdr, img_items, tbl_items = get_hdr_and_items(self.report_path, 
-            DIAGNOSTIC)
-        n_imgs = len(img_items)
-        n_tbls = len(tbl_items)
-        idx_sel = self.drop_dpi.GetSelection()
-        idx_dpi = 1
-        self.output_dpi = self.choice_dpis[idx_sel][idx_dpi]
-        n_pdfs = 1 if do_pdf else 0
-        (gauge_start_pdf, steps_per_pdf, 
-        gauge_start_imgs, steps_per_img, 
-        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(n_pdfs, n_imgs, 
-            self.output_dpi, n_tbls)
-        if do_pdf:
-            try:
-                pdf_tasks(self.save2report_path, self.report_path, 
-                    temp_desktop_path, headless, gauge_start_pdf, steps_per_pdf, 
-                    msgs, self.progbar)
-            except Exception, e:
-                self.progbar.SetValue(0)
-                lib.safe_end_cursor()
-                self.align_btns_to_exporting(exporting=False)
-                self.export_status[mg.CANCEL_EXPORT] = False
-                wx.MessageBox(u"Unable to export PDF. Orig error: %s" % b.ue(e))
-                return
-        if do_imgs:
-            try:
-                export2imgs(hdr, img_items, self.save2report_path, 
-                    self.report_path, temp_desktop_path, self.output_dpi, 
-                    gauge_start_imgs, headless, self.export_status, 
-                    steps_per_img, msgs, self.progbar)
-            except Exception, e:
-                try:
-                    raise
-                except my_exceptions.ExportCancel:
-                    wx.MessageBox(u"Export Cancelled")
-                except Exception, e:
-                    msg = (u"Problem exporting output. Orig error: %s" % 
-                        b.ue(e))
-                    if debug: print(msg)
-                    wx.MessageBox(msg)
-                self.progbar.SetValue(0)
-                lib.safe_end_cursor()
-                self.align_btns_to_exporting(exporting=False)
-                self.export_status[mg.CANCEL_EXPORT] = False
-                return
-        if do_tbls:
-            try:
-                export2spreadsheet(hdr, tbl_items, self.save2report_path, 
-                    self.report_path, temp_desktop_path, gauge_start_tbls, 
-                    headless, steps_per_tbl, msgs, self.progbar)
-            except Exception, e:
-                try:
-                    raise
-                except my_exceptions.ExportCancel:
-                    wx.MessageBox(u"Export Cancelled")
-                except Exception, e:
-                    msg = (u"Problem exporting output. Orig error: %s" % 
-                        b.ue(e))
-                    if debug: print(msg)
-                    wx.MessageBox(msg)
-                self.progbar.SetValue(0)
-                lib.safe_end_cursor()
-                self.align_btns_to_exporting(exporting=False)
-                self.export_status[mg.CANCEL_EXPORT] = False
-                return
-        self.progbar.SetValue(GAUGE_STEPS)
-        lib.safe_end_cursor()
-        self.align_btns_to_exporting(exporting=False)
-        msg = u"\n\n".join(msgs)
-        caption = (_(u"EXPORTED REPORT") if self.save2report_path 
-            else _(u"EXPORTED CURRENT OUTPUT"))
-        wx.MessageBox(_(u"Exporting completed.\n\n%s") % msg, caption=caption)
-        self.progbar.SetValue(0)
-    
-    def on_chk_pdf(self, event):
-        self.align_btns_to_completeness()
-        
-    def on_chk_imgs(self, event):
-        self.align_btns_to_completeness()
-        
-    def on_chk_tbls(self, event):
-        self.align_btns_to_completeness()
-    
-    def on_btn_cancel(self, event):
-        self.export_status[mg.CANCEL_EXPORT] = True
-
-    def align_btns_to_completeness(self):
-        do_pdf = self.chk_pdf.IsChecked()
-        do_imgs = self.chk_imgs.IsChecked()
-        do_tbls = self.chk_tbls.IsChecked()
-        complete = (do_pdf or do_imgs or do_tbls)
-        self.btn_export.Enable(complete)
-
-    def align_btns_to_exporting(self, exporting):
-        self.btn_close.Enable(not exporting)
-        self.btn_cancel.Enable(exporting)
-        self.btn_export.Enable(not exporting)
-    
-    def on_btn_close(self, event):
-        self.Destroy()
 
         
 def get_raw_html(report_path):
@@ -462,22 +278,6 @@ def pdf_tasks(save2report_path, report_path, alternative_path, headless,
                 u"No report file \"%s\"to export." % report_path)
         rpt_root, rpt_name = os.path.split(report_path)
         pdf_name = u"%s.pdf" % os.path.splitext(rpt_name)[0]
-        """
-        Make version which removes class class="screen-float-only" because this 
-        printing exercise is really a screen exercise underneath - and we need 
-        to manually prevent floating.
-        """
-        """
-        file_src = codecs.open(self.report_path, "r", "utf-8")
-        txt2fix = file_src.read()
-        file_src.close()
-        HTML4PDF_PATH = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
-        file_dest = codecs.open(HTML4PDF_PATH, "w", "utf-8")
-        txt2write = txt2fix.replace(u'class="screen-float-only"', 
-            u"").replace(u'style="', u'style="page-break-inside: avoid; ')                    
-        file_dest.write(txt2write)
-        file_dest.close()
-        """
         pdf_path = export2pdf(rpt_root, pdf_name, report_path, 
             gauge_start_pdf, headless, steps_per_pdf, progbar)
         pdf_saved_msg = (_(u"PDF has been saved to: \"%s\"") % pdf_path)
@@ -714,26 +514,29 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
     if DIAGNOSTIC: debug = True
     try:
         url = output.path2url(html_path)
-        cmd_make_pdf = u"cmd_make_pdf not successfully generated yet"
-        if mg.PLATFORM != mg.WINDOWS:
+        cmd_make_pdf = u"cmd_make_pdf not successfully generated yet"        
+        """
+        Unless Linux, MUST be in report directory otherwise won't carry across internal 
+            links.
+        Re: && http://www.microsoft.com/resources/documentation/windows/...
+            ...xp/all/proddocs/en-us/ntcmds_shelloverview.mspx?mfr=true
+        """
+        rel_url = os.path.split(url)[1]
+        cd_path = os.path.split(html_path)[0]
+        if mg.PLATFORM == mg.WINDOWS: # using Pyinstaller
+            cmd_make_pdf = (u'cd "%s" && '
+                u'"%s\\wkhtmltopdf.exe" %s %s "%s" "%s"' % (cd_path, 
+                EXE_TMP, width, height, rel_url, pdf_path))
+        elif mg.PLATFORM == mg.MAC:
+            framework_path = os.path.join(os.path.split(os.getcwd())[0], 
+                u"Frameworks")
+            cmd_make_pdf = (u'cd "%s" && "%s/wkhtmltopdf" %s %s "%s" "%s"'
+                % (cd_path, framework_path, width, height, rel_url, pdf_path))
+        elif mg.PLATFORM == mg.LINUX:
             cmd_make_pdf = (u'wkhtmltopdf %s %s "%s" "%s" ' % (width, height, 
                 url, pdf_path))
         else:
-            """
-            MUST be in report directory otherwise won't carry across internal 
-                links.
-            Re: && http://www.microsoft.com/resources/documentation/windows/...
-                ...xp/all/proddocs/en-us/ntcmds_shelloverview.mspx?mfr=true
-            """
-            rel_url = os.path.split(url)[1]
-            cd_path = os.path.split(html_path)[0]
-            if mg.PLATFORM == mg.WINDOWS: # using Pyinstaller
-                cmd_make_pdf = (u'cd "%s" && '
-                    u'"%s\\wkhtmltopdf.exe" %s %s "%s" "%s"' % (cd_path, 
-                    EXE_TMP, width, height, rel_url, pdf_path))
-            elif mg.PLATFORM == mg.MAC:
-                cmd_make_pdf = (u'cd "%s" && "%s/wkhtmltopdf" %s %s "%s" "%s"'
-                    % (cd_path, os.getcwd(), width, height, rel_url, pdf_path))
+            raise Exception(u"Encountered an unexpected platform!")
         # wkhtmltopdf uses stdout to actually output the PDF - a good feature but stuffs up reading stdout for message
         if debug: print(u"cmd_make_pdf: %s" % cmd_make_pdf)
         shellit(cmd_make_pdf)
@@ -762,8 +565,15 @@ def fix_pdf(raw_pdf, final_pdf):
             final_pdf_root, final_pdf_file = os.path.split(final_pdf)
             cmd_fix_pdf = (u'cd "%s" && "%s\\pdftk.exe" "%s" output "%s"' % 
                 (final_pdf_root, EXE_TMP, raw_pdf, final_pdf_file))
-        else:
+        elif mg.PLATFORM == mg.MAC:
+            framework_path = os.path.join(os.path.split(os.getcwd())[0], 
+                u"Frameworks")
+            cmd_fix_pdf = (u'%s/pdftk "%s" output "%s" ' % (framework_path, 
+                raw_pdf, final_pdf))
+        elif mg.PLATFORM == mg.LINUX:
             cmd_fix_pdf = (u'pdftk "%s" output "%s" ' % (raw_pdf, final_pdf))
+        else:
+            raise Exception(u"Encountered an unexpected platform!")
         if debug: print(u"cmd_fix_pdf: %s" % cmd_fix_pdf)
         shellit(cmd_fix_pdf)
         if not os.path.exists(final_pdf):
@@ -809,7 +619,6 @@ def u2utf8(unicode_txt):
 def pdf2img(pdf_path, img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR, 
             output_dpi=300):
     if mg.PLATFORM == mg.MAC: # if I have trouble getting pythonmagick installed
-        # Note - requires user to manually install ImageMagick
         return pdf2img_imagemagick(pdf_path, img_pth_no_ext, bgcolour, 
             output_dpi)
     else:
@@ -983,7 +792,6 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
         bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=300):
     """
     Use ImageMagick directly side-stepping the Python wrapper.
-    Requires user to have manually installed ImageMagick.
     """
     debug = False
     if DIAGNOSTIC: debug = True
@@ -1046,4 +854,3 @@ def copy_output():
     wx.TheClipboard.Close()
     bi.Destroy()
     lib.safe_end_cursor()
-    
