@@ -9,6 +9,7 @@ import my_globals as mg
 import lib
 import getdata
 import config_output
+import config_ui
 import full_html
 import output
 import projects
@@ -35,7 +36,7 @@ def get_range_idxs(vals, val_a, val_b):
     return idx_val_a, idx_val_b
 
 
-class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
+class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     """
     ConfigUI - provides reusable interface for data selection, setting labels, 
         exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
@@ -57,7 +58,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
                            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
                            wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(self,autoupdate=True)
+        config_ui.ConfigUI.__init__(self,autoupdate=True)
         self.SetFont(mg.GEN_FONT)
         self.output_modules = ["my_globals as mg", "core_stats", "getdata", 
                                "output", "stats_output"]
@@ -371,7 +372,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         """
         Extend to pass on filter changes to group by val options a and b.
         """
-        config_output.ConfigUI.on_rclick_tables(self, event)
+        config_ui.ConfigUI.on_rclick_tables(self, event)
         self.refresh_vals()
         # event.Skip() - don't use or will appear twice in Windows!
 
@@ -379,9 +380,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         var_gp, choice_item = self.get_group_by()
         label_gp = lib.get_item_label(item_labels=self.var_labels, 
                                       item_val=var_gp)
-        updated = projects.set_var_props(choice_item, var_gp, label_gp, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_gp, label_gp, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -390,9 +390,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                                                   self.sorted_var_names_avg)
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_name, var_label, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
     
@@ -413,7 +412,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        if config_output.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_group_dropdown()
             self.setup_avg_dropdown()
@@ -421,7 +420,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_output.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
         output.update_var_dets(dlg=self)
         self.setup_group_dropdown()
@@ -434,7 +433,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
             position may have changed.
         """
         val_a, val_b = self.get_vals()
-        config_output.ConfigUI.on_btn_var_config(self, event)
+        config_ui.ConfigUI.on_btn_var_config(self, event)
         self.setup_group_dropdown()
         self.setup_avg_dropdown()
         self.setup_a_and_b_dropdowns(val_a, val_b)
@@ -701,8 +700,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_output.ConfigUI):
         run_ok = self.test_config_ok()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 
-                             cc[mg.CURRENT_REPORT_PATH]]
-            config_output.ConfigUI.on_btn_run(self, event, get_script_args)
+                cc[mg.CURRENT_REPORT_PATH]]
+            config_ui.ConfigUI.on_btn_run(self, event, get_script_args)
     
     def test_config_ok(self):
         """

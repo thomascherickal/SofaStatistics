@@ -12,7 +12,7 @@ import export_data
 import getdata
 import db_tbl
 import output
-import projects
+import config_output
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -1006,9 +1006,8 @@ class TblEditor(wx.Dialog):
             var_name = self.dbtbl.fldnames[col]
             var_label = self.var_labels.get(var_name, "")
             choice_item = lib.get_choice_item(self.var_labels, var_name)
-            projects.set_var_props(choice_item, var_name, var_label,
-                                   self.var_labels, self.var_notes,
-                                   self.var_types, self.val_dics)
+            config_output.set_var_props(choice_item, var_name, var_label,
+                self.var_labels, self.var_notes, self.var_types, self.val_dics)
     
     def get_cell_tooltip(self, col, raw_val):
         """

@@ -6,13 +6,14 @@ import wx
 import my_globals as mg
 import lib
 import config_output
+import config_ui
 import full_html
 import getdata
 import output
 import projects
 
 
-class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
+class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
     """
     ConfigUI -- provides reusable interface for data selection, setting labels, 
         exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
@@ -25,7 +26,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
             pos=(mg.HORIZ_OFFSET,0), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|\
             wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.title = title
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
@@ -204,9 +205,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
-        updated = projects.set_var_props(choice_item, var_a, var_label_a, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_a, var_label_a, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -214,9 +214,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
-        updated = projects.set_var_props(choice_item, var_b, var_label_b, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_b, var_label_b, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -260,13 +259,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        if config_output.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_var_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_output.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, event)
         output.update_var_dets(dlg=self)
         self.setup_var_dropdowns()
 
@@ -298,7 +297,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         return var_a, var_b
         
     def on_btn_var_config(self, event):
-        config_output.ConfigUI.on_btn_var_config(self, event)
+        config_ui.ConfigUI.on_btn_var_config(self, event)
         self.setup_var_dropdowns()        
         self.update_phrase()
         
@@ -344,8 +343,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_output.ConfigUI):
         run_ok = self.test_config_ok()
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH],
-                             cc[mg.CURRENT_REPORT_PATH]]
-            config_output.ConfigUI.on_btn_run(self, event, get_script_args)
+                cc[mg.CURRENT_REPORT_PATH]]
+            config_ui.ConfigUI.on_btn_run(self, event, get_script_args)
     
     def test_config_ok(self):
         """

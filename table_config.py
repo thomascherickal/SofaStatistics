@@ -20,11 +20,11 @@ import wx.grid
 import basic_lib as b
 import my_globals as mg
 import lib
+import config_output
 import getdata # must be anything referring to plugin modules
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 import full_html
 import output
-import projects
 import recode
 import settings_grid
 
@@ -1068,7 +1068,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             cell_val = self.get_val(row, col)
             choice_item = lib.get_choice_item(self.var_labels, cell_val)
             var_label = lib.get_item_label(self.var_labels, cell_val)
-            projects.set_var_props(choice_item, cell_val, var_label, 
+            config_output.set_var_props(choice_item, cell_val, var_label, 
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
     
     def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 

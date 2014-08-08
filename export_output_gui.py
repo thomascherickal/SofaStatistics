@@ -4,10 +4,8 @@
 Note -- enable images saved to be in high resolution for publishing purposes.
 Warn users it will take longer (give an estimate) and show progress on a bar.
 """
-from collections import namedtuple
 import datetime
 import os
-import sys
 
 import wx
 
@@ -17,37 +15,54 @@ import lib
 import my_exceptions
 import export_output
 
-OVERRIDE_FOLDER = None
-
-EXTNAME = "Export output"
-GAUGE_STEPS = 100
-HTML4PDF_FILE = u"html4pdf.html"
-RAWPDF_FILE = u"raw.pdf"
-PDF2IMG_FILE = u"pdf2img.pdf"
-RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)
-PDF2IMG_PATH = os.path.join(mg.INT_PATH, PDF2IMG_FILE)
-PDF_SIDE_MM = u"420" # any larger and they won't be able to display anywhere in one go anyway
-DRAFT_DPI = 72
-SCREEN_DPI = 150
-PRINT_DPI = 300
-HIGH_QUAL_DPI = 600
-TOP_DPI = 1200 #1000 if mg.PLATFORM == mg.WINDOWS else 1200 # Windows XP crashes with a message about
-# PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such file or directory
 PDF_ITEM_TAKES = 4
-IMG_ITEM_TAKES_72 = 2
-IMG_ITEM_TAKES_150 = 4
-IMG_ITEM_TAKES_300 = 8
-IMG_ITEM_TAKES_600 = 20
-IMG_ITEM_TAKES_1200 = 50
 TBL_ITEM_TAKES = 1
-try:
-    EXE_TMP = sys._MEIPASS #@UndefinedVariable
-except AttributeError:
-    EXE_TMP = u""
 
-DIAGNOSTIC = False
-if DIAGNOSTIC:
-    wx.MessageBox("Diagnostic mode is on :-). Be ready to take screen-shots.")
+if mg.EXPORT_IMAGES_DIAGNOSTIC:
+    wx.MessageBox("Diagnostic mode for export output is on - be ready to take "
+        "screen-shots.")
+
+def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
+    """
+    Where should we start on the progress gauge and how much should each item 
+    move us along?
+    
+    Start by have a basic concept of the relativities for pdf vs images vs 
+    tables, and knowing how many items of each sort there are.
+    """
+    pdf_taken = (n_pdfs*PDF_ITEM_TAKES)
+    output_dpi2takes = {72: 1, 150: 2, 300: 4, 600: 10, 1200: 30}
+    IMG_ITEM_TAKES = output_dpi2takes[output_dpi]
+    imgs_taken = (n_imgs*IMG_ITEM_TAKES)
+    tbls_taken = (n_tbls*TBL_ITEM_TAKES)
+    tot_taken = pdf_taken + imgs_taken + tbls_taken
+    if tot_taken == 0:
+        raise Exception(u"Unable to get start and steps - zero items to show "
+            u"progress for.")
+    pdf_as_prop = pdf_taken/float(tot_taken)
+    imgs_as_prop = imgs_taken/float(tot_taken)
+    tbls_as_prop = tbls_taken/float(tot_taken)
+    steps_for_pdf = mg.EXPORT_IMG_GAUGE_STEPS*pdf_as_prop
+    steps_for_imgs = mg.EXPORT_IMG_GAUGE_STEPS*imgs_as_prop
+    steps_for_tbls =  mg.EXPORT_IMG_GAUGE_STEPS*tbls_as_prop
+    if n_pdfs == 0:
+        steps_per_pdf_item = 0 # doesn't matter - should not be used if no items
+    else:
+        steps_per_pdf_item = steps_for_pdf/float(n_pdfs)
+    if n_imgs == 0:
+        steps_per_img_item = 0
+    else:
+        steps_per_img_item = steps_for_imgs/float(n_imgs)
+    if n_tbls == 0:
+        steps_per_tbl_item = 0
+    else:
+        steps_per_tbl_item = steps_for_tbls/float(n_tbls)
+    gauge_start_pdf = 0
+    gauge_start_imgs = steps_for_pdf
+    gauge_start_tbls = steps_for_pdf + steps_for_imgs
+    return (gauge_start_pdf, steps_per_pdf_item, gauge_start_imgs, 
+        steps_per_img_item, gauge_start_tbls, steps_per_tbl_item)
+
 
 class DlgExportOutput(wx.Dialog):
     
@@ -61,7 +76,7 @@ class DlgExportOutput(wx.Dialog):
             wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
             wx.CAPTION|wx.CLIP_CHILDREN)
         self.save2report_path = save2report_path
-        if OVERRIDE_FOLDER:
+        if mg.OVERRIDE_FOLDER:
             self.save2report_path = True
         self.report_path = report_path
         szr = wx.BoxSizer(wx.VERTICAL)
@@ -89,11 +104,11 @@ class DlgExportOutput(wx.Dialog):
         self.chk_imgs = wx.CheckBox(self, -1, _("Export as Images"))
         self.chk_imgs.Bind(wx.EVT_CHECKBOX, self.on_chk_imgs)
         self.choice_dpis = [
-            (_(u"Draft Quality (%s dpi)") % DRAFT_DPI, DRAFT_DPI), 
-            (_(u"Screen Quality (%s dpi)") % SCREEN_DPI, SCREEN_DPI), 
-            (_(u"Print Quality (%s dpi)") % PRINT_DPI, PRINT_DPI),
-            (_(u"High Quality (%s dpi)") % HIGH_QUAL_DPI, HIGH_QUAL_DPI),
-            (_(u"Top Quality (%s dpi)") % TOP_DPI, TOP_DPI),
+            (_(u"Draft Quality (%s dpi)") % mg.DRAFT_DPI, mg.DRAFT_DPI), 
+            (_(u"Screen Quality (%s dpi)") % mg.SCREEN_DPI, mg.SCREEN_DPI), 
+            (_(u"Print Quality (%s dpi)") % mg.PRINT_DPI, mg.PRINT_DPI),
+            (_(u"High Quality (%s dpi)") % mg.HIGH_QUAL_DPI, mg.HIGH_QUAL_DPI),
+            (_(u"Top Quality (%s dpi)") % mg.TOP_DPI, mg.TOP_DPI),
         ]
         choices = [x[0] for x in self.choice_dpis]
         self.drop_dpi = wx.Choice(self, -1, choices=choices)
@@ -115,8 +130,8 @@ class DlgExportOutput(wx.Dialog):
         szr_btns.AddGrowableCol(1,2) # idx, propn
         szr_btns.Add(self.btn_cancel, 0)
         szr_btns.Add(self.btn_export, 0, wx.ALIGN_RIGHT)       
-        self.progbar = wx.Gauge(self, -1, GAUGE_STEPS, size=(-1, 20),
-            style=wx.GA_PROGRESSBAR)
+        self.progbar = wx.Gauge(self, -1, mg.EXPORT_IMG_GAUGE_STEPS, 
+            size=(-1, 20), style=wx.GA_PROGRESSBAR)
         self.btn_close = wx.Button(self, wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         szr.Add(szr_btns, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
@@ -129,7 +144,7 @@ class DlgExportOutput(wx.Dialog):
     def on_btn_export(self, event):
         debug = False
         headless = False
-        if DIAGNOSTIC: debug = True
+        if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
         self.progbar.SetValue(0)
         wx.BeginBusyCursor()
         do_pdf = self.chk_pdf.IsChecked()
@@ -155,9 +170,8 @@ class DlgExportOutput(wx.Dialog):
                 os.mkdir(temp_desktop_path)
             except OSError:
                 pass # already there
-        (hdr, img_items, 
-        tbl_items) = export_output.get_hdr_and_items(self.report_path, 
-                                                     DIAGNOSTIC)
+        hdr, img_items, tbl_items = export_output.get_hdr_and_items(
+            self.report_path, mg.EXPORT_IMAGES_DIAGNOSTIC)
         n_imgs = len(img_items)
         n_tbls = len(tbl_items)
         idx_sel = self.drop_dpi.GetSelection()
@@ -166,9 +180,8 @@ class DlgExportOutput(wx.Dialog):
         n_pdfs = 1 if do_pdf else 0
         (gauge_start_pdf, steps_per_pdf, 
         gauge_start_imgs, steps_per_img, 
-        gauge_start_tbls, 
-        steps_per_tbl) = export_output.get_start_and_steps(n_pdfs, n_imgs, 
-                                                        self.output_dpi, n_tbls)
+        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(n_pdfs, n_imgs, 
+            self.output_dpi, n_tbls)
         if do_pdf:
             try:
                 export_output.pdf_tasks(self.save2report_path, self.report_path, 
@@ -223,7 +236,7 @@ class DlgExportOutput(wx.Dialog):
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
                 return
-        self.progbar.SetValue(GAUGE_STEPS)
+        self.progbar.SetValue(mg.EXPORT_IMG_GAUGE_STEPS)
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
         msg = u"\n\n".join(msgs)

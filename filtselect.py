@@ -5,6 +5,7 @@ import wx
 import basic_lib as b
 import my_globals as mg
 import lib
+import config_output
 import getdata
 import projects
 
@@ -139,7 +140,7 @@ class DlgFiltSelect(wx.Dialog):
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names()
         var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
-                                    dic_labels=self.var_labels, vals=var_names)
+            dic_labels=self.var_labels, vals=var_names)
         self.drop_vars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else 0
         self.drop_vars.SetSelection(idx)
@@ -183,8 +184,8 @@ class DlgFiltSelect(wx.Dialog):
             settings dialog.
         """
         updated = set() # will get populated with a True to indicate update
-        dlg = projects.DlgListVars(self.var_labels, self.var_notes, 
-                                   self.var_types, self.val_dics, updated)
+        dlg = config_output.DlgListVars(self.var_labels, self.var_notes, 
+            self.var_types, self.val_dics, updated)
         dlg.ShowModal()
         if updated:
             idx_var = self.drop_vars.GetSelection()
@@ -345,9 +346,8 @@ class DlgFiltSelect(wx.Dialog):
         var_name, choice_item = self.get_var()
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types, self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_name, var_label, 
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_vars(var_name)
     

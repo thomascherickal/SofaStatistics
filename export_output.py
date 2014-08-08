@@ -36,7 +36,8 @@ autocropping to get the dimensions anymore we still need to use it. Because we
 are reading our dimensions from a low-resolution image there is a margin of 
 error when translating to the high-resolution version so it is safest to add a 
 slight bit of padding to the outside of our dimensions and then autocrop from 
-there. Still an expensive process but we are doing very little of it. 
+there. Note - more padding required than might be expected for some reason. 
+Anyway, still an expensive process but we are doing very little of it. 
 
 SPLITTING OUTPUT ************
 
@@ -58,26 +59,9 @@ trimming is very slow at higher dpis so we can do a quick, dirty version at a
 lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough 
 dimensions to crop.
 
-We can (approximately) translate from size at lower dpi to larger based on quick 
-job done at lower dpi. Add a few pixels around to be safe. [update - for some 
-reason, takes more, best to add a fair few and then trim the final]
-20 130x138
-40 261x277
-80 518x550
-160 1038x1100
-
 For multipage images, use [idx] notation after .pdf
 http://stackoverflow.com/questions/4809314/...
     ...imagemagick-is-converting-only-the-first-page-of-the-pdf
-
-Packaging Notes:
-Wkhtmltopdf - Packaged for Ubuntu and cross-platform. An active projects but 
-some tricky bugs too: Problems with space between characters wkhtmltopdf > 0.9.0
-ImageMagick - Packaged for Ubuntu and cross-platform. imagemagick > 8.0.0
-PythonMagick - http://www.imagemagick.org/download/python/
-    python-pythonmagick > 0.9.0
-Note -- enable images saved to be in high resolution for publishing purposes.
-Warn users it will take longer (give an estimate) and show progress on a bar.
 """
 import codecs
 from collections import namedtuple
@@ -95,37 +79,17 @@ import lib
 import my_exceptions
 import output
 
-OVERRIDE_FOLDER = None
-
-EXTNAME = "Export output"
-GAUGE_STEPS = 100
+FRAMEWORK_PATH = os.path.join(os.path.split(os.getcwd())[0], u"Frameworks")
 HTML4PDF_FILE = u"html4pdf.html"
 RAWPDF_FILE = u"raw.pdf"
 PDF2IMG_FILE = u"pdf2img.pdf"
 RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)
 PDF2IMG_PATH = os.path.join(mg.INT_PATH, PDF2IMG_FILE)
 PDF_SIDE_MM = u"420" # any larger and they won't be able to display anywhere in one go anyway
-DRAFT_DPI = 72
-SCREEN_DPI = 150
-PRINT_DPI = 300
-HIGH_QUAL_DPI = 600
-TOP_DPI = 1200 #1000 if mg.PLATFORM == mg.WINDOWS else 1200 # Windows XP crashes with a message about
-# PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such file or directory
-PDF_ITEM_TAKES = 4
-IMG_ITEM_TAKES_72 = 2
-IMG_ITEM_TAKES_150 = 4
-IMG_ITEM_TAKES_300 = 8
-IMG_ITEM_TAKES_600 = 20
-IMG_ITEM_TAKES_1200 = 50
-TBL_ITEM_TAKES = 1
 try:
     EXE_TMP = sys._MEIPASS #@UndefinedVariable
 except AttributeError:
     EXE_TMP = u""
-
-DIAGNOSTIC = False
-if DIAGNOSTIC:
-    wx.MessageBox("Diagnostic mode is on :-). Be ready to take screen-shots.")
 
 output_item = namedtuple('output_item', 'title, content')
 
@@ -134,8 +98,11 @@ class Prog2console(object):
     def SetValue(self, value):
         print(u"Current progress: %s ..." % str(value).rjust(3))
 
-        
+
 def get_raw_html(report_path):
+    """
+    Get the BOM-cleaned HTML text for the specified report.
+    """
     try:
         with codecs.open(report_path, "U", "utf-8") as f:
             raw_html = b.clean_boms(f.read())
@@ -146,6 +113,10 @@ def get_raw_html(report_path):
     return raw_html
 
 def get_split_html(report_path):
+    """
+    Get the report HTML text split by the standard divider 
+    (e.g. <!-- _SOFASTATS_ITEM_DIVIDER -->).
+    """
     raw_html = get_raw_html(report_path)
     if not raw_html:
         raise Exception(u"No raw html found in report file.")
@@ -154,17 +125,20 @@ def get_split_html(report_path):
 
 def get_hdr_and_items(report_path, diagnostic=False):
     """
-    Read (presumably) html text from report. Split by main output divider, 
+    Read (presumably) HTML text from report. Split by main output divider, 
     discarding the first (assumed to be the html header).
     
     Within each item, split off the content above the item (if any) e.g. a 
     visual line divider, comments on filtering applied etc.
     
     Then split by title splitter - chunk 0 = actual content, chunk 1 = title to 
-    use when saving the item.
+    use when saving the item. Items are item.title, item.content.
     
-    All items can be turned into images. Only table reports can be turned into 
-    spreadsheet tables.
+    All items can be turned into images. 
+    
+    Only table reports can be turned into spreadsheet tables.
+    
+    Called once, even if exporting 
     """
     debug = False
     if diagnostic: debug = True
@@ -223,52 +197,11 @@ def get_hdr_and_items(report_path, diagnostic=False):
         if debug: print(title)
         item = output_item(title, content)
         img_items.append(item) # all items can be turned into images (whether a chart or a table etc.
-        if mg.REPORT_TABLE_START in item.content:
+        if mg.REPORT_TABLE_START in item.content: # only some items can become table items
             tbl_items.append(item)
     if hdr is None:
         raise Exception(u"Unable to extract hdr from report file.")
     return hdr, img_items, tbl_items
-
-def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
-    """
-    Where should we start on the progress gauge and how much should each item 
-    move us along?
-    
-    Start by have a basic concept of the relativities for pdf vs images vs 
-    tables, and knowing how many items of each sort there are.
-    """
-    pdf_taken = (n_pdfs*PDF_ITEM_TAKES)
-    output_dpi2takes = {72: 1, 150: 2, 300: 4, 600: 10, 1200: 30}
-    IMG_ITEM_TAKES = output_dpi2takes[output_dpi]
-    imgs_taken = (n_imgs*IMG_ITEM_TAKES)
-    tbls_taken = (n_tbls*TBL_ITEM_TAKES)
-    tot_taken = pdf_taken + imgs_taken + tbls_taken
-    if tot_taken == 0:
-        raise Exception(u"Unable to get start and steps - zero items to show "
-            u"progress for.")
-    pdf_as_prop = pdf_taken/float(tot_taken)
-    imgs_as_prop = imgs_taken/float(tot_taken)
-    tbls_as_prop = tbls_taken/float(tot_taken)
-    steps_for_pdf = GAUGE_STEPS*pdf_as_prop
-    steps_for_imgs = GAUGE_STEPS*imgs_as_prop
-    steps_for_tbls =  GAUGE_STEPS*tbls_as_prop
-    if n_pdfs == 0:
-        steps_per_pdf_item = 0 # doesn't matter - should not be used if no items
-    else:
-        steps_per_pdf_item = steps_for_pdf/float(n_pdfs)
-    if n_imgs == 0:
-        steps_per_img_item = 0
-    else:
-        steps_per_img_item = steps_for_imgs/float(n_imgs)
-    if n_tbls == 0:
-        steps_per_tbl_item = 0
-    else:
-        steps_per_tbl_item = steps_for_tbls/float(n_tbls)
-    gauge_start_pdf = 0
-    gauge_start_imgs = steps_for_pdf
-    gauge_start_tbls = steps_for_pdf + steps_for_imgs
-    return (gauge_start_pdf, steps_per_pdf_item, gauge_start_imgs, 
-        steps_per_img_item, gauge_start_tbls, steps_per_tbl_item)
 
 def pdf_tasks(save2report_path, report_path, alternative_path, headless, 
         gauge_start_pdf, steps_per_pdf, msgs, progbar):
@@ -297,13 +230,70 @@ def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0,
                 u"settings")
         steps_per_pdf = 1
         progbar = Prog2console()
-    if OVERRIDE_FOLDER:
-        pdf_root = OVERRIDE_FOLDER
+    if mg.OVERRIDE_FOLDER:
+        pdf_root = mg.OVERRIDE_FOLDER
     pdf_path = os.path.join(pdf_root, pdf_name)
     html2pdf(html_path=report_path, pdf_path=pdf_path, as_pre_img=False)
     gauge2show = gauge_start_pdf + steps_per_pdf
     progbar.SetValue(gauge2show)
     return pdf_path
+
+def copy_existing_img(item, report_path, imgs_path, headless=False, 
+        progbar=None):
+    """
+    Merely copying an existing image
+    """
+    export_report = not (report_path == mg.INT_REPORT_PATH)
+    src, dst = lib.get_src_dst_preexisting_img(export_report, imgs_path, 
+        item.content)
+    try:
+        shutil.copyfile(src, dst)
+    except Exception, e:
+        msg = (u"Unable to copy existing image file. Orig error: %s" % 
+            b.ue(e))
+        if not headless:
+            wx.MessageBox(msg)
+        else:
+            print(msg)
+        if progbar: progbar.SetValue(0)
+        raise my_exceptions.ExportCancel
+
+def html2img(i, item, hdr, ftr, imgs_path, html4pdf_path, img_pth_no_ext,
+        output_dpi):
+    """
+    Key bits htmltopdf() and pdf2img()
+    """
+    debug = False
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
+    full_content_html = u"\n".join([hdr, item.content, ftr])
+    with codecs.open(html4pdf_path, "w", "utf-8") as f:
+        f.write(full_content_html)
+        f.close()
+    html2pdf(html_path=html4pdf_path, pdf_path=PDF2IMG_PATH, 
+        as_pre_img=True)
+    #wx.MessageBox(img_pth_no_ext)
+    if debug: print(img_pth_no_ext)
+    imgs_made = pdf2img(pdf_path=PDF2IMG_PATH, 
+        img_pth_no_ext=img_pth_no_ext, 
+        bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=output_dpi)
+    if debug: print(u"Just made image(s) %s:\n%s" % 
+        (i, u",\n".join(imgs_made)))
+
+def export2img(i, item, hdr, ftr, report_path, imgs_path, html4pdf_path, 
+        output_dpi, headless=False, export_status=None, progbar=None):
+    # give option of backing out
+    if not headless: wx.Yield()
+    if export_status[mg.CANCEL_EXPORT]:
+        if progbar: progbar.SetValue(0)
+        raise my_exceptions.ExportCancel
+    img_name_no_ext = "%04i_%s" % (i, item.title.replace(u" - ", u"_").
+        replace(u" ", u"_").replace(u":", u"_"))
+    img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
+    if mg.IMG_SRC_START in item.content:
+        copy_existing_img(item, report_path, imgs_path, headless, progbar)
+    else:
+        html2img(i, item, hdr, ftr, imgs_path, html4pdf_path, img_pth_no_ext,
+            output_dpi)
 
 def export2imgs(hdr, img_items, save2report_path, report_path, 
         alternative_path, output_dpi, gauge_start_imgs=0, headless=False, 
@@ -356,21 +346,21 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
         export_status = {mg.CANCEL_EXPORT: False}
         steps_per_img = 1 # leave msgs as default of None
         progbar = Prog2console()
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     output_dpi = 60 if debug else output_dpi
     if save2report_path:
         imgs_path = output.ensure_imgs_path(report_path, 
             ext=u"_exported_images")
     else:
         imgs_path = alternative_path
-    if OVERRIDE_FOLDER:
-        imgs_path = OVERRIDE_FOLDER
+    if mg.OVERRIDE_FOLDER:
+        imgs_path = mg.OVERRIDE_FOLDER
     rpt_root = os.path.split(report_path)[0]
-    HTML4PDF_PATH = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
+    html4pdf_path = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
     n_imgs = len(img_items)
-    long_time = ((n_imgs > 30 and output_dpi == SCREEN_DPI) 
-        or (n_imgs > 10 and output_dpi == PRINT_DPI) 
-        or (n_imgs > 2 and output_dpi == HIGH_QUAL_DPI))
+    long_time = ((n_imgs > 30 and output_dpi == mg.SCREEN_DPI) 
+        or (n_imgs > 10 and output_dpi == mg.PRINT_DPI) 
+        or (n_imgs > 2 and output_dpi == mg.HIGH_QUAL_DPI))
     if long_time and not headless:
         if wx.MessageBox(_("The report has %s images to export at %s dpi. "
                 "Do you wish to export at this time?") % (n_imgs, output_dpi), 
@@ -380,44 +370,9 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     gauge2show = gauge_start_imgs
     if progbar: progbar.SetValue(gauge2show)
     ftr = u"</body></html>"
-    # give option of backing out
-    for i, item in enumerate(img_items, 1):
-        if not headless: wx.Yield()
-        if export_status[mg.CANCEL_EXPORT]:
-            if progbar: progbar.SetValue(0)
-            raise my_exceptions.ExportCancel
-        img_name_no_ext = "%04i_%s" % (i, item.title.replace(u" - ", u"_").
-            replace(u" ", u"_").replace(u":", u"_"))
-        img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
-        if mg.IMG_SRC_START in item.content: # copy existing image
-            export_report = not (report_path == mg.INT_REPORT_PATH)
-            src, dst = lib.get_src_dst_preexisting_img(export_report, imgs_path, 
-                item.content)
-            try:
-                shutil.copyfile(src, dst)
-            except Exception, e:
-                msg = (u"Unable to copy existing image file. Orig error: %s" % 
-                    b.ue(e))
-                if not headless:
-                    wx.MessageBox(msg)
-                else:
-                    print(msg)
-                if progbar: progbar.SetValue(0)
-                raise my_exceptions.ExportCancel
-        else:
-            full_content_html = u"\n".join([hdr, item.content, ftr])
-            with codecs.open(HTML4PDF_PATH, "w", "utf-8") as f:
-                f.write(full_content_html)
-                f.close()
-            html2pdf(html_path=HTML4PDF_PATH, pdf_path=PDF2IMG_PATH, 
-                as_pre_img=True)
-            #wx.MessageBox(img_pth_no_ext)
-            if debug: print(img_pth_no_ext)
-            imgs_made = pdf2img(pdf_path=PDF2IMG_PATH, 
-                img_pth_no_ext=img_pth_no_ext, 
-                bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=output_dpi)
-            if debug: print(u"Just made image(s) %s:\n%s" % 
-                (i, u",\n".join(imgs_made)))
+    for i, item in enumerate(img_items, 1): # the core - where images are actually exported
+        export2img(i, item, hdr, ftr, report_path, imgs_path, html4pdf_path, 
+            output_dpi, headless, export_status, progbar)
         gauge2show += steps_per_img
         if progbar: progbar.SetValue(gauge2show)
     if save2report_path:
@@ -429,64 +384,27 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
     if not headless:
         msgs.append(img_saved_msg)
 
-def export2spreadsheet(hdr, tbl_items, save2report_path, report_path, 
-        alternative_path, gauge_start_tbls=0, headless=False, 
-        steps_per_tbl=None, msgs=None, progbar=None):
-    if headless:
-        if (steps_per_tbl, msgs, progbar) != (None, None, None):
-            raise Exception(u"If running headless, don't set the GUI-specific "
-                u"settings")
-        steps_per_tbl = 1 # leave msgs as default of None
-        progbar = Prog2console()
-    if save2report_path:
-        if not os.path.exists(report_path):
-            raise Exception(u"Report contents cannot be exported. "
-                u"No report file \"%s\"to export." % report_path)
-        spreadsheet_root, rpt_name = os.path.split(report_path)
-        spreadsheet_name = u"%s.xls" % os.path.splitext(rpt_name)[0]
-        progbar = progbar if progbar else Prog2console()
-        if OVERRIDE_FOLDER:
-            spreadsheet_root = OVERRIDE_FOLDER
-        spreadsheet_path = os.path.join(spreadsheet_root, spreadsheet_name)
-    else:
-        spreadsheet_path = os.path.join(alternative_path, u"SOFA output.xls")
-    n_tbls = len(tbl_items)
-    html = [hdr,] + [output.extract_tbl_only(tbl_item.content) for tbl_item 
-        in tbl_items]
-    html2save = u"\n".join(html)
-    with codecs.open(spreadsheet_path, "w", "utf-8") as f_xls:
-        f_xls.write(html2save)
-        f_xls.close()
-    if save2report_path:
-        spreadsheet_saved_msg = (_(u"The spreadsheet has been saved"
-            u" to: \"%s\"") % spreadsheet_path)
-    else:
-        foldername = os.path.split(alternative_path)[1]
-        spreadsheet_saved_msg = (u"The spreadsheet has been saved "
-            u"to your desktop in the \"%s\" folder" % foldername)
-    msgs.append(spreadsheet_saved_msg)
-    gauge2show = gauge_start_tbls + (steps_per_tbl*n_tbls)
-    progbar.SetValue(gauge2show)
-
 def shellit(cmd, shell=True):
     """
     shell -- on Linux need shell=True
+    
     Avoid stdout from Popen - doesn't work under pyinstaller (my own experiments 
-        proved it when the code was run live vs from frozen. Also see 
-        http://comments.gmane.org/gmane.comp.python.pyinstaller/3148).
+    proved it when the code was run live vs from frozen. Also see
+    http://comments.gmane.org/gmane.comp.python.pyinstaller/3148).
+    
     So avoid this in frozens:
-        p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
-        out, err = p.communicate()
-        retcode = p.returncode
+    p = subprocess.Popen(cmd, stdout=subprocess.PIPE, shell=shell)
+    out, err = p.communicate()
+    retcode = p.returncode
+    
     Furthermore, there is a possibility that not all programs work well with 
-        that e.g. wkhtmltopdf. Not tested myself (the real cause was the frozen 
-        vs popen issue) but see http://code.google.com/p/wkhtmltopdf/issues/...
-        ...detail?id=825. It uses stdout to actually output the PDF - a good 
-        feature but possibly stuffs up reading stdout for message? And pdftk the 
-        same?
+    that e.g. wkhtmltopdf. Not tested myself (the real cause was the frozen vs 
+    popen issue) but see http://code.google.com/p/wkhtmltopdf/issues/...
+    ...detail?id=825. It uses stdout to actually output the PDF - a good feature 
+    but possibly stuffs up reading stdout for message? And pdftk the same?
     """
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     verbose = False
     if debug: 
         if verbose:
@@ -511,7 +429,7 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
         view (ghostscript and Adobe might complain). Best to fix in extra step.
     """
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     try:
         url = output.path2url(html_path)
         cmd_make_pdf = u"cmd_make_pdf not successfully generated yet"        
@@ -528,10 +446,8 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
                 u'"%s\\wkhtmltopdf.exe" %s %s "%s" "%s"' % (cd_path, 
                 EXE_TMP, width, height, rel_url, pdf_path))
         elif mg.PLATFORM == mg.MAC:
-            framework_path = os.path.join(os.path.split(os.getcwd())[0], 
-                u"Frameworks")
             cmd_make_pdf = (u'cd "%s" && "%s/wkhtmltopdf" %s %s "%s" "%s"'
-                % (cd_path, framework_path, width, height, rel_url, pdf_path))
+                % (cd_path, FRAMEWORK_PATH, width, height, rel_url, pdf_path))
         elif mg.PLATFORM == mg.LINUX:
             cmd_make_pdf = (u'wkhtmltopdf %s %s "%s" "%s" ' % (width, height, 
                 url, pdf_path))
@@ -554,7 +470,7 @@ def fix_pdf(raw_pdf, final_pdf):
     Needed to avoid: http://code.google.com/p/wkhtmltopdf/issues/detail?id=488
     """
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     cmd_fix_pdf = "cmd_fix_pdf not successfully built"
     try:
         if mg.PLATFORM == mg.WINDOWS: # using Pyinstaller
@@ -566,9 +482,7 @@ def fix_pdf(raw_pdf, final_pdf):
             cmd_fix_pdf = (u'cd "%s" && "%s\\pdftk.exe" "%s" output "%s"' % 
                 (final_pdf_root, EXE_TMP, raw_pdf, final_pdf_file))
         elif mg.PLATFORM == mg.MAC:
-            framework_path = os.path.join(os.path.split(os.getcwd())[0], 
-                u"Frameworks")
-            cmd_fix_pdf = (u'%s/pdftk "%s" output "%s" ' % (framework_path, 
+            cmd_fix_pdf = (u'"%s/pdftk" "%s" output "%s" ' % (FRAMEWORK_PATH, 
                 raw_pdf, final_pdf))
         elif mg.PLATFORM == mg.LINUX:
             cmd_fix_pdf = (u'pdftk "%s" output "%s" ' % (raw_pdf, final_pdf))
@@ -670,7 +584,7 @@ def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext,
     """
     import PythonMagick as pm
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     im = pm.Image()
     orig_pdf = u"%s[%s]" % (pdf_path, i)
     #wx.MessageBox(orig_pdf)
@@ -774,7 +688,7 @@ def pdf2img_pythonmagick(pdf_path, img_pth_no_ext,
     Windows may crash with higher output_dpis e.g. 1200.
     """
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     imgs_made = []
     n_pages = get_pdf_page_count(pdf_path)
     for i in range(n_pages):
@@ -794,7 +708,7 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
     Use ImageMagick directly side-stepping the Python wrapper.
     """
     debug = False
-    if DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     verbose = False
     imgs_made = []
     n_pages = get_pdf_page_count(pdf_path)
@@ -806,7 +720,16 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
         try:
             # Note - change density before setting input image otherwise 72 dpi 
             # no matter what you subsequently do with -density
-            convert = 'convert.exe' if mg.PLATFORM == mg.WINDOWS else 'convert'
+            if mg.PLATFORM == mg.WINDOWS:
+                convert = u"convert.exe"
+            elif mg.PLATFORM == mg.MAC:
+                convert = (u'PATH="${PATH}:%(framework_path)s" '
+                    '&& "%(framework_path)s/convert"' 
+                    % {"framework_path": FRAMEWORK_PATH})
+            elif mg.PLATFORM == mg.LINUX:
+                convert = u"convert"
+            else:
+                raise Exception(u"Encountered an unexpected platform!")
             cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
                 '"%s" "%s"' % (convert, output_dpi, u2utf8(bgcolour), "1x1", 
                 u2utf8(orig_pdf), img_made))
@@ -824,6 +747,45 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
         imgs_made.append(img_made)
     return imgs_made
 
+def export2spreadsheet(hdr, tbl_items, save2report_path, report_path, 
+        alternative_path, gauge_start_tbls=0, headless=False, 
+        steps_per_tbl=None, msgs=None, progbar=None):
+    if headless:
+        if (steps_per_tbl, msgs, progbar) != (None, None, None):
+            raise Exception(u"If running headless, don't set the GUI-specific "
+                u"settings")
+        steps_per_tbl = 1 # leave msgs as default of None
+        progbar = Prog2console()
+    if save2report_path:
+        if not os.path.exists(report_path):
+            raise Exception(u"Report contents cannot be exported. "
+                u"No report file \"%s\"to export." % report_path)
+        spreadsheet_root, rpt_name = os.path.split(report_path)
+        spreadsheet_name = u"%s.xls" % os.path.splitext(rpt_name)[0]
+        progbar = progbar if progbar else Prog2console()
+        if mg.OVERRIDE_FOLDER:
+            spreadsheet_root = mg.OVERRIDE_FOLDER
+        spreadsheet_path = os.path.join(spreadsheet_root, spreadsheet_name)
+    else:
+        spreadsheet_path = os.path.join(alternative_path, u"SOFA output.xls")
+    n_tbls = len(tbl_items)
+    html = [hdr,] + [output.extract_tbl_only(tbl_item.content) for tbl_item 
+        in tbl_items]
+    html2save = u"\n".join(html)
+    with codecs.open(spreadsheet_path, "w", "utf-8") as f_xls:
+        f_xls.write(html2save)
+        f_xls.close()
+    if save2report_path:
+        spreadsheet_saved_msg = (_(u"The spreadsheet has been saved"
+            u" to: \"%s\"") % spreadsheet_path)
+    else:
+        foldername = os.path.split(alternative_path)[1]
+        spreadsheet_saved_msg = (u"The spreadsheet has been saved "
+            u"to your desktop in the \"%s\" folder" % foldername)
+    msgs.append(spreadsheet_saved_msg)
+    gauge2show = gauge_start_tbls + (steps_per_tbl*n_tbls)
+    progbar.SetValue(gauge2show)
+
 def copy_output():
     wx.BeginBusyCursor()
     bi = wx.BusyInfo("Copying output ...")
@@ -834,13 +796,14 @@ def copy_output():
     for filename in sorted_names:
         delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
         os.remove(delme)
-    hdr, img_items, unused = get_hdr_and_items(mg.INT_REPORT_PATH, DIAGNOSTIC)
+    hdr, img_items, unused = get_hdr_and_items(mg.INT_REPORT_PATH, 
+        mg.EXPORT_IMAGES_DIAGNOSTIC)
     msgs = [] # not used in this case
     export2imgs(hdr, img_items=img_items, save2report_path=False, 
         report_path=mg.INT_REPORT_PATH, alternative_path=mg.INT_COPY_IMGS_PATH,  
-        output_dpi=PRINT_DPI, gauge_start_imgs=0, headless=False, 
-        export_status=export_status, steps_per_img=GAUGE_STEPS, msgs=msgs, 
-        progbar=None)
+        output_dpi=mg.PRINT_DPI, gauge_start_imgs=0, headless=False, 
+        export_status=export_status, steps_per_img=mg.EXPORT_IMG_GAUGE_STEPS, 
+        msgs=msgs, progbar=None)
     sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
     sorted_names.sort()
     # http://wiki.wxpython.org/ClipBoard

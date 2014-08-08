@@ -7,6 +7,7 @@ import wx
 import my_globals as mg
 import lib
 import config_output
+import config_ui
 import full_html
 import getdata
 import indep2var
@@ -52,7 +53,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.exiting = False
         self.title = title
         self.SetFont(mg.GEN_FONT)
@@ -1031,7 +1032,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if run_ok:
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 
                 cc[mg.CURRENT_REPORT_PATH]]
-            config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
+            config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
                 new_has_dojo=True)
 
     def on_btn_script(self, event):
@@ -1088,9 +1089,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if var_name == mg.DROP_SELECT:
             return
         var_label = lib.get_item_label(self.var_labels, var_name)
-        updated = projects.set_var_props(choice_item, var_name, var_label, 
-                                         self.var_labels, self.var_notes, 
-                                         self.var_types,  self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_name, var_label, 
+            self.var_labels, self.var_notes, self.var_types,  self.val_dics)
         if updated:
             self.setup_var_dropdowns()
             self.update_defaults()
@@ -1100,13 +1100,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Reset dbe, database, cursor, tables, table, tables dropdown, 
             fields, has_unique, and idxs after a database selection.
         """
-        if config_output.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_var_dropdowns()
                 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
-        config_output.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, event)
         # now update var dropdowns
         output.update_var_dets(dlg=self)
         self.setup_var_dropdowns()
@@ -1116,7 +1116,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Want to retain already selected item - even though label and even 
             position may have changed.
         """
-        config_output.ConfigUI.on_btn_var_config(self, event)
+        config_ui.ConfigUI.on_btn_var_config(self, event)
         self.setup_var_dropdowns()
         self.update_defaults()
 

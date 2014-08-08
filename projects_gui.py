@@ -8,14 +8,14 @@ import basic_lib as b
 import my_globals as mg
 import lib
 import getdata
-import config_output
+import config_ui
 import output
 import projects
 
 
-class DlgProject(wx.Dialog, config_output.ConfigUI):
+class DlgProject(wx.Dialog, config_ui.ConfigUI):
     def __init__(self, parent, readonly=False, fil_proj=None):
-        config_output.ConfigUI.__init__(self, autoupdate=False)
+        config_ui.ConfigUI.__init__(self, autoupdate=False)
         self.can_run_report = False
         if mg.MAX_WIDTH <= 1024:
             mywidth = 976
@@ -299,7 +299,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             self.szr_btns.Insert(0, btn_delete, 0)
 
     def on_btn_var_config(self, event):
-        ret_dic = config_output.ConfigUI.on_btn_var_config(self, event)
+        ret_dic = config_ui.ConfigUI.on_btn_var_config(self, event)
         if ret_dic:
             self.vdt_file = ret_dic[mg.VDT_RET]
         else: # cancelled presumably
@@ -340,7 +340,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
-       
+    
     def on_ok(self, event):
         """
         If not read-only, writes settings to proj file.
@@ -368,7 +368,7 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""
             style = self.style_selector.GetStringSelection()
-            fil_css = config_output.style2path(style)
+            fil_css = lib.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}
@@ -390,6 +390,9 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                     "for the default database engine (%s) to save a project"
                     " file.") % default_dbe)
                 return
+            proj_content = projects.get_proj_content(proj_notes, fil_var_dets, 
+                fil_css, fil_report, fil_script, default_dbe, default_dbs, 
+                default_tbls, con_dets)
             # write the data
             fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s%s" % 
                 (proj_name, mg.PROJ_EXT))
@@ -407,32 +410,8 @@ class DlgProject(wx.Dialog, config_output.ConfigUI):
                     u"\n\nCaused by error: %(err)s") % {u"fil_name": fil_name, 
                     u"err": b.ue(e)})
                 return
-            f.write(u"# Windows file paths _must_ have double not single "
-                u"backslashes")
-            f.write(u"\n# All file paths _must_ have a u before the"
-                u" quote-enclosed string")
-            f.write(u"""\n# u"C:\\\\Users\\\\demo.txt" is GOOD""")
-            f.write(u"""\n# u"C:\\Users\\demo.txt" is BAD""")
-            f.write(u"""\n# "C:\\\\Users\\\\demo.txt" is also BAD""")
-            f.write(u"\n\nproj_notes = u\"\"\"%s\"\"\"" %
-                lib.escape_pre_write(proj_notes))
-            f.write(u"\n\nfil_var_dets = u\"%s\"" % 
-                lib.escape_pre_write(fil_var_dets))
-            f.write(u"\nfil_css = u\"%s\"" % \
-                lib.escape_pre_write(fil_css))
-            f.write(u"\nfil_report = u\"%s\"" % 
-                lib.escape_pre_write(fil_report))
-            f.write(u"\nfil_script = u\"%s\"" % 
-                lib.escape_pre_write(fil_script))
-            f.write(u"\ndefault_dbe = u\"%s\"" % default_dbe)
-            f.write(u"\n\ndefault_dbs = " + 
-                lib.escape_pre_write(lib.dic2unicode(default_dbs)))
-            f.write(u"\n\ndefault_tbls = " + 
-                lib.escape_pre_write(lib.dic2unicode(default_tbls)))
-            f.write(u"\n\ncon_dets = " + 
-                lib.escape_pre_write(lib.dic2unicode(con_dets)))
+            f.write(proj_content)
             f.close()
         self.Destroy()
         self.SetReturnCode(wx.ID_OK) # only for dialogs
         # (MUST come after Destroy)        
-        

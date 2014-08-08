@@ -8,7 +8,6 @@ import my_exceptions
 import config_output
 import normal
 import output
-import projects
 
 TEST_ANOVA = _("ANOVA")
 TEST_CHI_SQUARE = _("Chi Square")
@@ -490,8 +489,8 @@ class DlgStatsSelect(wx.Dialog):
         updated = set() # will get populated with a True to indicate update
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        dlg = projects.DlgListVars(self.var_labels, self.var_notes, 
-                                   self.var_types, self.val_dics, updated)
+        dlg = config_output.DlgListVars(self.var_labels, self.var_notes, 
+            self.var_types, self.val_dics, updated)
         dlg.ShowModal()
     
     def normal_rel_setup(self, enable=True):

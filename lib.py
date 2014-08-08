@@ -26,6 +26,19 @@ import my_exceptions
 # so we only do expensive tasks once per module per session
 PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
 
+def style2path(style):
+    "Get full path of css file from style name alone"
+    return os.path.join(mg.CSS_PATH, u"%s.css" % style)
+
+def path2style(path):
+    "Strip style out of full css path"
+    debug = False
+    if debug: print(u"path: %s" % path)
+    style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
+    if style == u"":
+        raise Exception("Problem stripping style out of path (%s)" % path)
+    return style
+
 def get_gettext_setup_txt():
     """
     Must achieve same result for gettext as occurs in SofaApp.setup_i18n() in
@@ -1204,6 +1217,21 @@ def dic2unicode(mydic, indent=1):
     ustr += u"}"
     return ustr
 
+def get_escaped_dict_pre_write(mydict):
+    # process each part and escape the paths only
+    items_list = []
+    keys = mydict.keys()
+    keys.sort() # so testing can expect a fixed output for a fixed input
+    for key in keys:
+        val = mydict[key]
+        if val is None:
+            esc_db_path = u"None"
+        elif type(val) is dict:
+            esc_db_path = get_escaped_dict_pre_write(val)
+        else:
+            esc_db_path = u'u"' + escape_pre_write(val) + u'"'
+        items_list.append(u'u"%s": %s' % (key, esc_db_path))
+    return u"{" + u",\n    ".join(items_list) + u"}"
 
 if mg.PLATFORM == mg.WINDOWS:
     exec u"import pywintypes"
@@ -1212,6 +1240,13 @@ def escape_pre_write(txt):
     """
     Useful when writing a path to a text file etc.
     Note - must escape your escapes.
+    
+    Warning - do not use on a python expression e.g.
+    
+    default_dbs = {"mysql": "/home..." because becomes
+    default_dbs = {\"mysql\": \"/home/fred\'s home...\"
+    
+    Only ever use on the contents e.g. home/fred\'s home...
     """
     esctxt = txt.replace("\\", "\\\\")
     esctxt = esctxt.replace('"', '\\"')

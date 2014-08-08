@@ -12,6 +12,7 @@ import lib
 import my_exceptions
 import getdata
 import config_output
+import config_ui
 import demotables
 import dimtree
 import full_html
@@ -186,7 +187,7 @@ class RptTypeOpts(object):
         return self.rad_opts
     
 
-class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
+class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
     """
     ConfigUI -- provides reusable interface for data selection, setting labels 
     etc. Sets values for db, default_tbl etc and responds to selections etc.
@@ -204,7 +205,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
             pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
@@ -433,7 +434,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
     def update_css(self):
         "Update css, including for demo table"
         cc = output.get_cc()
-        config_output.ConfigUI.update_css(self)
+        config_ui.ConfigUI.update_css(self)
         self.demo_tab.fil_css = cc[mg.CURRENT_CSS_PATH]
         self.update_demo_display()
     
@@ -445,7 +446,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         
         Clear dim areas.
         """
-        if config_output.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, event):
             self.data_changed()
         
     def on_table_sel(self, event):
@@ -453,7 +454,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         Reset table, fields, has_unique, and idxs.
         Clear dim areas.
         """       
-        config_output.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, event)
         self.data_changed()
     
     def data_changed(self):
@@ -608,7 +609,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         # check not a massive report table. Overrides default
         too_long = False
         if self.tab_type == mg.DATA_LIST:
-            rows_n = config_output.ConfigUI.get_rows_n(self)
+            rows_n = config_ui.ConfigUI.get_rows_n(self)
             if rows_n > 500:
                 strn = locale.format('%d', rows_n, True)
                 if (wx.MessageBox(_("This report has %s rows. Do you wish to "
@@ -625,7 +626,7 @@ class DlgMakeTable(wx.Dialog, config_output.ConfigUI, dimtree.DimTree):
         """
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
-            config_output.ConfigUI.on_btn_run(self, event, 
+            config_ui.ConfigUI.on_btn_run(self, event, 
                 get_script_args=[has_cols,])
     
     # export script
@@ -822,7 +823,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             script_lst.append(u"# Adding \"%s\" to %s" % (fldname, 
                 parent_name))
         else:
-            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (fldname, 
+            script_lst.append(u"# Adding \"%s\" under \"%s\"" % (fldname,
                 parent_name))
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
             child_node_label))
@@ -874,7 +875,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         new_has_dojo = False
         get_script_args = [has_cols,]
         (bolran_report, 
-         str_content) = config_output.ConfigUI.get_script_output(self, 
+         str_content) = config_ui.ConfigUI.get_script_output(self, 
             get_script_args, new_has_dojo, allow_add2rpt=False)
         return bolran_report, str_content
     
@@ -1021,6 +1022,6 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         """
         Variable details may have changed e.g. variable and value labels.
         """
-        ret = config_output.ConfigUI.on_btn_var_config(self, event)
+        ret = config_ui.ConfigUI.on_btn_var_config(self, event)
         update_display = (ret != wx.ID_CANCEL)
         self.update_var_dets(update_display)

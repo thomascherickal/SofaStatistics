@@ -10,6 +10,7 @@ import lib
 import my_exceptions
 import charting_pylab
 import config_output
+import config_ui
 import core_stats
 import getdata
 import full_html
@@ -134,7 +135,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     return normal_output
 
 
-class DlgNormality(wx.Dialog, config_output.ConfigUI):
+class DlgNormality(wx.Dialog, config_ui.ConfigUI):
     
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         self.title = _("Normal Data?")
@@ -142,7 +143,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
             size=(1024,600), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
             wx.CLIP_CHILDREN)
-        config_output.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.output_modules = ["my_globals as mg", "output", "getdata", "normal"]
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
@@ -267,7 +268,7 @@ class DlgNormality(wx.Dialog, config_output.ConfigUI):
                 self.var_label_b = u""
             get_script_args=[cc[mg.CURRENT_CSS_PATH], 
                 cc[mg.CURRENT_REPORT_PATH]]
-            config_output.ConfigUI.on_btn_run(self, event, get_script_args, 
+            config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
                 new_has_dojo=True)
 
     def get_script(self, css_idx, css_fil, report_name):
@@ -340,17 +341,17 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         event.Skip()
 
     def on_database_sel(self, event):
-        if config_output.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, event):
             self.setup_vars(var_a=True, var_b=self.paired)
             self.set_output_to_blank()
         
     def on_table_sel(self, event):
-        config_output.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, event)
         self.setup_vars(var_a=True, var_b=self.paired)
         self.set_output_to_blank()
         
     def on_rclick_tables(self, event):
-        config_output.ConfigUI.on_rclick_tables(self, event)
+        config_ui.ConfigUI.on_rclick_tables(self, event)
         #event.Skip() - don't use or will appear twice in Windows!
     
     def setup_var_a(self, var=None):
@@ -392,7 +393,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_a)
-        updated = projects.set_var_props(choice_item, var_a, var_label_a, 
+        updated = config_output.set_var_props(choice_item, var_a, var_label_a, 
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_a(var_a)
@@ -401,7 +402,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_b)
-        updated = projects.set_var_props(choice_item, var_b, var_label_b, 
+        updated = config_output.set_var_props(choice_item, var_b, var_label_b, 
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_b(var_b)

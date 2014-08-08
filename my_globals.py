@@ -388,7 +388,7 @@ OLD_SOFASTATS_FOLDER = False
 if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/952077
     try:
         USER_PATH = Popen(['xdg-user-dir', 'DOCUMENTS'], 
-                          stdout=PIPE).communicate()[0].strip()
+            stdout=PIPE).communicate()[0].strip() # get output i.e. [0]. err is 2nd.
     except OSError:
         USER_PATH = ""
     USER_PATH = unicode(USER_PATH or os.path.expanduser('~'), local_encoding)
@@ -1010,3 +1010,13 @@ LABEL_FONT = None # will be set after wx.App started
 BTN_FONT = None
 BTN_BOLD_FONT = None
 GEN_FONT = None
+# exporting output
+OVERRIDE_FOLDER = None # override to send them somewhere specific
+EXPORT_IMAGES_DIAGNOSTIC = False # override to get more feedback
+EXPORT_IMG_GAUGE_STEPS = 100
+DRAFT_DPI = 72
+SCREEN_DPI = 150
+PRINT_DPI = 300
+HIGH_QUAL_DPI = 600
+TOP_DPI = 1200 #1000 if mg.PLATFORM == mg.WINDOWS else 1200 # Windows XP crashes with a message about
+# PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such file or directory

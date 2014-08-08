@@ -120,8 +120,7 @@ def get_date_fmt():
             win32api.RegCloseKey(rkey)
         else:
             cmd = 'locale -k LC_TIME'
-            child = subprocess.Popen(cmd, shell=True, stdin=subprocess.PIPE, 
-                                     stdout=subprocess.PIPE)
+            child = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             locale_dets = child.stdout.read().strip().split()
             d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
             raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
