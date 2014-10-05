@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
 show_more_steps = True
@@ -107,6 +107,22 @@ import quotes
 if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
+
+def setup_lang_and_fonts():
+    """
+    Must be done after redirection has occurred in __init__ so printing output 
+    to redirected file can cope with unicode on Win and Mac!
+    
+    Must be done AFTER redirection has occurred or has no effect!
+    """
+    sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
+    sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'replace')
+    config_globals.set_fonts()
+    try:
+        setup_i18n()
+    except Exception, e:
+        print(u"Error setting up internationalisation. Orig error: %s" % e)
+        pass # OK if unable to get translation settings. English will do.
 
 def lang_etc(fn):
     def new_on_init(*args, **kwargs):
@@ -368,23 +384,7 @@ def print_locale_dets(mylocale, langid):
     print(u"GetCanonicalName: %s" % mylocale.GetCanonicalName())
     print(u"GetSysName: %s" % mylocale.GetSysName())
     print(u"GetLocale: %s" % mylocale.GetLocale())
-    print(u"GetName: %s" % mylocale.GetName())   
-
-def setup_lang_and_fonts():
-    """
-    Must be done after redirection has occurred in OnInit() so printing output 
-    to redirected file can cope with unicode on Win and Mac!
-    
-    Must be done AFTER redirection has occurred or has no effect!
-    """
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'replace')
-    config_globals.set_fonts()
-    try:
-        setup_i18n()
-    except Exception, e:
-        print(u"Error setting up internationalisation. Orig error: %s" % e)
-        pass # OK if unable to get translation settings. English will do.
+    print(u"GetName: %s" % mylocale.GetName())
 
 def get_next_y_pos(start, height):
     "Facilitate regular y position of buttons"

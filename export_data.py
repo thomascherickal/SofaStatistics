@@ -148,7 +148,8 @@ class DlgExportData(wx.Dialog):
                 u"making the csv" % n_cols)
         if do_spreadsheet:   
             book = xlwt.Workbook(encoding='utf8')
-            sheet = book.add_sheet('%s output' % dd.tbl[:20])
+            safe_sheetname = lib.get_safer_name('%s output' % dd.tbl[:20])
+            sheet = book.add_sheet(safe_sheetname)
             style_bold_12pt = xlwt.XFStyle()
             font = xlwt.Font()
             font.name = 'Arial'

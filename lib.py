@@ -23,8 +23,8 @@ import basic_lib as b
 import my_globals as mg
 import my_exceptions
 
-# so we only do expensive tasks once per module per session
-PURCHASE_CHECKED_EXTS = [] # individual extensions may have different purchase statements
+def get_safer_name(rawname):
+    return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
 
 def style2path(style):
     "Get full path of css file from style name alone"

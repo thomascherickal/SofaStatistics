@@ -330,7 +330,7 @@ def process_tblname(rawname):
     Turn spaces, hyphens and dots into underscores.
     NB doesn't check if a duplicate etc at this stage.
     """
-    return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
+    return lib.get_safer_name(rawname)
 
 def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames, 
         faulty2missing_fld_list, allow_none=True, comma_dec_sep_ok=False, 
