@@ -79,7 +79,7 @@ import lib
 import my_exceptions
 import output
 
-FRAMEWORK_PATH = os.path.join(os.path.split(os.getcwd())[0], u"Frameworks")
+MAC_FRAMEWORK_PATH = os.path.join(os.path.split(os.getcwd())[0], u"Frameworks") # where misc libraries will be (even if via soft link)
 HTML4PDF_FILE = u"html4pdf.html"
 RAWPDF_FILE = u"raw.pdf"
 PDF2IMG_FILE = u"pdf2img.pdf"
@@ -447,7 +447,7 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
                 EXE_TMP, width, height, rel_url, pdf_path))
         elif mg.PLATFORM == mg.MAC:
             cmd_make_pdf = (u'cd "%s" && "%s/wkhtmltopdf" %s %s "%s" "%s"'
-                % (cd_path, FRAMEWORK_PATH, width, height, rel_url, pdf_path))
+                % (cd_path, MAC_FRAMEWORK_PATH, width, height, rel_url, pdf_path))
         elif mg.PLATFORM == mg.LINUX:
             cmd_make_pdf = (u'wkhtmltopdf %s %s "%s" "%s" ' % (width, height, 
                 url, pdf_path))
@@ -482,7 +482,7 @@ def fix_pdf(raw_pdf, final_pdf):
             cmd_fix_pdf = (u'cd "%s" && "%s\\pdftk.exe" "%s" output "%s"' % 
                 (final_pdf_root, EXE_TMP, raw_pdf, final_pdf_file))
         elif mg.PLATFORM == mg.MAC:
-            cmd_fix_pdf = (u'"%s/pdftk" "%s" output "%s" ' % (FRAMEWORK_PATH, 
+            cmd_fix_pdf = (u'"%s/pdftk" "%s" output "%s" ' % (MAC_FRAMEWORK_PATH, 
                 raw_pdf, final_pdf))
         elif mg.PLATFORM == mg.LINUX:
             cmd_fix_pdf = (u'pdftk "%s" output "%s" ' % (raw_pdf, final_pdf))
@@ -725,7 +725,7 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
             elif mg.PLATFORM == mg.MAC:
                 convert = (u'PATH="${PATH}:%(framework_path)s" '
                     '&& "%(framework_path)s/convert"' 
-                    % {"framework_path": FRAMEWORK_PATH})
+                    % {"framework_path": MAC_FRAMEWORK_PATH})
             elif mg.PLATFORM == mg.LINUX:
                 convert = u"convert"
             else:

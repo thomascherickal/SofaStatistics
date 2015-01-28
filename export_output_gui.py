@@ -18,10 +18,6 @@ import export_output
 PDF_ITEM_TAKES = 4
 TBL_ITEM_TAKES = 1
 
-if mg.EXPORT_IMAGES_DIAGNOSTIC:
-    wx.MessageBox("Diagnostic mode for export output is on - be ready to take "
-        "screen-shots.")
-
 def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     """
     Where should we start on the progress gauge and how much should each item 

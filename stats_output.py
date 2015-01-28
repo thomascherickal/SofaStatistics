@@ -515,12 +515,12 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0, dp=3,
     output.append_divider(html, title, indiv_title=u"")
     return u"".join(html)
 
-def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
+def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y, add_to_report,
         report_name, css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
         page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
-    slope, intercept, r, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
+    slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
     line_lst = [y0, y1]
     html = []
     footnotes = []
@@ -534,7 +534,7 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         + u": %s" % lib.get_p(p, dp) + u" <a href='#ft1'><sup>1</sup></a></p>")
     add_footnote(footnotes, content=mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Pearson's R statistic")
-        + u": %s</p>" % round(r, dp))
+        + u": %s</p>" % round(pearsons_r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     html.append(u"<p>Linear Regression Details: "
         u"<a href='#ft2'><sup>2</sup></a></p>")
@@ -559,12 +559,13 @@ def pearsonsr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
     output.append_divider(html, title, indiv_title=u"scatterplot")
     return u"".join(html)
 
-def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
-        report_name, css_fil, css_idx=0, dp=3, level=mg.OUTPUT_RESULTS_ONLY, 
-        page_break_after=False):
+def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y, 
+        add_to_report, report_name, css_fil, css_idx=0, dp=3, 
+        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
-    slope, intercept, r, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
+    slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, 
+        list_y)
     line_lst = [y0, y1]
     html = []
     footnotes = []
@@ -578,7 +579,7 @@ def spearmansr_output(list_x, list_y, r, p, df, label_x, label_y, add_to_report,
         u" <a href='#ft1'><sup>1</sup></a></p>")
     add_footnote(footnotes, content=mg.P_EXPLAN_REL)
     html.append(u"\n<p>" + _("Spearman's R statistic") + 
-        u": %s</p>" % round(r, dp))
+        u": %s</p>" % round(spearmans_r, dp))
     html.append(u"\n<p>" + mg.DF + u": %s</p>" % df)
     html.append(u"<p>Linear Regression Details: "
         u"<a href='#ft2'><sup>2</sup></a></p>")

@@ -1299,9 +1299,15 @@ def get_boxplot_sizings(x_title, xaxis_dets, max_lbl_width, series_dets):
 def setup_highlights(colour_mappings, single_colour, 
         override_first_highlight=False):
     """
-    If single colour in chart, only need one highlight defined.
-    If default style and multiple series, redefine highlight for first. 
-        Basically a hack so the default chart has a highlight which looks good.   
+    colour_mappings -- must be #ffffff style. Names ignored for highlighting
+    e.g. "red".    
+    
+    single_colour -- if single colour in chart (e.g. simple bar chart), only 
+    need one highlight defined so can break out of loop.
+    
+    override_first_highlight -- added so we can override the highlight when 
+    using the default style and multiple series. Ensures it will look good in a
+    very important case even though not a general solution.
     """
     colour_cases_list = []
     for i, mappings in enumerate(colour_mappings):

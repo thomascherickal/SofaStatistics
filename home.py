@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
 show_more_steps = True
@@ -163,6 +163,9 @@ class SofaApp(wx.App):
         except Exception, e: # frame will close by itself now
             raise Exception(u"Problem initialising application. "
                 u"Original error: %s" % b.ue(e))
+        if mg.EXPORT_IMAGES_DIAGNOSTIC:
+            wx.MessageBox("Diagnostic mode for export output is on - be ready "
+                "to take screen-shots.")
 
 
 def store_screen_dims():

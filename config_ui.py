@@ -25,7 +25,7 @@ try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
     try:
-        import wx.lib.agw.hyperlink as hl
+        import wx.lib.agw.hyperlink as hl #@UnusedImport
     except ImportError:
         msg = (u"There seems to be a problem related to your wxPython "
             u"package. %s" % traceback.format_exc())
