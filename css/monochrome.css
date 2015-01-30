@@ -107,15 +107,15 @@ dojo_style_end
     }
     .spaceholder {
         background-image: url("sofastats_report_extras/grey_spirals.gif") !important; /*else tundra forces none*/
-        background-color: #fe7200;;
-        border: solid 1px #3f1931; /*#f15d22;*/
+        background-color: #282828;
+        border: solid 1px #282828; /*#f15d22;*/
     }
     .firstcolvar, .firstrowvar{
         background-color: #313131;
     }
     .firstrowvar{
-        border-left: solid 1px #3f1931;
-        border-bottom:  solid 1px #3f1931;
+        border-left: solid 1px #282828;
+        border-bottom:  solid 1px #282828;
     }
     .topline{
         border-top: 2px solid #c0c0c0;
@@ -123,7 +123,7 @@ dojo_style_end
     .firstcolvar{
         padding: 9px 6px;
         vertical-align: top;
-        border-top:  solid 1px #3f1931;
+        border-top:  solid 1px #282828;
     }
     .rowvar, .colvar{
         font-family: Ubuntu, Helvetica, Arial, sans-serif;
