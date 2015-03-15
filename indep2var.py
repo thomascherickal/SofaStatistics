@@ -551,19 +551,21 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         msg = None
         n_high = 250000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
-        tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
-        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (tblname, where_filt)
+        quoted_tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
+        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoted_tblname,
+            where_filt)
         if debug: print(SQL_get_count)
         dd.cur.execute(SQL_get_count)
         rows_n = dd.cur.fetchone()[0]
         if debug: print(u"%s records" % unicode(rows_n))
         high_n_recs = (rows_n >= n_high)
         if high_n_recs:
-            source = u"(%s) AS qry" % getdata.get_first_sql(dd.dbe, tblname, 
-                                                            top_n=n_high)
+            first_sql = getdata.get_first_sql(dd.dbe, quoted_tblname,
+                top_n=n_high)
+            source = u"(%s) AS qry" % first_sql
             if debug: print(source)
         else:
-            source = tblname
+            source = quoted_tblname
         SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
             FROM %(source)s
             WHERE %(var_gp)s IS NOT NULL

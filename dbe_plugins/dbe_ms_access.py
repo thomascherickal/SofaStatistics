@@ -46,10 +46,10 @@ def quote_val(raw_val, charset2try="iso-8859-1"):
 def get_summable(clause):
     return u"ABS(%s)" % clause # true is -1 so we need to get sum of +1s
 
-def get_first_sql(tblname, top_n, order_val=None):
+def get_first_sql(quoted_tblname, top_n, order_val=None):
     orderby = u"ORDER BY %s" % quote_obj(order_val) if order_val else u""
     return u"SELECT TOP %(top_n)s * FROM %(tblname)s %(orderby)s" % \
-        {"top_n": top_n, "tblname": quote_obj(tblname), "orderby": orderby}
+        {"top_n": top_n, "tblname": quoted_tblname, "orderby": orderby}
 
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 

@@ -328,14 +328,15 @@ def populate_css_path(prog_path, local_path):
         u"pebbles.css", u"prestige (print).css", u"prestige (screen).css", ]
     for style in styles:
         try:
-            shutil.copy(os.path.join(prog_path, mg.CSS_FOLDER, style), 
-                os.path.join(local_path, mg.CSS_FOLDER, style))
+            src_style = os.path.join(prog_path, mg.CSS_FOLDER, style)
+            dest_style = os.path.join(local_path, mg.CSS_FOLDER, style)
+            shutil.copy(src_style, dest_style)
             if show_early_steps: print(u"Just copied %s" % style)
         except Exception, e: # more diagnostic info to explain why it failed
-            raise Exception(u"Problem populating css path."
+            raise Exception(u"Problem populating css path using shutil.copy()."
                 u"\nCaused by error: %s" % b.ue(e) +
-                u"\nprog_path: %s" % prog_path +
-                u"\nlocal_path: %s" % local_path +
+                u"\nsrc_style: %s" % src_style +
+                u"\ndest_style: %s" % dest_style +
                 u"\nFile location details: %s" % sys.path)
     print(u"Populated css paths under %s" % local_path)
 

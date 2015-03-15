@@ -80,7 +80,9 @@ def import_dbe_plugins():
         dbe_plugin_mod = os.path.join(mg.SCRIPT_PATH, u"dbe_plugins", 
             u"%s.py" % dbe_mod_name)
         if os.path.exists(dbe_plugin_mod):
-            if not wrong_os:
+            if wrong_os:
+                print(u"Not adding dbe plug-in '%s'. Wrong OS" % dbe_plugin)
+            else:
                 try:
                     dbe_mod = import_dbe_plugin(dbe_plugin)
                 except Exception, e:
@@ -89,8 +91,12 @@ def import_dbe_plugins():
                     print(msg)
                     mg.DBE_PROBLEM.append(msg)
                     continue # skip bad module
-                mg.DBES.append(dbe_plugin)
-                mg.DBE_MODULES[dbe_plugin] = dbe_mod
+                else:
+                    print(u"Successfully added dbe plug-in '%s'" % dbe_plugin)
+                    mg.DBES.append(dbe_plugin)
+                    mg.DBE_MODULES[dbe_plugin] = dbe_mod
+        else:
+            print(u"Couldn't find path: %s" % dbe_plugin_mod)
 
 def get_date_fmt():
     """

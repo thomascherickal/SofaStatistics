@@ -52,10 +52,10 @@ def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
         placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
-def get_first_sql(tblname, top_n, order_val=None):
+def get_first_sql(quoted_tblname, top_n, order_val=None):
     orderby = u"ORDER BY %s" % quote_obj(order_val) if order_val else u""
     return u"SELECT * FROM %(tblname)s %(orderby)s LIMIT %(top_n)s" % \
-        {"top_n": top_n, "tblname": quote_obj(tblname), "orderby": orderby}
+        {"top_n": top_n, "tblname": quoted_tblname, "orderby": orderby}
         
 def add_funcs_to_con(con):
     con.create_function("is_numeric", 1, lib.is_numeric)

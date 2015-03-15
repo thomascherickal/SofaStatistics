@@ -79,7 +79,9 @@ import lib
 import my_exceptions
 import output
 
-MAC_FRAMEWORK_PATH = os.path.join(os.path.split(os.getcwd())[0], u"Frameworks") # where misc libraries will be (even if via soft link)
+MAC_FRAMEWORK_PATH = os.path.join(os.path.split(os.path.dirname(__file__))[0],
+    u"Frameworks") # where misc libraries will be (even if via soft link)
+#print(MAC_FRAMEWORK_PATH)
 HTML4PDF_FILE = u"html4pdf.html"
 RAWPDF_FILE = u"raw.pdf"
 PDF2IMG_FILE = u"pdf2img.pdf"
@@ -723,9 +725,19 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
             if mg.PLATFORM == mg.WINDOWS:
                 convert = u"convert.exe"
             elif mg.PLATFORM == mg.MAC:
-                convert = (u'PATH="${PATH}:%(framework_path)s" '
-                    '&& "%(framework_path)s/convert"' 
-                    % {"framework_path": MAC_FRAMEWORK_PATH})
+                """
+                Assumes the framework path is the first path in PATH, so we can
+                just reference 'gs' in delegates.xml without a fully qualified
+                file name, AND that the environment variable
+                MAGICK_CONFIGURE_PATH has been set to the framework path so
+                that imagemagick convert can find delegates.xml (and colors.xml)
+                and thus naake use of the largely self-contained gs
+                (ghostscript) binary there.
+
+                These changes should be done once per session of SOFA, not once
+                per call to this function. See end of module.
+                """
+                convert = u'"%s/convert"' % MAC_FRAMEWORK_PATH
             elif mg.PLATFORM == mg.LINUX:
                 convert = u"convert"
             else:
@@ -817,3 +829,7 @@ def copy_output():
     wx.TheClipboard.Close()
     bi.Destroy()
     lib.safe_end_cursor()
+
+if mg.PLATFORM == mg.MAC:
+    shellit(u'export PATH="%s:${PATH}"' % MAC_FRAMEWORK_PATH)
+    shellit(u'export MAGICK_CONFIGURE_PATH="%s"' % MAC_FRAMEWORK_PATH)

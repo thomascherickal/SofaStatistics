@@ -745,20 +745,56 @@ def kruskalwallish(samples, labels):
     Returns: H-statistic (corrected for ties), associated p-value
     """
     dics = get_summary_dics(samples, labels)
+    
+    import time
+    t1 = time.time()
+    
     n = [0]*len(samples)
+    
+    
+    
+    t2 = time.time()
+    print("Got n at %s" % (t2-t1))
+    
+    
     all = []
     n = map(len,samples)
     for i in range(len(samples)):
         all = all + samples[i]
+    
+    
+    t3 = time.time()
+    print("Got all at %s" % (t3-t1))
+    
     ranked = rankdata(all)
+    
+    
+    t4 = time.time()
+    print("Got ranked at %s" % (t4-t1))
+    
+    
+    
     T = tiecorrect(ranked)
     for i in range(len(samples)):
         samples[i] = ranked[0:n[i]]
         del ranked[0:n[i]]
+    
+    
+    t4 = time.time()
+    print("Built samples at %s" % (t4-t1))
+    
+    
+    
     rsums = []
     for i in range(len(samples)):
         rsums.append(sum(samples[i])**2)
         rsums[i] = rsums[i] / float(n[i])
+        
+        
+    t5 = time.time()
+    print("Got rsums at %s" % (t5-t1))
+    
+    
     ssbn = sum(rsums)
     totaln = sum(n)
     h = 12.0 / (totaln*(totaln+1)) * ssbn - 3*(totaln+1)
@@ -1066,7 +1102,7 @@ def rankdata(inlist):
     """
     From stats.py.  No changes.  
     -------------------------------------
-    Ranks the data in inlist, dealing with ties appropritely.  Assumes
+    Ranks the data in inlist, dealing with ties appropriately.  Assumes
     a 1D inlist.  Adapted from Gary Perlman's |Stat ranksort.
 
     Usage:   rankdata(inlist)
@@ -1074,6 +1110,11 @@ def rankdata(inlist):
     """
     n = len(inlist)
     svec, ivec = shellsort(inlist)
+    
+    
+    print("Got shellsorted")
+    
+    
     sumranks = 0
     dupcount = 0
     newlist = [0]*n

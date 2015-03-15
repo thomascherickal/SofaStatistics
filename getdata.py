@@ -46,7 +46,11 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         if dbe == mg.DBE_SQLITE:
             kwargs["add_checks"] = add_checks
         if debug: print(kwargs)
-        dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
+        try:
+            dbe_resources.update(mg.DBE_MODULES[dbe].get_con_resources(**kwargs))
+        except KeyError:
+            raise Exception(u"Unable to find %s in DBE_MODULES (%s)" % (dbe,
+                mg.DBE_MODULES))
         cur = dbe_resources[mg.DBE_CUR]
         #dbs = dbe_resources[mg.DBE_DBS]
         db = dbe_resources[mg.DBE_DB] # Try this first. 
@@ -62,6 +66,8 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
             dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
                 default_tbls, db, tbl, add_checks=True, stop=True)
             mg.MUST_DEL_TMP = True
+    except Exception, e:
+        raise Exception(u"Unable to get dbe_resources. Orig error: %s" % e)
     return dbe_resources
 
 def get_db_resources(dbe, cur, db, default_tbls, tbl):
@@ -338,8 +344,11 @@ def get_val_quoter_func(dbe):
     """
     return mg.DBE_MODULES[dbe].quote_val
 
-def get_first_sql(dbe, tblname, top_n, order_val=None):
-    return mg.DBE_MODULES[dbe].get_first_sql(tblname, top_n, order_val)
+def get_first_sql(dbe, quoted_tblname, top_n, order_val=None):
+    """
+    quoted_tblname -- Must already be quoted.
+    """
+    return mg.DBE_MODULES[dbe].get_first_sql(quoted_tblname, top_n, order_val)
 
 def get_placeholder(dbe):
     return mg.DBE_MODULES[dbe].placeholder

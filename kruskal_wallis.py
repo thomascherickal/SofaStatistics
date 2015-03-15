@@ -47,7 +47,11 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
                 % b.ue(e))
-        script_lst = [u"dp = 3"]        
+        script_lst = [u"dp = 3"]
+        
+        script_lst.append(u"import time")
+        script_lst.append(u"t1 = time.time()")
+               
         script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
         lst_samples = []
         lst_labels = []
