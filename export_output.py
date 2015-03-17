@@ -734,10 +734,15 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
                 and thus naake use of the largely self-contained gs
                 (ghostscript) binary there.
 
-                These changes should be done once per session of SOFA, not once
-                per call to this function. See end of module.
+                These changes don't persist it seems so OK to call multiple
+                times here.
                 """
-                convert = u'"%s/convert"' % MAC_FRAMEWORK_PATH
+                #import os
+                #print(os.environ["PATH"])
+                convert = (u'export PATH="%(framework_path)s:${PATH}" '
+                    u'&& export MAGICK_CONFIGURE_PATH="%(framework_path)s" '
+                    u'&& "%(framework_path)s/convert"' 
+                    % {"framework_path": MAC_FRAMEWORK_PATH})
             elif mg.PLATFORM == mg.LINUX:
                 convert = u"convert"
             else:
@@ -829,7 +834,3 @@ def copy_output():
     wx.TheClipboard.Close()
     bi.Destroy()
     lib.safe_end_cursor()
-
-if mg.PLATFORM == mg.MAC:
-    shellit(u'export PATH="%s:${PATH}"' % MAC_FRAMEWORK_PATH)
-    shellit(u'export MAGICK_CONFIGURE_PATH="%s"' % MAC_FRAMEWORK_PATH)

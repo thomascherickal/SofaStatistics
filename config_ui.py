@@ -195,12 +195,12 @@ class ConfigUI(object):
     def __init__(self, autoupdate):
         """
         This interface is used in two cases - where we want changes to be 
-            automatically shared across all subsequent operations e.g. selecting 
-            a different style; and where we don't e.g. when modifying a project 
-            file. In the latter case, we only want changes to become global when 
-            a project is selected, not while configuring a project. We might 
-            modify a project but not select it e.g. cancel on projselect stage. 
-            Use self.autoupdate as determinant.
+        automatically shared across all subsequent operations e.g. selecting a
+        different style; and where we don't e.g. when modifying a project file.
+        In the latter case, we only want changes to become global when a project
+        is selected, not while configuring a project. We might modify a project
+        but not select it e.g. cancel on projselect stage. Use self.autoupdate
+        as determinant.
         """
         debug = False
         if debug: print("autoupdate got set")
@@ -318,8 +318,12 @@ class ConfigUI(object):
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
             size=(300,-1))
         self.txt_report_file.SetFont(mg.GEN_FONT)
-        self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
-            self.on_report_file_lost_focus)
+        if mg.PLATFORM != mg.MAC:
+            self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
+                self.on_report_file_lost_focus) # doesn't work with Mac
+        else:
+            self.txt_report_file.Bind(wx.EVT_TEXT, 
+                self.on_report_file_text_change)
         self.txt_report_file.Enable(not self.readonly)
         self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.SetFont(mg.BTN_FONT)
@@ -733,6 +737,13 @@ class ConfigUI(object):
         event.Skip()
 
     def on_report_file_lost_focus(self, event):
+        "Reset report output file"
+        if self.autoupdate:
+            cc = output.get_cc()
+            cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
+        event.Skip()
+    
+    def on_report_file_text_change(self, event):
         "Reset report output file"
         if self.autoupdate:
             cc = output.get_cc()
