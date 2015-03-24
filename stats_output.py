@@ -713,10 +713,18 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         html.append(u"<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
+    html.append(u"<hr><p>Interpreting the Proportions chart - look at the "
+        u"\"All combined\" category - the more different the other "
+        U"%(var_label_a)s categories look from this the more likely the Chi "
+        u"Square test will detect a difference. Within each %(var_label_a)s "
+        u"category the %(var_label_b)s values add up to 1 i.e. 100%%. This is "
+        u"not the same way of displaying data as a clustered bar chart although"
+        u" the similarity can be confusing.</p>" % {"var_label_a": var_label_a,
+        "var_label_b": var_label_b})
     grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
     output.append_divider(html, title, indiv_title=u"")
-    add_clustered_barcharts(grid_bg, item_colours, line_colour, lst_obs, 
-        var_label_a, var_label_b, val_labels_a, val_labels_b, val_labels_a_n, 
+    add_chi_square_clustered_barcharts(grid_bg, item_colours, line_colour,
+        lst_obs, var_label_a, var_label_b, val_labels_a, val_labels_b,
         val_labels_b_n, add_to_report, report_name, html)
     return u"".join(html)
 
@@ -732,8 +740,8 @@ def get_xaxis_fontsize(val_labels):
         fontsize = 11
     return fontsize
 
-def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs, 
-        var_label_a, var_label_b, val_labels_a, val_labels_b, val_labels_a_n, 
+def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
+        lst_obs, var_label_a, var_label_b, val_labels_a, val_labels_b,
         val_labels_b_n, add_to_report, report_name, html):
     # NB list_obs is bs within a and we need the other way around
     debug = False
@@ -751,6 +759,13 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     as_in_bs_lst = bs_in_as.transpose().tolist()
     # proportions of b within a
     propns_bs_in_as = []
+    # expected propn bs in as - so we have a reference to compare rest to
+    total = sum(lst_obs)
+    expected_propn_bs_in_as = []
+    for as_in_b_lst in as_in_bs_lst:
+        expected_propn_bs_in_as.append(float(sum(as_in_b_lst))/float(total))
+    propns_bs_in_as.append(expected_propn_bs_in_as)
+    # actual observed bs in as
     bs_in_as_lst = bs_in_as.tolist()
     for bs in bs_in_as_lst:
         propns_lst = []
@@ -759,12 +774,14 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
         propns_bs_in_as.append(propns_lst)
     propns_as_in_bs_lst = np.array(propns_bs_in_as).transpose().tolist()
     if debug:
+        print(lst_obs)
         print(bs_in_as)
         print(as_in_bs_lst)
+        print(bs_in_as_lst)
         print(propns_as_in_bs_lst)
     title_tmp = _("%(laba)s and %(labb)s - %(y)s")
     title_overrides = {"fontsize": 14}
-    # chart 1 - proportions
+    # chart 1 - proportions ****************************************************
     plot = boomslang.Plot()
     y_label = _("Proportion")
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
@@ -775,14 +792,16 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setAxesLabelSize(11)
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
+    val_labels_a_with_ref = val_labels_a[:]
+    val_labels_a_with_ref.insert(0, "All\ncombined")
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
-        plot, var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
+        plot, var_label_a, y_label, val_labels_a_with_ref, val_labels_b,
         propns_as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
         save_func=plot.save, dpi=None)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     output.append_divider(html, title, indiv_title=u"proportion")
-    # chart 2 - freqs
+    # chart 2 - freqs **********************************************************
     plot = boomslang.Plot()
     y_label = _("Frequency")
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
@@ -795,8 +814,7 @@ def add_clustered_barcharts(grid_bg, bar_colours, line_colour, lst_obs,
     plot.setLegendLabelSize(9)
     # only need 6 because program limits to that. See core_stats.get_obs_exp().
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
-        plot, var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
-        as_in_bs_lst)
+        plot, var_label_a, y_label, val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
         save_func=plot.save, dpi=None)
     html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))

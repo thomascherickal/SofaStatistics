@@ -73,8 +73,7 @@ def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
     pylab.rcParams.update(params)
 
 def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
-        var_label_a, y_label, val_labels_a_n, val_labels_a, val_labels_b, 
-        as_in_bs_lst):
+        var_label_a, y_label, val_labels_a, val_labels_b, as_in_bs_lst):
     """
     Clustered bar charts
     
@@ -87,7 +86,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
     labels_n = len(val_labels_b)
     for i, val_label_b in enumerate(val_labels_b):
         cluster = boomslang.Bar()
-        x_vals = range(val_labels_a_n)
+        x_vals = range(len(val_labels_a))
         cluster.xValues = x_vals
         y_vals = as_in_bs_lst[i]
         if debug:

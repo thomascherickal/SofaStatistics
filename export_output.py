@@ -731,7 +731,7 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
                 file name, AND that the environment variable
                 MAGICK_CONFIGURE_PATH has been set to the framework path so
                 that imagemagick convert can find delegates.xml (and colors.xml)
-                and thus naake use of the largely self-contained gs
+                and thus make use of the largely self-contained gs
                 (ghostscript) binary there.
 
                 These changes don't persist it seems so OK to call multiple
@@ -757,9 +757,10 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
             else:
                 if verbose: print("%s returned %s" % (cmd, retcode))
         except Exception, e:
-            if debug: 
-                print(u"Failed to read PDF into image. Did you manually install"
-                    u" the ImageMagick package first? Orig error: %s" % b.ue(e))
+            wx.MessageBox(u"Unable to convert PDF into image. Please pass on "
+                u"this error message to the developer at %s. Orig error: %s" % 
+                (mg.CONTACT, b.ue(e)))
+            print(u"Failed to read PDF into image. Orig error: %s" % b.ue(e))
             break
         imgs_made.append(img_made)
     return imgs_made

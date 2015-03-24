@@ -1240,9 +1240,16 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
         xfontsize = 8
     else:
         xfontsize = 9
-    init_margin_offset_l = 30 if width > 1200 else 18 # else gets squeezed out e.g. in percent
+    init_margin_offset_l = 35 if width > 1200 else 25 # else gets squeezed out e.g. in percent
     minor_ticks = u"true" if n_clusters > 8 else u"false"
     if debug: print(width, xgap, xfontsize, minor_ticks, init_margin_offset_l)
+    """
+    dlg = wx.NumberEntryDialog(None, "Set Initial margin offset left",
+        "Go on", "Set it!", 20, -100, 100)
+    if dlg.ShowModal() == wx.ID_OK:
+        init_margin_offset_l = dlg.GetValue()
+    dlg.Destroy()
+    """
     return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
 def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width, 

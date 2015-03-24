@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = True # relates to errors etc once GUI application running.
+dev_debug = False # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
 show_more_steps = True
@@ -288,9 +288,10 @@ def get_langid_and_name(langdir):
                 u"%(orig_langname)s yet. SOFA will operate in "
                 u"%(langname_used)s instead. If you are able to help "
                 u"translate English into %(orig_langname)s please "
-                u"contact grant@sofastatistics.com." % 
+                u"contact %(contact)s." % 
                 {"orig_langname": orig_langname, 
-                "langname_used": langname_used})
+                "langname_used": langname_used,
+                "contact": mg.CONTACT})
             print(msg)
     return langid, orig_langname
 
@@ -311,8 +312,8 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
         u" operating perfectly apart from the attempt to set the "
         u"translation.\n\nDoes your system have %(orig_langname)s "
         u"installed?%(cli)s\n\nThe developer may be able to supply extra "
-        u"help: grant@sofastatistics.com" % {"orig_langname": orig_langname, 
-        "cli": cli})
+        u"help: %(contact)s" % {"orig_langname": orig_langname, 
+        "cli": cli, "contact": mg.CONTACT})
     try:
         lang = mylocale.GetLanguage()
     except Exception, e:

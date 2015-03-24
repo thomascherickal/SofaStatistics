@@ -604,7 +604,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 break
         if n_vals == mg.MAX_GROUPS4DROPDOWN:
             if high_n_recs:
-                chop_warning = _("Showing first 20 groups in\n in first "
+                chop_warning = _("Showing first %s groups in\n in first "
                                  "%s rows") % (mg.MAX_GROUPS4DROPDOWN, strn)
             else:
                 chop_warning =_("Showing first %s unique groups" % 
