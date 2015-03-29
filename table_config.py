@@ -529,9 +529,12 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_design_left.Add(lbl_design_here, 0)
         if not self.readonly:
-            lbl_sofa_id = wx.StaticText(self.panel, -1, 
-                _("The sofa_id is required and cannot be edited"))
-            szr_design_left.Add(lbl_sofa_id, 0)
+            lbl_guidance = wx.StaticText(self.panel, -1, 
+                _("If you're new to designing data structures,"
+                "\nit may help to look at the data structure "
+                "\npage of www.sofastatistics.com/userguide.php"
+                "\n\nNote - the sofa_id is required and cannot be edited."))
+            szr_design_left.Add(lbl_guidance, 0)
         self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
             grid_size, col_dets, init_fld_settings, fld_settings, 
             insert_data_func, cell_invalidation_func, cell_response_func)

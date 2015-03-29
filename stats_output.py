@@ -783,7 +783,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     title_overrides = {"fontsize": 14}
     # chart 1 - proportions ****************************************************
     plot = boomslang.Plot()
-    y_label = _("Proportion")
+    y_label = _("Proportions")
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
     plot.setTitle(title)
     plot.setTitleProperties(title_overrides)
@@ -803,7 +803,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     output.append_divider(html, title, indiv_title=u"proportion")
     # chart 2 - freqs **********************************************************
     plot = boomslang.Plot()
-    y_label = _("Frequency")
+    y_label = _("Frequencies")
     title = title_tmp % {"laba": var_label_a, "labb": var_label_b, "y": y_label}
     plot.setTitle(title)
     plot.setTitleProperties(title_overrides)

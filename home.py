@@ -505,8 +505,6 @@ class StartFrame(wx.Frame):
         # NB cannot have transparent background properly in Windows if using
         # a static ctrl 
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
-        self.txtWelcome = _(u"Welcome to SOFA Statistics. Hovering the mouse "
-            "over the buttons lets you see what you can do.")
         if mg.PLATFORM == mg.MAC:
             self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
         elif mg.PLATFORM == mg.WINDOWS:
@@ -1059,8 +1057,13 @@ class StartFrame(wx.Frame):
                 "\nanalysis & reporting package"), wx.Rect(self.main_left, 115, 
                 100, 100))
             panel_dc.SetFont(self.help_font)
-            panel_dc.DrawLabel(lib.get_text_to_draw(self.txtWelcome, 
-                self.max_help_text_width), wx.Rect(self.main_left, 
+            txt1 = _(u"Welcome to SOFA Statistics. Hovering the mouse "
+                u"over the buttons lets you see what you can do.")
+            txt2 = _(u"Note - SOFA is great at working with raw data. For data "
+                u"that is already summarised you need to use other tools.")
+            txt2draw = (lib.get_text_to_draw(txt1, self.max_help_text_width) + 
+                u"\n\n" + lib.get_text_to_draw(txt2, self.max_help_text_width))
+            panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, 
                 self.help_text_top, self.help_text_width, 260))
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
