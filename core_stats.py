@@ -873,12 +873,13 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              mg.STATS_DIC_CI: ci95_b}
     return t, p, dic_a, dic_b, df, diffs
 
-def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
+def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
+    headless=False):
     """
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
         presentation.  Also added calculation of mean ranks, plus min and 
-        max values. And changed error type.
+        max values. And changed error type. And added headless option.
     -------------------------------------
     Calculates a Mann-Whitney U statistic on the provided scores and
     returns the result.  Use only when the n in each condition is < 20 and
@@ -892,7 +893,7 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     """
     n_a = len(sample_a)
     n_b = len(sample_b)
-    ranked = rankdata(sample_a + sample_b)
+    ranked = rankdata(sample_a + sample_b, headless)
     rank_a = ranked[0:n_a]       # get the sample_a ranks
     rank_b = ranked[n_a:]        # the rest are sample_b ranks
     avg_rank_a = mean(rank_a)
@@ -922,10 +923,12 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
              mg.STATS_DIC_MAX: max_b}
     return smallu, p, dic_a, dic_b, z
 
-def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
+def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
+    headless=False):
     """
     From stats.py.  Added error trapping. Changes to variable labels.
-    Added calculation of n, medians, plus min and max values.
+    Added calculation of n, medians, plus min and max values. And added headless
+    option.
     -------------------------------------
     Calculates the Wilcoxon T-test for related samples and returns the
     result.  A non-parametric T-test.
@@ -947,7 +950,7 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
             d.append(diff)
     count = len(d)
     absd = map(abs, d)
-    absranked = rankdata(absd)
+    absranked = rankdata(absd, headless)
     r_plus = 0.0
     r_minus = 0.0
     for i in range(len(absd)):
@@ -1037,9 +1040,9 @@ def pearsonr(x,y):
     prob = betai(0.5*df,0.5,df/float(df+t*t))
     return r, prob, df
 
-def spearmanr(x,y):
+def spearmanr(x,y, headless=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes apart from addition of headless option.
     -------------------------------------
     Calculates a Spearman rank-order correlation coefficient.  Taken
     from Heiman's Basic Statistics for the Behav. Sci (1st), p.192.
@@ -1051,8 +1054,8 @@ def spearmanr(x,y):
     if len(x) <> len(y):
         raise ValueError(u"Input values not paired in spearmanr.  Aborting.")
     n = len(x)
-    rankx = rankdata(x)
-    ranky = rankdata(y)
+    rankx = rankdata(x, headless)
+    ranky = rankdata(y, headless=True) # don't ask twice
     dsq = sumdiffsquared(rankx,ranky)
     rs = 1 - 6*dsq / float(n*(n**2-1))
     t = rs * math.sqrt((n-2) / ((rs+1.0)*(1.0-rs)))
@@ -1062,9 +1065,9 @@ def spearmanr(x,y):
     # Numerical Recipes, p.510.  They are close to tables, but not exact. (?)
     return rs, probrs, df
 
-def rankdata(inlist):
+def rankdata(inlist, headless=False):
     """
-    From stats.py.  No changes.  
+    From stats.py.  No changes apart from headless addition.  
     -------------------------------------
     Ranks the data in inlist, dealing with ties appropriately.  Assumes
     a 1D inlist.  Adapted from Gary Perlman's |Stat ranksort.
@@ -1073,6 +1076,15 @@ def rankdata(inlist):
     Returns: a list of length equal to inlist, containing rank scores
     """
     n = len(inlist)
+    # -----------------------
+    if not headless and n > mg.MAX_RANKDATA_VALS:
+        import wx
+        if wx.MessageBox(_(u"The rankdata function will run very slowly with "
+                u"this many records (%s). Do you wish to continue?") % n, 
+                caption=_("HIGH NUMBER OF RECORDS"), 
+                style=wx.YES_NO) == wx.NO:
+            raise Exception(u"Too many records to continue with analysis")
+    # -----------------------
     svec, ivec = shellsort(inlist)
     sumranks = 0
     dupcount = 0

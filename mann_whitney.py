@@ -67,8 +67,8 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
-        script_lst.append(u"u, p, dic_a, dic_b, z = " + \
-            u"core_stats.mannwhitneyu(sample_a, sample_b, label_a, label_b)")
+        script_lst.append(u"u, p, dic_a, dic_b, z = core_stats.mannwhitneyu("
+            u"sample_a, sample_b, label_a, label_b, headless=False)")
         script_lst.append(u"""
 mann_whitney_output = stats_output.mann_whitney_output(u, p, label_gp, dic_a, 
     dic_b, z, label_ranked, css_fil=u"%(css_fil)s", 

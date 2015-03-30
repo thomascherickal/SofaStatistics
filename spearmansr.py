@@ -58,7 +58,7 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"r, p, df = core_stats.spearmanr(sample_a, "
-                          u"sample_b)")
+                          u"sample_b, headless=False)")
         script_lst.append(u"""
 spearmansr_output = stats_output.spearmansr_output(sample_a, sample_b, r, p, df,
     label_a, label_b, add_to_report, report_name,
