@@ -398,33 +398,25 @@ def is_blank_raw_val(raw_val):
     """
     return raw_val in (u"", u"''", u'""', None)
 
-def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
-        faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
-    """
-    feedback -- dic with mg.NULLED_DOTS
-    
-    Missing values are OK in numeric and date fields in the source field being 
-    imported, but a missing value indicator (e.g. ".") is not. Must be 
-    converted to a null. A missing value indicator is fine in the data _once it 
-    has been imported_ but not beforehand.
-    
-    Checking is always necessary, even for a sample which has already been 
-    examined. May have found a variable conflict and need to handle it after it 
-    raises a mismatch error by turning faulty values to nulls.
-    """
+def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,  
+        comma_dec_sep_ok=False):
     debug = False
     ok_data = False        
     if fldtype == mg.FLDTYPE_NUMERIC_KEY:
         # must be numeric or empty string or dot (which we'll turn to NULL)
         if lib.is_numeric(raw_val, comma_dec_sep_ok):
-            ok_data = True
-            try:
-                if comma_dec_sep_ok:
-                    val = raw_val.replace(u",", u".")
-                else:
+            if raw_val == "NaN":
+                ok_data = True
+                val = u"NULL"
+            else:
+                ok_data = True
+                try:
+                    if comma_dec_sep_ok:
+                        val = raw_val.replace(u",", u".")
+                    else:
+                        val = raw_val
+                except AttributeError:
                     val = raw_val
-            except AttributeError:
-                val = raw_val
         elif is_blank_raw_val(raw_val):
             ok_data = True
             val = u"NULL"
@@ -470,6 +462,24 @@ def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
             val = raw_val
     else:
         raise Exception(u"Unexpected field type in importer.get_val()")
+    return val, ok_data
+
+def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
+        faulty2missing_fld_list, row_num, comma_dec_sep_ok=False):
+    """
+    feedback -- dic with mg.NULLED_DOTS
+    
+    Missing values are OK in numeric and date fields in the source field being 
+    imported, but a missing value indicator (e.g. ".") is not. Must be 
+    converted to a null. A missing value indicator is fine in the data _once it 
+    has been imported_ but not beforehand.
+    
+    Checking is always necessary, even for a sample which has already been 
+    examined. May have found a variable conflict and need to handle it after it 
+    raises a mismatch error by turning faulty values to nulls.
+    """
+    val, ok_data = get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
+        comma_dec_sep_ok)
     if not ok_data:
         if ok_fldname in faulty2missing_fld_list:
             val = u"NULL" # replace faulty value with a null
