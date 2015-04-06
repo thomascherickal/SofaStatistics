@@ -74,8 +74,10 @@ KURT_EXPLAN = (u"Kurtosis measures the peakedness or flatness of values. "
 SKEW_EXPLAN = (u"Skew measures the lopsidedness of values. "
    u" Between -2 and 2 means skew is unlikely to be a problem. Between -1 "
    u"and 1 means skew is quite unlikely to be a problem.")
-CI_EXPLAN = (u"We are 95%% certain that the true value of the mean is within "
-    u"this interval. But it could still lie anywhere outside of those bounds.")
+CI_EXPLAN = (u"There is a 95%% chance the population mean is within the "
+    u"confidence interval calculated for this sample. Don't forget, of course, "
+    u"that the population mean could lie well outside the interval bounds. Note"
+    u" - many statisticians argue about the best wording for this conclusion.")
 # stats output *******************************************************
 OUTPUT_RESULTS_ONLY = u"Output results only"
 # NOTE - GUI consumes labels (so translated strings are needed); script consumes untranslated keys so scripts can run safely headless
