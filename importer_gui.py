@@ -26,6 +26,15 @@ FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
     u"\nExpected column type: %(fldtype)s")
 ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
+IMPORT_EXTENTIONS = {
+    u"csv": u".csv",
+    u"tsv": u".tsv",
+    u"tab": u".tab",
+    u"txt": u".txt",
+    u"xls": u".xls",
+    u"xlsx": u".xlsx",
+    u"ods": u".ods", }
+
 
 class DummyProgbar(object):
     def SetValue(self, value):
@@ -166,8 +175,20 @@ class DlgImportFileSelect(wx.Dialog):
         event.Skip()
 
     def on_btn_file_path(self, event):
-        "Open dialog and take the file selected (if any)"
-        dlg_get_file = wx.FileDialog(self) #, message=..., wildcard=...
+        """
+        Open dialog and take the file selected (if any).
+        
+        E.g. separate wildcard setting:
+            "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
+        E.g. consolidated settings: "pictures (*.jpeg,*.png)|*.jpeg;*.png"
+        """
+        exts = [u"*%s" % x for x in IMPORT_EXTENTIONS.values()]
+        exts.sort()
+        wildcard_comma_bits = u",".join(exts)
+        wildcard_semi_colon_bits = u";".join(exts)
+        wildcard = u"Data Files (%s)|%s" % (wildcard_comma_bits,
+            wildcard_semi_colon_bits)
+        dlg_get_file = wx.FileDialog(self, wildcard=wildcard) #, message=..., wildcard=...
         # defaultDir="spreadsheets", defaultFile="", )
         # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
@@ -310,9 +331,10 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             return
     # identify file type
     unused, extension = get_file_start_ext(file_path)
-    if extension.lower() in (u".csv", u".tsv", u".tab"):
+    if extension.lower() in (IMPORT_EXTENTIONS[u"csv"],
+            IMPORT_EXTENTIONS[u"tsv"], IMPORT_EXTENTIONS[u"tab"]):
         self.file_type = FILE_CSV
-    elif extension.lower() == u".txt":
+    elif extension.lower() == IMPORT_EXTENTIONS[u"txt"]:
         if headless:
             self.file_type = FILE_CSV
         else:
@@ -327,9 +349,10 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 return
             else:
                 self.file_type = FILE_CSV
-    elif extension.lower() in (u".xls", u".xlsx"):
+    elif extension.lower() in (IMPORT_EXTENTIONS[u"xls"],
+            IMPORT_EXTENTIONS[u"xlsx"]):
         self.file_type = FILE_EXCEL
-    elif extension.lower() == u".ods":
+    elif extension.lower() == IMPORT_EXTENTIONS[u"ods"]:
         self.file_type = FILE_ODS
     else:
         unknown_msg = _("Files with the file name extension "
