@@ -94,7 +94,7 @@ except AttributeError:
     EXE_TMP = u""
 
 output_item = namedtuple('output_item', 'title, content')
-
+img_creation_problem = False
 
 class Prog2console(object):
     def SetValue(self, value):
@@ -378,11 +378,15 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
         gauge2show += steps_per_img
         if progbar: progbar.SetValue(gauge2show)
     if save2report_path:
-        img_saved_msg = (_(u"Images have been saved to: \"%s\"") % imgs_path)
+        img_saved_msg = (_(u"Images have been saved to: \"%s\".") % imgs_path)
     else:
         foldername = os.path.split(alternative_path)[1]
         img_saved_msg = (u"Images have been saved to your desktop in the "
-            u"\"%s\" folder" % foldername)
+            u"\"%s\" folder." % foldername)
+    if img_creation_problem:
+        img_saved_msg += (u"\n\nThere may have been a problem making some of "
+            u"the images - please contact the developer at %s for assistance" %
+            mg.CONTACT)
     if not headless:
         msgs.append(img_saved_msg)
 
@@ -581,6 +585,12 @@ def pdf2png_ghostscript(png2read_path, i, pdf_path, dpi):
 def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext, 
         bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=300):
     """
+    If a single-page PDF will always be an exception when trying to make a non-
+    existent page 2 into an image. But we (apparently) need to try and fail to
+    know when to stop. Failing to make a first page, on the other hand, is
+    always an error. Clearly, we don't return an image_made string if we didn't
+    actually make an image so we return None instead.
+    
     Return img_made or None. Returning None lets calling function break loop 
         through pages.
     """
@@ -683,6 +693,16 @@ def try_pdf_page_to_img_pythonmagick(pdf_path, i, img_pth_no_ext,
     im.write(u2utf8(img_made))
     return img_made
 
+def check_img_made(img_path):
+    """
+    Needed because call to make image can fail silently. We want to capture any
+    failures so we can alter message to user about success of making images.
+    """
+    global img_creation_problem
+    if not os.path.exists(img_path):
+        img_creation_problem = True
+        
+
 def pdf2img_pythonmagick(pdf_path, img_pth_no_ext, 
         bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=300):
     """
@@ -692,15 +712,18 @@ def pdf2img_pythonmagick(pdf_path, img_pth_no_ext,
     debug = False
     if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     imgs_made = []
-    n_pages = get_pdf_page_count(pdf_path)
+    n_pages = get_pdf_page_count(pdf_path) # may include blank page at end
     for i in range(n_pages):
         try:
             img_made = try_pdf_page_to_img_pythonmagick(pdf_path, i, 
                 img_pth_no_ext, bgcolour, output_dpi)
+            if img_made is None:
+                break # not a content page - just a trailing empty page
         except Exception, e:
             raise Exception(u"Failed to convert PDF into image using "
                 u"PythonMagick. Orig error: %s" % b.ue(e))
         if debug: print(u"img_made: %s" % img_made)
+        check_img_made(img_path=img_made)
         imgs_made.append(img_made)
     return imgs_made
 
@@ -709,8 +732,9 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
     """
     Use ImageMagick directly side-stepping the Python wrapper.
     """
-    debug = False
+    debug = False # not used at present but all wired up ready
     if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
+    if debug: pass
     verbose = False
     imgs_made = []
     n_pages = get_pdf_page_count(pdf_path)
@@ -762,6 +786,7 @@ def pdf2img_imagemagick(pdf_path, img_pth_no_ext,
                 (mg.CONTACT, b.ue(e)))
             print(u"Failed to read PDF into image. Orig error: %s" % b.ue(e))
             break
+        check_img_made(img_path=img_made)
         imgs_made.append(img_made)
     return imgs_made
 
