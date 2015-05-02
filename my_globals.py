@@ -1014,6 +1014,9 @@ BTN_FONT = None
 BTN_BOLD_FONT = None
 GEN_FONT = None
 # exporting output
+MAC_FRAMEWORK_PATH = os.path.join(os.path.split(os.path.dirname(__file__))[0],
+    u"Frameworks") # where misc libraries will be (even if via soft link)
+#print(MAC_FRAMEWORK_PATH)
 OVERRIDE_FOLDER = None # override to send them somewhere specific
 EXPORT_IMAGES_DIAGNOSTIC = False # override to get more feedback
 EXPORT_IMG_GAUGE_STEPS = 100

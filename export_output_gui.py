@@ -14,6 +14,9 @@ import my_globals as mg
 import lib
 import my_exceptions
 import export_output
+import export_output_images
+import export_output_pdfs
+import export_output_spreadsheets
 
 PDF_ITEM_TAKES = 4
 TBL_ITEM_TAKES = 1
@@ -180,7 +183,7 @@ class DlgExportOutput(wx.Dialog):
             self.output_dpi, n_tbls)
         if do_pdf:
             try:
-                export_output.pdf_tasks(self.save2report_path, self.report_path, 
+                export_output_pdfs.pdf_tasks(self.save2report_path, self.report_path, 
                     temp_desktop_path, headless, gauge_start_pdf, steps_per_pdf, 
                     msgs, self.progbar)
             except Exception, e:
@@ -192,7 +195,7 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_imgs:
             try:
-                export_output.export2imgs(hdr, img_items, self.save2report_path, 
+                export_output_images.export2imgs(hdr, img_items, self.save2report_path, 
                     self.report_path, temp_desktop_path, self.output_dpi, 
                     gauge_start_imgs, headless, self.export_status, 
                     steps_per_img, msgs, self.progbar)
@@ -213,7 +216,7 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_tbls:
             try:
-                export_output.export2spreadsheet(hdr, tbl_items, 
+                export_output_spreadsheets.export2spreadsheet(hdr, tbl_items, 
                     self.save2report_path, self.report_path, temp_desktop_path, 
                     gauge_start_tbls, headless, steps_per_tbl, msgs, 
                     self.progbar)
