@@ -215,26 +215,30 @@ class DlgExportOutput(wx.Dialog):
                 self.export_status[mg.CANCEL_EXPORT] = False
                 return
         if do_tbls:
-            try:
-                export_output_spreadsheets.export2spreadsheet(hdr, tbl_items, 
-                    self.save2report_path, self.report_path, temp_desktop_path, 
-                    gauge_start_tbls, headless, steps_per_tbl, msgs, 
-                    self.progbar)
-            except Exception, e:
+            if n_tbls == 0:
+                wx.MessageBox(_(u"No report tables to export to spreadsheet - "
+                    u"skipping this task"))
+            else:
                 try:
-                    raise
-                except my_exceptions.ExportCancel:
-                    wx.MessageBox(u"Export Cancelled")
+                    export_output_spreadsheets.export2spreadsheet(hdr, tbl_items, 
+                        self.save2report_path, self.report_path, temp_desktop_path, 
+                        gauge_start_tbls, headless, steps_per_tbl, msgs, 
+                        self.progbar)
                 except Exception, e:
-                    msg = (u"Problem exporting output. Orig error: %s" % 
-                        b.ue(e))
-                    if debug: print(msg)
-                    wx.MessageBox(msg)
-                self.progbar.SetValue(0)
-                lib.safe_end_cursor()
-                self.align_btns_to_exporting(exporting=False)
-                self.export_status[mg.CANCEL_EXPORT] = False
-                return
+                    try:
+                        raise
+                    except my_exceptions.ExportCancel:
+                        wx.MessageBox(u"Export Cancelled")
+                    except Exception, e:
+                        msg = (u"Problem exporting output. Orig error: %s" % 
+                            b.ue(e))
+                        if debug: print(msg)
+                        wx.MessageBox(msg)
+                    self.progbar.SetValue(0)
+                    lib.safe_end_cursor()
+                    self.align_btns_to_exporting(exporting=False)
+                    self.export_status[mg.CANCEL_EXPORT] = False
+                    return
         self.progbar.SetValue(mg.EXPORT_IMG_GAUGE_STEPS)
         lib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)

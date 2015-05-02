@@ -1,8 +1,8 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
 """
-export2pdf(), and export2spreadsheet() do the real work and can be scripted
-outside the GUI. Set headless = True when calling.
+export2spreadsheet() can be scripted outside the GUI. Set headless = True when
+calling.
 """
 import codecs
 import os
