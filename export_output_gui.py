@@ -150,13 +150,22 @@ class DlgExportOutput(wx.Dialog):
         do_imgs = self.chk_imgs.IsChecked()
         do_tbls = self.chk_tbls.IsChecked()
         if not (do_pdf or do_imgs or do_tbls):
+            lib.safe_end_cursor()
             self.align_btns_to_exporting(exporting=False)
             wx.MessageBox(u"Please select a format(s) to export in.")
             return
-        self.align_btns_to_exporting(exporting=True)
         msgs = []
+        hdr, img_items, tbl_items = export_output.get_hdr_and_items(
+            self.report_path, mg.EXPORT_IMAGES_DIAGNOSTIC)
+        n_imgs = len(img_items)
+        n_tbls = len(tbl_items)
+        if not (do_pdf or (do_imgs and n_imgs) or (do_tbls and n_tbls)):
+            lib.safe_end_cursor()
+            self.align_btns_to_exporting(exporting=False)
+            wx.MessageBox(u"No output of the selected type(s) to export.")
+            return
+        self.align_btns_to_exporting(exporting=True)
         if self.save2report_path:
-            foldername = None
             temp_desktop_path = None
         else:
             # save to folder on desktop
@@ -169,10 +178,6 @@ class DlgExportOutput(wx.Dialog):
                 os.mkdir(temp_desktop_path)
             except OSError:
                 pass # already there
-        hdr, img_items, tbl_items = export_output.get_hdr_and_items(
-            self.report_path, mg.EXPORT_IMAGES_DIAGNOSTIC)
-        n_imgs = len(img_items)
-        n_tbls = len(tbl_items)
         idx_sel = self.drop_dpi.GetSelection()
         idx_dpi = 1
         self.output_dpi = self.choice_dpis[idx_sel][idx_dpi]

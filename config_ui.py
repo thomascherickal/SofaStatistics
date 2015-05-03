@@ -600,7 +600,7 @@ class ConfigUI(object):
             if self.export_output_enabled:
                 self.on_sel_export_output(event)
             else:
-                wx.MessageBox(u"Unable to export output")
+                wx.MessageBox(u"Unable to export output. Nothing to export?")
         elif idx_export_sel == 1:
             if self.copy_output_enabled:
                 self.on_sel_copy_output(event)
