@@ -163,29 +163,45 @@ def get_has_data_cells(el):
 def get_rows(tbl, inc_empty=True, n=None):
     """
     Note - not rows of values but element rows. Need special processing to work 
-        with.
+    with.
+    
     Even if empty rows are included, they are only included if there is a 
-        non-empty row afterwards (eventually).
-    Breaks if any rows repeated.
-    n -- all rows extracted. Only non-empty if inc_empty=False.
+    non-empty row afterwards (eventually).
+
+    n -- usually None meaning that all rows are extracted. Only non-empty rows
+    are included in collected rows and thus the count if inc_empty=False.
     """
     datarows = []
     prev_empty_rows_to_add = []
     for el in tbl:
-        if not el.tag.endswith("table-row"):
+        is_datarow = el.tag.endswith("table-row")
+        if not is_datarow:
             continue
         el_attribs = get_streamlined_attrib_dict(el.attrib.items())
-        if ROWS_REP in el_attribs:
+        repeated = ROWS_REP in el_attribs
+        has_data = get_has_data_cells(el)
+        deemed_end = (not has_data and repeated)
+        empty_row = (not has_data and not repeated)
+        ## Process data row
+        if has_data:  ## put empty rows in first (if any there to add) then the data row
+            datarows.extend(prev_empty_rows_to_add)  ## only something there if inc_empty
+            prev_empty_rows_to_add = []  ## refresh
+            if repeated:
+                n_same_rows = int(el_attribs[ROWS_REP])
+                for unused in range(n_same_rows):
+                    datarows.append(el)
+            else:
+                datarows.append(el)            
+        elif deemed_end:
             break
-        elif get_has_data_cells(el): # put empty rows in first (if any there to add) then the data row
-            datarows.extend(prev_empty_rows_to_add) # only something there if inc_empty
-            prev_empty_rows_to_add = []
-            datarows.append(el)            
-        else: # empty
-            if inc_empty:
-                prev_empty_rows_to_add.append(el)
+        elif empty_row and inc_empty:
+            prev_empty_rows_to_add.append(el)
+        else:
+            continue
+        ## Stop if enough data
         if n is not None:
-            if len(datarows) == n:
+            if len(datarows) >= n:
+                datarows = datarows[:n]  ## May have repeated rows added which bring total rows to more than allowed n
                 break
     return datarows
 

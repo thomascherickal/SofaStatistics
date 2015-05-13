@@ -9,8 +9,8 @@ import basic_lib as b
 import my_globals as mg
 import my_exceptions
 import lib
-import export_output
 import export_output_gui
+import export_output_images
 import db_grid
 import getdata
 import output
@@ -652,7 +652,7 @@ class ConfigUI(object):
     def on_sel_copy_output(self, event):
         wx.BeginBusyCursor()
         try:
-            export_output.copy_output()
+            export_output_images.copy_output()
             lib.safe_end_cursor()
             """
             Copying to the clipboard does not actually copy anything, it just 
