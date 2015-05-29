@@ -425,7 +425,7 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
             feedback[mg.NULLED_DOTS] = True
             val = u"NULL"
         else:
-            pass # no need to set val - not ok_data so exception later
+            val = raw_val  ## ok_data will still be false
     elif fldtype == mg.FLDTYPE_DATE_KEY:
         # must be pytime or datetime string or usable date string
         # or empty string or dot (which we'll turn to NULL).
@@ -451,8 +451,7 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
                     if debug: print(u"Date val: %s" % val)
                     ok_data = True
                 except Exception:
-                    pass
-                    # no need to set val - not ok_data so exception later
+                    val = raw_val  ## ok_data will still be false so exception will be raised
     elif fldtype == mg.FLDTYPE_STRING_KEY:
         # None or empty string we'll turn to NULL
         ok_data = True
