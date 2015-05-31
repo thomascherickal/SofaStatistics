@@ -1042,7 +1042,8 @@ def pearsonr(x,y):
 
 def spearmanr(x,y, headless=False):
     """
-    From stats.py.  No changes apart from addition of headless option.
+    From stats.py.  No changes apart from addition of headless option and
+    trapping zero division error.
     -------------------------------------
     Calculates a Spearman rank-order correlation coefficient.  Taken
     from Heiman's Basic Statistics for the Behav. Sci (1st), p.192.
@@ -1058,7 +1059,13 @@ def spearmanr(x,y, headless=False):
     ranky = rankdata(y, headless=True) # don't ask twice
     dsq = sumdiffsquared(rankx,ranky)
     rs = 1 - 6*dsq / float(n*(n**2-1))
-    t = rs * math.sqrt((n-2) / ((rs+1.0)*(1.0-rs)))
+    try:
+        t = rs * math.sqrt((n-2) / ((rs+1.0)*(1.0-rs)))
+    except ZeroDivisionError:
+        raise Exception(u"Unable to calculate Spearman's R. The raw scores "
+            u"value (rs) was %s so trying to divide by 1.0-rs meant trying to "
+            u"divide by zero which is an error. But still worth looking at a "
+            u"scatterplot chart to assess the relationship." % rs)
     df = n-2
     probrs = betai(0.5*df,0.5,df/(df+t*t))  # t already a float
     # probability values for rs are from part 2 of the spearman function in

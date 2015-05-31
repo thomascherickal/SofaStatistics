@@ -327,26 +327,6 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     elif sort_order == mg.SORT_LBL_KEY:
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
-def get_sorted_vals(sort_order, vals, lbls):
-    """
-    Get sorted values according to values in supplied list or their labels 
-    according to sort option selected.
-    
-    http://www.python.org/dev/peps/pep-0265/
-    """
-    if sort_order == mg.SORT_INCREASING_KEY:
-        sorted_vals = sorted(vals)
-    elif sort_order == mg.SORT_DECREASING_KEY:
-        sorted_vals = sorted(vals)
-        sorted_vals.sort(reverse=True)
-    elif sort_order == mg.SORT_LBL_KEY:
-        val_lbls = [(x, lbls.get(x, unicode(x))) for x in vals]
-        val_lbls.sort(key=itemgetter(1))
-        sorted_vals = [x[0] for x in val_lbls]
-    else:
-        sorted_vals = vals
-    return sorted_vals
-
 def extract_dojo_style(css_fil):
     try:
         f = codecs.open(css_fil, "r", "utf-8")
