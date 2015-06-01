@@ -188,14 +188,7 @@ def get_settings_dic(subfolder, fil_name):
     Used for project dics, preferences dics etc.
     """
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
-    try:
-        f = codecs.open(settings_path, "U", encoding="utf-8")
-    except IOError, e:
-        raise Exception("Unable to get settings from non-existent file %s"
-                        % settings_path)
-    settings_cont = b.get_exec_ready_text(text=f.read())
-    f.close()
-    settings_cont = b.clean_boms(settings_cont)
+    settings_cont = b.get_unicode_from_file(fpath=settings_path)
     settings_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

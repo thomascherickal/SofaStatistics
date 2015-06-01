@@ -33,7 +33,7 @@ def ue(e):
         print(repr(u"unicode_e is %s" % unicode_e))
     return unicode_e
 
-def clean_boms(orig_utf8):
+def guess_possible_encodings(bytestr):
     """
     Order matters. '\xff\xfe' starts utf-16 BOM but also starts 
     '\xff\xfe\x00\x00' the utf-32 BOM. Do the larger one first.
@@ -59,33 +59,60 @@ def clean_boms(orig_utf8):
     BOM_UTF32_BE = '\x00\x00\xfe\xff'
     BOM64_BE = '\x00\x00\xfe\xff'
     """
-    try:
-        str_orig = orig_utf8.encode("utf-8")
-    except UnicodeEncodeError:
-        raise Exception("cleans_boms() must be supplied a utf-8 unicode string")
-    if str_orig.startswith(codecs.BOM_UTF8): # '\xef\xbb\xbf'
-        len2rem = len(unicode(codecs.BOM_UTF8, "utf-8"))# 3 long in byte str, 1 in unicode str
-        bom_stripped = orig_utf8[len2rem:] # strip it off 
-        return bom_stripped
-    # that was the only one we strip BOM off. The rest need it.
-    if str_orig.startswith(codecs.BOM_UTF32): # '\xff\xfe\x00\x00'
-        possible_encodings = ["utf-32",]
-    elif str_orig.startswith(codecs.BOM_UTF16_BE): # '\xfe\xff'
-        possible_encodings = ["utf-16", "utf-32"]
-    elif str_orig.startswith(codecs.BOM_UTF16): # '\xff\xfe'
-        possible_encodings = ["utf-16", "utf-32"]
-    elif str_orig.startswith(codecs.BOM_UTF32_BE): # '\x00\x00\xfe\xff'
-        possible_encodings = ["utf-32",]
+    possible_encodings = []
+    if bytestr.startswith(codecs.BOM_UTF32): # '\xff\xfe\x00\x00'
+        extra_encodings = ["utf-32", ]
+    elif bytestr.startswith(codecs.BOM_UTF16_BE): # '\xfe\xff'
+        extra_encodings = ["utf-16", "utf-32"]
+    elif bytestr.startswith(codecs.BOM_UTF16): # '\xff\xfe'
+        extra_encodings = ["utf-16", "utf-32"]
+    elif bytestr.startswith(codecs.BOM_UTF32_BE): # '\x00\x00\xfe\xff'
+        extra_encodings = ["utf-32",]
     else:
-        return orig_utf8
-    # Handle those needing to be decoded
-    for possible_encoding in possible_encodings + ["utf-8",]:
+        extra_encodings = []
+    possible_encodings.extend(extra_encodings)
+    possible_encodings.append("utf-8")  ## last
+    return possible_encodings
+
+def clean_BOM_UTF8_from_bytestring(bytestr):
+    """
+    From codecs: BOM_UTF8 = '\xef\xbb\xbf'
+    
+    No need to strip any other BOMs off - in fact they're needed.
+    """
+    if bytestr.startswith(codecs.BOM_UTF8): # '\xef\xbb\xbf'
+        len2rem = len(codecs.BOM_UTF8)  ## 3 long in byte str, 1 in unicode str
+        bom_stripped = bytestr[len2rem:] # strip it off 
+    else:
+        bom_stripped = bytestr
+    return bom_stripped
+
+def get_unicode_from_file(fpath):
+    """
+    Particularly trying to cope with what Windows users manually do to text
+    files when editing them e.g. Notepad inserting a BOM in a utf-8 encoded
+    file. Intended for SOFA internal files e.g. reports, css files, proj files
+    etc.
+    """
+    try:
+        with open(fpath, "rb") as f:
+            bytestr = f.read()
+    except IOError, e:
+        raise Exception(u"Unable to read non-existent file %s" % fpath)
+    except Exception, e:
+        raise Exception(u"Unable to read from file '%s'" % (fpath, ue(e)))
+    bom_utf8_stripped = clean_BOM_UTF8_from_bytestring(bytestr)
+    possible_encodings = guess_possible_encodings(bytestr=bom_utf8_stripped)
+    fixed = None
+    for possible_encoding in possible_encodings:
         try:
-            fixed = orig_utf8.decode(possible_encoding)
-            return fixed
+            fixed = bom_utf8_stripped.decode(possible_encoding)
+            break
         except Exception:
             pass
-    return u"" # last ditch attempt to return something
+    if fixed is None:
+        raise Exception("Unable to convert text from '%s' into unicode" % fpath)
+    return fixed
 
 def get_exec_ready_text(text):
     """

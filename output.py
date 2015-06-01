@@ -528,7 +528,8 @@ def get_css_dets():
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        content = b.clean_boms(f.read())
+        text = f.read()
+        content = b.clean_boms(text)
         f.close()
         if content:
             try:
