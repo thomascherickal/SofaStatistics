@@ -902,11 +902,9 @@ class StartFrame(wx.Frame):
         if show_more_steps: print(u"About to attempt reading connect file")
         try:
             # read date from file if possible
-            f = codecs.open(sofastats_connect_fil, "U", encoding="utf-8")
-            connect_cont = b.get_exec_ready_text(text=f.read())
-            f.close()
+            connect_cont = b.get_unicode_from_file(fpath=sofastats_connect_fil)
+            connect_cont = b.get_exec_ready_text(connect_cont)
             if show_more_steps: print(u"Just got connection details")
-            connect_cont = b.clean_boms(connect_cont)
             connect_dic = {}
             # http://docs.python.org/reference/simple_stmts.html
             exec connect_cont in connect_dic

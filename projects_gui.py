@@ -214,10 +214,8 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         NB get any paths in form ready to display
         """
         proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
-        f = codecs.open(proj_path, "U", encoding="utf-8")
-        proj_txt = b.get_exec_ready_text(text=f.read())
-        f.close()
-        proj_cont = b.clean_boms(proj_txt)
+        proj_txt = b.get_unicode_from_file(fpath=proj_path)
+        proj_cont = b.get_exec_ready_text(text=proj_txt)
         proj_dic = {}
         try:
             exec proj_cont in proj_dic

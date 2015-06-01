@@ -527,10 +527,7 @@ def get_css_dets():
     css_fils = None
     # read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
-        f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        text = f.read()
-        content = b.clean_boms(text)
-        f.close()
+        content = b.get_unicode_from_file(fpath=cc[mg.CURRENT_REPORT_PATH])
         if content:
             try:
                 idx_start = content.index(mg.CSS_FILS_START_TAG) + len("<!--")
@@ -870,8 +867,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     n_charts_in_new = get_makechartRenumbers_n(new_html)
     existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
     if existing_report:
-        f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "U", "utf-8")
-        existing_html = b.clean_boms(f.read())
+        existing_html = b.get_unicode_from_file(fpath=cc[mg.CURRENT_REPORT_PATH])
         existing_has_dojo = hdr_has_dojo(existing_html)
         has_dojo = (new_has_dojo or existing_has_dojo)
         if has_dojo:
@@ -885,7 +881,6 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
             if debug: print("n_charts: %s, new_n_charts: %s" % (js_n_charts, 
                 new_js_n_charts))
         existing_no_ends = extract_html_body(existing_html)
-        f.close()        
     else:
         has_dojo = new_has_dojo
         if has_dojo:
@@ -959,9 +954,7 @@ def export_script(script, css_fils, new_has_dojo=False):
     modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
         "output", "rawtables", "stats_output"]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
-        f = codecs.open(cc[mg.CURRENT_SCRIPT_PATH], "U", "utf-8")
-        existing_script = b.clean_boms(f.read())             
-        f.close()
+        existing_script = b.get_unicode_from_file(fpath=cc[mg.CURRENT_SCRIPT_PATH])
     else:
         existing_script = None
     try:
@@ -1099,12 +1092,8 @@ def generate_script(modules, css_fils, new_has_dojo, inner_script,
 
 def run_script():
     try:
-        f = codecs.open(mg.INT_SCRIPT_PATH, "r", "utf-8")
-        script_txt = f.read()
-        f.close()
-        script_txt = b.get_exec_ready_text(text=script_txt)
-        script = b.clean_boms(script_txt)    
-        script = script[script.index(mg.MAIN_SCRIPT_START):]
+        script_txt = b.get_unicode_from_file(fpath=mg.INT_SCRIPT_PATH)
+        script = script_txt[script_txt.index(mg.MAIN_SCRIPT_START):]
     except Exception, e:
         raise Exception(u"Unable to read part of script for execution."
             u"\nOrig error: %s" % b.ue(e))
@@ -1144,9 +1133,7 @@ def get_raw_results():
     debug = False
     verbose = False
     try:
-        with codecs.open(mg.INT_REPORT_PATH, "U", "utf-8") as f:
-            raw_results = b.clean_boms(f.read())
-            f.close()
+        raw_results = b.get_unicode_from_file(fpath=mg.INT_REPORT_PATH)
         if debug and verbose: print(raw_results)
     except Exception, e:
         raise Exception(u"Unable to read local copy of output report."

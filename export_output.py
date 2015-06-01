@@ -62,25 +62,12 @@ def shellit(cmd, shell=True):
     else:
         if debug and verbose: print("%s returned %s" % (cmd, retcode))
 
-def get_raw_html(report_path):
-    """
-    Get the BOM-cleaned HTML text for the specified report.
-    """
-    try:
-        with codecs.open(report_path, "U", "utf-8") as f:
-            raw_html = b.clean_boms(f.read())
-            f.close()
-    except IOError:
-        raise Exception(u"Unable to get items from report file - it doesn't "
-            u"exist yet.") # should only see this when running headless via a script - otherwise should be picked up by GUI-level validation.
-    return raw_html
-
 def get_split_html(report_path):
     """
     Get the report HTML text split by the standard divider 
     (e.g. <!-- _SOFASTATS_ITEM_DIVIDER -->).
     """
-    raw_html = get_raw_html(report_path)
+    raw_html = b.get_unicode_from_file(fpath=report_path)  ## should only see an exception here when running headless via a script - otherwise should be picked up by GUI-level validation.
     if not raw_html:
         raise Exception(u"No raw html found in report file.")
     split_html = raw_html.split(mg.OUTPUT_ITEM_DIVIDER)

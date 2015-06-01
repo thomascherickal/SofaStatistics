@@ -301,10 +301,8 @@ def run_test_code(script):
     test_path = os.path.join(mg.INT_PATH, script)
     if not os.path.exists(test_path):
         return
-    f = codecs.open(test_path, "r", "utf-8")
-    test_code = b.get_exec_ready_text(text=f.read())
-    f.close()
-    test_code = b.clean_boms(test_code)
+    test_code = b.get_unicode_from_file(fpath=test_path)
+    test_code = b.get_exec_ready_text(text=test_code)
     test_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html

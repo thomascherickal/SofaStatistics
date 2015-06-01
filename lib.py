@@ -765,10 +765,8 @@ def esc_str_input(raw):
 def get_invalid_var_dets_msg(fil_var_dets):
     debug = False
     try:
-        f = codecs.open(fil_var_dets, "U", encoding="utf-8")
-        var_dets_txt = b.get_exec_ready_text(text=f.read())
-        f.close()
-        var_dets = b.clean_boms(var_dets_txt)
+        var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
+        var_dets = b.get_exec_ready_text(text=var_dets)
         var_dets_dic = {}
         exec var_dets in var_dets_dic
         if debug: wx.MessageBox(u"%s got a clean bill of health from "
@@ -788,13 +786,8 @@ def get_var_dets(fil_var_dets):
     for them to fix the variable details/change the project settings etc. 
     """
     empty_var_dets = ({},{},{},{})
-    try:
-        f = codecs.open(fil_var_dets, "U", encoding="utf-8")
-    except IOError:
-        return empty_var_dets
-    var_dets_txt = b.get_exec_ready_text(text=f.read())
-    f.close()
-    var_dets = b.clean_boms(var_dets_txt)
+    var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
+    var_dets = b.get_exec_ready_text(text=var_dets)
     var_dets_dic = {}
     results = empty_var_dets # init
     try: # http://docs.python.org/reference/simple_stmts.html
