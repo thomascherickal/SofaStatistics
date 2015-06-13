@@ -498,12 +498,7 @@ makeScatterplot = function(chartname, series, chartconf){
                     min: chartconf["ymin"], max: chartconf["ymax"],
                     vertical: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
-    mychart.addPlot("default", {type: "Scatter"});
-    mychart.addPlot("grid", {type: "Grid", vMajorLines: true});
-    var i
-    for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["xyPairs"], series[i]["style"]);
-    }
+    // plot line first so on top
     if(incRegression == true){
         mychart.addPlot("regression", {type: "Lines", markers: false, shadows: {dx: 2, dy: 2, dw: 2}});
         for (i in series){
@@ -513,6 +508,12 @@ makeScatterplot = function(chartname, series, chartconf){
                 /*do nothing*/
             }
         }
+    }
+    mychart.addPlot("default", {type: "Scatter"});
+    mychart.addPlot("grid", {type: "Grid", vMajorLines: true});
+    var i
+    for (i in series){
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["xyPairs"], series[i]["style"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
