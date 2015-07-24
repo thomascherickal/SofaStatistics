@@ -826,7 +826,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     From stats.py - there are changes to variable labels and comments;
     and the output is extracted early to give greater control over presentation.
     A list of the differences is extracted along the way. There are no changes 
-    to algorithms. Also added trap for zerro division error.
+    to algorithms. Also added trap for zero division error.
     Returns t, p, dic_a, dic_b (p is the two-tailed probability), diffs
     ---------------------------------------------------------------------
     Calculates the t-obtained T-test on TWO RELATED samples of scores,

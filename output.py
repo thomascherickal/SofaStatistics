@@ -901,8 +901,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
             i_zero_padded = u"%02d" % i
             new_no_hdr = new_no_hdr.replace(u"Renumber%s" % i_zero_padded, 
                 replacement)
-    hdr_title = time.strftime(_("SOFA Statistics Report") 
-        + " %Y-%m-%d_%H:%M:%S")
+    hdr_title = _("SOFA Statistics Report") + time.strftime(u" %Y-%m-%d_%H:%M:%S")
     hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
     try:
         f = codecs.open(cc[mg.CURRENT_REPORT_PATH], "w", "utf-8")
