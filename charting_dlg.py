@@ -432,14 +432,28 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_boxplot(self):
         self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_boxplot = wx.Panel(self.panel_mid)
+        ## sort order
         lbl_sort = wx.StaticText(self.panel_boxplot, -1, 
                                  _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_box_sort = self.get_drop_sort_opts(self.panel_boxplot, 
             choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
+        ## boxplot options
+        lbl_box_opts = wx.StaticText(self.panel_boxplot, -1, _(u"Display:"))
+        lbl_box_opts.SetFont(mg.LABEL_FONT)
+        self.drop_box_opts = wx.Choice(self.panel_boxplot, -1,
+            choices=mg.CHART_BOXPLOT_OPTIONS, size=(200,-1))
+        self.drop_box_opts.SetFont(mg.GEN_FONT)
+        self.drop_box_opts.SetToolTipString(_(u"Display options for whiskers "
+            u"and outliers"))
+        ## rotate
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
+        ## assemble
         self.szr_boxplot.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_boxplot.Add(self.drop_box_sort, 0, wx.TOP, 5)
+        self.szr_boxplot.AddSpacer(10)
+        self.szr_boxplot.Add(lbl_box_opts, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_boxplot.Add(self.drop_box_opts, 0, wx.TOP, 5)
         self.szr_boxplot.AddSpacer(10)
         self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.TOP|wx.BOTTOM, 10)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
@@ -1342,7 +1356,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 show_borders=self.chk_dot_borders.IsChecked(),
                 inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
-            script_lst.append(get_boxplot_script(rotate, css_fil, css_idx))
+            boxplot_opt = mg.CHART_BOXPLOT_OPTIONS[self.drop_box_opts.GetSelection()]
+            script_lst.append(get_boxplot_script(rotate, boxplot_opt,
+                css_fil, css_idx))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
 
@@ -1503,7 +1519,7 @@ chart_output = charting_output.scatterplot_output(titles, subtitles,
         u"show_borders": show_borders, u"regression": regression})
     return script
 
-def get_boxplot_script(rotate, css_fil, css_idx):
+def get_boxplot_script(rotate, boxplot_opt, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
@@ -1514,7 +1530,8 @@ def get_boxplot_script(rotate, css_fil, css_idx):
                     flds, var_role_desc, var_role_desc_name,
                     var_role_cat, var_role_cat_name, var_role_cat_lbls,
                     var_role_series, var_role_series_name, var_role_series_lbls,
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s)
+                    sort_opt="%(sort_opt)s", rotate=%(rotate)s,
+                    boxplot_opt="%(boxplot_opt)s")
 x_title = var_role_cat_name if var_role_cat_name else u""
 y_title = var_role_desc_name 
 chart_output = charting_output.boxplot_output(titles, subtitles, 
@@ -1523,6 +1540,6 @@ chart_output = charting_output.boxplot_output(titles, subtitles,
             xmin, xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, 
-        u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-           u"rotate": rotate, u"css_idx": css_idx})
+        u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"rotate": rotate,
+        u"boxplot_opt": boxplot_opt, u"css_idx": css_idx})
     return script

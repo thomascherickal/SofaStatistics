@@ -599,7 +599,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
 def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc, 
         var_role_desc_name, var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls, sort_opt, 
-        rotate=False):
+        rotate=False, boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
     """
     NB can't just use group by SQL to get results - need upper and lower 
     quartiles etc and we have to work on the raw values to achieve this. We have 
@@ -612,17 +612,18 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                                 mg.CHART_BOXPLOT_LWHISKER: 1.7, 
                                 mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
                            {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
-    
+
     NB supply a boxdet even for an empty box. Put marker that it should be 
     skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
-    
+
     # list of subseries dicts each of which has a label and a list of dicts 
     (one per box).
-    
-    http://en.wikipedia.org/wiki/Box_plot: one of several options: the lowest 
-    datum still within 1.5 IQR of the lower quartile, and the highest datum 
+
+    http://en.wikipedia.org/wiki/Box_plot: the default,
+    CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE, is one of several options: the lowest
+    datum still within 1.5 IQR of the lower quartile, and the highest datum
     still within 1.5 IQR of the upper quartile.
-    
+
     Because of this variability, it may be appropriate in a future version to 
     describe the convention being used for the whiskers and outliers somewhere 
     e.g. in the caption for the plot.
@@ -777,26 +778,39 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                     mg.CHART_BOXPLOT_INDIV_LBL: None}
             else:
                 any_displayed_boxes = True
-                iqr = ubox-lbox
-                raw_lwhisker = lbox - (1.5*iqr)
-                lwhisker = get_lwhisker(raw_lwhisker, lbox, vals2desc)
                 min_measure = min(vals2desc)
+                max_measure = max(vals2desc)
+                ## setting y-axis
                 if ymin is None:
                     ymin = min_measure
                 elif min_measure < ymin:
                     ymin = min_measure
-                raw_uwhisker = ubox + (1.5*iqr)
-                uwhisker = get_uwhisker(raw_uwhisker, ubox, vals2desc)
-                max_measure = max(vals2desc)
                 if max_measure > ymax:
                     ymax = max_measure
-                outliers = [round(x, 2) for x in vals2desc 
-                    if x < lwhisker or x > uwhisker]
+                ## whiskers
+                if boxplot_opt == mg.CHART_BOXPLOT_MIN_MAX_WHISKERS:
+                    lwhisker = min_measure
+                    uwhisker = max_measure
+                elif boxplot_opt in (mg.CHART_BOXPLOT_HIDE_OUTLIERS,
+                        mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
+                    iqr = ubox-lbox
+                    raw_lwhisker = lbox - (1.5*iqr)
+                    lwhisker = get_lwhisker(raw_lwhisker, lbox, vals2desc)
+                    raw_uwhisker = ubox + (1.5*iqr)
+                    uwhisker = get_uwhisker(raw_uwhisker, ubox, vals2desc)
+                ## outliers
+                if boxplot_opt == mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE:
+                    outliers = [round(x, 2) for x in vals2desc 
+                        if x < lwhisker or x > uwhisker]
+                else:
+                    outliers = []  ## hidden or inside whiskers
+                ## labels
                 lblbits = []
                 if var_role_cat:
                     lblbits.append(x_val_lbl)
                 if legend_lbl:
                     lblbits.append(legend_lbl)
+                ## assemble
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                     mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
                     mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
