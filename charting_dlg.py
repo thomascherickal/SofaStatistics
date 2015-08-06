@@ -1537,7 +1537,8 @@ y_title = var_role_desc_name
 chart_output = charting_output.boxplot_output(titles, subtitles, 
             any_missing_boxes, x_title, y_title, var_role_series_name, 
             xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets, 
-            xmin, xmax, ymin, ymax, rotate=%(rotate)s, css_fil=u"%(css_fil)s", 
+            xmin, xmax, ymin, ymax, rotate=%(rotate)s,
+            boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s", 
             css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, 
         u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"rotate": rotate,

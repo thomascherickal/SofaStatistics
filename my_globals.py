@@ -963,6 +963,14 @@ CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE = _(u"Whiskers 1.5 IQR max")
 CHART_BOXPLOT_HIDE_OUTLIERS = _(u"Hide_outliers")
 CHART_BOXPLOT_OPTIONS = [CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE,
     CHART_BOXPLOT_HIDE_OUTLIERS, CHART_BOXPLOT_MIN_MAX_WHISKERS, ]
+iqr_whisker_msg = _(u"Lower whiskers are 1.5 times the Inter-Quartile Range "
+    u"below the lower quartile, or the minimum value, whichever is closest to "
+    u"the middle. Upper whiskers are calculated using the same approach.")
+CHART_BOXPLOT_OPTIONS2LABELS = {
+    CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE: _(u"Outliers displayed. ") + iqr_whisker_msg,
+    CHART_BOXPLOT_HIDE_OUTLIERS: _(u"Outliers hidden. ") + iqr_whisker_msg,
+    CHART_BOXPLOT_MIN_MAX_WHISKERS: _(u"Whiskers are at the minimum and maximum"
+        u" values"), }
 CHART_MINVAL = u"minval"
 CHART_MAXVAL = u"maxval"
 CHART_BIN_LBLS = u"bin_labels"

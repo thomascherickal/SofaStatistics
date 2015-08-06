@@ -623,10 +623,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
     CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE, is one of several options: the lowest
     datum still within 1.5 IQR of the lower quartile, and the highest datum
     still within 1.5 IQR of the upper quartile.
-
-    Because of this variability, it may be appropriate in a future version to 
-    describe the convention being used for the whiskers and outliers somewhere 
-    e.g. in the caption for the plot.
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
@@ -2940,8 +2936,8 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
 
 def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title, 
        var_role_series_name, xaxis_dets, max_x_lbl_len, max_lbl_lines, 
-       overall_title, chart_dets, xmin, xmax, ymin, ymax, rotate, css_fil, 
-       css_idx, page_break_after):
+       overall_title, chart_dets, xmin, xmax, ymin, ymax, rotate, boxplot_opt,
+       css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2960,6 +2956,7 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     css_idx -- css index so can apply
     """
     debug = False
+    display_dets = mg.CHART_BOXPLOT_OPTIONS2LABELS.get(boxplot_opt, u"")
     axis_lbl_rotate = -90 if rotate else 0
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
@@ -3162,14 +3159,15 @@ makechartRenumber00 = function(){
     
 <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
 
-<div id="mychartRenumber00" style="width: %(width)spx; 
-        height: %(height)spx;">
+    <div id="mychartRenumber00" style="width: %(width)spx; 
+            height: %(height)spx;">
     </div>
-<div id="dummychartRenumber00" 
-    style="float: right; width: 100px; height: 100px; visibility: hidden;">
-    <!--needs width and height for IE 6 so must float to keep out of way-->
+    <div id="dummychartRenumber00" 
+        style="float: right; width: 100px; height: 100px; visibility: hidden;">
+        <!--needs width and height for IE 6 so must float to keep out of way-->
     </div>
-%(legend)s
+    %(legend)s
+    <p>%(display_dets)s</p>
 </div>
     """ % {u"titles": title_dets_html, u"legend": legend, 
         u"pre_series_str": pre_series_str, u"series_js_str": series_js_str, 
@@ -3184,7 +3182,7 @@ makechartRenumber00 = function(){
         u"axis_lbl_rotate": axis_lbl_rotate,
         u"tooltip_border_colour": tooltip_border_colour,
         u"connector_style": connector_style, u"outer_bg": outer_bg, 
-        u"grid_bg": grid_bg})
+        u"grid_bg": grid_bg, u"display_dets": display_dets})
     charts_append_divider(html, titles, overall_title, indiv_title=u"", 
         item_type=u"Boxplot")
     if debug: 
