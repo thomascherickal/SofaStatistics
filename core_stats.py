@@ -979,7 +979,8 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
 
 def linregress(x,y):
     """
-    From stats.py. No changes except calling renamed ss (now sum_squares).  
+    From stats.py. No changes except calling renamed ss (now sum_squares). And
+    adding a zero division trap.
     -------------------------------------
     Calculates a regression line on x,y pairs.  
 
@@ -995,9 +996,13 @@ def linregress(x,y):
     xmean = mean(x)
     ymean = mean(y)
     r_num = float(n*(summult(x,y)) - sum(x)*sum(y))
-    r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x)) \
+    r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x))
                      *(n*sum_squares(y) - square_of_sums(y)))
-    r = r_num / r_den
+    try:
+        r = r_num / r_den
+    except ZeroDivisionError:
+        raise Exception(u"Unable to calculate linear regression because of "
+            u"limited variability in one dimension")
     z = 0.5*math.log((1.0+r+TINY)/(1.0-r+TINY))
     df = n-2
     t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))

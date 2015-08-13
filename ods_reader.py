@@ -344,50 +344,49 @@ def get_fldnames_from_header_row(row, headless=False, force_quickcheck=False):
     which has a blank field label as the final col will have that col autonamed 
     whereas here it and all its data will be ignored. 
     """
-    debug = False
+    debug = True
     orig_fldnames = []
     last_was_empty = False # init
     for el in row:
         if debug: print(u"\nChild element of table-row: " + etree.tostring(el))
-        items = el.attrib.items()
-        attrib_dict = get_streamlined_attrib_dict(items)
-        if debug: print(attrib_dict)
-        if COLS_REP in attrib_dict and VAL_TYPE in attrib_dict:
-            # e.g. <table:table-cell table:number-columns-repeated="254" 
-            # table:style-name="ACELL-0x88a3bc8"/>
-            raise Exception(_("Field name \"%s\" cannot be repeated")
-                % get_el_inner_val(el))
-        # if got this far, must be non-repeating cell details
-        if DATE_VAL in attrib_dict:
-            if debug: print("Getting fldname from DATE_VAL")
-            fldname = attrib_dict[DATE_VAL] # take proper date 
+        el_attribs = get_streamlined_attrib_dict(el.attrib.items())
+        colrep = get_col_rep(el_attribs)
+        if debug: print(el_attribs)
+        if DATE_VAL in el_attribs:
+            if debug: print("Getting fldname(s) from DATE_VAL")
+            fldnames = [el_attribs[DATE_VAL], ]*colrep # take proper date 
                 # val e.g. 2010-02-01 rather than orig text of 01/02/10
             last_was_empty = False
-        elif VAL_TYPE in attrib_dict:
-            if debug: print("Getting fldname from inner val")
-            fldname = get_el_inner_val(el) #take val from inner text element
+        elif VAL_TYPE in el_attribs:
+            if debug: print("Getting fldname(s) from inner val")
+            fldnames = [get_el_inner_val(el), ]*colrep  ## take val from inner text element
             last_was_empty = False
         else: 
             if debug: print("No fldname provided by cell")
             """
-            No data in cell but still may be needed as part of data e.g. if a 
-            divider column. We know it can't be column-repeating (eliminated 
-            above) so only need to look if had an empty cell immediately before.
+            No data in cell but still may be needed as part of data e.g. if a
+            divider column. Unless it is the last column (defined as second in a
+            row or the start of multiple empty).
 
-            Set fldname to empty string if not last column.
+            Set fldnames to empty string if not last column.
             """
             if last_was_empty:
                 break
-            fldname = u""
+            elif colrep > 1:  ## i.e. not just a single empty divider column
+                break
+            fldnames = [u"", ]
             last_was_empty = True
-        if debug: print(fldname)
-        orig_fldnames.append(fldname)
+        if debug: print(fldnames)
+        orig_fldnames.extend(fldnames)
     # If last fldname is empty, remove it. We had to give it a chance as a 
     # potential divider column but it clearly wasn't.
     if orig_fldnames[-1] == u"":
         orig_fldnames.pop()
     if debug: print(orig_fldnames)
-    return importer.process_fldnames(orig_fldnames, headless, force_quickcheck)
+    processed_fldnames = importer.process_fldnames(orig_fldnames, headless,
+        force_quickcheck)
+    if debug: print(processed_fldnames)
+    return processed_fldnames
 
 def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
         prog_steps_for_xml_steps, next_prog_val, has_header=True, 

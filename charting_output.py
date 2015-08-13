@@ -699,8 +699,8 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                     max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
     else:
         sorted_cat_vals = [1,] # the first boxplot is always 1 on the x-axis
-    ymin = None # init
-    ymax = 0
+    y_display_min = None # init
+    y_display_max = 0
     first_chart_by = True
     any_missing_boxes = False
     any_displayed_boxes = False
@@ -776,13 +776,6 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                 any_displayed_boxes = True
                 min_measure = min(vals2desc)
                 max_measure = max(vals2desc)
-                ## setting y-axis
-                if ymin is None:
-                    ymin = min_measure
-                elif min_measure < ymin:
-                    ymin = min_measure
-                if max_measure > ymax:
-                    ymax = max_measure
                 ## whiskers
                 if boxplot_opt == mg.CHART_BOXPLOT_MIN_MAX_WHISKERS:
                     lwhisker = min_measure
@@ -800,6 +793,19 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                         if x < lwhisker or x > uwhisker]
                 else:
                     outliers = []  ## hidden or inside whiskers
+                ## setting y-axis
+                if boxplot_opt == mg.CHART_BOXPLOT_HIDE_OUTLIERS:
+                    min2display = lwhisker
+                    max2display = uwhisker
+                else:
+                    min2display = min_measure
+                    max2display = max_measure
+                if y_display_min is None:
+                    y_display_min = min2display
+                elif min2display < y_display_min:
+                    y_display_min = min2display
+                if max2display > y_display_max:
+                    y_display_max = max2display
                 ## labels
                 lblbits = []
                 if var_role_cat:
@@ -831,11 +837,12 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         raise my_exceptions.TooFewBoxplotsInSeries
     xmin = 0.5
     xmax = i+0.5
-    ymin, ymax = get_optimal_min_max(ymin, ymax)
+    y_display_min, y_display_max = get_optimal_min_max(y_display_min,
+        y_display_max)
     #xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
-    return (xaxis_dets, xmin, xmax, ymin, ymax, max_x_lbl_len, max_lbl_lines,
-        overall_title, chart_dets, any_missing_boxes)
+    return (xaxis_dets, xmin, xmax, y_display_min, y_display_max, max_x_lbl_len,
+        max_lbl_lines, overall_title, chart_dets, any_missing_boxes)
 
 def get_lwhisker(raw_lwhisker, lbox, measure_vals):
     """
