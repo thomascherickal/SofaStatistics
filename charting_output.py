@@ -233,8 +233,8 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
     return SQL_get_raw_data
 
-def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
-        multiseries):
+def _get_sorted_y_dets(data_show, major_ticks, time_series, sort_opt,
+        vals_etc_lst, dp, multiseries):
     """
     Sort in place then iterate and build new lists with guaranteed 
         synchronisation.
@@ -263,7 +263,7 @@ def get_sorted_y_dets(data_show, major_ticks, sort_opt, vals_etc_lst, dp,
         sorted_y_vals.append(y_val)
         measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
         tooltip_dets = [itemlbl,] if itemlbl else []
-        if major_ticks:
+        if major_ticks or time_series:
             tooltip_dets.append(u"x-val: %s" % val)
             tooltip_dets.append(u"y-val: %s" % measure2show)
         else:
@@ -365,13 +365,13 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     title = overall_title if not titles else titles[0]
     output.append_divider(html, title, indiv_title, item_type)
 
-def structure_gen_data(chart_type, raw_data, xlblsdic, 
+def _structure_gen_data(chart_type, raw_data, xlblsdic, 
         var_role_agg, var_role_agg_name, var_role_agg_lbls,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls,
         var_role_charts, var_role_charts_name, var_role_charts_lbls,
         sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
-        major_ticks=False):
+        major_ticks=False, time_series=False):
     """
     Structure data for general charts (use different processes preparing data 
         for histograms, scatterplots etc).
@@ -518,8 +518,8 @@ def structure_gen_data(chart_type, raw_data, xlblsdic,
                         raise my_exceptions.TooManyValsInChartSeries(
                             var_role_cat, mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, sorted_y_vals, 
-                sorted_tooltips) = get_sorted_y_dets(data_show, major_ticks, 
-                            sort_opt, vals_etc_lst, dp, multiseries)
+                sorted_tooltips) = _get_sorted_y_dets(data_show, major_ticks, 
+                           time_series, sort_opt, vals_etc_lst, dp, multiseries)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -544,7 +544,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         var_role_series, var_role_series_name, var_role_series_lbls, 
         var_role_charts, var_role_charts_name, var_role_charts_lbls, 
         sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
-        major_ticks=False):
+        major_ticks=False, time_series=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
         VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
@@ -587,12 +587,12 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         raise my_exceptions.TooFewValsForDisplay
     # restructure and return data
     dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS else 0
-    chart_output_dets = structure_gen_data(chart_type, raw_data, xlblsdic, 
+    chart_output_dets = _structure_gen_data(chart_type, raw_data, xlblsdic, 
         var_role_agg, var_role_agg_name, var_role_agg_lbls,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls,
         var_role_charts, var_role_charts_name, var_role_charts_lbls,
-        sort_opt, dp, rotate, data_show, major_ticks)
+        sort_opt, dp, rotate, data_show, major_ticks, time_series)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
@@ -1965,7 +1965,7 @@ def get_trend_y_vals(y_vals):
     b = b_num/(1.0*b_denom)
     a = (sumy - (sumx*b))/(1.0*n)
     trend_y_vals = []
-    for x in range(1,n+1):
+    for x in range(1, n+1):
         trend_y_vals.append(a + b*x)
     return trend_y_vals
 
@@ -1995,15 +1995,18 @@ def get_smooth_y_vals(y_vals):
         smooth_y_vals.append(numer/(1.0*denom))
     return smooth_y_vals
 
-def _get_time_series_affected_dets(time_series, xaxis_dets, series_det,
-        lbl_dets):
+def _get_time_series_affected_dets(time_series, x_title, xaxis_dets,
+        minor_ticks, series_det, lbl_dets):
     if time_series:
         js_time_series = u"true"
         minor_ticks = u"true"  ## often more sparse so need extra
         xaxis_lbls = u"[]"
         ## https://phillipsb1.wordpress.com/2010/07/25/date-and-time-based-charts/
-        xs = [lib.get_epoch_secs_from_datetime_str(x[0])*1000
-            for x in xaxis_dets]
+        try:
+            xs = [lib.get_epoch_secs_from_datetime_str(x[0])*1000
+                for x in xaxis_dets]
+        except Exception:
+            raise my_exceptions.InvalidTimeSeriesInput(fldname=x_title)
         ys = series_det[mg.CHARTS_SERIES_Y_VALS]
         assert len(xs) == len(ys)
         xys = zip(xs, ys)
@@ -2015,8 +2018,8 @@ def _get_time_series_affected_dets(time_series, xaxis_dets, series_det,
     return js_time_series, minor_ticks, xaxis_lbls, series_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-        time_series, points_only, rotate, major_ticks, inc_trend, inc_smooth,
-        css_fil, css_idx, page_break_after):
+        time_series, rotate, major_ticks, inc_trend, inc_smooth, css_fil,
+        css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2024,6 +2027,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    if time_series:
+        major_ticks = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
@@ -2084,37 +2089,45 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         if debug: print(series_dets)
-        if multiseries:
-            legend = u"""
-        <p style="float: left; font-weight: bold; margin-right: 12px; 
+        if legend_lbl is not None:
+            legend_html = u"""
+            <p style="float: left; font-weight: bold; margin-right: 12px; 
                 margin-top: 9px;">
             %s:
-        </p>
-        <div id="legendMychartRenumber%02d">
-            </div>""" % (legend_lbl, chart_idx)
+            </p>""" % legend_lbl
         else:
-            legend = u"" 
+            legend_html = u""
+        legend_html += u"""
+        <div id="legendMychartRenumber%02d">
+            </div>""" % chart_idx
         indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
         """
         If only one series, and trendlines/smoothlines are selected, make 
-            additional series for each as appropriate.
+        additional series for each as appropriate.
         """
-        if not multiseries:
+        if multiseries:
+            legend = legend_html
+        else:
             series0 = series_dets[0]
             dummy_tooltips = [u"",]
             if inc_trend or inc_smooth:
                 raw_y_vals = series0[mg.CHARTS_SERIES_Y_VALS]
             if inc_trend:
                 trend_y_vals = get_trend_y_vals(raw_y_vals)
-                # repeat most of it
+                if time_series:
+                    ## we're using coordinates so can just have the end points (the non-time series approach is only linear when even x gaps between the y values)
+                    trend_xaxis_dets = [series0[mg.CHARTS_XAXIS_DETS][0], series0[mg.CHARTS_XAXIS_DETS][-1]]
+                    trend_y_vals = [trend_y_vals[0], trend_y_vals[-1]]
+                else:
+                    trend_xaxis_dets = series0[mg.CHARTS_XAXIS_DETS]
+                ## repeat most of it
                 trend_series = {
                     mg.CHARTS_SERIES_LBL_IN_LEGEND: TRENDLINE_LBL, 
-                    mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
+                    mg.CHARTS_XAXIS_DETS: trend_xaxis_dets,
                     mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
                     mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
-                series_dets.append(trend_series)
-                n_series = len(series_dets)
-                series_colours_by_lbl[TRENDLINE_LBL] = item_colours[n_series]
+                series_dets.insert(0, trend_series)
+                series_colours_by_lbl[TRENDLINE_LBL] = item_colours[1]
             if inc_smooth:
                 smooth_y_vals = get_smooth_y_vals(raw_y_vals)
                 smooth_series = {
@@ -2122,21 +2135,27 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                      mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                      mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
                      mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
-                series_dets.append(smooth_series)
-                n_series = len(series_dets)
-                series_colours_by_lbl[SMOOTHLINE_LBL] = item_colours[n_series]
+                series_dets.insert(0, smooth_series)
+                series_colours_by_lbl[SMOOTHLINE_LBL] = item_colours[2]
             if debug: pprint.pprint(series_dets)
+            if inc_trend or inc_smooth:
+                ORIG_VAL_LABEL = u"Original Values"
+                series0[mg.CHARTS_SERIES_LBL_IN_LEGEND] = ORIG_VAL_LABEL
+                series_colours_by_lbl[ORIG_VAL_LABEL] = item_colours[0]  ## currently mapped against original label of None
+                legend = legend_html
+            else:
+                legend = u""
         series_js_list = []
         series_names_list = []
         for series_idx, series_det in enumerate(series_dets):
             series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
             lbl_dets = get_lbl_dets(xaxis_dets)
-            ## times series and points vs lines
+            ## times series
             (js_time_series, minor_ticks,
                 xaxis_lbls, series_vals) = _get_time_series_affected_dets(
-                                time_series, xaxis_dets, series_det, lbl_dets)
-            js_points_only = "true" if points_only else "false"
+                                        time_series, x_title, xaxis_dets,
+                                        minor_ticks, series_det, lbl_dets)
             ## more
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
@@ -2148,13 +2167,21 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             # To set markers explicitly:
             # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
             # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
-            if (series_idx == 1 and (inc_trend or inc_smooth)
-                or series_idx == 2 and (inc_trend and inc_smooth)):
-                # curved has tension and no markers
-                # tension has no effect on already straight (trend) line
-                plot_style = u", plot: 'curved'"
-            else:
+            # Note - trend line comes first in case just two points - don't want it to set the x-axis labels - leave that to the other lines
+            if multiseries:
                 plot_style = u""
+            else:
+                orig_idx = 0
+                if inc_trend:
+                    orig_idx += 1  ## shoved right
+                if inc_smooth:
+                    orig_idx += 1
+                if series_idx != orig_idx:
+                    # curved has tension and no markers
+                    # tension has no effect on already straight (trend) line
+                    plot_style = u", plot: 'curved'"
+                else:
+                    plot_style = u""
             tooltips = (u"['" 
                 + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']")
             series_js_list.append(u"series%s[\"options\"] = "
@@ -2188,8 +2215,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         chartconf["ymax"] = %(ymax)s;
         chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
         chartconf["connectorStyle"] = "%(connector_style)s";
-        chartconf["timeSeries"] = "%(time_series)s"
-        chartconf["pointsOnly"] = %(points_only)s
+        chartconf["timeSeries"] = %(time_series)s
         makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
     }
     </script>
@@ -2200,7 +2226,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             height: %(height)spx;">
         </div>
     %(legend)s
-    </div>""" % {u"legend": legend, u"points_only": js_points_only,
+    </div>""" % {u"legend": legend,
                  u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
                  u"indiv_title_html": indiv_title_html, 
                  u"width": width, u"height": height, u"xfontsize": xfontsize, 
@@ -2237,6 +2263,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     css_idx -- css index so can apply    
     """
     debug = False
+    if time_series:
+        major_ticks = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -2312,7 +2340,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         ## times series
         (js_time_series, minor_ticks,
          xaxis_lbls, series_vals) = _get_time_series_affected_dets(time_series,
-                                            xaxis_dets, series_det, lbl_dets)
+                                            x_title, xaxis_dets, minor_ticks,
+                                            series_det, lbl_dets)
         ## more
         series_js_list.append(u"series0[\"seriesVals\"] = %s;" % series_vals)
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
@@ -2347,7 +2376,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
-    chartconf["timeSeries"] = "%(time_series)s"
+    chartconf["timeSeries"] = %(time_series)s
     makeAreaChart("mychartRenumber%(chart_idx)s", series, chartconf);
 }
 </script>

@@ -200,7 +200,6 @@ makeLineChart = function(chartname, series, chartconf){
     var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
     var timeSeries = ("timeSeries" in chartconf) ? chartconf["timeSeries"] : false;
-    var pointsOnly = ("pointsOnly" in chartconf) ? chartconf["pointsOnly"] : false;
 
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
@@ -268,8 +267,7 @@ makeLineChart = function(chartname, series, chartconf){
                     max: chartconf["ymax"],
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
-    var plotType = (pointsOnly) ? "Scatter" : "Lines";
-    mychart.addPlot("default", {type: plotType, markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
+    mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
@@ -361,6 +359,7 @@ makeAreaChart = function(chartname, series, chartconf){
     } else {
         xaxis_conf.labels = chartconf["xaxisLabels"];
     };
+    mychart.addAxis("x", xaxis_conf);
     // y-axis
     mychart.addAxis("y", {title: yTitle,  // normal normal bold
                     vertical: true, includeZero: true, 
@@ -377,7 +376,6 @@ makeAreaChart = function(chartname, series, chartconf){
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
         tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
     mychart.render();
-    var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
 }
 
 makeHistogram = function(chartname, datadets, chartconf){

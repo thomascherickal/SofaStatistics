@@ -338,15 +338,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if mg.PLATFORM == mg.WINDOWS:
             smooth2use = _("Smooth line?")
             trend2use = _("Trend line?")
-            dots2use = _("Points only?")
         else:
             smooth2use = _("Smooth\nline?")
             trend2use = _("Trend\nline?")
-            dots2use = _("Points\nonly?")
-        self.chk_points_only = self.checkbox2use(self.panel_line_chart, -1, 
-            dots2use)
-        self.chk_points_only.SetFont(mg.GEN_FONT)
-        self.chk_points_only.SetToolTipString(_(u"Show points only?"))
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1, 
             trend2use)
@@ -365,8 +359,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.Add(self.drop_line_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_time_series, 0, wx.TOP)
-        self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_points_only, 0, wx.TOP,)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP)
         self.szr_line_chart.AddSpacer(10)
@@ -964,10 +956,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def on_chk_line_time_series(self, event):
         chk = event.GetEventObject()
         self.drop_line_sort.Enable(not chk.IsChecked())
+        self.chk_line_major_ticks.Enable(not chk.IsChecked())
         
     def on_chk_area_time_series(self, event):
         chk = event.GetEventObject()
         self.drop_area_sort.Enable(not chk.IsChecked())
+        self.chk_area_major_ticks.Enable(not chk.IsChecked())
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
@@ -1319,7 +1313,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         major = u"True" if MAJOR else u"False"
         line_time_series = self.chk_line_time_series.IsChecked()
         area_time_series = self.chk_area_time_series.IsChecked()
-        points_only = self.chk_points_only.IsChecked()
         script_lst = []
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
@@ -1396,8 +1389,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else u"False")
             script_lst.append(get_line_chart_script(ytitle2use,
-                line_time_series, points_only, rotate, major, inc_trend,
-                inc_smooth, css_fil, css_idx))
+                line_time_series, rotate, major, inc_trend, inc_smooth, css_fil,
+                css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(ytitle2use,
                 area_time_series, rotate, major, css_fil, css_idx))
@@ -1487,8 +1480,8 @@ chart_output = charting_output.piechart_output(titles, subtitles,
     u"css_idx": css_idx, u"inc_val_dets": inc_val_dets})
     return script
 
-def get_line_chart_script(ytitle2use, time_series, points_only, rotate,
-        major_ticks, inc_trend, inc_smooth, css_fil, css_idx):
+def get_line_chart_script(ytitle2use, time_series, rotate, major_ticks,
+        inc_trend, inc_smooth, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
 x_title = var_role_cat_name
@@ -1501,17 +1494,17 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
     sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
-    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s)
+    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s, 
+    time_series=%(time_series)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, time_series=%(time_series)s, 
-    points_only=%(points_only)s, rotate=%(rotate)s, 
-    major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
+    rotate=%(rotate)s, major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
     inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" %
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series, u"points_only": points_only, 
+    u"time_series": time_series,
     u"rotate": rotate, u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
     u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
     u"css_idx": css_idx})
@@ -1529,7 +1522,8 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls, 
     sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
-    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s)
+    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s,
+    time_series=%(time_series)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
