@@ -947,21 +947,48 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global ROTATE
         chk = event.GetEventObject()
         ROTATE = chk.IsChecked()
+        time_series_line = self.chk_line_time_series.IsChecked()
+        show_major_line = self._get_show_major(time_series_line, ROTATE)
+        self.chk_line_major_ticks.Enable(show_major_line)
+        time_series_area = self.chk_area_time_series.IsChecked()
+        show_major_area = self._get_show_major(time_series_area, ROTATE)
+        self.chk_area_major_ticks.Enable(show_major_area)
         
     def on_chk_major_ticks(self, event):
         global MAJOR
         chk = event.GetEventObject()
         MAJOR = chk.IsChecked()
-        
+    
+    @staticmethod
+    def _get_show_major(time_series, rotate):
+        if not time_series:
+            show_major = True
+        else:
+            if rotate:
+                show_major = True
+            else:
+                show_major = False
+        return show_major         
+    
     def on_chk_line_time_series(self, event):
+        debug = False
         chk = event.GetEventObject()
         self.drop_line_sort.Enable(not chk.IsChecked())
-        self.chk_line_major_ticks.Enable(not chk.IsChecked())
+        time_series = chk.IsChecked()
+        rotate = self.chk_line_rotate.IsChecked()
+        show_major = self._get_show_major(time_series, rotate)
+        if debug:
+            print("time_series: {}; rotate: {}; show_major: {}".format(
+                chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
+        self.chk_line_major_ticks.Enable(show_major)
         
     def on_chk_area_time_series(self, event):
         chk = event.GetEventObject()
         self.drop_area_sort.Enable(not chk.IsChecked())
-        self.chk_area_major_ticks.Enable(not chk.IsChecked())
+        time_series = chk.IsChecked()
+        rotate = self.chk_area_rotate.IsChecked()
+        show_major = self._get_show_major(time_series, rotate)
+        self.chk_area_major_ticks.Enable(show_major)
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()

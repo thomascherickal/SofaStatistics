@@ -3,13 +3,26 @@
 
 """
 Use English UK spelling e.g. colour and when writing JS use camelcase.
-NB no html headers here - the script generates those beforehand and appends 
-    this and then the html footer.
+
+NB no html headers here - the script generates those beforehand and appends this
+and then the html footer.
+
 For most charts we can use freq and AVG - something SQL does just fine using 
-    GROUP BY. Accordingly, we can reuse get_gen_chart_output_dets in many cases. 
+GROUP BY. Accordingly, we can reuse get_gen_chart_output_dets in many cases. 
+
 In other cases, however, e.g. box plots, we need to analyse the values to get 
-    results that SQL can't do well e.g. quartiles. In such cases we have to 
-    custom-make the specific queries we need.
+results that SQL can't do well e.g. quartiles. In such cases we have to custom-
+make the specific queries we need.
+
+For grouped data we ensure there is a value for every required group even if it
+is a zero. E.g. if we are looking at web browser by country and one country
+doesn't have any records for a particular browser, we still return a result for
+that intersection, albeit zero. Note - this also applies to time series line
+charts with multiple series. It means that the shape of a line will sometimes
+have dips to zero in it if different groups don't share all the same dates. This
+is as it should be. If there is a desire to show a result without the "enforced"
+zeros this can be done by applying a filter to the data and creating a standard,
+single-line line chart (possibly with extra lines for trends or smoothed data).
 """
 
 import numpy as np
@@ -81,10 +94,12 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
           missing value for one of the grouping variables
       2        .         1  # also not used 
     
-    Two things to note: 1) the rows with missing values in any of the grouping 
-        variables are discarded as they cannot be plotted; 2) we are going to 
-        have a lot of zero values to display.
+    Two things to note: 1) the rows with missing values in any of the grouping
+    variables are discarded as they cannot be plotted; 2) we are going to have a
+    lot of zero values to display.
+
     Imagine displaying those results as a clustered bar chart of frequencies:
+
     Chart 1 (Male)
     Three colours - Japan, Italy, Germany
     Five x-labels - Under 20, 20-29, 30-39, 40-64, 65+
@@ -94,14 +109,16 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     1,3,1 has no values so the display for Germany above the Under 20 label will be 0
     1,1,2 has a freq of 1 so there will be a bar 1 high for Japan above the 20-29 label
     etc
-    NB we can't do a group by on all grouping variables at once because the 
-        combinations with zero freqs (e.g. 1,2,1) would not be included. We have 
-        to do it grouping variable by grouping variable and then do a cartesian
-        join at the end to give us all combinations we need to plot (whether 
-        with zeros or another value).
-    Looking at an individual grouping variable, we want to include all non-null 
-        values where there are no missing values in any of the other grouping 
-        variables (or in the variable being averaged if a chart of averages).
+
+    NB we can't do a group by on all grouping variables at once because the
+    combinations with zero freqs (e.g. 1,2,1) would not be included. We have to
+    do it grouping variable by grouping variable and then do a cartesian join at
+    the end to give us all combinations we need to plot (whether with zeros or
+    another value).
+
+    Looking at an individual grouping variable, we want to include all non-null
+    values where there are no missing values in any of the other grouping
+    variables (or in the variable being averaged if a chart of averages).
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
@@ -1269,11 +1286,14 @@ def get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
     """
     return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
-def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width, 
-        series_dets):
+def _get_linechart_sizings(time_series, major_ticks, x_title, xaxis_dets,
+        max_lbl_width, series_dets):
     """
     major_ticks -- e.g. want to only see the main labels and won't need it to be 
-        so wide.
+    so wide.
+
+    time_series -- can narrow a lot because standard-sized labels and usually
+    not many.
     """
     debug = False
     n_cats = len(xaxis_dets)
@@ -1281,8 +1301,11 @@ def get_linechart_sizings(major_ticks, x_title, xaxis_dets, max_lbl_width,
     MIN_PXLS_PER_CAT = 10
     MIN_CHART_WIDTH = 700 if n_series < 5 else 900 # when vertically squeezed good to have more horizontal room
     PADDING_PXLS = 20 if n_cats < 8 else 25
-    width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
-        + PADDING_PXLS)
+    if time_series:
+        width_per_cat = MIN_PXLS_PER_CAT
+    else:
+        width_per_cat = (max([MIN_PXLS_PER_CAT, max_lbl_width*AVG_CHAR_WIDTH_PXLS]) 
+            + PADDING_PXLS)
     width_x_title = len(x_title)*AVG_CHAR_WIDTH_PXLS + PADDING_PXLS
     width = max([n_cats*width_per_cat, width_x_title, MIN_CHART_WIDTH])
     if major_ticks:
@@ -1995,11 +2018,10 @@ def get_smooth_y_vals(y_vals):
         smooth_y_vals.append(numer/(1.0*denom))
     return smooth_y_vals
 
-def _get_time_series_affected_dets(time_series, x_title, xaxis_dets,
-        minor_ticks, series_det, lbl_dets):
+def _get_time_series_affected_dets(time_series, x_title, xaxis_dets, series_det,
+        lbl_dets):
     if time_series:
         js_time_series = u"true"
-        minor_ticks = u"true"  ## often more sparse so need extra
         xaxis_lbls = u"[]"
         ## https://phillipsb1.wordpress.com/2010/07/25/date-and-time-based-charts/
         try:
@@ -2015,7 +2037,7 @@ def _get_time_series_affected_dets(time_series, x_title, xaxis_dets,
         js_time_series = u"false"
         xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
         series_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
-    return js_time_series, minor_ticks, xaxis_lbls, series_vals
+    return js_time_series, xaxis_lbls, series_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
         time_series, rotate, major_ticks, inc_trend, inc_smooth, css_fil,
@@ -2027,7 +2049,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     css_idx -- css index so can apply    
     """
     debug = False
-    if time_series:
+    if time_series and not rotate:
         major_ticks = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
@@ -2053,8 +2075,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     height += axis_lbl_drop  # compensate for loss of bar display height
     max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
     (width, xfontsize, 
-     minor_ticks, micro_ticks) = get_linechart_sizings(major_ticks, x_title, 
-        xaxis_dets, max_lbl_width, chart0_series_dets)
+     minor_ticks, micro_ticks) = _get_linechart_sizings(time_series,
+                                              major_ticks, x_title, xaxis_dets,
+                                              max_lbl_width, chart0_series_dets)
     init_margin_offset_l = 25 if width > 1200 else 15 # gets squeezed
     idx_1st_xdets = 0
     idx_xlbl = 1
@@ -2152,10 +2175,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
             lbl_dets = get_lbl_dets(xaxis_dets)
             ## times series
-            (js_time_series, minor_ticks,
-                xaxis_lbls, series_vals) = _get_time_series_affected_dets(
-                                        time_series, x_title, xaxis_dets,
-                                        minor_ticks, series_det, lbl_dets)
+            (js_time_series, xaxis_lbls,
+                series_vals) = _get_time_series_affected_dets(time_series,
+                                      x_title, xaxis_dets, series_det, lbl_dets)
             ## more
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
@@ -2263,7 +2285,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     css_idx -- css index so can apply    
     """
     debug = False
-    if time_series:
+    if time_series and not rotate:
         major_ticks = False
     axis_lbl_rotate = -90 if rotate else 0
     html = []
@@ -2285,8 +2307,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
     xaxis_dets = chart0_series_dets[0][mg.CHARTS_XAXIS_DETS]
     (width, xfontsize, minor_ticks, 
-     micro_ticks) = get_linechart_sizings(major_ticks, x_title, xaxis_dets, 
-        max_lbl_width, chart0_series_dets)
+     micro_ticks) = _get_linechart_sizings(time_series, major_ticks, x_title,
+                                  xaxis_dets, max_lbl_width, chart0_series_dets)
     init_margin_offset_l = 25 if width > 1200 else 15 # gets squeezed
     if rotate:
         init_margin_offset_l += 5
@@ -2338,10 +2360,9 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
             % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
         ## times series
-        (js_time_series, minor_ticks,
-         xaxis_lbls, series_vals) = _get_time_series_affected_dets(time_series,
-                                            x_title, xaxis_dets, minor_ticks,
-                                            series_det, lbl_dets)
+        (js_time_series, xaxis_lbls,
+         series_vals) = _get_time_series_affected_dets(time_series, x_title,
+                                               xaxis_dets, series_det, lbl_dets)
         ## more
         series_js_list.append(u"series0[\"seriesVals\"] = %s;" % series_vals)
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
