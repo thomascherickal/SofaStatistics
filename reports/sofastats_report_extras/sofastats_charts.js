@@ -162,6 +162,24 @@ makePieChart = function(chartname, slices, chartconf){
     mychart.render();
 }
 
+function zeropad_date(num){
+    if (num < 10) {
+        return "0" + num
+    } else {
+        return num
+    }   
+}
+
+// A single parameter function to get labels from epoch milliseconds
+function labelfTime(o)
+{
+   var dt = new Date();
+   dt.setTime(o);
+   var d = dt.getFullYear() + "-" + zeropad_date(dt.getMonth()+1) + "-" + zeropad_date(dt.getDate());
+   //console.log(o+"="+d);
+   return d;
+}
+
 makeLineChart = function(chartname, series, chartconf){
     // allow charts made without newest config items to keep working
 
@@ -181,6 +199,8 @@ makeLineChart = function(chartname, series, chartconf){
     var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
     var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
+    var timeSeries = ("timeSeries" in chartconf) ? chartconf["timeSeries"] : false;
+    var pointsOnly = ("pointsOnly" in chartconf) ? chartconf["pointsOnly"] : false;
 
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
@@ -227,21 +247,33 @@ makeLineChart = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {title: xTitle,
-                    labels: chartconf["xaxisLabels"], minorTicks: minorTicks, microTicks: microTicks, minorLabels: minorTicks,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-                    rotation: axisLabelRotate
-    });
+    // x-axis
+    var xaxis_conf = {
+        title: xTitle,
+        font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+        rotation: axisLabelRotate,
+        minorTicks: minorTicks,
+        microTicks: microTicks,
+        minorLabels: minorTicks
+    };
+    if (timeSeries) {
+        xaxis_conf.labelFunc = labelfTime;
+    } else {
+        xaxis_conf.labels = chartconf["xaxisLabels"];
+    };
+    mychart.addAxis("x", xaxis_conf);
+    // y-axis
     mychart.addAxis("y", {title: yTitle,
                     vertical: true, includeZero: true, 
                     max: chartconf["ymax"],
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
-    mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
+    var plotType = (pointsOnly) ? "Scatter" : "Lines";
+    mychart.addPlot("default", {type: plotType, markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["seriesVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
@@ -268,6 +300,7 @@ makeAreaChart = function(chartname, series, chartconf){
     var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
     var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
     var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
+    var timeSeries = ("timeSeries" in chartconf) ? chartconf["timeSeries"] : false;
 
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
@@ -314,11 +347,21 @@ makeAreaChart = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {title: xTitle,
-                    labels: chartconf["xaxisLabels"], minorTicks: minorTicks,  microTicks: microTicks, minorLabels: minorTicks,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-                    rotation: axisLabelRotate
-    });
+    // x-axis
+    var xaxis_conf = {
+        title: xTitle,
+        font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
+        rotation: axisLabelRotate,
+        minorTicks: minorTicks,
+        microTicks: microTicks,
+        minorLabels: minorTicks
+    };
+    if (timeSeries) {
+        xaxis_conf.labelFunc = labelfTime;
+    } else {
+        xaxis_conf.labels = chartconf["xaxisLabels"];
+    };
+    // y-axis
     mychart.addAxis("y", {title: yTitle,  // normal normal bold
                     vertical: true, includeZero: true, 
                     max: chartconf["ymax"], 
@@ -328,7 +371,7 @@ makeAreaChart = function(chartname, series, chartconf){
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
-        mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
+        mychart.addSeries(series[i]["seriesLabel"], series[i]["seriesVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 

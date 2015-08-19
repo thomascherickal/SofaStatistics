@@ -54,6 +54,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
+        if mg.PLATFORM == mg.WINDOWS:
+            self.checkbox2use = lib.MultilineCheckBox
+        else:
+            self.checkbox2use = lib.StdCheckBox
         self.exiting = False
         self.title = title
         self.SetFont(mg.GEN_FONT)
@@ -321,70 +325,87 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
         lbl_val = wx.StaticText(self.panel_line_chart, -1, 
-                                  _(u"Data\nreported:"))
+            _(u"Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_line_val = self.get_drop_val_opts(self.panel_line_chart)
         lbl_sort = wx.StaticText(self.panel_line_chart, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
+            _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart,
             choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
+        self.chk_line_time_series = self.get_chk_time_series(
+            self.panel_line_chart, line=True)
+        if mg.PLATFORM == mg.WINDOWS:
+            smooth2use = _("Smooth line?")
+            trend2use = _("Trend line?")
+            dots2use = _("Points only?")
+        else:
+            smooth2use = _("Smooth\nline?")
+            trend2use = _("Trend\nline?")
+            dots2use = _("Points\nonly?")
+        self.chk_points_only = self.checkbox2use(self.panel_line_chart, -1, 
+            dots2use)
+        self.chk_points_only.SetFont(mg.GEN_FONT)
+        self.chk_points_only.SetToolTipString(_(u"Show points only?"))
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
-        self.chk_line_trend = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Trend line?"))
+        self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1, 
+            trend2use)
         self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
-        self.chk_line_smooth = wx.CheckBox(self.panel_line_chart, -1, 
-                                         _("Smoothed data line?"))
+        self.chk_line_smooth = self.checkbox2use(self.panel_line_chart, -1, 
+            smooth2use)
         self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
+        self.chk_line_major_ticks = self.get_chk_major_ticks(
+            self.panel_line_chart)
         self.szr_line_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_line_chart.Add(self.drop_line_val, 0, wx.TOP, 5)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_line_chart.Add(self.drop_line_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.chk_line_major_ticks = \
-                                 self.get_chk_major_ticks(self.panel_line_chart)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_line_chart.Add(self.chk_line_time_series, 0, wx.TOP)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_line_chart.Add(self.chk_points_only, 0, wx.TOP,)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP)
+        self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP)
         self.setup_line_extras()
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
     
     def setup_area(self):
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_area_chart, -1, 
-                                  _(u"Data\nreported:"))
+        lbl_val = wx.StaticText(self.panel_area_chart, -1,
+            _(u"Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_area_val = self.get_drop_val_opts(self.panel_area_chart)
         lbl_sort = wx.StaticText(self.panel_area_chart, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
+            _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_area_sort = self.get_drop_sort_opts(self.panel_area_chart)
+        self.chk_area_time_series = self.get_chk_time_series(
+            self.panel_area_chart, line=False)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
-        self.chk_area_major_ticks = self.get_chk_major_ticks(self.panel_area_chart)
+        self.chk_area_major_ticks = self.get_chk_major_ticks(
+            self.panel_area_chart)
         self.szr_area_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.Add(self.drop_area_val, 0, wx.TOP, 5)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.Add(self.drop_area_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_area_chart.Add(self.chk_area_time_series, 0, wx.TOP)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP, 
-                                self.tickbox_down_by)
+        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
     
@@ -446,6 +467,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_box_opts.SetFont(mg.GEN_FONT)
         self.drop_box_opts.SetToolTipString(_(u"Display options for whiskers "
             u"and outliers"))
+        self.drop_box_opts.SetSelection(0)
         ## rotate
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
         ## assemble
@@ -706,7 +728,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return dropdown_width
     
     def get_chk_rotate(self, panel):
-        chk = wx.CheckBox(panel, -1, _("Rotate labels?"))
+        if mg.PLATFORM == mg.WINDOWS:
+            rotate2use = _("Rotate labels?")
+        else:
+            rotate2use = _("Rotate\nlabels?")
+        chk = self.checkbox2use(panel, -1, rotate2use)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(ROTATE)
         chk.SetToolTipString(_(u"Rotate x-axis labels?"))
@@ -714,11 +740,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return chk
 
     def get_chk_major_ticks(self, panel):
-        chk = wx.CheckBox(panel, -1, _("Major labels only?"))
+        if mg.PLATFORM == mg.WINDOWS:
+            major2use = _("Major labels only?")
+        else:
+            major2use = _("Major\nlabels only?")
+        chk = self.checkbox2use(panel, -1, major2use, wrap=15)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(MAJOR)
         chk.SetToolTipString(_(u"Show major labels only?"))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_major_ticks)
+        return chk
+
+    def get_chk_time_series(self, panel, line=True):
+        if mg.PLATFORM == mg.WINDOWS:
+            dates2use = _("Iime series?")
+        else:
+            dates2use = _("Time\nseries?")
+        chk = self.checkbox2use(panel, -1, dates2use)
+        chk.SetFont(mg.GEN_FONT)
+        chk.SetValue(MAJOR)
+        chk.SetToolTipString(_(u"Time series i.e. spread over x-axis by date?"))
+        event_func = (self.on_chk_line_time_series if line
+            else self.on_chk_area_time_series)
+        chk.Bind(wx.EVT_CHECKBOX, event_func)
         return chk
 
     def on_drop_sort(self, event):
@@ -917,6 +961,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk = event.GetEventObject()
         MAJOR = chk.IsChecked()
         
+    def on_chk_line_time_series(self, event):
+        chk = event.GetEventObject()
+        self.drop_line_sort.Enable(not chk.IsChecked())
+        
+    def on_chk_area_time_series(self, event):
+        chk = event.GetEventObject()
+        self.drop_area_sort.Enable(not chk.IsChecked())
+
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
         btn.SetDefault()
@@ -1265,6 +1317,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         dd = mg.DATADETS_OBJ
         rotate = u"True" if ROTATE else u"False"
         major = u"True" if MAJOR else u"False"
+        line_time_series = self.chk_line_time_series.IsChecked()
+        area_time_series = self.chk_area_time_series.IsChecked()
+        points_only = self.chk_points_only.IsChecked()
         script_lst = []
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
@@ -1340,11 +1395,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 and self.chk_line_trend.Enabled else u"False")
             inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else u"False")
-            script_lst.append(get_line_chart_script(ytitle2use, rotate, major, 
-                inc_trend, inc_smooth, css_fil, css_idx))
+            script_lst.append(get_line_chart_script(ytitle2use,
+                line_time_series, points_only, rotate, major, inc_trend,
+                inc_smooth, css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
-            script_lst.append(get_area_chart_script(ytitle2use, rotate, major, 
-                css_fil, css_idx))
+            script_lst.append(get_area_chart_script(ytitle2use,
+                area_time_series, rotate, major, css_fil, css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
                 else u"False")
@@ -1431,8 +1487,8 @@ chart_output = charting_output.piechart_output(titles, subtitles,
     u"css_idx": css_idx, u"inc_val_dets": inc_val_dets})
     return script
 
-def get_line_chart_script(ytitle2use, rotate, major_ticks, inc_trend, 
-                          inc_smooth, css_fil, css_idx):
+def get_line_chart_script(ytitle2use, time_series, points_only, rotate,
+        major_ticks, inc_trend, inc_smooth, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
 x_title = var_role_cat_name
@@ -1448,18 +1504,21 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s)
 %(xy_titles)s
 chart_output = charting_output.linechart_output(titles, subtitles, 
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
+    x_title, y_title, chart_output_dets, time_series=%(time_series)s, 
+    points_only=%(points_only)s, rotate=%(rotate)s, 
     major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
     inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
     page_break_after=False)""" %
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
+    u"time_series": time_series, u"points_only": points_only, 
     u"rotate": rotate, u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
     u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
     u"css_idx": css_idx})
     return script
 
-def get_area_chart_script(ytitle2use, rotate, major_ticks, css_fil, css_idx):
+def get_area_chart_script(ytitle2use, time_series, rotate, major_ticks, css_fil,
+        css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
@@ -1474,12 +1533,12 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
+    x_title, y_title, chart_output_dets, time_series=%(time_series)s,
+    rotate=%(rotate)s, major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
     u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
-    u"rotate": rotate, u"major_ticks": major_ticks, 
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
+    u"time_series": time_series, u"rotate": rotate, u"major_ticks": major_ticks, 
     u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 

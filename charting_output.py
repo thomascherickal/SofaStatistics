@@ -35,7 +35,7 @@ CHART_SERIES_KEY = u"chart_series_key"
 SERIES_KEY = u"series_key"
 XY_KEY = u"xy_key"
 TRENDLINE_LBL = u"Trend line"
-SMOOTHLINE_LBL = u"Smoothed data line"
+SMOOTHLINE_LBL = u"Smooth line"
 # Field names I really hope no-one accidentally uses themselves ;-)
 # Can't use underscores to start field names because MS Access (amongst others?) can't cope.
 SOFA_CHARTS = u"internal_sofa_charts"
@@ -1995,9 +1995,28 @@ def get_smooth_y_vals(y_vals):
         smooth_y_vals.append(numer/(1.0*denom))
     return smooth_y_vals
 
+def _get_time_series_affected_dets(time_series, xaxis_dets, series_det,
+        lbl_dets):
+    if time_series:
+        js_time_series = u"true"
+        minor_ticks = u"true"  ## often more sparse so need extra
+        xaxis_lbls = u"[]"
+        ## https://phillipsb1.wordpress.com/2010/07/25/date-and-time-based-charts/
+        xs = [lib.get_epoch_secs_from_datetime_str(x[0])*1000
+            for x in xaxis_dets]
+        ys = series_det[mg.CHARTS_SERIES_Y_VALS]
+        assert len(xs) == len(ys)
+        xys = zip(xs, ys)
+        series_vals = [{'x': xy[0], 'y': xy[1]} for xy in xys]
+    else:
+        js_time_series = u"false"
+        xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+        series_vals = series_det[mg.CHARTS_SERIES_Y_VALS]
+    return js_time_series, minor_ticks, xaxis_lbls, series_vals
+
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-        rotate, major_ticks, inc_trend, inc_smooth, css_fil, css_idx, 
-        page_break_after):
+        time_series, points_only, rotate, major_ticks, inc_trend, inc_smooth,
+        css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2113,13 +2132,18 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             series_lbl = series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND]
             xaxis_dets = series_det[mg.CHARTS_XAXIS_DETS]
             lbl_dets = get_lbl_dets(xaxis_dets)
-            xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
+            ## times series and points vs lines
+            (js_time_series, minor_ticks,
+                xaxis_lbls, series_vals) = _get_time_series_affected_dets(
+                                time_series, xaxis_dets, series_det, lbl_dets)
+            js_points_only = "true" if points_only else "false"
+            ## more
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
             series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
                 % (series_idx, series_lbl))
-            series_js_list.append(u"series%s[\"yVals\"] = %s;" % 
-                (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
+            series_js_list.append(u"series%s[\"seriesVals\"] = %s;" % 
+                (series_idx, series_vals))
             stroke = series_colours_by_lbl[series_lbl]
             # To set markers explicitly:
             # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
@@ -2164,6 +2188,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         chartconf["ymax"] = %(ymax)s;
         chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
         chartconf["connectorStyle"] = "%(connector_style)s";
+        chartconf["timeSeries"] = "%(time_series)s"
+        chartconf["pointsOnly"] = %(points_only)s
         makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
     }
     </script>
@@ -2174,7 +2200,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             height: %(height)spx;">
         </div>
     %(legend)s
-    </div>""" % {u"legend": legend,
+    </div>""" % {u"legend": legend, u"points_only": js_points_only,
                  u"series_js": series_js, u"xaxis_lbls": xaxis_lbls, 
                  u"indiv_title_html": indiv_title_html, 
                  u"width": width, u"height": height, u"xfontsize": xfontsize, 
@@ -2188,7 +2214,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
                  u"x_title": x_title, u"y_title": y_title,
                  u"tooltip_border_colour": tooltip_border_colour,
                  u"connector_style": connector_style, 
-                 u"grid_bg": grid_bg, 
+                 u"grid_bg": grid_bg, u"time_series": js_time_series,
                  u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks,
                  u"chart_idx": u"%02d" % chart_idx})
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
@@ -2203,7 +2229,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     return u"".join(html)
     
 def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-        rotate, major_ticks, css_fil, css_idx, page_break_after):
+        time_series, rotate, major_ticks, css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2283,8 +2309,12 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
         series_js_list.append(u"var series0 = new Array();")
         series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
             % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
-        series_js_list.append(u"series0[\"yVals\"] = %s;" % 
-            series_det[mg.CHARTS_SERIES_Y_VALS])
+        ## times series
+        (js_time_series, minor_ticks,
+         xaxis_lbls, series_vals) = _get_time_series_affected_dets(time_series,
+                                            xaxis_dets, series_det, lbl_dets)
+        ## more
+        series_js_list.append(u"series0[\"seriesVals\"] = %s;" % series_vals)
         tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
             + u"']")
         series_js_list.append(u"series0[\"options\"] = "
@@ -2317,6 +2347,7 @@ makechartRenumber%(chart_idx)s = function(){
     chartconf["ymax"] = %(ymax)s;
     chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
     chartconf["connectorStyle"] = "%(connector_style)s";
+    chartconf["timeSeries"] = "%(time_series)s"
     makeAreaChart("mychartRenumber%(chart_idx)s", series, chartconf);
 }
 </script>
@@ -2333,7 +2364,7 @@ makechartRenumber%(chart_idx)s = function(){
              u"major_gridline_colour": major_gridline_colour,
              u"y_title_offset": y_title_offset,
              u"margin_offset_l": margin_offset_l,
-             u"axis_lbl_drop": axis_lbl_drop,
+             u"axis_lbl_drop": axis_lbl_drop, u"time_series": js_time_series,
              u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
              u"gridline_width": gridline_width, u"x_title": x_title, 
              u"y_title": y_title, u"pagebreak": pagebreak,
@@ -2344,7 +2375,7 @@ makechartRenumber%(chart_idx)s = function(){
         overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
         charts_append_divider(html, titles, overall_title, indiv_title, 
             u"Area Chart")
-    if debug: 
+    if debug:
         print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
             margin_offset_l))
     html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")

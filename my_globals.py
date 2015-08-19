@@ -20,7 +20,7 @@ of the GUI on settings only found when running in the GUI.
 
 debug = False
 
-VERSION = u"1.4.5"
+VERSION = u"1.4.6"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html

@@ -13,6 +13,7 @@ from operator import itemgetter
 import os
 import random
 import re
+import textwrap
 import time
 import urllib
 
@@ -22,6 +23,78 @@ import wx
 import basic_lib as b
 import my_globals as mg
 import my_exceptions
+
+
+class MultilineCheckBox(wx.CheckBox):
+    """
+    Windows only - results in empty label on Linux and OS X (which only need a
+    newline character to achieve the same result in any case).
+
+    http://stackoverflow.com/questions/1466140/multiline-checkbox-in-wxpython
+    """
+
+    def __init__(self, parent, id=-1, label=wx.EmptyString, wrap=10,
+            pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
+            validator=wx.DefaultValidator, name=wx.CheckBoxNameStr):
+        wx.CheckBox.__init__(self, parent, id, '', pos, size, style,
+            validator,name)
+        self._label = label
+        self._wrap = wrap
+        lines = self._label.split('\n')
+        self._wrappedLabel = []
+        for line in lines:
+            self._wrappedLabel.extend(textwrap.wrap(line,self._wrap))
+        self._textHOffset = 20
+        dc = wx.ClientDC(self)
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc.SetFont(font)
+        maxWidth = 0
+        totalHeight = 0
+        lineHeight = 0
+        for line in self._wrappedLabel:
+            width, height = dc.GetTextExtent(line)
+            maxWidth = max(maxWidth,width)
+            lineHeight = height
+            totalHeight += lineHeight 
+        self._textHeight = totalHeight
+        self.SetInitialSize(wx.Size(self._textHOffset + maxWidth,
+            totalHeight))
+        self.Bind(wx.EVT_PAINT, self.on_paint)  ## never fired in Linux (and possibly not in OS X either)
+
+    def on_paint(self, event):
+        dc = wx.PaintDC(self)
+        self.draw(dc)
+        self.RefreshRect(wx.Rect(0, 0, self._textHOffset,
+            self.GetSize().height))
+        event.Skip()
+
+    def draw(self, dc):
+        dc.Clear()
+        font = wx.SystemSettings.GetFont(wx.SYS_DEFAULT_GUI_FONT)
+        dc.SetFont(font)
+        height = self.GetSize().height
+        if height > self._textHeight:
+            offset = height / 2 - self._textHeight / 2
+        else:
+            offset = 0
+        for line in self._wrappedLabel:
+            unused, height = dc.GetTextExtent(line)
+            dc.DrawText(line, self._textHOffset, offset)
+            offset += height
+
+
+class StdCheckBox(wx.CheckBox):
+    """
+    Has same interface as MultilineCheckbox so we can pass wrap arg in without
+    worrying which we are using.
+    """
+
+    def __init__(self, parent, id=-1, label=wx.EmptyString, wrap=10,
+            pos=wx.DefaultPosition, size=wx.DefaultSize, style=0,
+            validator=wx.DefaultValidator, name=wx.CheckBoxNameStr):
+        wx.CheckBox.__init__(self, parent, id, label, pos, size, style,
+            validator,name)
+
 
 def get_safer_name(rawname):
     return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
@@ -1594,6 +1667,17 @@ def time_obj_to_datetime_str(time_obj):
     "Takes time_obj and returns standard datetime string"
     datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (time_obj[:6])
     return datetime_str
+
+def get_epoch_secs_from_datetime_str(raw_datetime_str):
+    """
+    Takes a string and checks if there is a usable datetime in there (even a
+    time without a date is OK).
+
+    If there is, returns seconds since epoch (1970).
+    """
+    time_obj = get_time_obj(raw_datetime_str)
+    epoch_seconds = time.mktime(time_obj)
+    return epoch_seconds
 
 # data
 
