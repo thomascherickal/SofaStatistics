@@ -2040,8 +2040,8 @@ def _get_time_series_affected_dets(time_series, x_title, xaxis_dets, series_det,
     return js_time_series, xaxis_lbls, series_vals
 
 def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-        time_series, rotate, major_ticks, inc_trend, inc_smooth, css_fil,
-        css_idx, page_break_after):
+        time_series, rotate, major_ticks, inc_trend, inc_smooth, hide_markers,
+        css_fil, css_idx, page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2190,23 +2190,44 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
             # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
             # Note - trend line comes first in case just two points - don't want it to set the x-axis labels - leave that to the other lines
+            ## arbitrary plot names added with addPlot in my js file - each has different settings re: tension and markers
             if multiseries:
-                plot_style = u""
+                if hide_markers:
+                    plot_style = u", plot: 'unmarked'"
+                else:
+                    plot_style = u", plot: 'default'"
             else:
-                orig_idx = 0
-                if inc_trend:
-                    orig_idx += 1  ## shoved right
-                if inc_smooth:
-                    orig_idx += 1
-                if series_idx != orig_idx:
-                    # curved has tension and no markers
-                    # tension has no effect on already straight (trend) line
+                if inc_trend and inc_smooth:
+                    orig_idx = 2
+                    trend_idx = 1
+                    smooth_idx = 0
+                elif inc_trend:  ## only trend
+                    orig_idx = 1
+                    trend_idx = 0
+                    smooth_idx = None
+                elif inc_smooth:  ## only smooth
+                    orig_idx = 1
+                    trend_idx = None
+                    smooth_idx = 0
+                else:
+                    orig_idx = 0
+                    trend_idx = None
+                    smooth_idx = None
+                if series_idx == orig_idx:
+                    if hide_markers:
+                        plot_style = u", plot: 'unmarked'"
+                    else:
+                        plot_style = u", plot: 'default'"
+                elif series_idx == trend_idx:
+                    plot_style = u", plot: 'unmarked'"
+                elif series_idx == smooth_idx:
                     plot_style = u", plot: 'curved'"
                 else:
-                    plot_style = u""
+                    raise Exception(u"Unexpected series_idx: {}"
+                        .format(series_idx))
             tooltips = (u"['" 
                 + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']")
-            series_js_list.append(u"series%s[\"options\"] = "
+            series_js_list.append(u"""series%s["options"] = """
                 u"{stroke: {color: '%s', width: '6px'}, yLbls: %s %s};"
                 % (series_idx, stroke, tooltips, plot_style))
             series_js_list.append(u"")
@@ -2277,7 +2298,8 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     return u"".join(html)
     
 def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-        time_series, rotate, major_ticks, css_fil, css_idx, page_break_after):
+        time_series, rotate, major_ticks, hide_markers, css_fil, css_idx,
+        page_break_after):
     """
     titles -- list of title lines correct styles
     subtitles -- list of subtitle lines
@@ -2287,6 +2309,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     debug = False
     if time_series and not rotate:
         major_ticks = False
+    ## arbitrary plot names added with addPlot in my js file - each has different settings re: tension and markers
+    plot_style = u", plot: 'unmarked'" if hide_markers else u", plot: 'default'"
     axis_lbl_rotate = -90 if rotate else 0
     html = []
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -2369,7 +2393,7 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
             + u"']")
         series_js_list.append(u"series0[\"options\"] = "
             u"{stroke: {color: \"%s\", width: \"6px\"}, fill: \"%s\", "
-            u"yLbls: %s};" % (stroke, fill, tooltips))
+            u"yLbls: %s %s};" % (stroke, fill, tooltips, plot_style))
         series_js_list.append(u"")
         series_js = u"\n    ".join(series_js_list)
         series_js += (u"\n    var series = new Array(%s);" %

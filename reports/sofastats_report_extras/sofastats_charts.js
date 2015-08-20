@@ -268,6 +268,8 @@ makeLineChart = function(chartname, series, chartconf){
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
+    mychart.addPlot("unmarked", {type: "Lines", markers: false});
+    mychart.addPlot("curved", {type: "Lines", markers: false, tension: "X"});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
@@ -367,6 +369,7 @@ makeAreaChart = function(chartname, series, chartconf){
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Areas", lines: true, areas: true, markers: true});
+    mychart.addPlot("unmarked", {type: "Areas", lines: true, areas: true, markers: false});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){

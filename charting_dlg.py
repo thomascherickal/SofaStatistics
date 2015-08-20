@@ -18,6 +18,7 @@ CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
 CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
 ROTATE = False
 MAJOR = False
+HIDE_MARKERS = False
 BARS_SORTED_LBL = u"bars"
 CLUSTERS_SORTED_LBL = u"clusters"
 SLICES_SORTED_LBL = u"slices"
@@ -342,6 +343,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             smooth2use = _("Smooth\nline?")
             trend2use = _("Trend\nline?")
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
+        self.chk_line_hide_markers = self.get_chk_hide_markers(
+            self.panel_line_chart)
         self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1, 
             trend2use)
         self.chk_line_trend.SetFont(mg.GEN_FONT)
@@ -367,6 +370,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP)
         self.szr_line_chart.AddSpacer(10)
+        self.szr_line_chart.Add(self.chk_line_hide_markers, 0, wx.TOP)
+        self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
@@ -385,6 +390,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_area_time_series = self.get_chk_time_series(
             self.panel_area_chart, line=False)
         self.chk_area_rotate = self.get_chk_rotate(self.panel_area_chart)
+        self.chk_area_hide_markers = self.get_chk_hide_markers(
+            self.panel_area_chart)
         self.chk_area_major_ticks = self.get_chk_major_ticks(
             self.panel_area_chart)
         self.szr_area_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
@@ -396,6 +403,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_area_chart.Add(self.chk_area_time_series, 0, wx.TOP)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP)
+        self.szr_area_chart.AddSpacer(10)
+        self.szr_area_chart.Add(self.chk_area_hide_markers, 0, wx.TOP)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
@@ -743,6 +752,18 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_major_ticks)
         return chk
 
+    def get_chk_hide_markers(self, panel):
+        if mg.PLATFORM == mg.WINDOWS:
+            hide2use = _("Hide markers?")
+        else:
+            hide2use = _("Hide\nmarkers?")
+        chk = self.checkbox2use(panel, -1, hide2use, wrap=15)
+        chk.SetFont(mg.GEN_FONT)
+        chk.SetValue(HIDE_MARKERS)
+        chk.SetToolTipString(_(u"Hide markers?"))
+        chk.Bind(wx.EVT_CHECKBOX, self.on_chk_hide_markers)
+        return chk
+
     def get_chk_time_series(self, panel, line=True):
         if mg.PLATFORM == mg.WINDOWS:
             dates2use = _("Iime series?")
@@ -958,6 +979,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global MAJOR
         chk = event.GetEventObject()
         MAJOR = chk.IsChecked()
+        
+    def on_chk_hide_markers(self, event):
+        global HIDE_MARKERS
+        chk = event.GetEventObject()
+        HIDE_MARKERS = chk.IsChecked()
     
     @staticmethod
     def _get_show_major(time_series, rotate):
@@ -1062,6 +1088,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_line_val.SetSelection(idx_val)
         self.drop_line_sort.SetSelection(idx_sort)
         self.chk_line_rotate.SetValue(ROTATE)
+        self.chk_line_hide_markers.SetValue(HIDE_MARKERS)
         self.chk_line_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
         self.setup_line_extras()
@@ -1077,6 +1104,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_area_val.SetSelection(idx_val)
         self.drop_area_sort.SetSelection(idx_sort)
         self.chk_area_rotate.SetValue(ROTATE)
+        self.chk_area_hide_markers.SetValue(HIDE_MARKERS)
         self.chk_area_major_ticks.SetValue(MAJOR)
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
@@ -1338,6 +1366,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         dd = mg.DATADETS_OBJ
         rotate = u"True" if ROTATE else u"False"
         major = u"True" if MAJOR else u"False"
+        hide_markers = u"True" if HIDE_MARKERS else u"False"
         line_time_series = self.chk_line_time_series.IsChecked()
         area_time_series = self.chk_area_time_series.IsChecked()
         script_lst = []
@@ -1416,11 +1445,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else u"False")
             script_lst.append(get_line_chart_script(ytitle2use,
-                line_time_series, rotate, major, inc_trend, inc_smooth, css_fil,
-                css_idx))
+                line_time_series, rotate, major, inc_trend, inc_smooth,
+                hide_markers, css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(ytitle2use,
-                area_time_series, rotate, major, css_fil, css_idx))
+                area_time_series, rotate, major, hide_markers, css_fil,
+                css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
                 else u"False")
@@ -1508,7 +1538,7 @@ chart_output = charting_output.piechart_output(titles, subtitles,
     return script
 
 def get_line_chart_script(ytitle2use, time_series, rotate, major_ticks,
-        inc_trend, inc_smooth, css_fil, css_idx):
+        inc_trend, inc_smooth, hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
 x_title = var_role_cat_name
@@ -1527,18 +1557,19 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
 chart_output = charting_output.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, time_series=%(time_series)s, 
     rotate=%(rotate)s, major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
-    inc_smooth=%(inc_smooth)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, 
-    page_break_after=False)""" %
+    inc_smooth=%(inc_smooth)s, hide_markers=%(hide_markers)s,
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" %
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
     u"time_series": time_series,
     u"rotate": rotate, u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
-    u"inc_trend": inc_trend, u"inc_smooth": inc_smooth, u"css_fil": esc_css_fil, 
+    u"inc_trend": inc_trend, u"inc_smooth": inc_smooth,
+    u"hide_markers": hide_markers, u"css_fil": esc_css_fil,
     u"css_idx": css_idx})
     return script
 
-def get_area_chart_script(ytitle2use, time_series, rotate, major_ticks, css_fil,
-        css_idx):
+def get_area_chart_script(ytitle2use, time_series, rotate, major_ticks,
+        hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
@@ -1555,12 +1586,14 @@ x_title = var_role_cat_name
 y_title = %(ytitle2use)s
 chart_output = charting_output.areachart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, time_series=%(time_series)s,
-    rotate=%(rotate)s, major_ticks=%(major_ticks)s, css_fil=u"%(css_fil)s", 
+    rotate=%(rotate)s, major_ticks=%(major_ticks)s,
+    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
     u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series, u"rotate": rotate, u"major_ticks": major_ticks, 
-    u"ytitle2use": ytitle2use, u"css_fil": esc_css_fil, u"css_idx": css_idx})
+    u"time_series": time_series, u"rotate": rotate, u"major_ticks": major_ticks,
+    u"hide_markers": hide_markers, u"ytitle2use": ytitle2use,
+    u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 
 def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
