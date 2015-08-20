@@ -2078,7 +2078,9 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
      minor_ticks, micro_ticks) = _get_linechart_sizings(time_series,
                                               major_ticks, x_title, xaxis_dets,
                                               max_lbl_width, chart0_series_dets)
-    init_margin_offset_l = 25 if width > 1200 else 15 # gets squeezed
+    init_margin_offset_l = 25 if width > 1200 else 15  ## gets squeezed
+    if rotate:
+        init_margin_offset_l += 4
     idx_1st_xdets = 0
     idx_xlbl = 1
     x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])

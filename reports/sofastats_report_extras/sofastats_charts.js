@@ -269,7 +269,7 @@ makeLineChart = function(chartname, series, chartconf){
     });
     mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
     mychart.addPlot("unmarked", {type: "Lines", markers: false});
-    mychart.addPlot("curved", {type: "Lines", markers: false, tension: "X"});
+    mychart.addPlot("curved", {type: "Lines", markers: false, tension: "S"});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     var i
     for (i in series){
