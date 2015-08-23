@@ -854,7 +854,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         raise my_exceptions.TooFewBoxplotsInSeries
     xmin = 0.5
     xmax = i+0.5
-    y_display_min, y_display_max = get_optimal_min_max(y_display_min,
+    y_display_min, y_display_max = _get_optimal_min_max(y_display_min,
         y_display_max)
     #xaxis_dets.append((xmax, u"''", u"''"))
     if debug: print(xaxis_dets)
@@ -2666,7 +2666,7 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
     regression_msg = (u"<br>".join(x for x in indiv_regression_msgs if x) 
         + u"<br>")
     html.append(regression_msg)
-    xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
+    xmin, xmax = _get_optimal_min_max(min(all_x), max(all_x))
     charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, width_inches, height_inches, xmin=xmin, xmax=xmax, 
@@ -2674,7 +2674,7 @@ def make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders,
         series_colours_by_lbl=series_colours_by_lbl)
     html.append(u"</div>")
 
-def get_optimal_min_max(axismin, axismax):
+def _get_optimal_min_max(axismin, axismax):
     """
     For boxplots and scatterplots.
     
@@ -2810,7 +2810,7 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
     all_x = []
     for series_det in series_dets:
         all_x.extend(series_det[mg.LIST_X])
-    xmin, xmax = get_optimal_min_max(min(all_x), max(all_x))
+    xmin, xmax = _get_optimal_min_max(min(all_x), max(all_x))
     init_margin_offset_l = 25
     max_y_lbl_len = len(str(int(ymax)))
     x_lbl_len = len(str(int(xmin)))
@@ -2978,7 +2978,7 @@ def get_scatterplot_ymin_ymax(scatterplot_dets):
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         for series_det in series_dets:
             all_y_vals += series_det[mg.LIST_Y]
-    ymin, ymax = get_optimal_min_max(min(all_y_vals), max(all_y_vals))
+    ymin, ymax = _get_optimal_min_max(min(all_y_vals), max(all_y_vals))
     return ymin, ymax
 
 def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
@@ -3006,8 +3006,6 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
     title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
     x_vs_y = '"%s"' % label_x + _(u" vs ") + '"%s"' % label_y
     chart_dets = scatterplot_dets[mg.CHARTS_CHART_DETS]
-    chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
-    multiseries = len(chart0_series_dets) > 1
     html = []
     html.append(title_dets_html)
     multichart = (len(scatterplot_dets[mg.CHARTS_CHART_DETS]) > 1)
@@ -3020,6 +3018,7 @@ def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets,
         series_dets = chart_det[mg.CHARTS_SERIES_DETS]
         pagebreak = u"" if chart_idx % 2 == 0 else u"page-break-after: always;"
         if debug: print(series_dets)
+        multiseries = len(series_dets) > 1
         if multiseries:
             legend = u"""
         <p style="float: left; font-weight: bold; margin-right: 12px; 
