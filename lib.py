@@ -5,6 +5,7 @@ from __future__ import print_function
 from __future__ import absolute_import
 
 import codecs
+from collections import namedtuple
 import datetime
 import decimal
 import locale
@@ -24,6 +25,8 @@ import basic_lib as b
 import my_globals as mg
 import my_exceptions
 
+DatetimeSplit = namedtuple('DatetimeSplit', 'date_part, time_part, '
+    'boldate_then_time')
 
 class MultilineCheckBox(wx.CheckBox):
     """
@@ -1412,6 +1415,14 @@ def is_year(datetime_str):
         dt_is_year = False
     return dt_is_year
 
+def is_month(month_str):
+    try:
+        month = int(month_str)
+        dt_is_month = (1 <= month <= 12) 
+    except Exception:
+        dt_is_month = False
+    return dt_is_month
+
 def get_datetime_parts(datetime_str):
     """
     Return potential date and time parts separately if possible.
@@ -1463,7 +1474,7 @@ def get_datetime_parts(datetime_str):
         parts_lst = [datetime_str,]
     return parts_lst
 
-def datetime_split(datetime_str):
+def _datetime_split(datetime_str):
     """
     Split date and time (if both).
     
@@ -1476,28 +1487,28 @@ def datetime_split(datetime_str):
     parts_lst = get_datetime_parts(datetime_str)
     if len(parts_lst) == 1:
         if is_year(datetime_str):
-            return (datetime_str, None, True)
-        else: # only one part
+            return DatetimeSplit(datetime_str, None, True)
+        else:  ## only one part
             boldate_then_time = True
             if is_date_part(datetime_str):
-                return (datetime_str, None, boldate_then_time)
+                return DatetimeSplit(datetime_str, None, boldate_then_time)
             elif is_time_part(datetime_str):
-                return (None, datetime_str, boldate_then_time)
+                return DatetimeSplit(None, datetime_str, boldate_then_time)
             else:
-                return (None, None, boldate_then_time)
+                return DatetimeSplit(None, None, boldate_then_time)
     elif len(parts_lst) == 2:
         boldate_then_time = True
         if (is_date_part(parts_lst[0]) and is_time_part(parts_lst[1])):
-            return (parts_lst[0], parts_lst[1], True)
+            return DatetimeSplit(parts_lst[0], parts_lst[1], True)
         elif (is_date_part(parts_lst[1]) and is_time_part(parts_lst[0])):
             boldate_then_time = False
-            return (parts_lst[1], parts_lst[0], boldate_then_time)
+            return DatetimeSplit(parts_lst[1], parts_lst[0], boldate_then_time)
         else:
-            return (None, None, boldate_then_time)
+            return DatetimeSplit(None, None, boldate_then_time)
     else:
-        return (None, None, True)
+        return DatetimeSplit(None, None, True)
 
-def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
+def _get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
         ok_time_formats):
     """
     Returns (date_part, date_format, time_part, time_format, boldate_then_time) 
@@ -1521,18 +1532,18 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
     except Exception:
         return None # can't do anything further with something that can't be converted to unicode
     # evaluate date and/or time components against allowable formats
-    date_part, time_part, boldate_then_time = datetime_split(raw_datetime_str)
-    if date_part is None and time_part is None:
+    dt_split = _datetime_split(raw_datetime_str)
+    if dt_split.date_part is None and dt_split.time_part is None:
         if debug: print("Both date and time parts are empty.")
         return None
     # gather information on the parts we have (we have at least one)
     date_format = None
-    if date_part:
+    if dt_split.date_part:
         # see cell_invalid for message about correct datetime entry formats
         bad_date = True
         for ok_date_format in ok_date_formats:
             try:
-                unused = time.strptime(date_part, ok_date_format)
+                unused = time.strptime(dt_split.date_part, ok_date_format)
                 date_format = ok_date_format
                 bad_date = False
                 break
@@ -1541,11 +1552,11 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         if bad_date:
             return None
     time_format = None
-    if time_part:
+    if dt_split.time_part:
         bad_time = True
         for ok_time_format in ok_time_formats:
             try:
-                unused = time.strptime(time_part, ok_time_format)
+                unused = time.strptime(dt_split.time_part, ok_time_format)
                 time_format = ok_time_format
                 bad_time = False
                 break
@@ -1554,10 +1565,11 @@ def get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats,
         if bad_time:
             return None
     # have at least one part and no bad parts
-    return (date_part, date_format, time_part, time_format, boldate_then_time)
+    return (dt_split.date_part, date_format, dt_split.time_part, time_format,
+        dt_split.boldate_then_time)
 
-#print(get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
-#                                      mg.OK_TIME_FORMATS))
+#print(_get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
+#                                       mg.OK_TIME_FORMATS))
 
 def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None, 
                            ok_time_formats=None):
@@ -1583,7 +1595,7 @@ def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None,
     Should only be one space in string (if any) - between date and time
         (or time and date).
     """
-    return get_dets_of_usable_datetime_str(raw_datetime_str, 
+    return _get_dets_of_usable_datetime_str(raw_datetime_str, 
         ok_date_formats or mg.OK_DATE_FORMATS, 
         ok_time_formats or mg.OK_TIME_FORMATS) is not None
     
@@ -1608,7 +1620,7 @@ def get_time_obj(raw_datetime_str):
     If there is, creates a complete time_obj and returns it.
     """
     debug = False
-    datetime_dets = get_dets_of_usable_datetime_str(raw_datetime_str, 
+    datetime_dets = _get_dets_of_usable_datetime_str(raw_datetime_str, 
         mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
     if datetime_dets is None:
         raise Exception(u"Need a usable datetime string to return a standard "
@@ -1670,8 +1682,8 @@ def time_obj_to_datetime_str(time_obj):
 
 def get_epoch_secs_from_datetime_str(raw_datetime_str):
     """
-    Takes a string and checks if there is a usable datetime in there (even a
-    time without a date is OK).
+    Takes a string and checks if there is a usable datetime in there. A time 
+    without a date is OK). As is a month or year only.
 
     If there is, returns seconds since epoch (1970).
     """

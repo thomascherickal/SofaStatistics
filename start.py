@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 """
-SOFA Statistics is released under the open source AGPL3 licence and the 
+SOFA Statistics is released under the open source AGPL3 licence and the
 copyright is held by Paton-Simpson & Associates Ltd.
 
 SOFA can be run in 3 main ways:
@@ -11,8 +11,8 @@ SOFA can be run in 3 main ways:
 2) Headless (no GUI) via scripting
 3) As a GUI but launched from another GUI program.
 
-In 3) the code won't rely on SofaApp to set the Top Level Window, show it, and 
-start the main loop. That will need to happen in the calling code which replaces 
+In 3) the code won't rely on SofaApp to set the Top Level Window, show it, and
+start the main loop. That will need to happen in the calling code which replaces
 start.py.
 """
 

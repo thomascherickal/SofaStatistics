@@ -554,18 +554,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         drop_var4.SetToolTipString(self.variables_rc_msg)
         return drop_var4
 
-    def update_lbl_var1(self, chart_config1):
+    def _update_lbl_var1(self, chart_config1, lbl1_override=None):
         """
         Used by all chart types, not just those with an aggregate option. So 
-            CUR_DATA_OPT may have been set by another chart type. Need to check 
-            this chart type has an aggregate option as well to know how to get 
-            var lbl.
+        CUR_DATA_OPT may have been set by another chart type. Need to check this
+        chart type has an aggregate option as well to know how to get var lbl.
         """
-        show_agg, has_agg_config = self.get_agg_dets()
-        if show_agg and has_agg_config:
-            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY][CUR_DATA_OPT_LBL]
+        if lbl1_override:
+            rawlbl1 = lbl1_override
         else:
-            lbl1 = u"%s:" % chart_config1[mg.LBL_KEY]
+            show_agg, has_agg_config = self.get_agg_dets()
+            if show_agg and has_agg_config:
+                rawlbl1 = chart_config1[mg.LBL_KEY][CUR_DATA_OPT_LBL]
+            else:
+                rawlbl1 = chart_config1[mg.LBL_KEY]
+        lbl1 = u"%s:" % rawlbl1
         try:
             self.lbl_var1.SetLabel(lbl1) # if not already made, make it (this also means we only make it if not already made)
         except Exception:
@@ -574,21 +577,29 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def setup_var_dropdowns(self):
         """
-        Makes fresh objects each time (and rebinds etc) because that is the only 
-            way (in Linux at least) to have a non-standard font-size for items
-            in a performant way e.g. if more than 10-20 items in a list. Very
-            slow if having to add items to dropdown if having to set font e.g.
-            using SetItems().
+        Makes fresh objects each time (and rebinds etc) because that is the only
+        way (in Linux at least) to have a non-standard font-size for items in a
+        performant way e.g. if more than 10-20 items in a list. Very slow if
+        having to add items to dropdown if having to set font e.g. using
+        SetItems().
         """
         varname1, varname2, varname3, varname4 = self.get_vars()
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
         self.dropdown_width = self.get_dropdown_width(chart_config)
+        ## time series special case - not easy to handle by simple config settings
+        show_agg, unused = self.get_agg_dets()
+        time_series = (self.chart_type == mg.LINE_CHART
+            and self.chk_line_time_series.IsChecked())
         # var 1
         chart_config1 = chart_config[0]
         min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
         inc_drop_select1 = chart_config1[mg.INC_SELECT_KEY]
-        self.update_lbl_var1(chart_config1)
+        kwargs = {u"chart_config1": chart_config1}
+        if time_series:
+            if not show_agg:
+                kwargs[u"lbl1_override"] = mg.CHART_DATETIMES_LBL
+        self._update_lbl_var1(**kwargs)
         self.sorted_var_names1 = []
         (items1, 
          idx_sel1) = self.get_items_and_sel_idx(mg.VAR_1_DEFAULT, 
@@ -600,7 +611,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chart_config2 = chart_config[1]
         min_data_type2 = chart_config2[mg.MIN_DATA_TYPE_KEY]
         inc_drop_select2 = chart_config2[mg.INC_SELECT_KEY]
-        lbl2 = u"%s:" % chart_config2[mg.LBL_KEY]
+        rawlbl = chart_config2[mg.LBL_KEY]
+        if time_series and show_agg:
+            rawlbl = mg.CHART_DATETIMES_LBL
+        lbl2 = u"%s:" % rawlbl
         try:
             self.lbl_var2.SetLabel(lbl2)
         except Exception:
@@ -1007,6 +1021,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             print("time_series: {}; rotate: {}; show_major: {}".format(
                 chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
         self.chk_line_major_ticks.Enable(show_major)
+        self.setup_var_dropdowns()
         
     def on_chk_area_time_series(self, event):
         chk = event.GetEventObject()
@@ -1308,7 +1323,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                              if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
         # 1) Variable selected but an earlier one has not (No Selection instead)
         """
-        Line charts and Scatterplots have one exception - can select chart by without series by
+        Line charts and Scatterplots have one exception - can select chart by
+        without series by
         """
         has_no_select_selected = False
         lbl_with_no_select = u""
