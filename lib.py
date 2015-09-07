@@ -408,7 +408,7 @@ def to_precision(num, precision):
             out.extend(m[e+1:])
     else:
         out.append("0.")
-        out.extend(["0"]*-(e+1))
+        out.extend(["0"] * -(e+1))
         out.append(m)
     return u"".join(out)
 

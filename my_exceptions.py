@@ -127,10 +127,11 @@ class TooFewColsInChiSquare(OutputException):
                                          "for Group B.") % mg.MIN_CHI_DIMS)
 
 class TooFewValsInSamplesForAnalysis(OutputException):
-    def __init__(self):
+    def __init__(self, gp_fldname, gp_val):
         OutputException.__init__(self, u"At least two values are needed in "
-                           u"each group to run the analysis. Please check "
-                           u"filtering or source data.")
+            u"each group to run the analysis. Please check filtering or source "
+            u"data. Not enough records in group %s for %s" % (gp_val,
+            gp_fldname))
 
 class ExcessReportTableCells(OutputException):
     def __init__(self, max_cells):

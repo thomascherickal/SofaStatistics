@@ -174,6 +174,8 @@ def get_freqs(sample):
 def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter, 
              filter_val):
     """
+    fld_filter -- the grouping variable
+
     Get list of non-missing values in field. Must return list of floats. SQLite 
         sometimes returns strings even though REAL data type. Not known why.
     Used, for example, in the independent samples t-test.
@@ -192,7 +194,8 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     # SQLite sometimes returns strings even if REAL
     lst = [float(x[0]) for x in cur.fetchall()]
     if len(lst) < 2:
-        raise my_exceptions.TooFewValsInSamplesForAnalysis
+        raise my_exceptions.TooFewValsInSamplesForAnalysis(fld_filter,
+            filter_val)
     return lst
 
 def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
