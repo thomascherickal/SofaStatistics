@@ -44,6 +44,7 @@ MAX_WIDTH = None # set later
 MAX_HEIGHT = None
 DEFAULT_LEVEL = None
 HORIZ_OFFSET = 0
+DEFAULT_STATS_DP = 3
 # core stats *********************************************************
 STATS_DIC_LBL = u"label"
 STATS_DIC_N = u"n"

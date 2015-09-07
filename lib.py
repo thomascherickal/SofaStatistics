@@ -361,12 +361,61 @@ def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote,
                 sql_str_literal_quote)
     return quoted_val
 
-def get_p(p, dp):
-    if p < 0.001:
-        p_str = u"< 0.001"
+def to_precision(num, precision):
+    """
+    Returns a string representation of x formatted with a precision of p.
+
+    Based on the webkit javascript implementation taken from here:
+    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp
+    
+    http://randlet.com/blog/python-significant-figures-format/
+    """
+    x = float(num)
+    if x == 0.:
+        return "0." + "0"*(precision - 1)
+    out = []
+    if x < 0:
+        out.append("-")
+        x = -x
+    e = int(math.log10(x))
+    tens = math.pow(10, e - precision + 1)
+    n = math.floor(x/tens)
+    if n < math.pow(10, precision - 1):
+        e = e -1
+        tens = math.pow(10, e - precision + 1)
+        n = math.floor(x / tens)
+    if abs((n + 1.) * tens - x) <= abs(n * tens -x):
+        n = n + 1
+    if n >= math.pow(10, precision):
+        n = n / 10.
+        e = e + 1
+    m = "%.*g" % (precision, n)
+    if e < -2 or e >= precision:
+        out.append(m[0])
+        if precision > 1:
+            out.append(".")
+            out.extend(m[1:precision])
+        out.append('e')
+        if e > 0:
+            out.append("+")
+        out.append(str(e))
+    elif e == (precision -1):
+        out.append(m)
+    elif e >= 0:
+        out.append(m[:e+1])
+        if e+1 < len(m):
+            out.append(".")
+            out.extend(m[e+1:])
     else:
-        p_format = u"%%.%sf" % dp
-        p_str = p_format % round(p, dp)
+        out.append("0.")
+        out.extend(["0"]*-(e+1))
+        out.append(m)
+    return u"".join(out)
+
+def get_p(p):
+    p_str = to_precision(num=p, precision=4)
+    if p < 0.001:
+        p_str = u"< 0.001 (%s)" % p_str
     return p_str
 
 def dates_1900_to_datetime(days_since_1900):

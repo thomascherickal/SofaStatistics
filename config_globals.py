@@ -174,6 +174,7 @@ def set_ok_date_formats_by_fmt(d_fmt):
                               "%Y-%m",  ## 2015-08
                               "%Y-%b",  ## 2015-Aug
                               "%Y-%B",  ## 2015-August
+                              "%m-%Y",  ## 08-2015
                               "%b-%Y",  ## Aug-2015
                               "%B-%Y",  ## August-2015
                               "%Y %b",  ## 2015 Aug
