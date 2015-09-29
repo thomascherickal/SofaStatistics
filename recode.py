@@ -254,7 +254,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
             u"%s (%s)" % (x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE])) 
             for x in self.settings_data]
         fld_dets.sort(key=lambda s: s[2].upper()) # needed consistent sorting
-        self.fldtypes = [x[0] for x in fld_dets]
+        self.fld_type_keys = [mg.FLDTYPE_LBL2KEY[x[0]] for x in fld_dets]
         self.fldnames = [x[1] for x in fld_dets]
         self.fldchoices = [x[2] for x in fld_dets]
         self.fldname = self.fldnames[0]
@@ -546,7 +546,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
             wx.MessageBox(_("Unable to use an existing field name (%s)") % 
                 new_fldname)
             return
-        fldtype = self.fldtypes[fld_idx]
+        fldtype = self.fld_type_keys[fld_idx]
         self.tabentry.update_settings_data()
         if debug: 
             print(pprint.pformat(self.recode_clauses_data))

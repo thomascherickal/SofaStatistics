@@ -282,7 +282,7 @@ def reset_main_con_if_sofa_default(tblname=None, add_checks=False):
         dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
             add_checks=add_checks)
 
-def get_gen_fldtype(fldtype):
+def _get_gen_fldtype_lbl(fldtype):
     """
     Get general field type from specific.
     """
@@ -307,7 +307,7 @@ def get_init_settings_data(default_dd, tblname):
         tblname_qtr(default_dd.dbe, tblname))
     config = default_dd.cur.fetchall()
     if debug: print(config)
-    table_config = [(x[1], get_gen_fldtype(fldtype=x[2])) for x in config]
+    table_config = [(x[1], _get_gen_fldtype_lbl(fldtype=x[2])) for x in config]
     return table_config
 
 # syntax

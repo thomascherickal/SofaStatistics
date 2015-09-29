@@ -224,8 +224,8 @@ class DlgDataSelect(wx.Dialog):
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)
         # table config dialog
         tblname_lst = [] # not quite worth using validator mechanism ;-)
-        init_fld_settings = [("sofa_id", mg.FLDTYPE_NUMERIC_LBL), 
-            ("var001", mg.FLDTYPE_NUMERIC_LBL),]
+        init_fld_settings = [("sofa_id", mg.FLDTYPE_NUMERIC_KEY), 
+            ("var001", mg.FLDTYPE_NUMERIC_KEY),]
         fld_settings = [] # can read final result at the end
         if debug: print(mg.DATADETS_OBJ)
         dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics, 

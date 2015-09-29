@@ -276,12 +276,13 @@ def make_redesigned_tbl(final_name, oth_name_types):
 def insert_data(row_idx, grid_data):
     """
     Return list of values to display in inserted row.
+
     Needs to know row index plus already used variable labels (to prevent 
-        collisions).
+    collisions).
     """
     existing_var_names = [x[0] for x in grid_data]
     next_fldname = lib.get_next_fldname(existing_var_names)
-    row_data = [next_fldname, mg.FLDTYPE_NUMERIC_LBL]
+    row_data = [next_fldname, mg.FLDTYPE_NUMERIC_LBL]  ## display label for type
     return row_data
 
 def cell_invalidation(frame, val, row, col, grid, col_dets):
@@ -321,7 +322,11 @@ def _invalid_fldname(row, grid):
     return False, u""
 
 def _invalid_fldtype(row, grid):
-    "Return boolean and string message"
+    """
+    Return boolean and string message
+
+    References field type label and not key because label is what is in grid.
+    """
     field_type = grid.GetCellValue(row=row, col=1)
     if field_type.strip() == u"":
         return False, ""
@@ -579,6 +584,9 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
     
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
             design_flds_types):
+        """
+        Using label not key because displaying field type.
+        """
         debug = False
         row_lst = []
         label_types = zip(design_flds_col_labels, design_flds_types)
