@@ -1323,12 +1323,14 @@ def get_escaped_dict_pre_write(mydict):
     for key in keys:
         val = mydict[key]
         if val is None:
-            esc_db_path = u"None"
+            item = u"None"
         elif type(val) is dict:
-            esc_db_path = get_escaped_dict_pre_write(val)
+            item = get_escaped_dict_pre_write(val)
+        elif isinstance(val, basestring):
+            item = u'u"' + escape_pre_write(val) + u'"'
         else:
-            esc_db_path = u'u"' + escape_pre_write(val) + u'"'
-        items_list.append(u'u"%s": %s' % (key, esc_db_path))
+            item = val 
+        items_list.append(u'u"%s": %s' % (key, item))
     return u"{" + u",\n    ".join(items_list) + u"}"
 
 if mg.PLATFORM == mg.WINDOWS:

@@ -206,6 +206,11 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
 
 def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script, 
         default_dbe, default_dbs, default_tbls, con_dets):
+    debug = True
+    if debug:
+        print(default_dbs)
+        print(default_tbls)
+        print(con_dets)
     content_list = []
     content_list.append(u"# Windows file paths _must_ have double not single "
         u"backslashes")

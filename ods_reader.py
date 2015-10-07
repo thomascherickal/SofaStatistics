@@ -344,7 +344,7 @@ def get_fldnames_from_header_row(row, headless=False, force_quickcheck=False):
     which has a blank field label as the final col will have that col autonamed 
     whereas here it and all its data will be ignored. 
     """
-    debug = True
+    debug = False
     orig_fldnames = []
     last_was_empty = False # init
     for el in row:
