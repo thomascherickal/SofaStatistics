@@ -7,7 +7,7 @@ copyright is held by Paton-Simpson & Associates Ltd.
 
 SOFA can be run in 3 main ways:
 
-1) As a standalone GUI application (launched with start.py)
+1) As a stand-alone GUI application (launched with start.py)
 2) Headless (no GUI) via scripting
 3) As a GUI but launched from another GUI program.
 

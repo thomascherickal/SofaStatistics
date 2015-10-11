@@ -95,7 +95,9 @@ else:
         pygtk.require('2.0')
         import gtk.gdk
         # pywebkitgtk (http://code.google.com/p/pywebkitgtk/)
+        ## Use wx.html2 as replacement compatible with wxPython 3.0??
         import webkit
+        print(webkit.version)
     
         class FullHTML(wx.Panel):
     
