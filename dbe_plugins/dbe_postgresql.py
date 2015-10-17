@@ -536,7 +536,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         if pgsql_default_db else None    
     default_tbls[mg.DBE_PGSQL] = pgsql_default_tbl \
         if pgsql_default_tbl else None
-    if pgsql_host and pgsql_user and pgsql_pwd:
+    if has_pgsql_con:
         # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
         con_dets_pgsql = {"host": pgsql_host, "user": pgsql_user, 
                           "password": pgsql_pwd}

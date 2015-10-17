@@ -426,7 +426,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         if mssql_default_db else None    
     default_tbls[mg.DBE_MS_SQL] = mssql_default_tbl \
         if mssql_default_tbl else None
-    if mssql_host and mssql_user and mssql_pwd:
+    if has_mssql_con:
         con_dets_mssql = {"host": mssql_host, "user": mssql_user, 
             "passwd": mssql_pwd}
         con_dets[mg.DBE_MS_SQL] = con_dets_mssql
