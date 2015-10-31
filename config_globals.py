@@ -168,28 +168,30 @@ def set_ok_date_formats_by_fmt(d_fmt):
     else:
         raise Exception("Unexpected d_fmt value (%s) in get_date_fmt_lists()"
                         % d_fmt)
-    always_ok_date_formats = ["%Y-%m-%d",
-                              "%Y/%m/%d",
-                              "%Y",  ## 2015
-                              "%Y-%m",  ## 2015-08
-                              "%Y-%b",  ## 2015-Aug
-                              "%Y-%B",  ## 2015-August
-                              "%m-%Y",  ## 08-2015
-                              "%b-%Y",  ## Aug-2015
-                              "%B-%Y",  ## August-2015
-                              "%Y %b",  ## 2015 Aug
-                              "%Y %B",  ## 2015 August
-                              "%B %Y",  ## February 2010 
-                              "%b %Y",  ## Feb 2010
-                              "%B %d, %Y",  ## February 11, 2010 
-                              "%b %d, %Y",  ## Feb 11, 2010
-                              "%B %d %Y",  ## February 11 2010 
-                              "%b %d %Y",  ## Feb 11 2010
-                              "%d %B, %Y",  ## 11 February, 2010 
-                              "%d %b, %Y",  ## 11 Feb, 2010
-                              "%d %B %Y",  ## 11 February 2010 
-                              "%d %b %Y",  ## 11 Feb 2010
-                              ]
+    always_ok_date_formats = [
+        "%Y-%m-%d",
+        "%Y/%m/%d",
+        "%Y",  ## 2015
+        "%Y.0",  ## 2015.0
+        "%Y-%m",  ## 2015-08
+        "%Y-%b",  ## 2015-Aug
+        "%Y-%B",  ## 2015-August
+        "%m-%Y",  ## 08-2015
+        "%b-%Y",  ## Aug-2015
+        "%B-%Y",  ## August-2015
+        "%Y %b",  ## 2015 Aug
+        "%Y %B",  ## 2015 August
+        "%B %Y",  ## February 2010 
+        "%b %Y",  ## Feb 2010
+        "%B %d, %Y",  ## February 11, 2010 
+        "%b %d, %Y",  ## Feb 11, 2010
+        "%B %d %Y",  ## February 11 2010 
+        "%b %d %Y",  ## Feb 11 2010
+        "%d %B, %Y",  ## 11 February, 2010 
+        "%d %b, %Y",  ## 11 Feb, 2010
+        "%d %B %Y",  ## 11 February 2010 
+        "%d %b %Y",  ## 11 Feb 2010
+    ]
     ok_date_formats =  extra_ok_date_formats + always_ok_date_formats
     mg.OK_DATE_FORMATS = ok_date_formats
     mg.OK_DATE_FORMAT_EXAMPLES = ok_date_format_examples

@@ -480,9 +480,14 @@ def get_proj_settings(parent, proj_dic):
     parent.pgsql_default_tbl = proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_PGSQL)
     # optional (although if any pgsql, for eg, must have all)
     if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_PGSQL):
-        parent.pgsql_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["host"]
-        parent.pgsql_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["user"]
-        parent.pgsql_pwd = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]["password"]
+        pgsql_dic = proj_dic[mg.PROJ_CON_DETS][mg.DBE_PGSQL]
+        parent.pgsql_host = pgsql_dic["host"]
+        try:
+            parent.pgsql_host = parent.pgsql_host + u":" + pgsql_dic["port"]
+        except KeyError:
+            pass
+        parent.pgsql_user = pgsql_dic["user"]
+        parent.pgsql_pwd = pgsql_dic["password"]
     else:
         parent.pgsql_host, parent.pgsql_user, parent.pgsql_pwd = u"", u"", u""
 
@@ -538,7 +543,15 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         if pgsql_default_tbl else None
     if has_pgsql_con:
         # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
-        con_dets_pgsql = {"host": pgsql_host, "user": pgsql_user, 
-                          "password": pgsql_pwd}
+        con_dets_pgsql = {"user": pgsql_user, "password": pgsql_pwd}
+        host_bits = pgsql_host.split(u":")
+        if 1 <= len(host_bits) <= 2:
+            host = host_bits[0].strip()
+            con_dets_pgsql['host'] = host
+            if len(host_bits) == 2:
+                port = host_bits[1].strip()
+                con_dets_pgsql['port'] = port
+        else:
+            raise Exception(u"Not expected number of parts split by ':'")
         con_dets[mg.DBE_PGSQL] = con_dets_pgsql
     return incomplete_pgsql, has_pgsql_con

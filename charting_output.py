@@ -526,11 +526,22 @@ def _structure_gen_data(chart_type, raw_data, xlblsdic,
                     raise my_exceptions.TooManySlicesInPieChart
             else:
                 if n_cats > mg.MAX_CATS_GEN:
-                    if wx.MessageBox(_(u"This chart will have %(n_cats)s "
+                    if multiseries:
+                        msg = (_(u"This chart will have %(n_cats)s "
+                            u"%(var_role_cat)s categories for "
+                            u"%(var_role_series_name)s \"%(series_lbl)s\" "
+                            u"and may not display properly. Do you wish to make"
+                            u" it anyway?") % {"n_cats": n_cats,
+                            "var_role_cat": var_role_cat,
+                            "var_role_series_name": var_role_series_name,
+                            "series_lbl": legend_lbl})
+                    else:
+                        msg = (_(u"This chart will have %(n_cats)s "
                             u"%(var_role_cat)s categories and may not display "
                             u"properly. Do you wish to make it anyway?") % 
-                            {"n_cats": n_cats, "var_role_cat": var_role_cat}, 
-                            caption=_("HIGH NUMBER OF CATEGORIES"), 
+                            {"n_cats": n_cats, "var_role_cat": var_role_cat})
+                    if wx.MessageBox(msg,
+                        caption=_("HIGH NUMBER OF CATEGORIES"), 
                             style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
                             var_role_cat, mg.MAX_CATS_GEN)
@@ -2025,8 +2036,9 @@ def _get_time_series_affected_dets(time_series, x_title, xaxis_dets, series_det,
         xaxis_lbls = u"[]"
         ## https://phillipsb1.wordpress.com/2010/07/25/date-and-time-based-charts/
         try:
-            xs = [lib.get_epoch_secs_from_datetime_str(x[0])*1000
-                for x in xaxis_dets]
+            xs = []
+            for val, unused, unused in xaxis_dets:
+                xs.append(lib.get_epoch_secs_from_datetime_str(str(val))*1000)
         except Exception:
             raise my_exceptions.InvalidTimeSeriesInput(fldname=x_title)
         ys = series_det[mg.CHARTS_SERIES_Y_VALS]

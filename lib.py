@@ -1736,10 +1736,12 @@ def get_epoch_secs_from_datetime_str(raw_datetime_str):
     Takes a string and checks if there is a usable datetime in there. A time 
     without a date is OK). As is a month or year only.
 
-    If there is, returns seconds since epoch (1970).
+    If there is, returns seconds since epoch (1970). Can be a negative value.
     """
     time_obj = get_time_obj(raw_datetime_str)
-    epoch_seconds = time.mktime(time_obj)
+    input_dt = datetime.datetime(*time_obj[:6])
+    epoch_start_dt = datetime.datetime(1970,1,1)
+    epoch_seconds = (input_dt - epoch_start_dt).total_seconds() # time.mktime(time_obj)
     return epoch_seconds
 
 # data
