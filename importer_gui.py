@@ -14,7 +14,6 @@ import getdata # must be before anything referring to plugin modules
 import importer
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 # import csv_importer etc below to avoid circular import
-import gdata_downloader
 
 FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
@@ -101,9 +100,6 @@ class DlgImportFileSelect(wx.Dialog):
         btn_file_path.Bind(wx.EVT_BUTTON, self.on_btn_file_path)
         btn_file_path.SetDefault()
         btn_file_path.SetToolTipString(_("Browse for file locally"))
-        btn_google = wx.Button(self.panel, -1, _("Google Spreadsheet ..."))
-        btn_google.SetToolTipString(_("Browse for Google Spreadsheet"))
-        btn_google.Bind(wx.EVT_BUTTON, self.on_btn_google)
         # comment
         lbl_comment = wx.StaticText(self.panel, -1, 
             _("The Source File will be imported into SOFA with the SOFA Table "
@@ -137,7 +133,6 @@ class DlgImportFileSelect(wx.Dialog):
         szr_get_file = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
         szr_get_file.AddGrowableCol(0,1) # idx, propn
         szr_get_file.Add(btn_file_path, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
-        szr_get_file.Add(btn_google, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
         szr_int_name = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
         szr_int_name.AddGrowableCol(0,1) # idx, propn
         szr_int_name.Add(lbl_int_name, 0, wx.ALIGN_RIGHT|wx.RIGHT, 5)
@@ -209,27 +204,7 @@ class DlgImportFileSelect(wx.Dialog):
               u"?id=help:importing"
         webbrowser.open_new_tab(url)
         event.Skip()
-    
-    def on_btn_google(self, event):
-        "Open dialog and take the file selected (if any)"
-        dlg_gdata = gdata_downloader.DlgGdataDownload(self)
-        # MUST have a parent to enforce modal in Windows
-        ret = dlg_gdata.ShowModal()
-        downloaded = False
-        if ret != wx.ID_CLOSE: # successfully downloaded
-            downloaded = True
-            path = os.path.join(mg.INT_PATH, mg.GOOGLE_DOWNLOAD)
-            self.txt_file.SetValue(path)
-            filestart, unused = get_file_start_ext(path)
-            newname = importer.process_tblname(filestart)
-            self.txt_int_name.SetValue(newname)
-        self.txt_int_name.SetFocus()
-        self.align_btns_to_completeness()
-        self.btn_import.SetDefault()
-        if downloaded: # start import automatically
-            run_gui_import(self)
-        event.Skip()
-        
+
     def on_close(self, event):
         self.Destroy()
     

@@ -398,45 +398,6 @@ def get_next_y_pos(start, height):
         i += 1
 
 
-class DlgFeedback(wx.Dialog):
-    def __init__(self, parent):
-        wx.Dialog.__init__(self, parent=parent, title=_("Feedback"), 
-            style=wx.CAPTION|wx.SYSTEM_MENU, pos=(mg.HORIZ_OFFSET+100,300))
-        self.parent = parent
-        self.panel = wx.Panel(self)
-        self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=50)
-        szr_btns.AddGrowableCol(0,1) # idx, propn
-        btn_exit = wx.Button(self.panel, -1, _("Just Exit"))
-        btn_exit.Bind(wx.EVT_BUTTON, self.on_btn_exit)
-        btn_feedback = wx.Button(self.panel, -1, _("Give Quick Feedback"))
-        btn_feedback.Bind(wx.EVT_BUTTON, self.on_btn_feedback)
-        szr_btns.Add(btn_exit, 0)
-        szr_btns.Add(btn_feedback, 0, wx.ALIGN_RIGHT)
-        txt_invitation = wx.StaticText(self.panel, -1, 
-            _(u"Did SOFA meet your needs? Please let us know by answering a "
-            u"short survey.\n\nYou can answer later by clicking on the "
-            u"\"%(link)s\" link\ndown the bottom of the main form\n\nAnd you "
-            u"are always welcome to email %(contact)s - \nespecially to solve "
-            u"any problems.") % {u"link": mg.FEEDBACK_LINK, 
-            u"contact": mg.CONTACT})
-        self.szr_main.Add(txt_invitation, 1, wx.GROW|wx.ALL, 10)
-        self.szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
-        self.panel.SetSizer(self.szr_main)
-        self.szr_main.SetSizeHints(self)
-        self.Layout()
-        
-    def on_btn_exit(self, event):
-        self.Destroy()
-        
-    def on_btn_feedback(self, event):
-        import webbrowser
-        url = u"http://www.sofastatistics.com/feedback.htm"
-        webbrowser.open_new_tab(url)
-        self.Destroy()
-        event.Skip()
-
-
 class StartFrame(wx.Frame):
     
     def __init__(self):
@@ -558,9 +519,6 @@ class StartFrame(wx.Frame):
             if show_more_steps: print(u"Has deferred warning message")
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
             if show_more_steps: print(u"Set warning message to CallAfter")
-        else:
-            wx.CallAfter(self.sofastats_connect)
-            if show_more_steps: print(u"Set sofastats_connect to CallAfter")
     
     def get_version_lev(self):
         try:
@@ -885,89 +843,6 @@ class StartFrame(wx.Frame):
     
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
-        
-    def sofastats_connect(self):
-        """
-        If first time, or file otherwise missing or damaged, create file with
-        date set a short time in the future as signal to connect to the 
-        sofastatistics.com "What's Happening" web page. Whenever a connection is 
-        made, reset date to a longer period away. If file exists and date can be 
-        read, connect if time has passed and reset date to a longer period away.
-        """
-        debug = False
-        connect_now = False
-        sofastats_connect_fil = os.path.join(mg.INT_PATH, 
-            mg.SOFASTATS_CONNECT_FILE)
-        wx.BeginBusyCursor()
-        if show_more_steps: print(u"About to attempt reading connect file")
-        try:
-            # read date from file if possible
-            connect_cont = b.get_unicode_from_file(fpath=sofastats_connect_fil)
-            connect_cont = b.get_exec_ready_text(connect_cont)
-            if show_more_steps: print(u"Just got connection details")
-            connect_dic = {}
-            # http://docs.python.org/reference/simple_stmts.html
-            exec connect_cont in connect_dic
-            if show_more_steps: print(u"Just executed connection details")
-            # if date <= now, connect_now and update file
-            connect_date = connect_dic[mg.SOFASTATS_CONNECT_VAR]
-            now_str = unicode(datetime.datetime.today())
-            expired_date = (connect_date <= now_str)
-            if show_more_steps: print(u"Just worked out expired date")
-            if expired_date:
-                connect_now = True
-            if show_more_steps: print(u"Successfully read connect file")
-        except Exception, e: # if probs, create new file for few weeks away
-            try:
-                if show_more_steps: 
-                    print(u"About to update sofastats connect date")
-                self.update_sofastats_connect_date(sofastats_connect_fil, 
-                    days2wait=mg.SOFASTATS_CONNECT_INITIAL)
-                if show_more_steps: print(u"Updated connect date")
-            except Exception, e:
-                raise Exception("Unable to update sofastats connect date")
-        if connect_now:
-            try:
-                # check we can!
-                if show_more_steps: print(u"About to import showhtml")
-                import showhtml
-                if show_more_steps: print(u"About to import urllib")
-                import urllib # http://docs.python.org/library/urllib.html
-                file2read = mg.SOFASTATS_CONNECT_URL
-                # so I can see which versions are still in use
-                # without violating privacy etc
-                url2open = u"http://www.sofastatistics.com/%s?version=%s" % \
-                    (file2read, mg.VERSION)
-                unused = urllib.urlopen(url2open)
-                if show_more_steps: 
-                    print("Checked sofastatistics.com connection")
-                # seems OK so connect
-                #width_reduction=mg.MAX_WIDTH*0.25 if mg.MAX_WIDTH > 1000 \
-                #                                  else 200
-                #height_reduction=mg.MAX_HEIGHT*0.25 if mg.MAX_HEIGHT > 600 \
-                #                                    else 100
-                if show_more_steps: 
-                    print(u"Worked out height and width reduction")
-                dlg = showhtml.DlgHTML(parent=self, 
-                    title=_("What's happening in SOFA Statistics"), 
-                    url='http://www.sofastatistics.com/sofastats_connect.php',
-                    width_reduction=mg.MAX_WIDTH*0.25, 
-                    height_reduction=mg.MAX_HEIGHT*0.25)
-                dlg.ShowModal()
-                # set next contact date
-                try:
-                    if show_more_steps: 
-                        print(u"About to update sofastats connect date")
-                    self.update_sofastats_connect_date(sofastats_connect_fil, 
-                        days2wait=mg.SOFASTATS_CONNECT_REGULAR)
-                    if show_more_steps: print(u"Updated connect date")
-                except Exception, e:
-                    raise Exception("Unable to update sofastats connect date")                
-            except Exception, e:
-                if debug: print(u"Unable to connect to sofastatistics.com."
-                    u"/nCaused by error: %s" % b.ue(e))
-                pass # Don't make a fuss if fails to contact main website.
-        lib.safe_end_cursor()
     
     def update_sofastats_connect_date(self, sofastats_connect_fil, 
             days2wait=30):
@@ -1409,13 +1284,7 @@ class StartFrame(wx.Frame):
             if debug: print(delme)
             os.remove(delme)
         lib.safe_end_cursor()
-        #LOCAL_PATH_SETUP_NEEDED = True # testing
-        #wx.MessageBox("Change me too!")
-        if LOCAL_PATH_SETUP_NEEDED: # if first use, pop up on way out
-            dlg = DlgFeedback(self)
-            dlg.ShowModal()
         self.Destroy()
-        #sys.exit()
         
     def on_exit_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
