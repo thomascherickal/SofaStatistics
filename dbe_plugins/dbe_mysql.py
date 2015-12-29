@@ -30,7 +30,7 @@ SMALLINT = "smallint"
 TINYINT = "tinyint"
 
 if_clause = u"IF(%s, %s, %s)"
-placeholder = u"?"
+placeholder = u"%s"
 left_obj_quote = u"`"
 right_obj_quote = u"`"
 gte_not_equals = u"!="
