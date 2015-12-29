@@ -256,7 +256,12 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         run_ok = self.test_config_ok()
         if run_ok:
             # set vals and data_label
-            self.var_a, unused = self.get_var_a()
+            try:
+                self.var_a, unused = self.get_var_a()
+            except Exception, e:
+                wx.MessageBox(u"Unable to process first variable. "
+                    u"Orig error: %s" % e)
+                return
             self.var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                 item_val=self.var_a)
             if self.paired:
@@ -376,21 +381,31 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
 
     def refresh_vars(self):
         output.update_var_dets(dlg=self)
-        
+    
+    def _get_var(self, drop):
+        idx = drop.GetSelection()
+        if idx == -1:
+            raise Exception(u"No items in variable")
+        try:
+            var = self.sorted_var_names[idx]
+        except IndexError, e:
+            raise Exception(u"Problem getting var from %s with given index "
+                u"(%s). Orig error: %s" % (self.sorted_var_names, idx, e))
+        var_item = drop.GetStringSelection()
+        return var, var_item        
+    
     def get_var_a(self):
-        idx = self.drop_var_a.GetSelection()
-        var = self.sorted_var_names[idx]
-        var_item = self.drop_var_a.GetStringSelection()
-        return var, var_item
+        return self._get_var(self.drop_var_a)
 
     def get_var_b(self):
-        idx = self.drop_var_b.GetSelection()
-        var = self.sorted_var_names[idx]
-        var_item = self.drop_var_b.GetStringSelection()
-        return var, var_item
+        return self._get_var(self.drop_var_b)
     
     def on_rclick_var_a(self, event):
-        var_a, choice_item = self.get_var_a()
+        try:
+            var_a, choice_item = self.get_var_a()
+        except Exception:
+            wx.MessageBox(u"Unable to edit selection - nothing selected")
+            return
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_a)
         updated = config_output.set_var_props(choice_item, var_a, var_label_a, 
@@ -399,7 +414,11 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
             self.setup_var_a(var_a)
     
     def on_rclick_var_b(self, event):
-        var_b, choice_item = self.get_var_b()
+        try:
+            var_b, choice_item = self.get_var_b()
+        except Exception:
+            wx.MessageBox(u"Unable to edit selection - nothing selected")
+            return
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_b)
         updated = config_output.set_var_props(choice_item, var_b, var_label_b, 

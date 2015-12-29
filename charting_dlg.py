@@ -1321,7 +1321,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_variable_in_lblctrl_vars = 1
         shown_lblctrl_vars = [x for x in lblctrl_vars 
                              if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
-        # 0) Required field empty
+        # 1) Required field empty
         for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
             chart_subtype_key = self.get_chart_subtype_key()
             chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
@@ -1333,7 +1333,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 wx.MessageBox(u"The required field %s is missing for the %s "
                     u"chart type." % (varlbl, self.chart_type))
                 return False
-        # 1) Variable selected but an earlier one has not (No Selection instead)
+        # 2) Variable selected but an earlier one has not (No Selection instead)
         """
         Line charts and Scatterplots have one exception - can select chart by
         without series by
@@ -1362,7 +1362,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                                   {u"varlbl": varlbl, 
                                    u"lbl_with_no_select": lbl_with_no_select})
                     return False
-        # 2) Excluding No Selections, we have duplicate selections
+        # 3) Excluding No Selections, we have duplicate selections
         selected_lblctrl_vars = [x for x in shown_lblctrl_vars 
             if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
         selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x 
