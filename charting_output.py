@@ -589,7 +589,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     chart_config = mg.CHART_CONFIG[chart_type][chart_subtype_key]
     for var_dets in chart_config: # looping through available dropdowns for chart
         var_role = var_dets[mg.VAR_ROLE_KEY]
-        allows_missing = var_dets[mg.INC_SELECT_KEY]
+        allows_missing = var_dets[mg.EMPTY_VAL_OK]
         matching_input_var = locals()[var_role]
         role_missing = matching_input_var is None
         if role_missing and not allows_missing:

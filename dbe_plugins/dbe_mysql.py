@@ -280,7 +280,7 @@ def get_flds(cur, db, tbl):
     for i, row in enumerate(cur.fetchall()):
         if debug: print(row)
         fldname, coltype, nullable, unused, fld_default, extra = row
-        bolnullable = True if nullable == u"YES" else False
+        bolnullable = (nullable == u"YES")
         autonum = u"auto_increment" in extra
         timestamp = coltype.lower().startswith("timestamp")
         boldata_entry_ok = not (autonum or timestamp)

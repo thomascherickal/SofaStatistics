@@ -523,7 +523,7 @@ class DimTree(object):
                 has_children = False
             else: # only need to test one because they are all required to be the same
                 item, unused = tree.GetFirstChild(selected_ids[0])
-                has_children = True if item else False
+                has_children = bool(item)
             if not has_children:
                 measures = rpt_config[mg.COL_MEASURES_KEY][:] # copy so don't keep appending to original!
                 if has_vars and rpt_config[mg.ROWPCT_AN_OPTION_KEY]:
@@ -599,9 +599,8 @@ class DimTree(object):
         Enable or disable row buttons according to table type and presence or
             absence of row items.
         """
-        has_rows = True if lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                      item=self.rowroot) \
-                                                      else False
+        has_rows = bool(lib.get_tree_ctrl_children(tree=self.rowtree, 
+                                                   item=self.rowroot))
         if self.tab_type in (mg.FREQS, mg.CROSSTAB, mg.ROW_STATS):
             self.btn_row_add.Enable(True)
             self.btn_row_add_under.Enable(has_rows)
@@ -618,9 +617,8 @@ class DimTree(object):
         Enable or disable column buttons according to table type and presence or
             absence of column items.
         """
-        has_cols = True if lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                      item=self.colroot) \
-                                                      else False
+        has_cols = bool(lib.get_tree_ctrl_children(tree=self.coltree, 
+                                                   item=self.colroot))
         if self.tab_type == mg.FREQS:
             self.btn_col_add.Enable(False)
             self.btn_col_add_under.Enable(False)

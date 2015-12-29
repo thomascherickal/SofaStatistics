@@ -176,7 +176,7 @@ def get_flds(cur, db, tbl):
         if not fldtype:
             raise Exception(u"Not an MS Access ADO field type %d" % col.Type)
         bolautonum = col.Properties(u"AutoIncrement").Value
-        boldata_entry_ok = False if bolautonum else True
+        boldata_entry_ok = not bolautonum
         # nullable if it says so (unless it is uniquely indexed yet lacks an
         # autonumber)
         bolnullable = col.Properties(u"Nullable").Value

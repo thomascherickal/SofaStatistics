@@ -210,12 +210,12 @@ def get_flds(cur, db, tbl):
     fld_dets = cur.fetchall() 
     flds = {}
     for cid, fldname, fldtype, notnull, dflt_value, pk in fld_dets:
-        bolnullable = True if notnull == 0 else False
+        bolnullable = (notnull == 0)
         bolnumeric = fldtype.lower() in NUMERIC_TYPES
         bolautonum = (pk == 1 and fldtype.lower() == "integer")            
-        boldata_entry_ok = False if bolautonum else True
+        boldata_entry_ok = not bolautonum
         boldatetime = fldtype.lower() in DATE_TYPES
-        fld_txt = not bolnumeric and not boldatetime
+        fld_txt = not (bolnumeric or boldatetime)
         bolsigned = True if bolnumeric else None
         dets_dic = {
             mg.FLD_SEQ: cid,

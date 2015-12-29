@@ -38,6 +38,8 @@ REAL = u"real"
 DOUBLE = u"double"
 MONETARY = u"monetary"
 
+DEFAULT_PORT = 33000
+
 if_clause = u"IF(%s, %s, %s)"
 placeholder = u"?"
 left_obj_quote = u"`"
@@ -258,7 +260,7 @@ def get_flds(cur, db, tbl):
     for i, row in enumerate(cur.fetchall()):
         if debug: print(row)
         fldname, coltype, nullable, unused, fld_default, extra = row
-        bolnullable = True if nullable == u"YES" else False
+        bolnullable = (nullable == u"YES")
         autonum = u"auto_increment" in extra
         timestamp = coltype.lower().startswith("timestamp")
         boldata_entry_ok = not (autonum or timestamp)
@@ -423,7 +425,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_cubrid_host = wx.TextCtrl(scroll, -1, cubrid_host, size=(100,-1))
     parent.txt_cubrid_host.Enable(not readonly)
     parent.txt_cubrid_host.SetToolTipString(_("Host e.g. localhost, or "
-                                              "localhost:33000"))
+                                              "localhost:%s" % DEFAULT_PORT))
     # user
     parent.lbl_cubrid_user = wx.StaticText(scroll, -1, _("User:"))
     parent.lbl_cubrid_user.SetFont(lblfont)
@@ -480,8 +482,9 @@ def get_proj_settings(parent, proj_dic):
     # optional (although if any mysql, for eg, must have host, user, and passwd)
     if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_CUBRID):
         raw_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_CUBRID]["host"]
-        raw_port = proj_dic[mg.PROJ_CON_DETS][mg.DBE_CUBRID].get("port", 33000)
-        if raw_port != 33000:
+        raw_port = proj_dic[mg.PROJ_CON_DETS][mg.DBE_CUBRID].get("port",
+            DEFAULT_PORT)
+        if raw_port != DEFAULT_PORT:
             parent.cubrid_host = u"%s:%s" % (raw_host, raw_port)
         else:
             parent.cubrid_host = raw_host
@@ -530,10 +533,10 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             cubrid_port = int(raw_port)
         except ValueError:
             raise Exception(u"Host had a ':' but the port was not an integer "
-                            u"e.g. localhost:33000")
+                            u"e.g. localhost:%s" % DEFAULT_PORT)
     else:
         cubrid_host = raw_host
-        cubrid_port = 33000
+        cubrid_port = DEFAULT_PORT
     cubrid_user = parent.txt_cubrid_user.GetValue()
     cubrid_pwd = parent.txt_cubrid_pwd.GetValue()
     has_cubrid_con = cubrid_host and cubrid_user and cubrid_default_db # allow blank password

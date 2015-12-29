@@ -594,7 +594,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # var 1
         chart_config1 = chart_config[0]
         min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
-        inc_drop_select1 = chart_config1[mg.INC_SELECT_KEY]
+        inc_drop_select1 = chart_config1[mg.EMPTY_VAL_OK]
         kwargs = {u"chart_config1": chart_config1}
         if time_series:
             if not show_agg:
@@ -610,7 +610,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # var 2
         chart_config2 = chart_config[1]
         min_data_type2 = chart_config2[mg.MIN_DATA_TYPE_KEY]
-        inc_drop_select2 = chart_config2[mg.INC_SELECT_KEY]
+        inc_drop_select2 = chart_config2[mg.EMPTY_VAL_OK]
         rawlbl = chart_config2[mg.LBL_KEY]
         if time_series and show_agg:
             rawlbl = mg.CHART_DATETIMES_LBL
@@ -632,7 +632,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             chart_config3 = chart_config[2]
             lbl3 = u"%s:" % chart_config3[mg.LBL_KEY]
             min_data_type3 = chart_config3[mg.MIN_DATA_TYPE_KEY]
-            inc_drop_select3 = chart_config3[mg.INC_SELECT_KEY]
+            inc_drop_select3 = chart_config3[mg.EMPTY_VAL_OK]
         except Exception:
             # OK if not a third drop down for chart
             lbl3 = u"%s:" % mg.CHARTS_CHART_BY_LBL
@@ -663,7 +663,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             chart_config4 = chart_config[3]
             lbl4 = u"%s:" % chart_config4[mg.LBL_KEY]
             min_data_type4 = chart_config4[mg.MIN_DATA_TYPE_KEY]
-            inc_drop_select4 = chart_config4[mg.INC_SELECT_KEY]
+            inc_drop_select4 = chart_config4[mg.EMPTY_VAL_OK]
         except Exception:
             # OK if not a third drop down for chart
             lbl4 = u"%s:" % mg.CHARTS_CHART_BY_LBL
@@ -1321,6 +1321,18 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_variable_in_lblctrl_vars = 1
         shown_lblctrl_vars = [x for x in lblctrl_vars 
                              if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
+        # 0) Required field empty
+        for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
+            chart_subtype_key = self.get_chart_subtype_key()
+            chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
+            allows_missing = chart_config[var_idx][mg.EMPTY_VAL_OK]
+            lblctrl, variable = shown_lblctrl_var
+            varlbl = lblctrl.GetLabel().rstrip(u":")
+            role_missing = variable is None
+            if role_missing and not allows_missing:
+                wx.MessageBox(u"The required field %s is missing for the %s "
+                    u"chart type." % (varlbl, self.chart_type))
+                return False
         # 1) Variable selected but an earlier one has not (No Selection instead)
         """
         Line charts and Scatterplots have one exception - can select chart by

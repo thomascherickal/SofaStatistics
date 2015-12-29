@@ -108,7 +108,7 @@ def open_database(parent, event):
         readonly = False
         if parent.chk_readonly.IsEnabled():
             readonly = parent.chk_readonly.IsChecked()
-        set_colwidths = True if rows_n < 1000 else False
+        set_colwidths = (rows_n < 1000)
         dlg = TblEditor(parent, parent.var_labels, parent.var_notes, 
             parent.var_types, parent.val_dics, readonly, 
             set_colwidths=set_colwidths)

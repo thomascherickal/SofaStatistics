@@ -234,7 +234,7 @@ def get_flds(cur, db, tbl):
             default = col.Properties(u"Default").Value
         except Exception:
             default = ""
-        boldata_entry_ok = False if bolautonum else True
+        boldata_entry_ok = not bolautonum
         dec_pts = col.NumericScale if col.NumericScale < 18 else 0
         boldatetime = fldtype in dbe_globals.DATETIME_TYPES
         fld_txt = not bolnumeric and not boldatetime

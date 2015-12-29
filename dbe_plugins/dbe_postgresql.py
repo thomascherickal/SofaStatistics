@@ -310,14 +310,14 @@ def get_flds(cur, db, tbl):
     for (fldname, ord_pos, nullable, fld_default, fldtype, max_len, 
              charset, numeric, autonum, dec_pts, num_prec, boldatetime, 
              timestamp) in fld_dets:
-        bolnullable = True if nullable == u"YES" else False
-        boldata_entry_ok = False if (autonum or timestamp) else True
-        bolnumeric = True if numeric else False
+        bolnullable = (nullable == u"YES")
+        boldata_entry_ok = not (autonum or timestamp)
+        bolnumeric = numeric
         fld_txt = not bolnumeric and not boldatetime
         min_val, max_val = get_min_max(fldtype, num_prec, dec_pts, autonum)
         # http://www.postgresql.org/docs/current/static/datatype-numeric.html
         # even autonum could start from a negative i.e. signed value
-        bolsigned = True if bolnumeric else None
+        bolsigned = bolnumeric
         dets_dic = {
                     mg.FLD_SEQ: ord_pos,
                     mg.FLD_BOLNULLABLE: bolnullable,
