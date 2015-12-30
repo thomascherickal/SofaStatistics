@@ -589,8 +589,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.dropdown_width = self.get_dropdown_width(chart_config)
         ## time series special case - not easy to handle by simple config settings
         show_agg, unused = self.get_agg_dets()
-        time_series = (self.chart_type == mg.LINE_CHART
-            and self.chk_line_time_series.IsChecked())
+        time_series = (
+            (self.chart_type == mg.LINE_CHART
+                and self.chk_line_time_series.IsChecked())
+            or
+            (self.chart_type == mg.AREA_CHART
+                and self.chk_area_time_series.IsChecked()))
         # var 1
         chart_config1 = chart_config[0]
         min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
@@ -753,6 +757,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.SetToolTipString(_(u"Rotate x-axis labels?"))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
         return chk
+        # var 1
 
     def get_chk_major_ticks(self, panel):
         if mg.PLATFORM == mg.WINDOWS:
@@ -780,7 +785,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def get_chk_time_series(self, panel, line=True):
         if mg.PLATFORM == mg.WINDOWS:
-            dates2use = _("Iime series?")
+            dates2use = _("Time series?")
         else:
             dates2use = _("Time\nseries?")
         chk = self.checkbox2use(panel, -1, dates2use)
@@ -1024,12 +1029,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var_dropdowns()
         
     def on_chk_area_time_series(self, event):
+        debug = False
         chk = event.GetEventObject()
         self.drop_area_sort.Enable(not chk.IsChecked())
         time_series = chk.IsChecked()
         rotate = self.chk_area_rotate.IsChecked()
         show_major = self._get_show_major(time_series, rotate)
+        if debug:
+            print("time_series: {}; rotate: {}; show_major: {}".format(
+                chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
         self.chk_area_major_ticks.Enable(show_major)
+        self.setup_var_dropdowns()
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
