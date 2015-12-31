@@ -993,6 +993,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         time_series_area = self.chk_area_time_series.IsChecked()
         show_major_area = self._get_show_major(time_series_area, ROTATE)
         self.chk_area_major_ticks.Enable(show_major_area)
+        self.panel_line_chart.Refresh()
+        self.panel_area_chart.Refresh()
         
     def on_chk_major_ticks(self, event):
         global MAJOR
@@ -1027,6 +1029,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
         self.chk_line_major_ticks.Enable(show_major)
         self.setup_var_dropdowns()
+        self.panel_line_chart.Refresh()
         
     def on_chk_area_time_series(self, event):
         debug = False
@@ -1040,6 +1043,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
         self.chk_area_major_ticks.Enable(show_major)
         self.setup_var_dropdowns()
+        self.panel_area_chart.Refresh()
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
@@ -1196,6 +1200,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             ))
         self.chk_line_trend.Enable(show_line_extras)
         self.chk_line_smooth.Enable(show_line_extras)
+        self.panel_line_chart.Refresh()
         
     def on_var2_sel(self, event):
         self.setup_line_extras()
