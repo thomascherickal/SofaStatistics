@@ -627,7 +627,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
             config_ui.ConfigUI.on_btn_run(self, event, 
-                get_script_args=[has_cols,])
+                get_script_args={u"has_cols": has_cols, })
     
     # export script
     def on_btn_script(self, event):
@@ -873,7 +873,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         if not run_ok:
             return False, u""
         new_has_dojo = False
-        get_script_args = [has_cols,]
+        get_script_args = {u"has_cols": has_cols, }
         (bolran_report, 
          str_content) = config_ui.ConfigUI.get_script_output(self, 
             get_script_args, new_has_dojo, allow_add2rpt=False)

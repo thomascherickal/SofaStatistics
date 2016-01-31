@@ -114,7 +114,7 @@ except Exception, e:
 try:
     config_globals.set_SCRIPT_PATH()
     config_globals.set_ok_date_formats()
-    config_globals.set_DEFAULT_LEVEL()
+    config_globals.set_DEFAULT_DETAILS()
     config_globals.import_dbe_plugins() # as late as possible because uses local 
         # modules e.g. my_exceptions, lib
 except Exception, e:
@@ -254,9 +254,6 @@ def init_com_types(parent, panel):
         f = codecs.open(comtypes_tag, "w", "utf-8")
         f.write(u"Comtypes handled successfully :-)")
         f.close()
-
-def get_installed_version_local_path():
-    return get_installed_version(local_path=mg.LOCAL_PATH)
 
 def get_installed_version(local_path):
     """

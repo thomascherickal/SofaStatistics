@@ -30,8 +30,8 @@ def _p_msg(p_sim):
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
         mean_squ_bn, label_gp, label_a, label_b, label_avg, add_to_report, 
-        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP,
-        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
+        page_break_after=False):
     debug = False
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -321,8 +321,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
 
 def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df, 
         label_avg, add_to_report, report_name, css_fil, css_idx=0,
-        dp=mg.DEFAULT_STATS_DP, level=mg.OUTPUT_RESULTS_ONLY,
-        page_break_after=False):
+        dp=mg.DEFAULT_STATS_DP, details=False, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -365,8 +364,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs, 
         add_to_report, report_name, css_fil, css_idx=0, label_avg=u"",
-        dp=mg.DEFAULT_STATS_DP, level=mg.OUTPUT_RESULTS_ONLY,
-        page_break_after=False):
+        dp=mg.DEFAULT_STATS_DP, details=False, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -405,7 +403,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     return html_str
 
 def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil, 
-        css_idx=0, dp=mg.DEFAULT_STATS_DP, level=mg.OUTPUT_RESULTS_ONLY,
+        css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
         page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -413,7 +411,6 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     html = []
     footnotes = []
-    label_gp
     label_a = dic_a[mg.STATS_DIC_LBL]
     label_b = dic_b[mg.STATS_DIC_LBL]
     n_a = dic_a[mg.STATS_DIC_N]
@@ -467,15 +464,79 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
             dic[mg.STATS_DIC_MIN], dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
+    if details:
+        html.append(u"""
+        <hr>
+        <h2>Worked Example of Key Calculations</h2>
+        <p>Note - the method shown below is based on ranked values of the data
+        as a whole, not on every possible comparison - but the result is exactly
+        the same.</p>
+        <h3>Step 1 - Add ranks to all values</h3>
+        <p>Note on ranking - rank such that all examples of a value get the
+        median rank for all items of that value.</p>
+        <p>If calculating by hand, and one sample is shorter than the others,
+        make that the first sample to reduce the number of calculations</p>
+        <p>For the rest of this worked example, sample 1 is "%s" and sample 2 "
+        u"is "%s".""" % (details[mg.MANN_WHITNEY_LABEL_1],
+            details[mg.MANN_WHITNEY_LABEL_2]))
+        html.append(u"""<table>
+        <thead>
+            <tr>
+                <th>Sample</th>
+                <th>Value</th>
+                <th>Counter</th>
+                <th>Rank</th>
+            </tr>
+        </thead>
+        <tbody>""")
+        for val_det in details[mg.MANN_WHITNEY_VAL_DETS]:
+            html.append(u"""
+            <tr>
+                <td>%(sample)s</td>
+                <td>%(val)s</td>
+                <td>%(counter)s</td>
+                <td>%(rank)s</td>
+            </tr>""" % val_det)
+        html.append(u"""
+        </tbody>
+        </table>""")
+        html.append(u"""<h3>Step 2 - Sum the ranks for sample 1</h3>
+        <p>sum_ranks_1 = """ +
+        u" + ".join(str(x) for x in details[mg.MANN_WHITNEY_RANKS_1]) +
+        u" i.e. <strong>%(sum_rank_1)s</strong></p>""" %
+            {u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1]})
+        html.append(u"""<h3>Step 3 - Calculate U for sample 1 as per:</h3>
+        <p>u_1 = n_1*n_2 + (n_1*(n_1 + 1))/2.0 - sum(ranks_1)</p>""")
+        html.append(u"""<p>u_1 = %(n_1)s*%(n_2)s + (%(n_1)s*(%(n_1)s+1))/2 - 
+        %(sum_rank_1)s i.e. <strong>%(u_1)s</strong></p>""" %
+            {u"n_1": details[mg.MANN_WHITNEY_N_1],
+             u"n_2": details[mg.MANN_WHITNEY_N_2],
+             u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1],
+             u"u_1": details[mg.MANN_WHITNEY_U_1]})
+        html.append(u"""<h3>Step 4 - Calculate U for sample 2 as per:</h3>
+        <p>u_2 = n_1*n_2 - u_1</p>""")
+        html.append(u"""<p>u_2 = %(n_1)s*%(n_2)s - %(u_1)s i.e. <strong>%(u_2)s
+            </strong></p>""" %
+            {u"n_1": details[mg.MANN_WHITNEY_N_1],
+             u"n_2": details[mg.MANN_WHITNEY_N_2],
+             u"u_1": details[mg.MANN_WHITNEY_U_1],
+             u"u_2": details[mg.MANN_WHITNEY_U_2]})
+        html.append(u"""<h3>Step 5 - Identify the lowest of the U values</h3>
+        <p>The lowest value of %(u_1)s and %(u_2)s is <strong>%(u)s</strong></p>
+        """ % {u"u_1": details[mg.MANN_WHITNEY_U_1],
+               u"u_2": details[mg.MANN_WHITNEY_U_2],
+               u"u": details[mg.MANN_WHITNEY_U]})
+        html.append(u"""<p>After this, you would use the N values and other
+        methods to see if the value for U is likely to happen by chance but that
+        is outside of the scope of this worked example.</p>""")
     if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" % 
+        html.append(u"<br><hr><br><div class='%s'></div>" %
             CSS_PAGE_BREAK_BEFORE)
     output.append_divider(html, title, indiv_title=u"")
     return u"".join(html)
 
 def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
-        dp=mg.DEFAULT_STATS_DP, level=mg.OUTPUT_RESULTS_ONLY,
-        page_break_after=False):
+        dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
@@ -517,6 +578,77 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
             dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
+    ## details
+    if details:
+        html.append(u"""
+        <hr>
+        <h2>Worked Example of Key Calculations</h2>
+        <h3>Step 1 - Get differences</h3>""")
+        html.append(u"""<table>
+        <thead>
+            <tr>
+                <th>%(label_a)s</th><th>%(label_b)s</th><th>Difference</th>
+            </tr>
+        </thead>
+        <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
+        for diff_det in details[mg.WILCOXON_DIFF_DETS]:
+            html.append(u"""
+            <tr>
+                <td>%(a)s</td><td>%(b)s</td><td>%(diff)s</td>
+            </tr>""" % diff_det)
+        html.append(u"""
+        </tbody>
+        </table>""")
+        html.append(u"""<h3>Step 2 - Sort non-zero differences by absolute value
+        and rank</h3><p>Rank such that all examples of a value get the mean rank
+        for all items of that value</h3>""")
+        html.append(u"""<table>
+        <thead>
+            <tr>
+                <th>Difference</th>
+                <th>Absolute Difference</th>
+                <th>Counter</th>
+                <th>Rank<br>(on Abs Diff)</th>
+            </tr>
+        </thead>
+        <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
+        for rank_dets in details[mg.WILCOXON_RANKING_DETS]:
+            html.append(u"""
+            <tr>
+                <td>%(diff)s</td>
+                <td>%(abs_diff)s</td>
+                <td>%(counter)s</td>
+                <td>%(rank)s</td>
+            </tr>""" % rank_dets)
+        html.append(u"""
+        </tbody>
+        </table>""")
+        html.append(u"""<h3>Step 3 - Sum ranks for positive differences</h3>""")
+        html.append(u"<p>" +
+            u" + ".join(str(x) for x in details[mg.WILCOXON_PLUS_RANKS]) +
+            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_PLUS_RANKS] +
+            u"</p>")
+        html.append(u"""<h3>Step 4 - Sum ranks for negative differences</h3>""")
+        html.append(u"<p>" +
+            u" + ".join(str(x) for x in details[mg.WILCOXON_MINUS_RANKS]) +
+            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_MINUS_RANKS] +
+            u"</p>")
+        html.append(u"<h3>Step 5 - Get smallest of sums for positive or "
+            u"negative ranks</h3>")
+        html.append(u"<p>The lowest value of %(plus)s and %(minus)s is %(t)s so"
+            u" Wilcoxon's T statistic is <strong>%(t)s</strong></p>" % 
+            {u"plus": details[mg.WILCOXON_SUM_PLUS_RANKS],
+             u"minus": details[mg.WILCOXON_SUM_MINUS_RANKS],
+             u"t": details[mg.WILCOXON_T],
+        })
+        html.append(u"<h3>Step 6 - Get count of all non-zero diffs</h3>")
+        html.append(u"<p>Just the number of records in the table from Step 2 "
+            u"i.e. <strong>%s</strong></p>" % details[mg.WILCOXON_N])
+        html.append(u"<p>The only remaining question is the probability of a "
+            u"sum as large as that observed (T) for a given N value. The "
+            u"smaller the N and the bigger the T the less likely the difference"
+            u" between %s and %s could occur by chance.</p>" % (label_a,
+                label_b))
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     output.append_divider(html, title, indiv_title=u"")
@@ -524,7 +656,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
 
 def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
         add_to_report, report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP,
-        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        details=False, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
     slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
@@ -568,7 +700,7 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
 
 def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y, 
         add_to_report, report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
-        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        details=False, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
     slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, 
@@ -614,7 +746,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
         report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
-        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        details=False, page_break_after=False):
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, css_idx)
@@ -828,8 +960,8 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     output.append_divider(html, title, indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_gp, label_a, label_b, dics, df, label_avg, 
-        css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP,
-        level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False):
+        css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
+        page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 

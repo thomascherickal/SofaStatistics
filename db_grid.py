@@ -104,10 +104,7 @@ def open_database(parent, event):
                     caption=_("LONG REPORT"), style=wx.YES_NO) == wx.NO:
                 return
         wx.BeginBusyCursor()
-        # protect linked non-SOFA databases from inadvertent changes
-        readonly = False
-        if parent.chk_readonly.IsEnabled():
-            readonly = parent.chk_readonly.IsChecked()
+        readonly = parent.chk_readonly.IsChecked()
         set_colwidths = (rows_n < 1000)
         dlg = TblEditor(parent, parent.var_labels, parent.var_notes, 
             parent.var_types, parent.val_dics, readonly, 
@@ -386,9 +383,9 @@ class TblEditor(wx.Dialog):
             return True, None
     
     def reset_row_n(self, change=1):
-        "Reset rows_n and rows_to_fill by incrementing or decrementing."
+        "Reset rows_n and idx_final_data_row by incrementing or decrementing."
         self.dbtbl.rows_n += change
-        self.dbtbl.rows_to_fill += change
+        self.dbtbl.idx_final_data_row += change
     
     def try_to_delete_row(self, assume_row_deletion_attempt=True):
         """
@@ -916,7 +913,7 @@ class TblEditor(wx.Dialog):
         """
         Only supplies insert_row() with the tuples for cols to be inserted.  
             Not autonumber or timestamp etc.
-        Updates rows_n and rows_to_fill as part of process
+        Updates rows_n and idx_final_data_row as part of process
         """
         dd = mg.DATADETS_OBJ
         data = []
@@ -1078,12 +1075,13 @@ class TblEditor(wx.Dialog):
         return len(dd.flds)
     
     def on_size_cols(self, event):
-        if self.dbtbl.rows_n < 2000:
+        n_data_rows = self.dbtbl.get_n_data_rows()
+        if n_data_rows < 2000:
             self.set_colwidths()
         else:
             ret = wx.MessageBox(_("This table has %(rows)s rows and "
                                 "%(cols)s columns. Do you wish to resize?") %
-                                {u"rows": self.dbtbl.rows_n, 
+                                {u"rows": n_data_rows, 
                                  u"cols": self.get_cols_n()},
                                 _("Proceed with resizing columns"), 
                                 style=wx.YES_NO|wx.ICON_QUESTION)

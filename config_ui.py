@@ -46,7 +46,20 @@ ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
     u"\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
     u"so your charts and themes can display properly.\n\nCopy the "
     u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
-    
+
+# explanation level
+def get_szr_details(parent, panel):
+    """
+    Get self.szr_details with checkbox. 
+    """
+    parent.chk_details = wx.CheckBox(panel, -1, _("Show all details in output"))
+    parent.chk_details.SetFont(mg.GEN_FONT)
+    parent.chk_details.SetValue(False)  ## a sane default that can be overridden
+    parent.szr_details = wx.BoxSizer(wx.HORIZONTAL)
+    parent.szr_details.Add(parent.chk_details, 0, wx.RIGHT, 10)
+    parent.chk_details.Enable(True)
+    return parent.szr_details
+
 
 class DlgVarConfig(wx.Dialog):
     """
@@ -256,7 +269,7 @@ class ConfigUI(object):
         # 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
         self.chk_readonly.SetFont(mg.GEN_FONT)
-        self.chk_readonly.SetValue(True)
+        self.chk_readonly.SetValue(True)  ## a sane default that can be overridden
         getdata.readonly_enablement(self.chk_readonly)
         # 4) Open
         btn_size = (70,-1)
@@ -675,7 +688,7 @@ class ConfigUI(object):
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         css_fils, css_idx = output.get_css_dets()
         try:
-            script = self.get_script(css_idx, *get_script_args)
+            script = self.get_script(css_idx, **get_script_args)
         except Exception, e:
             raise Exception("Problem getting script. Orig error: %s" % 
                 b.ue(e))
@@ -771,16 +784,7 @@ class ConfigUI(object):
                 return
             if debug: print(u"Selected style is: %s" % style)
             cc[mg.CURRENT_CSS_PATH] = lib.style2path(style)
-        
-    # explanation level
-    #def get_szr_level(self, panel):
-    #    """
-    #    Get self.szr_level with radio widgets. 
-    #    """
-    #    szr_level = get_szr_level(self, panel)
-    #    self.rad_level.Enable(False)
-    #    return szr_level
-    
+
     def on_btn_expand(self, event):
         showhtml.display_report(self, self.content2expand, self.url_load)
         event.Skip()

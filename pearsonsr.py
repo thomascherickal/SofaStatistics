@@ -33,7 +33,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u"")
     
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -60,9 +60,9 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.%(dbe)s,
 pearsonsr_output = stats_output.pearsonsr_output(sample_a, sample_b, r, p, df,
     label_a, label_b, add_to_report, report_name,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil),
-            u"css_idx": css_idx})
+    details=%(details)s, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
+             u'details': details})
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)
 

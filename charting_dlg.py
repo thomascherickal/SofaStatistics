@@ -1174,8 +1174,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
-            get_script_args=[cc[mg.CURRENT_CSS_PATH], 
-                cc[mg.CURRENT_REPORT_PATH]]
+            ## css_idx is supplied at the time
+            get_script_args={u'css_fil': cc[mg.CURRENT_CSS_PATH], 
+                u"report_name": cc[mg.CURRENT_REPORT_PATH], }
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
                 new_has_dojo=True)
 

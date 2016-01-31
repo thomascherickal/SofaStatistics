@@ -35,7 +35,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u"")
 
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -76,8 +76,9 @@ if len(sample_a) < 2 or len(sample_b) < 2:
 ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
     label_gp, dic_a, dic_b, df, label_avg, add_to_report, report_name,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+    details=%(details)s, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
+             u'details': details})
         script_lst.append(u"fil.write(ttest_indep_output)")
         return u"\n".join(script_lst)
 

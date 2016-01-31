@@ -58,7 +58,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         szr_algorithm.Add(self.rad_speed, 0, wx.LEFT, 10)
         szr.Add(szr_algorithm, 0, wx.TOP, 5)
     
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
@@ -120,9 +120,9 @@ if len(samples) < 2:
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
     mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_gp, label_a, label_b, 
     label_avg, add_to_report, report_name, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
-    page_break_after=False)""" %
-    {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+    css_idx=%(css_idx)s, dp=dp, details=%(details)s,
+    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil),
+        u"css_idx": css_idx, u'details': details})
         script_lst.append(u"fil.write(anova_output)")
         return u"\n".join(script_lst)
 

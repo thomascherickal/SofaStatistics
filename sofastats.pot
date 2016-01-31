@@ -1,0 +1,3529 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+#, fuzzy
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2013-12-18 07:10+1300\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: \n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=CHARSET\n"
+"Content-Transfer-Encoding: 8bit\n"
+
+#: importer.py:691
+msgid ""
+"\n"
+"\n"
+"At least one field contained a single dot '.'.  This was converted into a missing value."
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:150
+#, python-format
+msgid ""
+"\n"
+"\n"
+"Database \"%s\" didn't have any tables. You can only connect to SQLite databases which have data in them.\n"
+"\n"
+"If you just wanted an empty SQLite database to put fresh data into from within SOFA, use the supplied sofa_db database instead."
+msgstr ""
+
+#: importer.py:693
+#, python-format
+msgid ""
+"\n"
+"\n"
+"You can check your imported data by clicking the 'Enter/Edit Data' button on the main form. You'll find your data in the '%s' database."
+msgstr ""
+
+#: db_grid.py:757
+msgid ""
+"\n"
+"or the missing value character (.)"
+msgstr ""
+
+#: db_grid.py:87 table_config.py:477
+msgid " (Read Only)"
+msgstr ""
+
+#: report_table.py:87
+msgid " (and optionally rows)"
+msgstr ""
+
+#: dbe_plugins/dbe_postgresql.py:521
+msgid " A default database is required unless the user is 'postgres'"
+msgstr ""
+
+#: db_grid.py:754
+msgid ""
+" is not a valid datetime.\n"
+"\n"
+"Either enter a valid date/ datetime\n"
+msgstr ""
+
+#: dataselect.py:82
+msgid " to the default SOFA database"
+msgstr ""
+
+#: charting_output.py:2772 stats_output.py:512 stats_output.py:563
+msgid " vs "
+msgstr ""
+
+#: recode.py:204
+#, python-format
+msgid ""
+"\"%(new_fldname)s\" already has value labels set. Only add labels here if you wish to add to or override existing value labels\n"
+"\n"
+"Existing labels:\n"
+"\n"
+"%(existing_labels)s"
+msgstr ""
+
+#: charting_dlg.py:1209
+#, python-format
+msgid "\"%(varlbl)s\" has a variable selected but the previous drop down list \"%(lbl_with_no_select)s\" does not."
+msgstr ""
+
+#: db_grid.py:738
+#, python-format
+msgid ""
+"\"%s\" is not a valid number.\n"
+"\n"
+"Either enter a valid number or the missing value character (.)"
+msgstr ""
+
+#: stats_output.py:752
+#, python-format
+msgid "%(laba)s and %(labb)s - %(y)s"
+msgstr ""
+
+#: charting_output.py:973
+#, python-format
+msgid "%(lower)s to < %(upper)s"
+msgstr ""
+
+#: recode.py:95
+#, python-format
+msgid "%(max)s can only be on the right side e.g. %(max)s TO 12"
+msgstr ""
+
+#: recode.py:92
+#, python-format
+msgid "%(min)s can only be on the left side e.g.%(min)s TO 12"
+msgstr ""
+
+#: db_grid.py:1032
+#, python-format
+msgid "%s (Read only column)"
+msgstr ""
+
+#: table_config.py:308
+#, python-format
+msgid "%s has already been used as a field name"
+msgstr ""
+
+#: importer.py:232
+#, python-format
+msgid "%s is a reserved field name."
+msgstr ""
+
+#: table_config.py:320
+#, python-format
+msgid "%s is not a valid field type"
+msgstr ""
+
+#: db_grid.py:817
+#, python-format
+msgid "%s will not allow missing values to be stored"
+msgstr ""
+
+#: filtselect.py:98
+msgid "(don't quote strings e.g. John not \"John\". Null for missing)"
+msgstr ""
+
+#: filtselect.py:110
+msgid "(enter a filter e.g. agegp > 5)"
+msgstr ""
+
+#: getdata.py:714
+msgid "(filtered)"
+msgstr ""
+
+#: projects.py:468
+msgid "(scroll down for details of all your database engines)"
+msgstr ""
+
+#: start.py:1131
+msgid "* add, delete or rename fields, "
+msgstr ""
+
+#: start.py:1132
+msgid "* change the data type of fields, "
+msgstr ""
+
+#: start.py:1133
+msgid "* recode values from one field into another"
+msgstr ""
+
+#: start.py:1130
+msgid "* rename data tables, "
+msgstr ""
+
+#: dataselect.py:83
+msgid "... or add a new data table"
+msgstr ""
+
+#: recode.py:337
+msgid ""
+"1. If you are trying to recode a range e.g. ages 1-19 into a single age group,\n"
+"put 1 TO 19 in the FROM original value(s) column, not 1 in the first column and 19 in the second.\n"
+"\n"
+"2. Ranges use the keyword TO e.g. \"150 TO 250\". All keywords must be upper case, so \"TO\" will work but \"to\" will not.\n"
+"\n"
+"3. \"MIN\" and \"MAX\" can be used in ranges e.g. \"MIN TO 100\", or \"100 TO MAX\". You can even use \"MIN TO MAX\" if you\n"
+"want to leave out missing values.\n"
+"\n"
+"4. \"REMAINING\" and \"MISSING\" are the two remaining keywords you can use\n"
+"e.g. if you want all missing values to become 99 you would have a line with From as \"MISSING\", and To as 99\n"
+"\n"
+"5. Only one condition is allowed per line. So if you want to recode <=5 and 10+ to 99 you would have one line with\n"
+"\n"
+"    \"MIN TO 5\" as From and 99 as To\n"
+"\n"
+"    and another line with\n"
+"\n"
+"    \"10 TO MAX\" as From and 99 as To."
+msgstr ""
+
+#: stats_select.py:113
+msgid "2 groups"
+msgstr ""
+
+#: stats_select.py:117
+msgid "3 or more"
+msgstr ""
+
+#: report_table.py:919
+msgid "<p class='gui-msg-medium'>Example data"
+msgstr ""
+
+#: paired2var.py:235
+#, python-format
+msgid "<p>There are not enough suitable variables available for this analysis. Only variables with a %s data type can be used in this analysis.</p><p>This problem sometimes occurs when numeric data is accidentally imported from a spreadsheet as text. In such cases the solution is to format the data columns to a numeric format in the spreadsheet and re-import it.</p>"
+msgstr ""
+
+#: charting_dlg.py:741
+msgid "<p>Waiting for a chart to be run.</p>"
+msgstr ""
+
+#: indep2var.py:361 paired2var.py:198
+msgid "<p>Waiting for an analysis to be run.</p>"
+msgstr ""
+
+#: table_config.py:42
+msgid "<p>Waiting for at least one field to be configured.</p>"
+msgstr ""
+
+#: importer.py:1111
+msgid "A file name must be supplied when importing if running in headless mode."
+msgstr ""
+
+#: importer.py:84
+#, python-format
+msgid ""
+"A mix of data types was found in a sample of data in \"%(fldname)s\".\n"
+"\n"
+"First inconsistency:%(details)s\n"
+"\n"
+"Please select the data type you want this entire column imported as."
+msgstr ""
+
+#: importer.py:1077
+#, python-format
+msgid ""
+"A table named \"%(tbl)s\" already exists in the SOFA default database.\n"
+"\n"
+"Do you want to replace it with the new data from \"%(fil)s\"?"
+msgstr ""
+
+#: stats_select.py:11
+msgid "ANOVA"
+msgstr ""
+
+#: report_table.py:281 report_table.py:294
+msgid "Add"
+msgstr ""
+
+#: report_table.py:284 report_table.py:297
+msgid "Add Under"
+msgstr ""
+
+#: report_table.py:81 report_table.py:85 report_table.py:93
+msgid "Add and configure columns"
+msgstr ""
+
+#: report_table.py:74 report_table.py:79
+msgid "Add and configure rows"
+msgstr ""
+
+#: report_table.py:77
+msgid "Add and configure rows and columns"
+msgstr ""
+
+#: anova.py:44
+msgid "Algorithm: "
+msgstr ""
+
+#: lib.py:1104
+msgid "All data in table included - no filtering"
+msgstr ""
+
+#: config_output.py:36
+#, python-format
+msgid "Also add%sto report"
+msgstr ""
+
+#: normal.py:103
+#, python-format
+msgid "Although the distribution of %s is not perfectly 'normal', it may still be 'normal' enough for use. View graph to decide."
+msgstr ""
+
+#: stats_output.py:46
+msgid "Analysis of variance table"
+msgstr ""
+
+#: stats_select.py:325
+msgid "Answering questions about your data"
+msgstr ""
+
+#: ttest_paired.py:15 wilcoxon.py:15
+msgid "Answers the question, are the elements of paired sets of data different from each other?"
+msgstr ""
+
+#: ttest_indep.py:17
+msgid "Answers the question, do 2 groups have a different average?"
+msgstr ""
+
+#: mann_whitney.py:18
+msgid "Answers the question, do 2 groups have different results (higher or lower ranks)?"
+msgstr ""
+
+#: anova.py:18 kruskal_wallis.py:18
+msgid "Answers the question, do 3 or more groups have a different average?"
+msgstr ""
+
+#: spearmansr.py:15
+msgid "Answers the question, do two variables change together. E.g. if one increases, the other also increases (or stays the same)."
+msgstr ""
+
+#: pearsonsr.py:16
+msgid "Answers the question, is there a linear relationship between two variables i.e. do they both change together?"
+msgstr ""
+
+#: chisquare.py:16
+msgid "Answers the question, is there a relationship between two variables."
+msgstr ""
+
+#: settings_grid.py:291
+msgid "Any file"
+msgstr ""
+
+#: config_output.py:214 filtselect.py:163 prefs.py:56
+msgid "Apply"
+msgstr ""
+
+#: filtselect.py:60
+msgid "Apply filter"
+msgstr ""
+
+#: pearsonsr.py:29 spearmansr.py:29
+#, python-format
+msgid "Are \"%(a)s\" and \"%(b)s\" correlated - do they change together in a linear fashion?"
+msgstr ""
+
+#: stats_select.py:390
+#, python-format
+msgid ""
+"Are you looking at the difference between two groups or more?\n"
+"\n"
+"Example with 2 groups: average vocabulary of Males vs Females.\n"
+"\n"
+"Example with 3 or more groups: average sales figures for the North, South, East, and West regions\n"
+"\n"
+"You can look at how many groups your data has by clicking on the \"%s\" button down the bottom and running a Frequency Table"
+msgstr ""
+
+#: stats_select.py:221
+msgid "Assess data type e.g. categorical, ordered etc"
+msgstr ""
+
+#: stats_select.py:215
+msgid "Assess the normality of your numerical data"
+msgstr ""
+
+#: my_globals.py:559
+msgid "Averaged"
+msgstr ""
+
+#: stats_output.py:434
+msgid "Avg Rank"
+msgstr ""
+
+#: start.py:1396
+msgid "Backup your data, reports, and variable and project details"
+msgstr ""
+
+#: charting_dlg.py:249 charting_dlg.py:281 charting_dlg.py:399
+msgid "Bar borders?"
+msgstr ""
+
+#: stats_output.py:63
+msgid "Between"
+msgstr ""
+
+#: my_globals.py:545
+msgid "Brief Explanation"
+msgstr ""
+
+#: config_output.py:182 config_output.py:424
+msgid "Browse"
+msgstr ""
+
+#: controls.py:45 importer.py:899
+msgid "Browse ..."
+msgstr ""
+
+#: importer.py:904
+msgid "Browse for Google Spreadsheet"
+msgstr ""
+
+#: importer.py:902
+msgid "Browse for file locally"
+msgstr ""
+
+#: my_globals.py:556
+msgid "By"
+msgstr ""
+
+#: my_globals.py:167
+msgid "By Label"
+msgstr ""
+
+#: my_globals.py:165
+msgid "By Value"
+msgstr ""
+
+#: stats_output.py:94 stats_output.py:230
+msgid "CI 95%"
+msgstr ""
+
+#: stats_select.py:258
+msgid "CONFIGURE TEST"
+msgstr ""
+
+#: importer.py:1128
+msgid "CSV FILE?"
+msgstr ""
+
+#: start.py:1200
+msgid "Can make simple Frequency Tables, Crosstabs, Row Stats Tables (mean, median, standard deviation etc), and simple lists of data."
+msgstr ""
+
+#: dimtree.py:312
+msgid "Can only add under a single selected column variable."
+msgstr ""
+
+#: dimtree.py:285
+msgid "Can only add under a single selected row variable."
+msgstr ""
+
+#: db_grid.py:414 settings_grid.py:892 table_config.py:1167
+msgid "Can only delete one row at a time"
+msgstr ""
+
+#: table_config.py:923
+msgid "Can't recode a read only table"
+msgstr ""
+
+#: db_grid.py:342 settings_grid.py:861
+msgid "Cannot delete a row while in the middle of editing a cell"
+msgstr ""
+
+#: db_grid.py:339 settings_grid.py:858 table_config.py:1182
+msgid "Cannot delete a row while in the middle of making a new one"
+msgstr ""
+
+#: settings_grid.py:955
+msgid "Cannot insert a row while in the middle of making a new one"
+msgstr ""
+
+#: table_config.py:336
+#, python-format
+msgid "Cannot use this name. A table named \"%s\" already exists in the default SOFA database"
+msgstr ""
+
+#: charting_dlg.py:111
+msgid "Chart Types"
+msgstr ""
+
+#: start.py:760
+msgid "Charts"
+msgstr ""
+
+#: my_globals.py:557
+msgid "Charts By"
+msgstr ""
+
+#: stats_select.py:12
+msgid "Chi Square"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:287
+msgid "Choose an MS Access database file"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:293
+msgid "Choose an MS Access security file"
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:310
+msgid "Choose an SQLite database file"
+msgstr ""
+
+#: dataselect.py:30
+msgid "Choose an existing data table ..."
+msgstr ""
+
+#: config_output.py:275
+msgid "Choose an existing variable config file:"
+msgstr ""
+
+#: config_output.py:286
+msgid "Choose or create a file to export scripts to:"
+msgstr ""
+
+#: config_output.py:682
+msgid "Choose or create a report output file:"
+msgstr ""
+
+#: config_output.py:500
+msgid "Clear"
+msgstr ""
+
+#: config_output.py:502
+msgid "Clear settings"
+msgstr ""
+
+#: setup.py:220
+msgid ""
+"Click OK to prepare for first use of SOFA Statistics.\n"
+"\n"
+"Preparation may take a moment ..."
+msgstr ""
+
+#: gdata_downloader.py:97 showhtml.py:67
+msgid "Close"
+msgstr ""
+
+#: my_globals.py:76
+msgid "Col %"
+msgstr ""
+
+#: my_globals.py:91
+msgid "Column %"
+msgstr ""
+
+#: my_globals.py:160 report_table.py:787
+msgid "Column configuration"
+msgstr ""
+
+#: dimtree.py:302
+msgid "Columns can't be nested in Row Summary tables"
+msgstr ""
+
+#: report_table.py:277
+msgid "Columns:"
+msgstr ""
+
+#: dimtree.py:577 report_table.py:290 report_table.py:303
+msgid "Config"
+msgstr ""
+
+#: config_output.py:547
+msgid "Config Vars"
+msgstr ""
+
+#: config_output.py:277
+msgid "Config files (*.vdts)|*.vdts"
+msgstr ""
+
+#: dimtree.py:490
+#, python-format
+msgid "Configure %s Item"
+msgstr ""
+
+#: stats_select.py:812
+msgid "Configure ANOVA test"
+msgstr ""
+
+#: stats_select.py:832
+msgid "Configure Chi Square test"
+msgstr ""
+
+#: table_config.py:475
+msgid "Configure Data Table"
+msgstr ""
+
+#: stats_select.py:803
+msgid "Configure Independent t-test"
+msgstr ""
+
+#: stats_select.py:827
+msgid "Configure Kruskal Wallis H test"
+msgstr ""
+
+#: stats_select.py:822
+msgid "Configure Mann Whitney U test"
+msgstr ""
+
+#: stats_select.py:808
+msgid "Configure Paired Samples t-test"
+msgstr ""
+
+#: stats_select.py:836
+msgid "Configure Pearson's R test"
+msgstr ""
+
+#: stats_select.py:840
+msgid "Configure Spearman's R test"
+msgstr ""
+
+#: stats_select.py:818
+msgid "Configure Wilcoxon Signed Ranks test"
+msgstr ""
+
+#: config_output.py:551
+msgid "Configure variable details e.g. labels"
+msgstr ""
+
+#: projects.py:752
+#, python-format
+msgid "Connection details need to be completed for the default database engine (%s) to save a project file."
+msgstr ""
+
+#: csv_importer.py:525
+msgid "Contents look correct?"
+msgstr ""
+
+#: config_output.py:463
+msgid "Copy current output ready to paste"
+msgstr ""
+
+#: stats_select.py:13
+msgid "Correlation - Pearson's"
+msgstr ""
+
+#: stats_select.py:14
+msgid "Correlation - Spearman's"
+msgstr ""
+
+#: my_globals.py:174
+msgid "Count"
+msgstr ""
+
+#: my_globals.py:111
+msgid "Crosstabs"
+msgstr ""
+
+#: config_output.py:462
+msgid "Current Output as Images/PDF"
+msgstr ""
+
+#: filtselect.py:60
+msgid "Current filter"
+msgstr ""
+
+#: start.py:1065
+#, python-format
+msgid "Currently using \"%s\" project settings"
+msgstr ""
+
+#: importer.py:75
+msgid "DATA TYPE MISMATCH"
+msgstr ""
+
+#: dataselect.py:149
+msgid "DELETE"
+msgstr ""
+
+#: gdata_downloader.py:88
+msgid "DOWNLOAD"
+msgstr ""
+
+#: charting_dlg.py:240 charting_dlg.py:271 charting_dlg.py:323
+#: charting_dlg.py:367
+msgid ""
+"Data\n"
+"reported:"
+msgstr ""
+
+#: my_globals.py:113
+msgid "Data List"
+msgstr ""
+
+#: config_output.py:350
+msgid "Data Source"
+msgstr ""
+
+#: projects.py:318 stats_select.py:218 table_config.py:467
+msgid "Data Type"
+msgstr ""
+
+#: settings_grid.py:820
+msgid "Data cell cannot be empty."
+msgstr ""
+
+#: csv_importer.py:778
+msgid "Data could not be processed using available encodings"
+msgstr ""
+
+#: lib.py:1099
+#, python-format
+msgid "Data filtered by \"%(label)s\": %(filt)s"
+msgstr ""
+
+#: lib.py:1102
+msgid "Data filtered by: "
+msgstr ""
+
+#: db_grid.py:85
+msgid "Data from "
+msgstr ""
+
+#: dataselect.py:18
+#, python-format
+msgid "Data in \"%s\" Project"
+msgstr ""
+
+#: dataselect.py:68
+msgid "Data tables:"
+msgstr ""
+
+#: importer.py:92
+#, python-format
+msgid ""
+"Data was found in \"%(fldname)s\" which doesn't match the expected data type (%(data_type)s). \n"
+"%(details)s\n"
+"\n"
+"Please select the data type you want this entire column imported as."
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:284 dbe_plugins/dbe_sqlite.py:26
+msgid "Database(s)"
+msgstr ""
+
+#: config_output.py:352
+msgid "Database:"
+msgstr ""
+
+#: dataselect.py:60
+msgid "Databases:"
+msgstr ""
+
+#: my_globals.py:467
+msgid "Date"
+msgstr ""
+
+#: my_globals.py:169
+msgid "Decreasing"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:399 dbe_plugins/dbe_mysql.py:403
+#: dbe_plugins/dbe_postgresql.py:394 dbe_plugins/dbe_sqlite.py:280
+msgid "Default Database (name only):"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:250
+msgid "Default Database - name only e.g. demo.mdb:"
+msgstr ""
+
+#: projects.py:459
+msgid "Default Database Engine:"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:296
+msgid "Default Database:"
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:290
+msgid "Default Table (optional):"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:409 dbe_plugins/dbe_ms_access.py:262
+#: dbe_plugins/dbe_ms_sql.py:307 dbe_plugins/dbe_mysql.py:414
+#: dbe_plugins/dbe_postgresql.py:405
+msgid "Default Table:"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:406
+msgid "Default database"
+msgstr ""
+
+#: dbe_plugins/dbe_postgresql.py:401
+msgid "Default database (optional if user is postgres)"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:258 dbe_plugins/dbe_ms_sql.py:303
+#: dbe_plugins/dbe_mysql.py:410 dbe_plugins/dbe_sqlite.py:286
+msgid "Default database (optional)"
+msgstr ""
+
+#: projects.py:52
+msgid "Default project so users can get started without having to understand projects. NB read only."
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:416 dbe_plugins/dbe_ms_access.py:270
+#: dbe_plugins/dbe_ms_sql.py:314 dbe_plugins/dbe_mysql.py:421
+#: dbe_plugins/dbe_postgresql.py:412 dbe_plugins/dbe_sqlite.py:297
+msgid "Default table (optional)"
+msgstr ""
+
+#: my_globals.py:47
+msgid "Degrees of Freedom (df)"
+msgstr ""
+
+#: dataselect.py:37 report_table.py:287 report_table.py:300
+msgid "Delete"
+msgstr ""
+
+#: projects.py:686
+#, python-format
+msgid "Deleting a project cannot be undone. Do you want to delete the \"%s\" project?"
+msgstr ""
+
+#: csv_importer.py:547
+msgid "Delimiter"
+msgstr ""
+
+#: table_config.py:507
+msgid "Demonstration Result:"
+msgstr ""
+
+#: my_globals.py:555
+msgid "Described"
+msgstr ""
+
+#: projselect.py:38
+msgid "Description:"
+msgstr ""
+
+#: dataselect.py:39
+msgid "Design"
+msgstr ""
+
+#: table_config.py:502
+msgid "Design Here:"
+msgstr ""
+
+#: table_config.py:503
+msgid "Design:"
+msgstr ""
+
+#: start.py:394
+#, python-format
+msgid ""
+"Did SOFA meet your needs? Please let us know by answering a short survey.\n"
+"\n"
+"You can answer later by clicking on the \"%(link)s\" link\n"
+"down the bottom of the main form\n"
+"\n"
+"And you are always welcome to email %(contact)s - \n"
+"especially to solve any problems."
+msgstr ""
+
+#: normal.py:53
+#, python-format
+msgid "Difference between %(a)s and %(b)s"
+msgstr ""
+
+#: stats_output.py:369
+msgid "Differences"
+msgstr ""
+
+#: recode.py:276
+msgid "Disabled until there is a variable to recode to"
+msgstr ""
+
+#: importer.py:1172
+#, python-format
+msgid "Do not include '%s' in SOFA Table Name"
+msgstr ""
+
+#: dataselect.py:148
+#, python-format
+msgid "Do you wish to delete \"%s\"?"
+msgstr ""
+
+#: mann_whitney.py:33
+#, python-format
+msgid "Does %(gp)s \"%(a)s\" have a different %(avg)s from \"%(b)s\"?"
+msgstr ""
+
+#: ttest_indep.py:31
+#, python-format
+msgid "Does %(gp)s \"%(a)s\" have a different average %(avg)s from \"%(b)s\"?"
+msgstr ""
+
+#: anova.py:35 kruskal_wallis.py:33
+#, python-format
+msgid "Does average %(avg)s vary in the groups between \"%(a)s\" and \"%(b)s\"?"
+msgstr ""
+
+#: importer.py:732
+#, python-format
+msgid "Does your %s file have a header row?"
+msgstr ""
+
+#: importer.py:798
+#, python-format
+msgid "Does your %s file have a header row? Note - SOFA cannot handle multiple header rows."
+msgstr ""
+
+#: charting_dlg.py:415
+msgid "Dot borders?"
+msgstr ""
+
+#: gdata_downloader.py:31
+msgid "Download Google Spreadsheet"
+msgstr ""
+
+#: gdata_downloader.py:90
+msgid "Download copy to local machine"
+msgstr ""
+
+#: stats_select.py:314
+msgid "E.g. Do females have a larger vocabulary average than males?"
+msgstr ""
+
+#: stats_select.py:322
+msgid "E.g. Does wealth increase with age?"
+msgstr ""
+
+#: gdata_downloader.py:55
+msgid "Email login:"
+msgstr ""
+
+#: csv_importer.py:550
+msgid "Encoding"
+msgstr ""
+
+#: start.py:1127
+msgid "Enter data into a fresh data table or select an existing table to edit or add data to."
+msgstr ""
+
+#: start.py:736
+msgid "Enter/Edit Data"
+msgstr ""
+
+#: gdata_downloader.py:355
+msgid "Error downloading - please try again."
+msgstr ""
+
+#: lib.py:346
+#, python-format
+msgid "Error processing css dojo file \"%(css_fil)s\"."
+msgstr ""
+
+#: projects.py:595 projselect.py:91
+#, python-format
+msgid ""
+"Error processing project file \"%(fil_proj)s\".\n"
+"\n"
+"Details: %(err)s"
+msgstr ""
+
+#: config_globals.py:206
+#, python-format
+msgid ""
+"Error processing settings file \"%(fil_name)s\".\n"
+"\n"
+"Details: %(details)s"
+msgstr ""
+
+#: lib.py:842
+#, python-format
+msgid "Error processing variable details file \"%(fil_var_dets)s\"."
+msgstr ""
+
+#: setup.py:294
+#, python-format
+msgid ""
+"Error running test script \"%(test_path)s\".\n"
+"Caused by errors:\n"
+"\n"
+"%(err)s"
+msgstr ""
+
+#: importer.py:735
+msgid "Example with header"
+msgstr ""
+
+#: importer.py:743
+msgid "Example without"
+msgstr ""
+
+#: dataselect.py:25
+msgid "Existing data tables"
+msgstr ""
+
+#: start.py:813
+msgid "Exit"
+msgstr ""
+
+#: start.py:1428
+msgid "Exit SOFA Statistics"
+msgstr ""
+
+#: stats_output.py:643
+msgid "Exp"
+msgstr ""
+
+#: config_output.py:493
+msgid "Expand"
+msgstr ""
+
+#: getdata.py:794
+msgid "Experienced problem refreshing database details."
+msgstr ""
+
+#: getdata.py:820
+msgid "Experienced problem refreshing table details"
+msgstr ""
+
+#: config_output.py:478
+msgid "Export"
+msgstr ""
+
+#: db_grid.py:170
+msgid "Export as spreadsheet"
+msgstr ""
+
+#: config_output.py:481
+msgid "Export output as per selection"
+msgstr ""
+
+#: config_output.py:469
+msgid "Export report as PDF or as images ready for reports, slideshows etc"
+msgstr ""
+
+#: config_output.py:472
+msgid "Export:"
+msgstr ""
+
+#: importer.py:1061
+msgid "FAULTY SOFA TABLE NAME"
+msgstr ""
+
+#: csv_importer.py:143
+msgid "FIX TEXT?"
+msgstr ""
+
+#: recode.py:225
+msgid "FROM original value(s)"
+msgstr ""
+
+#: start.py:379
+msgid "Feedback"
+msgstr ""
+
+#: table_config.py:464
+msgid "Field Name"
+msgstr ""
+
+#: ods_reader.py:328
+#, python-format
+msgid "Field name \"%s\" cannot be repeated"
+msgstr ""
+
+#: recode.py:535 table_config.py:304
+#, python-format
+msgid ""
+"Field names can only contain letters, numbers, and underscores.\n"
+"Orig error: %s"
+msgstr ""
+
+#: importer.py:1141
+#, python-format
+msgid "Files with the file name extension '%s' are not supported"
+msgstr ""
+
+#: config_output.py:378
+msgid "Filter"
+msgstr ""
+
+#: filtselect.py:213
+msgid "Filtering Help"
+msgstr ""
+
+#: filtselect.py:214
+msgid "Filtering Rules"
+msgstr ""
+
+#: filtselect.py:249
+#, python-format
+msgid "Filters for %(dbe)s data%(sqlite_extra_comment)s should look like this:"
+msgstr ""
+
+#: config_output.py:796
+#, python-format
+msgid "Finished. Note - don't close the %s form before pasting the output or it won't work."
+msgstr ""
+
+#: report_table.py:261
+msgid "First col as label?"
+msgstr ""
+
+#: filtselect.py:75
+msgid "Flexible"
+msgstr ""
+
+#: ttest_indep.py:18
+msgid "For example, do PhD graduates earn the same on average as Masters graduates?"
+msgstr ""
+
+#: mann_whitney.py:20
+msgid "For example, do male or female tutors get different rating scores from students?"
+msgstr ""
+
+#: ttest_paired.py:17
+msgid "For example, do people have a higher average weight after a diet compared with before?"
+msgstr ""
+
+#: wilcoxon.py:17
+msgid "For example, do tutors get better student ratings after a training session?"
+msgstr ""
+
+#: pearsonsr.py:18 spearmansr.py:18
+msgid "For example, does IQ correlate with exam scores?"
+msgstr ""
+
+#: anova.py:20
+msgid "For example, is average IQ the same for students from three different universities?"
+msgstr ""
+
+#: kruskal_wallis.py:20
+msgid "For example, is average income the same for people from three different cities?"
+msgstr ""
+
+#: chisquare.py:18
+msgid "For example, is there a relationship between ethnic group and gender?"
+msgstr ""
+
+#: start.py:1129
+msgid "For tables in the SOFA database you can also:"
+msgstr ""
+
+#: my_globals.py:74
+msgid "Freq"
+msgstr ""
+
+#: my_globals.py:110
+msgid "Frequencies"
+msgstr ""
+
+#: my_globals.py:89 my_globals.py:562 stats_output.py:775
+msgid "Frequency"
+msgstr ""
+
+#: report_table.py:761
+msgid "Frequency column"
+msgstr ""
+
+#: indep2var.py:138
+msgid "From Group"
+msgstr ""
+
+#: my_globals.py:544
+msgid "Full Explanation"
+msgstr ""
+
+#: my_globals.py:275
+msgid "GIVE ME A NAME ..."
+msgstr ""
+
+#: config_output.py:91
+#, python-format
+msgid "Get %s Plug-in"
+msgstr ""
+
+#: start.py:725
+msgid "Get Started"
+msgstr ""
+
+#: start.py:847
+msgid "Get help from community"
+msgstr ""
+
+#: start.py:1303
+msgid "Get help on-line, including screen shots and step-by-step instructions. Connect to the community. Get direct help from the developer."
+msgstr ""
+
+#: lib.py:121
+#, python-format
+msgid "Get more help with %s "
+msgstr ""
+
+#: start.py:389
+msgid "Give Quick Feedback"
+msgstr ""
+
+#: my_globals.py:26
+msgid "Give quick feedback on SOFA"
+msgstr ""
+
+#: importer.py:903
+msgid "Google Spreadsheet ..."
+msgstr ""
+
+#: stats_output.py:90 stats_output.py:227 stats_output.py:431
+#: stats_output.py:816
+msgid "Group"
+msgstr ""
+
+#: indep2var.py:717 paired2var.py:354
+msgid "Group A and Group B must be different"
+msgstr ""
+
+#: indep2var.py:743
+msgid "Group A must be lower than Group B"
+msgstr ""
+
+#: indep2var.py:141 paired2var.py:84
+msgid "Group A:"
+msgstr ""
+
+#: indep2var.py:142 paired2var.py:86
+msgid "Group B:"
+msgstr ""
+
+#: indep2var.py:132
+msgid "Group By:"
+msgstr ""
+
+#: stats_output.py:88
+msgid "Group summary details"
+msgstr ""
+
+#: stats_select.py:202
+msgid "Groups"
+msgstr ""
+
+#: charting_output.py:502
+msgid "HIGH NUMBER OF CATEGORIES"
+msgstr ""
+
+#: charting_output.py:407
+msgid "HIGH NUMBER OF CHARTS"
+msgstr ""
+
+#: charting_output.py:487
+msgid "HIGH NUMBER OF CLUSTERS"
+msgstr ""
+
+#: charting_output.py:427 charting_output.py:647 charting_output.py:681
+msgid "HIGH NUMBER OF SERIES"
+msgstr ""
+
+#: config_output.py:684
+msgid "HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"
+msgstr ""
+
+#: importer.py:752 importer.py:806
+msgid "Has Header Row"
+msgstr ""
+
+#: lib.py:1674
+msgid "Has TOTAL"
+msgstr ""
+
+#: csv_importer.py:554
+msgid "Has header row"
+msgstr ""
+
+#: importer.py:725 importer.py:791
+msgid "Header row?"
+msgstr ""
+
+#: charting_pylab.py:142
+#, python-format
+msgid "Histogram for %s"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:317
+msgid "Host - (local) if your machine:"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:323
+msgid "Host e.g. (local), or 190.190.200.100,1433, or my-svr-01,1433"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:424
+msgid "Host e.g. localhost, or localhost:33000"
+msgstr ""
+
+#: dbe_plugins/dbe_mysql.py:428 dbe_plugins/dbe_postgresql.py:419
+msgid "Host e.g. localhost, or remote:3307"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:419 dbe_plugins/dbe_mysql.py:423
+#: dbe_plugins/dbe_postgresql.py:414
+msgid "Host:"
+msgstr ""
+
+#: projects.py:455
+msgid "How to connect to my data:"
+msgstr ""
+
+#: importer.py:925
+msgid "IMPORT"
+msgstr ""
+
+#: my_globals.py:88
+msgid "IQR"
+msgstr ""
+
+#: dimtree.py:484
+msgid "If configuring multiple items at once, they must all have children or none can have children"
+msgstr ""
+
+#: csv_importer.py:541
+msgid ""
+"If the fields are not separated correctly, enter a different delimiter (\",\" and \";\" are common choices).\n"
+"\n"
+"Does the text look correct? If not, try another encoding."
+msgstr ""
+
+#: importer.py:101
+#, python-format
+msgid "If you choose %s , any values that are not of that type will be turned to missing."
+msgstr ""
+
+#: stats_select.py:550 stats_select.py:562 stats_select.py:586
+#: stats_select.py:600 stats_select.py:609 stats_select.py:617
+#: stats_select.py:658 stats_select.py:680
+#, python-format
+msgid "If your data is numerical, you can evaluate normality by clicking on the \"%s\" button down the bottom left."
+msgstr ""
+
+#: start.py:744
+msgid "Import Data"
+msgstr ""
+
+#: start.py:1164
+#, python-format
+msgid "Import data e.g. a csv file, or a spreadsheet (Excel, Open Document, or Google Docs). To connect to databases, click on %s and configure connection settings instead."
+msgstr ""
+
+#: importer.py:486
+#, python-format
+msgid ""
+"Incorrect number of fields in %(row_msg)s.\n"
+"\n"
+"Expected %(n_flds)s but found %(n_row_items)s.\n"
+"\n"
+"Faulty Row: %(vals_str)s"
+msgstr ""
+
+#: my_globals.py:168
+msgid "Increasing"
+msgstr ""
+
+#: stats_select.py:153
+msgid "Independent"
+msgstr ""
+
+#: settings_grid.py:84
+msgid "Insert Before"
+msgstr ""
+
+#: my_globals.py:103
+msgid "Inter-Quartile Range"
+msgstr ""
+
+#: table_config.py:841
+msgid "Invalid table design."
+msgstr ""
+
+#: paired2var.py:325
+#, python-format
+msgid "Is \"%(a)s\" different from \"%(b)s\"?"
+msgstr ""
+
+#: chisquare.py:29
+#, python-format
+msgid "Is there a relationship between \"%(a)s\" and \"%(b)s\""
+msgstr ""
+
+#: stats_select.py:423
+msgid ""
+"Is your data for each group recorded in different rows (independent) or together on same row (paired)?\n"
+"\n"
+"Example of Independent data: if looking at Male vs Female vocabulary we do not have both male and female scores in the same rows. Male and Female data is independent.\n"
+"\n"
+"Example of Paired data: if looking at mental ability in the Morning vs the Evening we might have one row per person with both time periods in the same row. Morning and Evening data is paired."
+msgstr ""
+
+#: stats_select.py:647
+msgid "It also copes better with small sample sizes e.g. < 20."
+msgstr ""
+
+#: start.py:387
+msgid "Just Exit"
+msgstr ""
+
+#: stats_select.py:15
+msgid "Kruskal-Wallis H"
+msgstr ""
+
+#: stats_output.py:811
+msgid "Kruskal-Wallis H statistic"
+msgstr ""
+
+#: stats_output.py:107 stats_output.py:242
+msgid "Kurtosis"
+msgstr ""
+
+#: normal.py:86
+#, python-format
+msgid "Kurtosis (peakedness or flatness) is %(kurt)s which is probably %(indic)s."
+msgstr ""
+
+#: my_globals.py:86
+msgid "L. Quartile"
+msgstr ""
+
+#: config_output.py:621 db_grid.py:1070
+msgid "LARGE DATA TABLE"
+msgstr ""
+
+#: getdata.py:631 report_table.py:599
+msgid "LONG REPORT"
+msgstr ""
+
+#: projects.py:298
+msgid "Label"
+msgstr ""
+
+#: filtselect.py:81
+msgid "Label (optional):"
+msgstr ""
+
+#: my_globals.py:101
+msgid "Lower Quartile"
+msgstr ""
+
+#: importer.py:73
+msgid "MIX OF DATA TYPES"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:288
+msgid "MS Access databases"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:294
+msgid "MS Access security files"
+msgstr ""
+
+#: charting_dlg.py:695
+msgid "Major labels only?"
+msgstr ""
+
+#: charting_dlg.py:819
+msgid "Make Area Chart"
+msgstr ""
+
+#: charting_dlg.py:764
+msgid "Make Bar Chart"
+msgstr ""
+
+#: charting_dlg.py:858
+msgid "Make Box and Whisker Plot"
+msgstr ""
+
+#: start.py:1219
+msgid "Make Chart"
+msgstr ""
+
+#: charting_dlg.py:780
+msgid "Make Clustered Bar Chart"
+msgstr ""
+
+#: charting_dlg.py:832
+msgid "Make Histogram"
+msgstr ""
+
+#: charting_dlg.py:806
+msgid "Make Line Chart"
+msgstr ""
+
+#: charting_dlg.py:793
+msgid "Make Pie Chart"
+msgstr ""
+
+#: report_table.py:192
+msgid "Make Report Table"
+msgstr ""
+
+#: charting_dlg.py:845
+msgid "Make Scatterplot"
+msgstr ""
+
+#: start.py:1240
+msgid "Make attractive charts with dynamic visual effects e.g. a bar chart of sales"
+msgstr ""
+
+#: charting_dlg.py:116
+msgid "Make chart"
+msgstr ""
+
+#: start.py:1199
+msgid "Make report tables e.g. Age vs Gender"
+msgstr ""
+
+#: stats_select.py:205
+msgid "Make report tables to see how many groups in data"
+msgstr ""
+
+#: stats_select.py:16
+msgid "Mann-Whitney U"
+msgstr ""
+
+#: my_globals.py:84 stats_output.py:105 stats_output.py:237
+#: stats_output.py:436 stats_output.py:487 stats_output.py:820
+msgid "Max"
+msgstr ""
+
+#: my_globals.py:99
+msgid "Maximum"
+msgstr ""
+
+#: my_globals.py:78 my_globals.py:93 my_globals.py:176 stats_output.py:93
+#: stats_output.py:229
+msgid "Mean"
+msgstr ""
+
+#: stats_output.py:53
+msgid "Mean Sum of Squares"
+msgstr ""
+
+#: dimtree.py:679
+msgid "Measures"
+msgstr ""
+
+#: lib.py:1692
+#, python-format
+msgid "Measures: %s"
+msgstr ""
+
+#: my_globals.py:79 my_globals.py:94 stats_output.py:433 stats_output.py:485
+#: stats_output.py:818
+msgid "Median"
+msgstr ""
+
+#: my_globals.py:83 stats_output.py:104 stats_output.py:236
+#: stats_output.py:435 stats_output.py:486 stats_output.py:819
+msgid "Min"
+msgstr ""
+
+#: my_globals.py:98
+msgid "Minimum"
+msgstr ""
+
+#: stats_output.py:692
+msgid "Minimum expected cell count"
+msgstr ""
+
+#: dimtree.py:658
+msgid "Misc"
+msgstr ""
+
+#: report_table.py:960 report_table.py:965 report_table.py:970
+msgid "Missing column(s)"
+msgstr ""
+
+#: report_table.py:953 report_table.py:958
+msgid "Missing row(s)"
+msgstr ""
+
+#: db_grid.py:1026
+msgid "Missing value"
+msgstr ""
+
+#: my_globals.py:80 my_globals.py:95
+msgid "Mode"
+msgstr ""
+
+#: getdata.py:887
+msgid "Must always be at least one field in addition to "
+msgstr ""
+
+#: stats_output.py:92 stats_output.py:228 stats_output.py:432
+#: stats_output.py:484 stats_output.py:817
+msgid "N"
+msgstr ""
+
+#: stats_select.py:169
+msgid "Names Only"
+msgstr ""
+
+#: stats_select.py:455
+msgid ""
+"Names only data (Nominal) is just labels or names. Ordered data has a sense of order and includes Ordinal (order but no amount) and Quantitative (actual numbers).\n"
+"\n"
+"Example of Names Only data: sports codes ('Soccer', 'Badminton', 'Skiing' etc)\n"
+"\n"
+"Example of Ordered data: ratings of restaurant service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."
+msgstr ""
+
+#: normal.py:64
+msgid "Need at least 20 values to test normality. Rely entirely on visual inspection of graph above."
+msgstr ""
+
+#: ods_reader.py:221
+msgid "Need at least one row to import"
+msgstr ""
+
+#: output.py:495
+msgid "Needs CSS Style"
+msgstr ""
+
+#: dimtree.py:409
+#, python-format
+msgid "No %s variable selected to delete"
+msgstr ""
+
+#: importer.py:755 importer.py:808
+msgid "No Header"
+msgstr ""
+
+#: table_config.py:1022
+msgid "No changes to update."
+msgstr ""
+
+#: my_globals.py:549
+msgid "No checking"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:106
+msgid "No databases to choose from"
+msgstr ""
+
+#: config_output.py:38
+#, python-format
+msgid "No output yet. Click \"%(run)s\" (with \"%(add2rpt_lbl)s\" ticked) to add output to this report."
+msgstr ""
+
+#: gdata_downloader.py:215
+msgid "No spreadsheets available under this Google account"
+msgstr ""
+
+#: gdata_downloader.py:285
+#, python-format
+msgid "No worksheets available in %s"
+msgstr ""
+
+#: my_globals.py:364
+msgid "Nominal (names only)"
+msgstr ""
+
+#: projects.py:357
+msgid ""
+"Nominal data (names only) is just labels or names. Ordinal data has a sense of order but no amount, and Quantity data has actual amount e.g. 2 is twice 1.\n"
+"\n"
+"* Example of Nominal (names only) data: sports codes ('Soccer', 'Badminton', 'Skiing' etc).\n"
+"\n"
+"* Example of Ordinal (ranked) data: ratings of restaurant service standards (1 - Very Poor, 2 - Poor, 3 - Average etc).\n"
+"\n"
+"* Example of Quantity (amount) data: height in cm."
+msgstr ""
+
+#: my_globals.py:166
+msgid "None"
+msgstr ""
+
+#: stats_select.py:132
+msgid "Normal"
+msgstr ""
+
+#: normal.py:139
+msgid "Normal Data?"
+msgstr ""
+
+#: stats_select.py:208
+msgid "Normality"
+msgstr ""
+
+#: dimtables.py:1326
+msgid "Not calc"
+msgstr ""
+
+#: report_table.py:904
+msgid "Not enough data to display.  "
+msgstr ""
+
+#: projects.py:747
+msgid "Not enough details completed to save a project file"
+msgstr ""
+
+#: stats_select.py:133
+msgid "Not normal"
+msgstr ""
+
+#: lib.py:1690
+msgid "Not numeric"
+msgstr ""
+
+#: csv_importer.py:556
+msgid "Note - SOFA cannot handle multiple header rows."
+msgstr ""
+
+#: projects.py:427
+msgid "Notes:"
+msgstr ""
+
+#: my_globals.py:32
+msgid "Nothing selected"
+msgstr ""
+
+#: lib.py:1688 my_globals.py:465
+msgid "Numeric"
+msgstr ""
+
+#: stats_output.py:85 stats_output.py:221
+msgid "O'Brien's test for homogeneity of variance"
+msgstr ""
+
+#: stats_select.py:301
+msgid "OR GET HELP CHOOSING BELOW"
+msgstr ""
+
+#: stats_output.py:643
+msgid "Obs"
+msgstr ""
+
+#: lib.py:119 start.py:779
+msgid "Online Help"
+msgstr ""
+
+#: my_exceptions.py:130
+#, python-format
+msgid "Only allowed %s cells in report table"
+msgstr ""
+
+#: recode.py:123
+msgid "Only date values can be recoded for this variable"
+msgstr ""
+
+#: recode.py:119
+msgid "Only numeric values can be recoded for this variable"
+msgstr ""
+
+#: my_globals.py:550
+msgid "Only report major upgrades"
+msgstr ""
+
+#: config_output.py:496
+msgid "Open displayed output in own window"
+msgstr ""
+
+#: chisquare.py:20
+msgid "Or between gender and political preference?"
+msgstr ""
+
+#: mann_whitney.py:22
+msgid "Or do IT graduates have a different income in their first year in the workforce compared with law graduates?"
+msgstr ""
+
+#: ttest_indep.py:20
+msgid "Or do parents of pre-schoolers get the same amount of sleep on average as parents of teenagers?"
+msgstr ""
+
+#: pearsonsr.py:19 spearmansr.py:19
+msgid "Or does a brief measure of addiction correlate with a much longer measure?"
+msgstr ""
+
+#: ttest_paired.py:19
+msgid "Or does average performance in IQ tests vary between morning and mid afternoon?"
+msgstr ""
+
+#: wilcoxon.py:19
+msgid "Or have house values changed since the recession began?"
+msgstr ""
+
+#: kruskal_wallis.py:22
+msgid "Or is the average amount spent annually on pets different between dog, cat, and pony owners?"
+msgstr ""
+
+#: anova.py:22
+msgid "Or is the average height different between British, Australian, Canadian, and New Zealand adults?"
+msgstr ""
+
+#: stats_select.py:173
+msgid "Ordered"
+msgstr ""
+
+#: my_globals.py:365
+msgid "Ordinal (rank only)"
+msgstr ""
+
+#: config_output.py:411
+msgid "Output"
+msgstr ""
+
+#: config_output.py:140
+msgid "Output Level"
+msgstr ""
+
+#: normal.py:168 stats_select.py:157
+msgid "Paired"
+msgstr ""
+
+#: normal.py:157
+msgid "Paired Variables to Check"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:440 dbe_plugins/dbe_ms_sql.py:341
+#: dbe_plugins/dbe_mysql.py:444 dbe_plugins/dbe_postgresql.py:436
+msgid "Password"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:303
+msgid "Password (opt)"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:335
+msgid "Password - space if none:"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:434 dbe_plugins/dbe_mysql.py:438
+#: dbe_plugins/dbe_postgresql.py:430 gdata_downloader.py:66
+msgid "Password:"
+msgstr ""
+
+#: stats_output.py:627
+msgid "Pearson's Chi Square statistic"
+msgstr ""
+
+#: stats_output.py:522
+msgid "Pearson's R statistic"
+msgstr ""
+
+#: my_globals.py:175
+msgid "Percent"
+msgstr ""
+
+#: my_globals.py:563
+msgid "Percentage"
+msgstr ""
+
+#: recode.py:581
+msgid "Please Note - this was a once-off recode - it won't be applied automatically when new rows are added or cells are edited."
+msgstr ""
+
+#: recode.py:530
+msgid "Please add a new field name"
+msgstr ""
+
+#: recode.py:551
+msgid "Please add some recode details"
+msgstr ""
+
+#: ods_reader.py:81
+msgid "Please be patient. The next step may take a few minutes ..."
+msgstr ""
+
+#: importer.py:1084
+msgid "Please change the SOFA Table Name and try again"
+msgstr ""
+
+#: projects.py:602 projects.py:619 projects.py:626
+#, python-format
+msgid "Please check %(fil_proj)s for errors. Use %(def_proj)s for reference."
+msgstr ""
+
+#: projselect.py:99
+#, python-format
+msgid "Please check %s for errors. Use the default project file for reference."
+msgstr ""
+
+#: report_table.py:896
+msgid "Please check the CSS "
+msgstr ""
+
+#: report_table.py:630
+msgid "Please check the CSS file exists or set another."
+msgstr ""
+
+#: config_output.py:849
+#, python-format
+msgid "Please check the CSS file exists or set another. Caused by error: %s"
+msgstr ""
+
+#: csv_importer.py:146
+#, python-format
+msgid "Please check tidied version \"%s\" before importing/re-importing. May have line breaks in the wrong places."
+msgstr ""
+
+#: start.py:524
+#, python-format
+msgid "Please click on \"Enter/Edit Data\" and delete either of these tables if present - \"%(tbl1)s\" and \"%(tbl2)s\""
+msgstr ""
+
+#: gdata_downloader.py:187
+msgid "Please complete both email and password and try again"
+msgstr ""
+
+#: recode.py:176
+#, python-format
+msgid "Please do not use the \"%s\" to recode to or from. Use MISSING for missing as required."
+msgstr ""
+
+#: filtselect.py:292
+msgid "Please enter a filter"
+msgstr ""
+
+#: projects.py:718
+msgid "Please provide a project name"
+msgstr ""
+
+#: dimtree.py:469
+#, python-format
+msgid "Please select a %s variable and try again"
+msgstr ""
+
+#: importer.py:1157
+msgid "Please select a SOFA Table Name for the file"
+msgstr ""
+
+#: importer.py:1114
+msgid "Please select a file"
+msgstr ""
+
+#: db_grid.py:409 settings_grid.py:887 table_config.py:728
+#: table_config.py:1162
+msgid "Please select a row first (click to the left of the row)"
+msgstr ""
+
+#: gdata_downloader.py:323
+msgid "Please select a spreadsheet"
+msgstr ""
+
+#: stats_select.py:797
+msgid "Please select a statistical test on the list"
+msgstr ""
+
+#: importer.py:1203
+msgid "Please select a suitable SOFA Table Name and try again"
+msgstr ""
+
+#: my_exceptions.py:118
+#, python-format
+msgid "Please select a variable with at least %s different column values for Group B."
+msgstr ""
+
+#: my_exceptions.py:112
+#, python-format
+msgid "Please select a variable with at least %s different row values for Group A."
+msgstr ""
+
+#: my_exceptions.py:106
+#, python-format
+msgid "Please select a variable with no more than %s different column values for Group B."
+msgstr ""
+
+#: my_exceptions.py:100
+#, python-format
+msgid "Please select a variable with no more than %s different row values for Group A."
+msgstr ""
+
+#: dimtree.py:725
+msgid "Please select at least one measure"
+msgstr ""
+
+#: my_exceptions.py:94
+#, python-format
+msgid "Please select variables which have fewer different values. More than %s cells in contingency table."
+msgstr ""
+
+#: anova.py:46
+msgid "Precision"
+msgstr ""
+
+#: anova.py:51
+msgid "Precision is the best choice unless too slow"
+msgstr ""
+
+#: prefs.py:23 start.py:797
+msgid "Preferences"
+msgstr ""
+
+#: showhtml.py:74
+msgid "Print"
+msgstr ""
+
+#: filtselect.py:303
+#, python-format
+msgid "Problem applying filter \"%(filt)s\" to \"%(tbl)s\""
+msgstr ""
+
+#: gdata_downloader.py:209
+#, python-format
+msgid ""
+"Problem getting spreadsheet details.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: full_html.py:43
+msgid "Problem importing wx.lib.iewin."
+msgstr ""
+
+#: output.py:875
+#, python-format
+msgid "Problem making script file named \"%s\". Please try "
+msgstr ""
+
+#: getdata.py:619
+msgid "Problem opening selected table."
+msgstr ""
+
+#: recode.py:585
+#, python-format
+msgid ""
+"Problem recoding table.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: gdata_downloader.py:201
+#, python-format
+msgid ""
+"Problem signing in.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: gdata_downloader.py:196
+#, python-format
+msgid ""
+"Problem signing in. Are you connected to the Internet?\n"
+"Caused by error: %s"
+msgstr ""
+
+#: config_globals.py:109
+#, python-format
+msgid ""
+"Problem with Windows modules. Did all steps in installation succeed? You may need to install again.\n"
+"Error caused by: %s"
+msgstr ""
+
+#: filtselect.py:284
+#, python-format
+msgid "Problem with design of filter: %s"
+msgstr ""
+
+#: recode.py:565
+#, python-format
+msgid ""
+"Problem with your recode configuration.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: output.py:1064
+msgid "Problems with the content of the"
+msgstr ""
+
+#: db_grid.py:1048
+msgid "Proceed with resizing columns"
+msgstr ""
+
+#: projects.py:422
+msgid "Project Name:"
+msgstr ""
+
+#: projects.py:392
+msgid "Project Settings"
+msgstr ""
+
+#: projselect.py:24
+msgid "Project:"
+msgstr ""
+
+#: projselect.py:15
+msgid "Projects"
+msgstr ""
+
+#: start.py:1329
+msgid "Projects let SOFA know how to connect to your data, what labels to use, your favourite styles etc. The default project is OK to get you started."
+msgstr ""
+
+#: stats_output.py:756
+msgid "Proportion"
+msgstr ""
+
+#: indep2var.py:75 normal.py:172 paired2var.py:41
+msgid "Purpose"
+msgstr ""
+
+#: importer.py:253
+msgid "QUICK CHECK ONLY?"
+msgstr ""
+
+#: my_globals.py:366
+msgid "Quantity (is an amount)"
+msgstr ""
+
+#: filtselect.py:73
+msgid "Quick"
+msgstr ""
+
+#: my_globals.py:85 my_globals.py:100
+msgid "Range"
+msgstr ""
+
+#: mann_whitney.py:13
+msgid "Ranked"
+msgstr ""
+
+#: config_output.py:368 dataselect.py:35
+msgid "Read Only"
+msgstr ""
+
+#: gdata_downloader.py:294 gdata_downloader.py:303 gdata_downloader.py:338
+#, python-format
+msgid "Ready to download %s"
+msgstr ""
+
+#: recode.py:282 table_config.py:490
+msgid "Recode"
+msgstr ""
+
+#: recode.py:236
+msgid "Recode Variable"
+msgstr ""
+
+#: recode.py:284
+msgid "Recode an existing variable into a new variable"
+msgstr ""
+
+#: table_config.py:492
+msgid "Recode values from one field into a new field"
+msgstr ""
+
+#: recode.py:243
+msgid "Recode:"
+msgstr ""
+
+#: recode.py:355
+msgid "Recoding Help"
+msgstr ""
+
+#: recode.py:356
+msgid "Recoding Rules"
+msgstr ""
+
+#: normal.py:90
+#, python-format
+msgid "Rely on visual inspection of graph. Although the data failed the ideal normality test, most real-world data-sets with as many results (%s) would fail for even slight differences from the perfect normal curve."
+msgstr ""
+
+#: filtselect.py:157
+msgid "Remove"
+msgstr ""
+
+#: output.py:1168
+msgid "Report"
+msgstr ""
+
+#: start.py:752
+msgid "Report Tables"
+msgstr ""
+
+#: my_globals.py:551
+msgid "Report any version upgrades"
+msgstr ""
+
+#: config_output.py:461
+msgid "Report as Images/PDF"
+msgstr ""
+
+#: demotables.py:125
+msgid "Report(s)"
+msgstr ""
+
+#: db_grid.py:168
+msgid "Resize column widths"
+msgstr ""
+
+#: gdata_downloader.py:92
+msgid "Restart"
+msgstr ""
+
+#: my_globals.py:546
+msgid "Results Only"
+msgstr ""
+
+#: stats_output.py:41
+#, python-format
+msgid "Results of ANOVA test of average %(avg)s for groups from \"%(a)s\" to \"%(b)s\""
+msgstr ""
+
+#: stats_output.py:198
+#, python-format
+msgid "Results of Independent Samples t-test of average \"%(avg)s\" for \"%(a)s\" vs \"%(b)s\""
+msgstr ""
+
+#: stats_output.py:802
+#, python-format
+msgid "Results of Kruskal-Wallis H test of average %(avg)s for groups from \"%(a)s\" to \"%(b)s\""
+msgstr ""
+
+#: stats_output.py:399
+#, python-format
+msgid "Results of Mann Whitney U Test of \"%(ranked)s\" for \"%(a)s\" vs \"%(b)s\""
+msgstr ""
+
+#: stats_output.py:203
+#, python-format
+msgid "Results of Paired Samples t-test of \"%(a)s\" vs \"%(b)s\""
+msgstr ""
+
+#: stats_output.py:618
+#, python-format
+msgid "Results of Pearson's Chi Square Test of Association Between \"%(laba)s\" and \"%(labb)s\""
+msgstr ""
+
+#: stats_output.py:513
+#, python-format
+msgid "Results of Pearson's Test of Linear Correlation for %s"
+msgstr ""
+
+#: stats_output.py:564
+#, python-format
+msgid "Results of Spearman's Test of Linear Correlation for %s"
+msgstr ""
+
+#: stats_output.py:465
+#, python-format
+msgid "Results of Wilcoxon Signed Ranks Test of \"%(a)s\" vs \"%(b)s\""
+msgstr ""
+
+#: config_output.py:364
+msgid "Right click to add/remove filter"
+msgstr ""
+
+#: recode.py:262
+msgid "Right click to view variable details"
+msgstr ""
+
+#: db_grid.py:151 filtselect.py:88 normal.py:199 normal.py:203
+msgid "Right click variable to view/edit details"
+msgstr ""
+
+#: report_table.py:312 report_table.py:320
+msgid "Right click variables to view/edit "
+msgstr ""
+
+#: charting_dlg.py:71 indep2var.py:69 paired2var.py:38
+msgid "Right click variables to view/edit details"
+msgstr ""
+
+#: charting_dlg.py:687
+msgid "Rotate labels?"
+msgstr ""
+
+#: charting_dlg.py:690
+msgid "Rotate x-axis labels?"
+msgstr ""
+
+#: my_globals.py:75 my_globals.py:90
+msgid "Row %"
+msgstr ""
+
+#: importer.py:442
+#, python-format
+msgid "Row %(row_num)s doesn't have a value for the \"%(ok_fldname)s\" field %(msg)s"
+msgstr ""
+
+#: importer.py:471
+#, python-format
+msgid "Row %s"
+msgstr ""
+
+#: importer.py:469
+#, python-format
+msgid "Row %s (including header row)"
+msgstr ""
+
+#: my_globals.py:112
+msgid "Row Stats"
+msgstr ""
+
+#: dimtree.py:275
+msgid "Rows can't be nested in Raw Display tables"
+msgstr ""
+
+#: report_table.py:275
+msgid "Rows:"
+msgstr ""
+
+#: start.py:805
+msgid "Run Backup"
+msgstr ""
+
+#: config_output.py:416
+msgid "Run report and show results"
+msgstr ""
+
+#: start.py:1274
+msgid "Run statistical tests on your data - e.g. a Chi Square to see if there is a relationship between age group and gender."
+msgstr ""
+
+#: table_config.py:933
+msgid "SAVE CHANGES?"
+msgstr ""
+
+#: stats_select.py:292
+msgid "SELECT A STATISTICAL TEST HERE"
+msgstr ""
+
+#: ods_importer.py:71
+msgid "SLOW IMPORT"
+msgstr ""
+
+#: start.py:1038
+msgid ""
+"SOFA - Statistics Open For All\n"
+"the user-friendly, open-source statistics,\n"
+"analysis & reporting package"
+msgstr ""
+
+#: setup.py:112
+msgid "SOFA Error"
+msgstr ""
+
+#: setup.py:156
+msgid "SOFA Message"
+msgstr ""
+
+#: importer.py:1076
+msgid "SOFA NAME ALREADY EXISTS"
+msgstr ""
+
+#: start.py:427
+msgid "SOFA Start"
+msgstr ""
+
+#: output.py:826
+msgid "SOFA Statistics Report"
+msgstr ""
+
+#: importer.py:1162
+msgid "SOFA Table Name can't have empty spaces"
+msgstr ""
+
+#: importer.py:911
+msgid "SOFA Table Name:"
+msgstr ""
+
+#: importer.py:1181
+msgid "SOFA Table Names cannot start with a digit"
+msgstr ""
+
+#: start.py:1276
+msgid "SOFA focuses on the statistical tests most users need most of the time."
+msgstr ""
+
+#: my_exceptions.py:75
+msgid "SOFA has detected an inconsistent file date. Is your system date/time set correctly?"
+msgstr ""
+
+#: importer.py:1126
+msgid ""
+"SOFA imports txt files as csv files.\n"
+"\n"
+"Is your txt file a valid csv file?"
+msgstr ""
+
+#: output.py:888
+#, python-format
+msgid "Script added to end of \"%s\" ready for reuse and "
+msgstr ""
+
+#: config_output.py:288
+msgid "Scripts (*.py)|*.py"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:290
+msgid "Security File"
+msgstr ""
+
+#: table_config.py:506
+msgid "See Demonstration Result Here:"
+msgstr ""
+
+#: gdata_downloader.py:78
+msgid "Select"
+msgstr ""
+
+#: start.py:787
+msgid "Select Project"
+msgstr ""
+
+#: stats_select.py:66
+msgid "Select Statistical Test"
+msgstr ""
+
+#: dimtree.py:309
+msgid "Select a column variable first"
+msgstr ""
+
+#: dimtree.py:282
+msgid "Select a row variable first"
+msgstr ""
+
+#: gdata_downloader.py:43
+msgid "Select a spreadsheet"
+msgstr ""
+
+#: normal.py:332
+msgid "Select a variable and click Check button to see results of normality test"
+msgstr ""
+
+#: gdata_downloader.py:44
+msgid "Select a worksheet"
+msgstr ""
+
+#: config_output.py:543
+msgid "Select an existing css style file"
+msgstr ""
+
+#: config_output.py:186
+msgid "Select an existing variable config file"
+msgstr ""
+
+#: importer.py:878
+msgid "Select file to import"
+msgstr ""
+
+#: config_output.py:439
+msgid "Select or create an HTML output file"
+msgstr ""
+
+#: gdata_downloader.py:81
+msgid "Select spreadsheet"
+msgstr ""
+
+#: normal.py:162
+msgid ""
+"Select the paired variables you are interested in. Looking at the differences, is the distribution close enough to the normal curve for use with tests requiring that?\n"
+"\n"
+"Note: if comparing samples, each sample must be normal enough. Filter for each sample by right clicking on the table selector."
+msgstr ""
+
+#: normal.py:158
+msgid ""
+"Select the variable you are interested in. Is its distribution close enough to the normal curve for use with tests requiring that?\n"
+"\n"
+"Look for gross outliers, extreme skewing, and clustering into groups."
+msgstr ""
+
+#: normal.py:329
+msgid "Select two variables and click Check button to see results of normality test"
+msgstr ""
+
+#: config_output.py:169
+msgid "Select variable details file with labels etc appropriate to your data"
+msgstr ""
+
+#: dimtree.py:35 dimtree.py:42
+msgid "Select variable(s)"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:113
+#, python-format
+msgid "Selected database \"%s\" didn't have any tables."
+msgstr ""
+
+#: my_globals.py:558
+msgid "Series By"
+msgstr ""
+
+#: start.py:1358
+msgid "Set preferences e.g. format for entering dates"
+msgstr ""
+
+#: projects.py:125
+#, python-format
+msgid "Settings for %s"
+msgstr ""
+
+#: projects.py:85
+#, python-format
+msgid "Settings saved to \"%s\""
+msgstr ""
+
+#: charting_dlg.py:307 charting_dlg.py:310
+msgid "Show Count and %?"
+msgstr ""
+
+#: config_output.py:37
+msgid "Show Results"
+msgstr ""
+
+#: charting_dlg.py:252 charting_dlg.py:284 charting_dlg.py:402
+msgid "Show borders around bars?"
+msgstr ""
+
+#: charting_dlg.py:418
+msgid "Show borders around scatterplot dots?"
+msgstr ""
+
+#: charting_dlg.py:698
+msgid "Show major labels only?"
+msgstr ""
+
+#: charting_dlg.py:394 charting_dlg.py:397
+msgid "Show normal curve?"
+msgstr ""
+
+#: report_table.py:267
+msgid "Show percent symbol?"
+msgstr ""
+
+#: charting_dlg.py:339
+msgid "Show smoothed data line?"
+msgstr ""
+
+#: charting_dlg.py:335
+msgid "Show trend line?"
+msgstr ""
+
+#: indep2var.py:607
+#, python-format
+msgid "Showing first %s unique groups"
+msgstr ""
+
+#: indep2var.py:604
+#, python-format
+msgid ""
+"Showing first 20 groups in\n"
+" in first %s rows"
+msgstr ""
+
+#: indep2var.py:612
+#, python-format
+msgid ""
+"Showing groups from\n"
+" first %s rows"
+msgstr ""
+
+#: gdata_downloader.py:71
+msgid "Sign In"
+msgstr ""
+
+#: gdata_downloader.py:73
+msgid "Sign into Google Account"
+msgstr ""
+
+#: gdata_downloader.py:41
+msgid "Sign into your Google Account"
+msgstr ""
+
+#: normal.py:168 normal.py:194
+msgid "Single"
+msgstr ""
+
+#: stats_output.py:110 stats_output.py:245
+msgid "Skew"
+msgstr ""
+
+#: normal.py:77
+#, python-format
+msgid "Skew (lopsidedness) is %(skew)s which is probably %(indic)s."
+msgstr ""
+
+#: charting_dlg.py:337
+msgid "Smoothed data line?"
+msgstr ""
+
+#: lib.py:1681
+msgid "Sort by Freq (Asc)"
+msgstr ""
+
+#: lib.py:1682
+msgid "Sort by Freq (Desc)"
+msgstr ""
+
+#: lib.py:1680
+msgid "Sort by Label"
+msgstr ""
+
+#: dimtree.py:667
+msgid "Sort order"
+msgstr ""
+
+#: charting_dlg.py:244 charting_dlg.py:275 charting_dlg.py:303
+#: charting_dlg.py:327 charting_dlg.py:371 charting_dlg.py:428
+#, python-format
+msgid ""
+"Sort order\n"
+"of %s:"
+msgstr ""
+
+#: charting_dlg.py:233
+msgid "Sort order for categories"
+msgstr ""
+
+#: stats_output.py:49
+msgid "Source"
+msgstr ""
+
+#: importer.py:894
+msgid "Source File:"
+msgstr ""
+
+#: stats_output.py:572
+msgid "Spearman's R statistic"
+msgstr ""
+
+#: anova.py:49
+msgid "Speed"
+msgstr ""
+
+#: my_globals.py:97 stats_output.py:101 stats_output.py:233
+msgid "Standard Deviation"
+msgstr ""
+
+#: gdata_downloader.py:94
+msgid "Start again with a fresh sign in"
+msgstr ""
+
+#: indep2var.py:156 paired2var.py:91
+msgid "Start making your selections"
+msgstr ""
+
+#: stats_select.py:238
+msgid "Statistical Test"
+msgstr ""
+
+#: start.py:768
+msgid "Statistics"
+msgstr ""
+
+#: start.py:1027
+msgid "Statistics Open For All"
+msgstr ""
+
+#: my_globals.py:82
+msgid "Std Dev"
+msgstr ""
+
+#: start.py:1102
+msgid "Step-by-step examples with screen-shots to get you started."
+msgstr ""
+
+#: charting_dlg.py:167 report_table.py:248
+msgid "Subtitle:"
+msgstr ""
+
+#: gdata_downloader.py:359
+msgid "Successfully downloaded worksheet ready for import."
+msgstr ""
+
+#: importer.py:689
+#, python-format
+msgid ""
+"Successfully imported data as\n"
+"\"%(tbl)s\"."
+msgstr ""
+
+#: my_globals.py:77 my_globals.py:92 my_globals.py:177
+msgid "Sum"
+msgstr ""
+
+#: stats_output.py:50
+msgid "Sum of Squares"
+msgstr ""
+
+#: my_globals.py:560
+msgid "Summed"
+msgstr ""
+
+#: lib.py:340
+#, python-format
+msgid "Syntax error in dojo settings in css file \"%(css_fil)s\"."
+msgstr ""
+
+#: projects.py:589
+#, python-format
+msgid ""
+"Syntax error in project file \"%(fil_proj)s\".\n"
+"\n"
+"Details: %(err)s"
+msgstr ""
+
+#: projselect.py:85
+msgid ""
+"Syntax error in project file \"%(fil_proj)s\".\n"
+"\n"
+"Details: %s"
+msgstr ""
+
+#: config_globals.py:197
+#, python-format
+msgid ""
+"Syntax error in settings file \"%(fil_name)s\".\n"
+"\n"
+"Details: %(details)s"
+msgstr ""
+
+#: setup.py:290
+#, python-format
+msgid ""
+"Syntax error in test script \"%(test_path)s\".\n"
+"Caused by error: %(err)s"
+msgstr ""
+
+#: lib.py:837
+#, python-format
+msgid "Syntax error in variable details file \"%(fil_var_dets)s\"."
+msgstr ""
+
+#: recode.py:228
+msgid "TO new value"
+msgstr ""
+
+#: rawtables.py:163 stats_output.py:640 stats_output.py:679
+msgid "TOTAL"
+msgstr ""
+
+#: getdata.py:610
+#, python-format
+msgid "Table \"%s\" cannot be opened because it lacks a unique "
+msgstr ""
+
+#: table_config.py:482
+msgid "Table Name:"
+msgstr ""
+
+#: report_table.py:108
+msgid "Table Type"
+msgstr ""
+
+#: config_output.py:365
+msgid "Table:"
+msgstr ""
+
+#: stats_select.py:311
+msgid "Tests that show if there is a difference"
+msgstr ""
+
+#: stats_select.py:319
+msgid "Tests that show if there is a relationship"
+msgstr ""
+
+#: my_globals.py:466
+msgid "Text"
+msgstr ""
+
+#: my_exceptions.py:88
+#, python-format
+msgid "The \"%(fldname)s\" field can't be used as a category. It has values longer than %(max_val)s."
+msgstr ""
+
+#: table_config.py:733
+#, python-format
+msgid "The %s must always come first"
+msgstr ""
+
+#: stats_select.py:534
+msgid "The ANOVA (Analysis Of Variance) is good for seeing if there is a difference in means between multiple groups when the data is numerical and adequately normal. Generally the ANOVA is robust to non-normality."
+msgstr ""
+
+#: stats_select.py:525
+msgid "The ANOVA (Analysis Of Variance) is probably a good choice. The Kruskal-Wallis H may still be preferable if your data is not adequately normal."
+msgstr ""
+
+#: output.py:493
+#, python-format
+msgid "The CSS style file '%s' doesn't exist. "
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:543
+msgid "The CUBRID details are incomplete"
+msgstr ""
+
+#: stats_select.py:571
+msgid "The Chi Square test is one of the most widely used tests in social science. It is good for seeing if the results for two variables are independent or related. Is there a relationship between gender and income group for example?"
+msgstr ""
+
+#: stats_select.py:568
+msgid "The Chi Square test is probably a good choice."
+msgstr ""
+
+#: indep2var.py:711
+#, python-format
+msgid "The Grouped By Variable and the %s variable cannot be the same"
+msgstr ""
+
+#: stats_select.py:636
+msgid "The Independent t-test is a very popular test. It is good for seeing if there is a difference between two groups when the data is numerical and adequately normal. Generally the t-test is robust to non-normality."
+msgstr ""
+
+#: stats_select.py:623
+msgid "The Independent t-test is probably a good choice.  The Mann-Whitney may still be preferable in some cases because of its resistance to extreme outliers (isolated high or low values)."
+msgstr ""
+
+#: stats_select.py:667
+msgid "The Independent t-test may be preferable if your data is numerical and doesn't violate normality too much.  Generally the t-test is robust to non-normality."
+msgstr ""
+
+#: stats_select.py:555
+msgid "The Kruskal-Wallis H is good for seeing if there is a difference in values between multiple groups when the data is at least ordered (ordinal). The ANOVA (Analysis Of Variance) may still be preferable if your data is numerical and adequately normal."
+msgstr ""
+
+#: stats_select.py:545
+msgid "The Kruskal-Wallis H is probably a good choice. The ANOVA (Analysis Of Variance) may still be preferable if your data is numerical and adequately normal."
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:388
+msgid "The MS Access details are incomplete"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:356
+msgid "The MS Access details on the new row have not been saved. Select the final field in the new row and press Enter"
+msgstr ""
+
+#: stats_select.py:629
+msgid "The Mann-Whitney also copes better with small sample sizes e.g. < 20."
+msgstr ""
+
+#: stats_select.py:663
+msgid "The Mann-Whitney is good for seeing if there is a difference between two groups when the data is at least ordinal (ordered)."
+msgstr ""
+
+#: stats_select.py:651
+msgid "The Mann-Whitney is probably a good choice.  The Independent t-test may still be preferable if your data is numerical and doesn't violate normality too much.  Generally the t-test is robust to non-normality."
+msgstr ""
+
+#: stats_select.py:642
+msgid "The Mann-Whitney may be preferable in some cases because of its resistance to extreme outliers (isolated high or low values)."
+msgstr ""
+
+#: dbe_plugins/dbe_mysql.py:546
+msgid "The MySQL details are incomplete"
+msgstr ""
+
+#: stats_select.py:591
+msgid "The Pearson's R Correlation test is good for testing linear correlation when your data is numerical and adequately normal. Always look at the scatterplot to decide if a linear relationship. The Spearman's R Correlation test may be preferable in some cases because of its resistance to extreme outliers (isolated high or low values)."
+msgstr ""
+
+#: stats_select.py:578
+msgid "The Pearson's R Correlation test is probably a good choice if you are testing linear correlation. Always look at the scatterplot to decide if a linear relationship. The Spearman's R Correlation test may be preferable in some cases because of its resistance to extreme outliers (isolated high or low values)."
+msgstr ""
+
+#: dbe_plugins/dbe_postgresql.py:519
+msgid "The PostgreSQL details are incomplete."
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:420
+msgid "The SQL Server details are incomplete"
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:417
+msgid "The SQLite details are partially complete - either add a database or clear the SQLite default database and table"
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:382
+#, python-format
+msgid "The SQLite details on the new row have not been saved. Select the \"%s\" field in the new row and press Enter"
+msgstr ""
+
+#: importer.py:908
+msgid "The Source File will be imported into SOFA with the SOFA Table Name entered below:"
+msgstr ""
+
+#: stats_select.py:614
+msgid "The Spearman's R Correlation test is good for testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."
+msgstr ""
+
+#: stats_select.py:606
+msgid "The Spearman's R Correlation test is probably a good choice if you are testing to see if two variables change together e.g. if one increases, the other also increases (or at least stays the same). Always look at the scatterplot to check the actual relationship e.g. roughly linear. The Pearson's R Correlation test may still be preferable if your data is numerical and adequately normal."
+msgstr ""
+
+#: stats_select.py:707
+msgid "The Wilcoxon Signed Ranks is good for looking at differences in paired data e.g. two values recorded for the same person at different times. The data must be measured at (approximately) an interval level."
+msgstr ""
+
+#: stats_select.py:696
+msgid "The Wilcoxon Signed Ranks is probably a good choice as long as your data is measured at (approximately) an interval level. The paired t-test may be preferable if your data is numerical and doesn't violate normality too much."
+msgstr ""
+
+#: dataselect.py:213
+msgid "The current project does not include a link to the default SOFA database so a new table cannot be made there."
+msgstr ""
+
+#: dataselect.py:176
+msgid "The design of the default SOFA table cannot be changed"
+msgstr ""
+
+#: normal.py:98
+#, python-format
+msgid "The distribution of %s passed one test for normality. Confirm or reject based on visual inspection of graph."
+msgstr ""
+
+#: recode.py:147
+msgid "The field being recoded is numeric but you are trying to recode a non-numeric value"
+msgstr ""
+
+#: csv_importer.py:141
+msgid "The file needs new lines standardised first. Can SOFA Statistics make a tidied copy for you?"
+msgstr ""
+
+#: projects.py:534
+msgid "The internal sofa_db is added by default. It is needed to allow you to add new tables to SOFA Statistics"
+msgstr ""
+
+#: config_output.py:736
+msgid "The output file has not been created yet. Nothing to export"
+msgstr ""
+
+#: config_output.py:870
+msgid "The output file has not been created yet. Nothing to view"
+msgstr ""
+
+#: stats_select.py:685
+msgid "The paired t-test is good for looking at differences in paired numerical data e.g. two values recorded for the same person at different times. The results must be adequately normal"
+msgstr ""
+
+#: stats_select.py:674
+msgid "The paired t-test is probably a good choice.  The Wilcoxon Signed Ranks test may still be preferable because of its resistance to extreme outliers (isolated high or low values)."
+msgstr ""
+
+#: stats_select.py:714
+msgid "The paired t-test may be preferable if your data is numerical and doesn't violate normality too much."
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:421
+#, python-format
+msgid "The sofa default database \"%s\"must be included in the project."
+msgstr ""
+
+#: table_config.py:519
+msgid "The sofa_id is required and cannot be edited"
+msgstr ""
+
+#: normal.py:247
+msgid "The two variables must be different"
+msgstr ""
+
+#: db_grid.py:1068
+#, python-format
+msgid "The underlying data table has %s rows. Do you wish to export it?"
+msgstr ""
+
+#: config_output.py:619
+#, python-format
+msgid "The underlying data table has %s rows. Do you wish to run this analysis?"
+msgstr ""
+
+#: charting_dlg.py:1228
+#, python-format
+msgid "The variables selected for %s must be different."
+msgstr ""
+
+#: importer.py:249
+#, python-format
+msgid "There are %s fields so the process of checking them all will take a while. Do you want to do a quick check only?"
+msgstr ""
+
+#: charting_output.py:642
+#, python-format
+msgid "This chart will have %(n_boxplot_series)s %(var_role_cat)s series and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: charting_output.py:677
+#, python-format
+msgid "This chart will have %(n_boxplots)s series by %(var_role_cat)s and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: charting_output.py:498
+#, python-format
+msgid "This chart will have %(n_cats)s %(var_role_cat)s categories and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: charting_output.py:483
+#, python-format
+msgid "This chart will have %(n_cats)s clusters by %(var_role_cat)s and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: charting_output.py:424
+#, python-format
+msgid "This chart will have %s series and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: charting_output.py:404
+#, python-format
+msgid "This output will have %s charts and may not display properly. Do you wish to make it anyway?"
+msgstr ""
+
+#: report_table.py:598
+#, python-format
+msgid "This report has %s rows. Do you wish to "
+msgstr ""
+
+#: ods_importer.py:67
+msgid ""
+"This spreadsheet may take a while to import.\n"
+"\n"
+"Instead of importing, it could be faster to save as csv and import the csv version.\n"
+"\n"
+"Import now anyway?"
+msgstr ""
+
+#: db_grid.py:1044
+#, python-format
+msgid "This table has %(rows)s rows and %(cols)s columns. Do you wish to resize?"
+msgstr ""
+
+#: getdata.py:629
+#, python-format
+msgid "This table has %s rows. "
+msgstr ""
+
+#: stats_select.py:328
+msgid "Tips"
+msgstr ""
+
+#: charting_dlg.py:162 report_table.py:242
+msgid "Title:"
+msgstr ""
+
+#: indep2var.py:139
+msgid "To"
+msgstr ""
+
+#: my_exceptions.py:159
+#, python-format
+msgid "Too many series in chart. More than %s."
+msgstr ""
+
+#: my_exceptions.py:154
+#, python-format
+msgid "Too many slices in Pie Chart. More than %s."
+msgstr ""
+
+#: my_globals.py:105
+msgid "Total"
+msgstr ""
+
+#: report_table.py:257
+msgid "Totals Row?"
+msgstr ""
+
+#: charting_dlg.py:333
+msgid "Trend line?"
+msgstr ""
+
+#: importer.py:454
+#, python-format
+msgid "Tried to quote %(val)s on row %(row_num)s but failed."
+msgstr ""
+
+#: stats_output.py:406 stats_output.py:470 stats_output.py:518
+msgid "Two-tailed p value"
+msgstr ""
+
+#: stats_output.py:411
+msgid "U statistic"
+msgstr ""
+
+#: my_globals.py:87
+msgid "U. Quartile"
+msgstr ""
+
+#: stats_output.py:149 stats_output.py:292
+msgid "Unable to calculate kurtosis"
+msgstr ""
+
+#: normal.py:109
+msgid "Unable to calculate normality tests"
+msgstr ""
+
+#: stats_output.py:151 stats_output.py:294
+msgid "Unable to calculate overall p for normality test"
+msgstr ""
+
+#: stats_output.py:150 stats_output.py:293
+msgid "Unable to calculate skew"
+msgstr ""
+
+#: getdata.py:687
+#, python-format
+msgid "Unable to connect to %(oth_dbe)s using the details"
+msgstr ""
+
+#: start.py:1223
+#, python-format
+msgid "Unable to connect to data as defined in project %s.  Please check your settings"
+msgstr ""
+
+#: start.py:1257
+#, python-format
+msgid "Unable to connect to data as defined in project %s.  Please check your settings."
+msgstr ""
+
+#: start.py:450 stats_select.py:845
+#, python-format
+msgid "Unable to connect to data as defined in project %s. Please check your settings."
+msgstr ""
+
+#: db_grid.py:337 settings_grid.py:856 table_config.py:1178
+msgid "Unable to delete new row"
+msgstr ""
+
+#: db_grid.py:371
+msgid "Unable to delete row - id not found in list"
+msgstr ""
+
+#: db_grid.py:397
+msgid "Unable to delete row - underlying table did not approve the change"
+msgstr ""
+
+#: table_config.py:1180
+msgid "Unable to delete sofa id row"
+msgstr ""
+
+#: ods_importer.py:84 ods_importer.py:133
+msgid "Unable to extract or generate field names"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:123 dbe_plugins/dbe_ms_sql.py:95
+#: dbe_plugins/dbe_mysql.py:110 dbe_plugins/dbe_postgresql.py:143
+msgid "Unable to find any databases that have tables and you have permission to access."
+msgstr ""
+
+#: dbe_plugins/dbe_sqlite.py:147
+#, python-format
+msgid "Unable to get valid cursor from database connection to \"%s\""
+msgstr ""
+
+#: importer.py:1254
+#, python-format
+msgid ""
+"Unable to import data\n"
+"\n"
+"Help available at %s\n"
+"\n"
+msgstr ""
+
+#: importer.py:1228
+msgid ""
+"Unable to import data after getting parameters\n"
+"\n"
+"Error"
+msgstr ""
+
+#: csv_importer.py:150
+msgid "Unable to import file in current form"
+msgstr ""
+
+#: importer.py:1130
+msgid "Unable to import txt files unless csv format inside"
+msgstr ""
+
+#: db_grid.py:897
+#, python-format
+msgid "Unable to insert row. %s"
+msgstr ""
+
+#: demotables.py:137
+#, python-format
+msgid "Unable to make report. Error details: %s"
+msgstr ""
+
+#: config_output.py:264
+#, python-format
+msgid "Unable to make vdt file \"%(filename)s\" - the \"%(foldername)s\" directory doesn't exist."
+msgstr ""
+
+#: table_config.py:952 table_config.py:1013
+#, python-format
+msgid ""
+"Unable to modify table.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: table_config.py:947 table_config.py:1008
+msgid "Unable to modify table. Some data does not match the column type. Please edit and try again."
+msgstr ""
+
+#: stats_select.py:475
+msgid "Unable to open report table"
+msgstr ""
+
+#: start.py:1183
+#, python-format
+msgid ""
+"Unable to open report table dialog.\n"
+"Caused by error: %s"
+msgstr ""
+
+#: recode.py:88
+#, python-format
+msgid "Unable to process \"%s\""
+msgstr ""
+
+#: my_exceptions.py:48
+msgid "Unable to process csv file unless settings are confirmed"
+msgstr ""
+
+#: output.py:1022
+msgid "Unable to run script to generate report. Caused by "
+msgstr ""
+
+#: db_grid.py:867
+#, python-format
+msgid "Unable to save change to database. %s"
+msgstr ""
+
+#: db_grid.py:837
+msgid "Unable to save new row.  Invalid value in column"
+msgstr ""
+
+#: settings_grid.py:838
+#, python-format
+msgid "Unable to save new row.  Invalid value in the \"%(col_label)s\" column. %(msg)s"
+msgstr ""
+
+#: projects.py:768
+#, python-format
+msgid ""
+"Unable to save project file. Please check \"%(fil_name)s\" is a valid file name.\n"
+"\n"
+"Caused by error: %(err)s"
+msgstr ""
+
+#: recode.py:540
+#, python-format
+msgid "Unable to use an existing field name (%s)"
+msgstr ""
+
+#: importer.py:270
+#, python-format
+msgid ""
+"Unable to use field name \"%(fldname)s\". Please only use letters, numbers and underscores. No spaces, full stops etc.\n"
+"Orig error: %(err)s"
+msgstr ""
+
+#: importer.py:260
+#, python-format
+msgid ""
+"Unable to use field names provided. Please only use letters, numbers and underscores. No spaces, full stops etc. If you want to know which field name failed, try again and do the more thorough check (say No to quick check only).\n"
+"Orig error: %s"
+msgstr ""
+
+#: projselect.py:172
+#, python-format
+msgid ""
+"Unable to use the selected project file. Please check name of file and its contents using %(def_proj)s as example.\n"
+"Caused by error: %(err)s"
+msgstr ""
+
+#: config_output.py:249
+#, python-format
+msgid "Unable to use vdt file \"%(entered_vdt_path)s\" entered. Orig error: %(invalid_msg)s"
+msgstr ""
+
+#: projects.py:654 settings_grid.py:76
+msgid "Update"
+msgstr ""
+
+#: prefs.py:31
+msgid "Upgrade Checking"
+msgstr ""
+
+#: start.py:857
+#, python-format
+msgid "Upgrade to %s here"
+msgstr ""
+
+#: my_globals.py:102
+msgid "Upper Quartile"
+msgstr ""
+
+#: stats_select.py:209
+#, python-format
+msgid ""
+"Use the \"%s\" button at the bottom to assess the normality of your numerical data.\n"
+"\n"
+"Data which is ordered (ordinal) but not numerical is automatically not normal."
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:327
+msgid "User - e.g. root:"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_access.py:297
+msgid "User Name (opt)"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:432
+msgid "User e.g. dba"
+msgstr ""
+
+#: dbe_plugins/dbe_postgresql.py:428
+msgid "User e.g. postgres"
+msgstr ""
+
+#: dbe_plugins/dbe_ms_sql.py:332 dbe_plugins/dbe_mysql.py:436
+msgid "User e.g. root"
+msgstr ""
+
+#: dbe_plugins/dbe_cubrid.py:427 dbe_plugins/dbe_mysql.py:431
+#: dbe_plugins/dbe_postgresql.py:423
+msgid "User:"
+msgstr ""
+
+#: projects.py:296
+msgid "Value"
+msgstr ""
+
+#: my_globals.py:554
+msgid "Values"
+msgstr ""
+
+#: dimtree.py:576 stats_output.py:483
+msgid "Variable"
+msgstr ""
+
+#: dimtree.py:347
+#, python-format
+msgid "Variable %(text)s already used in %(oth_dim)s dimension"
+msgstr ""
+
+#: dimtree.py:343
+#, python-format
+msgid "Variable %s cannot be an ancestor of itself"
+msgstr ""
+
+#: dimtree.py:205
+#, python-format
+msgid "Variable '%(text)s' cannot be used more than once"
+msgstr ""
+
+#: dimtree.py:197
+#, python-format
+msgid "Variable '%(text)s' has already been used in %(oth_dim)s dimension"
+msgstr ""
+
+#: filtselect.py:54 projects.py:214
+msgid "Variable Details"
+msgstr ""
+
+#: projects.py:310
+msgid "Variable Label:"
+msgstr ""
+
+#: config_output.py:176
+msgid "Variable config from ... "
+msgstr ""
+
+#: normal.py:156
+msgid "Variable to Check"
+msgstr ""
+
+#: charting_dlg.py:90 indep2var.py:76 paired2var.py:42
+msgid "Variables"
+msgstr ""
+
+#: start.py:1024
+#, python-format
+msgid "Version %s"
+msgstr ""
+
+#: config_output.py:442
+msgid "View Report"
+msgstr ""
+
+#: config_output.py:446
+msgid "View selected HTML output file in your default browser"
+msgstr ""
+
+#: gdata_downloader.py:146
+msgid "Waiting for a spreadsheet to be selected"
+msgstr ""
+
+#: report_table.py:83
+msgid "Waiting for enough settings ..."
+msgstr ""
+
+#: gdata_downloader.py:142
+msgid "Waiting for sign in"
+msgstr ""
+
+#: my_exceptions.py:80
+msgid "Waiting for viable report to be run ..."
+msgstr ""
+
+#: config_output.py:692
+msgid "Warning - the folder your report is in doesn't currently exist."
+msgstr ""
+
+#: start.py:486
+msgid "Welcome to SOFA Statistics. Hovering the mouse over the buttons lets you see what you can do."
+msgstr ""
+
+#: start.py:940
+msgid "What's happening in SOFA Statistics"
+msgstr ""
+
+#: stats_select.py:19
+msgid "Wilcoxon Signed Ranks"
+msgstr ""
+
+#: stats_output.py:474
+msgid "Wilcoxon Signed Ranks statistic"
+msgstr ""
+
+#: recode.py:231
+msgid "With LABEL"
+msgstr ""
+
+#: stats_output.py:72
+msgid "Within"
+msgstr ""
+
+#: my_globals.py:564
+msgid "X-axis"
+msgstr ""
+
+#: my_globals.py:565
+msgid "Y-axis"
+msgstr ""
+
+#: stats_select.py:530 stats_select.py:540 stats_select.py:632
+#: stats_select.py:691 stats_select.py:703 stats_select.py:718
+#, python-format
+msgid "You can evaluate normality by clicking on the \"%s\" button down the bottom left."
+msgstr ""
+
+#: importer.py:1062
+#, python-format
+msgid ""
+"You can only use letters, numbers and underscores in a SOFA Table Name. Use another name?\n"
+"Orig error: %s"
+msgstr ""
+
+#: table_config.py:328
+msgid "You can only use letters, numbers and underscores in a SOFA name.  Use another name?"
+msgstr ""
+
+#: projects.py:722
+msgid "You cannot use the default project name"
+msgstr ""
+
+#: config_output.py:41
+#, python-format
+msgid ""
+"You need to add the \"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder so your charts and themes can display properly.\n"
+"\n"
+"Copy the \"%(report_extras_folder)s\" folder from \"%(reports_path)s\"."
+msgstr ""
+
+#: table_config.py:931
+msgid "You will need to save the changes you made first. Save changes and continue?"
+msgstr ""
+
+#: table_config.py:776
+msgid "Your new table has been added to the default SOFA database"
+msgstr ""
+
+#: stats_output.py:694
+msgid "cells with expected count < 5"
+msgstr ""
+
+#: my_globals.py:163
+msgid "column"
+msgstr ""
+
+#: stats_output.py:52
+msgid "df"
+msgstr ""
+
+#: db_grid.py:756
+#, python-format
+msgid "e.g. %(eg1)s or %(eg2)s"
+msgstr ""
+
+#: start.py:1134
+msgid "e.g. age into age group"
+msgstr ""
+
+#: db_grid.py:744
+msgid "is invalid for data type "
+msgstr ""
+
+#: db_grid.py:766
+#, python-format
+msgid "is longer than the maximum of %s. Either enter a shorter value or the missing value character (.)"
+msgstr ""
+
+#: my_globals.py:368
+msgid "nominal"
+msgstr ""
+
+#: my_globals.py:368
+msgid "ordinal"
+msgstr ""
+
+#: stats_output.py:113 stats_output.py:248
+msgid "p abnormal"
+msgstr ""
+
+#: stats_output.py:208 stats_output.py:569 stats_output.py:624
+#: stats_output.py:808
+msgid "p value"
+msgstr ""
+
+#: my_globals.py:369
+msgid "quantity"
+msgstr ""
+
+#: my_globals.py:162
+msgid "row"
+msgstr ""
+
+#: paired2var.py:244
+msgid "suitable"
+msgstr ""
+
+#: stats_output.py:211
+msgid "t statistic"
+msgstr ""
+
+#: stats_select.py:17
+msgid "t-test - independent"
+msgstr ""
+
+#: stats_select.py:18
+msgid "t-test - paired"
+msgstr ""
+
+#: table_config.py:484
+msgid "table"
+msgstr ""

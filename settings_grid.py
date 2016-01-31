@@ -689,7 +689,10 @@ class SettingsEntry(object):
         return dest_row_is_new
     
     def is_new_row(self, row):
-        "e.g. if 2 rows inc new - new row if idx = 1 i.e. subtract 1"
+        """
+        e.g. if 2 rows inc new - is a new row if idx = 1 i.e. can calculate by
+        subtracting 1.
+        """
         debug = False
         if debug: print("row: %s; rows_to_fill: %s" % (row, self.rows_to_fill))
         new_row = (row == self.rows_to_fill)

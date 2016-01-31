@@ -38,7 +38,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u"")
 
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
@@ -69,12 +69,17 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"label_ranked = u\"%s\"" % label_ranked)
         script_lst.append(u"u, p, dic_a, dic_b, z = core_stats.mannwhitneyu("
             u"sample_a, sample_b, label_a, label_b, headless=False)")
+        if details:
+            script_lst.append(
+                u"details = core_stats.mannwhitneyu_details(sample_a, sample_b,"
+                u" label_a, label_b, headless=False)")
+        else:
+            script_lst.append(u"details = {}")
         script_lst.append(u"""
 mann_whitney_output = stats_output.mann_whitney_output(u, p, label_gp, dic_a, 
     dic_b, z, label_ranked, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
-    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil), 
-    u"css_idx": css_idx})
+    css_idx=%(css_idx)s, dp=dp, details=details, page_break_after=False)"""
+        % {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)
 

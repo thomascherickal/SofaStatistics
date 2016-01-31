@@ -14,6 +14,9 @@ debug = False
 
 
 class DbTbl(wx.grid.PyGridTableBase):
+    """
+    row and col idxs are zero-based.
+    """
     def __init__(self, grid, var_labels, readonly):
         dd = mg.DATADETS_OBJ
         wx.grid.PyGridTableBase.__init__(self)
@@ -107,33 +110,44 @@ class DbTbl(wx.grid.PyGridTableBase):
         return True
 
     def set_num_rows(self):
+        """
+        rows_n -- number of rows in grid including empty row at end if there is
+        one. Thinking from a grid, not a data, point of view.
+
+        idx_final_data_row -- index of final data row.
+        """
         debug = False
         dd = mg.DATADETS_OBJ
         SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(dd.dbe, 
             dd.tbl)
         dd.cur.execute(SQL_rows_n)
         self.rows_n = dd.cur.fetchone()[0]
+        self.idx_final_data_row = self.rows_n - 1
         if not self.readonly:
-            self.rows_n += 1
-        if self.debug or debug: print(u"N rows: %s" % self.rows_n)
-        self.rows_to_fill = (self.rows_n - 1 if self.readonly
-            else self.rows_n - 2)
+            self.rows_n += 1  ## An extra row for data entry
+        if self.debug or debug:
+            print(u"N rows: %s" % self.rows_n)
+            print(u"idx_final_data_row: %s" % self.idx_final_data_row)
     
     def GetNumberRows(self):
+        """Includes new data row if there is one."""
         # wxPython
         return self.rows_n
     
+    def get_n_data_rows(self):
+        return self.idx_final_data_row + 1
+    
     def is_new_row(self, row):
-        new_row = row > self.rows_to_fill
+        new_row = row > self.idx_final_data_row
         return new_row
     
     def is_final_row(self, row):
-        final_row = (row == self.rows_to_fill)
+        final_row = (row == self.idx_final_data_row)
         return final_row 
     
     def GetRowLabelValue(self, row):
         # wxPython
-        new_row = row > self.rows_to_fill
+        new_row = row > self.idx_final_data_row
         if new_row:
             if self.new_is_dirty:
                 return mg.NEW_IS_DIRTY
@@ -205,8 +219,8 @@ class DbTbl(wx.grid.PyGridTableBase):
                 return self.new_buffer.get((row, col), mg.MISSING_VAL_INDICATOR)
             # identify row range            
             row_min = row - extra if row - extra > 0 else 0
-            row_max = (row + extra if row + extra < self.rows_to_fill
-                else self.rows_to_fill)
+            row_max = (row + extra if row + extra < self.idx_final_data_row
+                else self.idx_final_data_row)
             # create IN clause listing id values
             IN_clause_lst = []
             for row_idx in range(row_min, row_max + 1):

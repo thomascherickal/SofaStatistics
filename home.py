@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
 show_more_steps = True
@@ -56,8 +56,6 @@ if platform.system() == u"Windows":
                 pass
         sys.stdout = NullWriter()
 import setup # if any modules are going to fail, it will be when this imported
-# wipe the next line once we pass March 2013 (plus one that uses installed_version later)
-installed_version = setup.get_installed_version_local_path() # must run before everything gets changed in setup_folders!
 LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
 if show_early_steps: print(u"Completed setup_folders successfully.")
 import codecs
@@ -480,9 +478,8 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem setting up help images."
                 u"\nCaused by error: %s" % b.ue(e))
         # upgrade available?
-        version_lev = self.get_version_lev()
         if show_more_steps: print(u"Got version level")
-        new_version = self.get_new_version(version_lev)
+        new_version = self.get_new_version()
         if show_more_steps: print(u"Got new version (if possible)")
         self.set_upgrade_availability(new_version)
         if show_more_steps: print(u"Identified if upgrade available")
@@ -520,25 +517,14 @@ class StartFrame(wx.Frame):
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
             if show_more_steps: print(u"Set warning message to CallAfter")
     
-    def get_version_lev(self):
-        try:
-            prefs_dic = config_globals.get_settings_dic(subfolder=mg.INT_FOLDER, 
-                fil_name=mg.INT_PREFS_FILE)
-            version_lev = prefs_dic[mg.PREFS_KEY].get(mg.VERSION_CHECK_KEY, 
-                mg.VERSION_CHECK_ALL_KEY)
-        except Exception, e:
-            version_lev = mg.VERSION_CHECK_ALL_KEY
-        return version_lev
-    
-    def get_new_version(self, version_lev):
+    def get_new_version(self):
         """
         Return empty string if no new version or checking prevented.
         """
         debug = False
         new_version = u""
         try:
-            if version_lev != mg.VERSION_CHECK_NONE_KEY:
-                new_version = self.get_latest_version(version_lev)
+            new_version = self.get_latest_version()
         except Exception, e:
             pass
         if debug: print(new_version)
@@ -852,16 +838,14 @@ class StartFrame(wx.Frame):
         f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
         f.close()
     
-    def get_latest_version(self, version_lev):
+    def get_latest_version(self):
         """
-        Is there a new version or a new major version?
+        Is there a new version?
         """
         import requests #@UnresolvedImport
         debug = False
-        file2read = (mg.SOFASTATS_MAJOR_VERSION_CHECK
-            if version_lev == mg.VERSION_CHECK_MAJOR_KEY
-            else mg.SOFASTATS_VERSION_CHECK)
-        url2open = u"http://www.sofastatistics.com/%s" % file2read
+        url2open = (u"http://www.sofastatistics.com/%s" %
+            mg.SOFASTATS_VERSION_CHECK)
         try:
             url_reply = requests.get(url2open, timeout=4) # timeout affects time waiting for server. If can't get to server at all, dies instantly which is good.
             new_version = u"%s" % url_reply.read().strip()

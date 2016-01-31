@@ -234,9 +234,9 @@ def set_fonts():
     mg.BTN_BOLD_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.BOLD)
     mg.GEN_FONT = wx.Font(font_size, wx.SWISS, wx.NORMAL, wx.NORMAL)
 
-def set_DEFAULT_LEVEL(ignore_prefs=False):
+def set_DEFAULT_DETAILS(ignore_prefs=False):
     """
-    Update mg.DEFAULT_LEVEL (if any prefs set).
+    Update mg.DEFAULT_DETAILS (if any prefs set).
     ignore_prefs -- used if wanting to test different levels than in prefs doc
         from unit test.
     """
@@ -245,10 +245,10 @@ def set_DEFAULT_LEVEL(ignore_prefs=False):
             prefs_dic = get_settings_dic(subfolder=mg.INT_FOLDER, 
                 fil_name=mg.INT_PREFS_FILE)
             stored_lev = (prefs_dic.get(mg.PREFS_KEY, {})
-                .get(mg.DEFAULT_LEVEL_KEY))
-            if stored_lev not in mg.LEVELS:
+                .get(mg.PREFS_DEFAULT_DETAILS_KEY))
+            if stored_lev not in [True, False]:
                 raise Exception("Invalid stored level: %s" % b.ue(stored_lev))
-            mg.DEFAULT_LEVEL = stored_lev
+            mg.DEFAULT_DETAILS = stored_lev
         except Exception:
-            mg.DEFAULT_LEVEL = mg.LEVEL_BRIEF
+            mg.DEFAULT_DETAILS = False
             

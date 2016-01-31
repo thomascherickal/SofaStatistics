@@ -624,6 +624,10 @@ def readonly_enablement(chk_readonly):
     """
     Intended to protect SOFA users from inadvertently damaging externally-linked 
     databases from within SOFA.
+
+    Give user control over everything except the default database. For that,
+    disable control and make read-only for demo table and editable for all
+    others.
     """
     dd = mg.DATADETS_OBJ
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)

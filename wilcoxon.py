@@ -20,7 +20,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _("Or have house values changed since the recession began?")
         return eg1, eg2, eg3
     
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -41,10 +41,16 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.%(dbe)s,
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"t, p, dic_a, dic_b = core_stats.wilcoxont(sample_a,"
             u" sample_b, label_a, label_b, headless=False)")
+        if details:
+            script_lst.append(
+                u"details = core_stats.wilcoxont_details(sample_a, sample_b, "
+                u"label_a, label_b, headless=False)")
+        else:
+            script_lst.append(u"details = {}")
         script_lst.append(u"""
 wilcoxon_output = stats_output.wilcoxon_output(t, p, dic_a, dic_b,
             css_fil=u"%(css_fil)s", 
-            css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY,
+            css_idx=%(css_idx)s, dp=dp, details=details,
             page_break_after=False)""" % 
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(wilcoxon_output)")

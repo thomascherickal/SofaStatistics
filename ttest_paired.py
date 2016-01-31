@@ -21,7 +21,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "morning and mid afternoon?")
         return eg1, eg2, eg3
     
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -51,8 +51,9 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.%(dbe)s,
 ttest_paired_output = stats_output.ttest_paired_output(sample_a, sample_b, t, p,
     dic_a, dic_b, df, diffs, add_to_report, report_name,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, label_avg=u"", dp=dp,
-    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})        
+    details=%(details)s, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
+             u'details': details})        
         script_lst.append(u"fil.write(ttest_paired_output)")
         return u"\n".join(script_lst)
 

@@ -20,7 +20,7 @@ of the GUI on settings only found when running in the GUI.
 
 debug = False
 
-VERSION = u"1.4.6"
+VERSION = u"1.4.7"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -45,6 +45,26 @@ MAX_HEIGHT = None
 DEFAULT_LEVEL = None
 HORIZ_OFFSET = 0
 DEFAULT_STATS_DP = 3
+REASON_NO_DETAILS = u"Reason no details in stats output"
+WILCOXON_DIFF_DETS = u"Wilcoxon diff details"
+WILCOXON_RANKING_DETS = (u"Wilcoxon ranking details - diffs, abs diffs, "
+    u"counter, rankings")
+WILCOXON_PLUS_RANKS = u"Wilcoxon plus ranks"
+WILCOXON_MINUS_RANKS = u"Wilcoxon minus ranks"
+WILCOXON_SUM_PLUS_RANKS = u"Wilcoxon sum of plus ranks"
+WILCOXON_SUM_MINUS_RANKS = u"Wilcoxon sum of minus ranks"
+WILCOXON_T = u"Wilcoxon T"
+WILCOXON_N = u"Wilcoxon N"
+MANN_WHITNEY_N_1 = u"Mann-Whitney N sample 1"
+MANN_WHITNEY_N_2 = u"Mann-Whitney N sample 2"
+MANN_WHITNEY_LABEL_1 = u"Mann-Whitney label 1"
+MANN_WHITNEY_LABEL_2 = u"Mann-Whitney label 2",
+MANN_WHITNEY_VAL_DETS = u"Mann-Whitney value details"
+MANN_WHITNEY_RANKS_1 = u"Mann-Whitney ranks for sample 1"
+MANN_WHITNEY_SUM_RANK_1 = u"Mann-Whitney sum ranks for sample 1"
+MANN_WHITNEY_U_1 = u"Mann-Whitney U for sample 1"
+MANN_WHITNEY_U_2 = u"Mann-Whitney U for sample 2"
+MANN_WHITNEY_U = u"Mann-Whitney U"
 # core stats *********************************************************
 STATS_DIC_LBL = u"label"
 STATS_DIC_N = u"n"
@@ -79,8 +99,6 @@ CI_EXPLAN = (u"There is a 95%% chance the population mean is within the "
     u"confidence interval calculated for this sample. Don't forget, of course, "
     u"that the population mean could lie well outside the interval bounds. Note"
     u" - many statisticians argue about the best wording for this conclusion.")
-# stats output *******************************************************
-OUTPUT_RESULTS_ONLY = u"Output results only"
 # NOTE - GUI consumes labels (so translated strings are needed); script consumes untranslated keys so scripts can run safely headless
 # Making tables ******************************************************
 FREQ_KEY = u"FREQ_KEY"
@@ -637,33 +655,9 @@ OK_DATE_FORMATS = None
 OK_DATE_FORMAT_EXAMPLES = None
 # preferences
 PREFS_KEY = u"Prefs"
-DEFAULT_LEVEL_KEY = u"default explanation level"
-
-# TO DO if ever utilised - split into keys and lbls - only translate the latter.
-LEVEL_FULL = _(u"Full Explanation")
-LEVEL_BRIEF = _(u"Brief Explanation")
-LEVEL_RESULTS_ONLY = _(u"Results Only")
-LEVELS = (LEVEL_FULL, LEVEL_BRIEF, LEVEL_RESULTS_ONLY)
-# end TO DO
-VERSION_CHECK_KEY = u"version checking level"
-VERSION_CHECK_NONE_KEY = u"VERSION_CHECK_NONE_KEY"
-VERSION_CHECK_MAJOR_KEY = u"VERSION_CHECK_MAJOR_KEY"
-VERSION_CHECK_ALL_KEY = u"VERSION_CHECK_ALL_KEY"
-VERSION_CHECK_NONE_LBL = _(u"No checking")
-VERSION_CHECK_MAJOR_LBL = _(u"Only report major upgrades")
-VERSION_CHECK_ALL_LBL = _(u"Report any version upgrades")
-VERSION_CHECK_OPT_KEYS = [VERSION_CHECK_NONE_KEY, VERSION_CHECK_MAJOR_KEY, 
-    VERSION_CHECK_ALL_KEY]
-VERSION_CHECK_OPT_LBLS = [VERSION_CHECK_NONE_LBL, VERSION_CHECK_MAJOR_LBL, 
-    VERSION_CHECK_ALL_LBL]
-VERSION_CHECK_KEY2LBL = {VERSION_CHECK_NONE_KEY: VERSION_CHECK_NONE_LBL,
-    VERSION_CHECK_MAJOR_KEY: VERSION_CHECK_MAJOR_LBL,
-    VERSION_CHECK_ALL_KEY: VERSION_CHECK_ALL_LBL,
-}
-VERSION_CHECK_LBL2KEY = {VERSION_CHECK_NONE_LBL: VERSION_CHECK_NONE_KEY,
-    VERSION_CHECK_MAJOR_LBL: VERSION_CHECK_MAJOR_KEY,
-    VERSION_CHECK_ALL_LBL: VERSION_CHECK_ALL_KEY,
-}
+PREFS_DEFAULT_DETAILS_KEY = u"OUTPUT_DETAILS"
+DEFAULT_DETAILS = False  ## gets reset by prefs being read during config_globals.set_DEFAULT_DETAILS()
+## Charts
 CHART_VALUES_LBL = _(u"Values")
 CHART_DESCRIBED_LBL = _(u"Described")
 

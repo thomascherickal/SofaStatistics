@@ -186,8 +186,6 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         getdata.data_dropdown_settings_correct(parent=self)
         self.bx_vars = wx.StaticBox(self.panel, -1, self.varbox_label_unpaired)
         szr_vars = wx.StaticBoxSizer(self.bx_vars, wx.HORIZONTAL)
-        #szr_vars_right = wx.BoxSizer(wx.VERTICAL)
-        #self.szr_level = self.get_szr_level(self.panel) # mixin
         # assembly
         self.lbl_desc = wx.StaticText(self.panel, -1, self.desc_label_unpaired)
         self.szr_desc.Add(self.lbl_desc, 0, wx.ALL, 10)
@@ -271,8 +269,9 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             else:
                 self.var_b = None
                 self.var_label_b = u""
-            get_script_args=[cc[mg.CURRENT_CSS_PATH], 
-                cc[mg.CURRENT_REPORT_PATH]]
+            ## css_idx is supplied at the time
+            get_script_args={u'css_fil': cc[mg.CURRENT_CSS_PATH], 
+                u"report_name": cc[mg.CURRENT_REPORT_PATH], }
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
                 new_has_dojo=True)
 

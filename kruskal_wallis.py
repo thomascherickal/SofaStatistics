@@ -38,7 +38,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u"")
 
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
@@ -94,9 +94,9 @@ if len(samples) < 2:
         script_lst.append(u"""
 kruskal_wallis_output = stats_output.kruskal_wallis_output(h, p, label_gp, 
     label_a, label_b, dics, df, label_avg, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, dp=dp, level=mg.OUTPUT_RESULTS_ONLY, 
-    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil), 
-    u"css_idx": css_idx})
+    css_idx=%(css_idx)s, dp=dp, details=%(details)s, page_break_after=False)"""
+        % {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
+           u'details': details})
         script_lst.append(u"fil.write(kruskal_wallis_output)")
         return u"\n".join(script_lst)
 

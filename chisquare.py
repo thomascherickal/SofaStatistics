@@ -34,7 +34,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u"")
     
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fil, report_name, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -78,8 +78,9 @@ chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a,
     var_label_b, add_to_report, report_name, val_labels_a, val_labels_b,
     lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    level=mg.OUTPUT_RESULTS_ONLY, page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+    details=%(details)s, page_break_after=False)""" %
+        {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
+        u'details': details})
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)
 

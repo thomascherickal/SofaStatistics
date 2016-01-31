@@ -389,7 +389,7 @@ def get_fracs(cur, tbl_filt, qtbl, qfld, oth_qfld):
     return lst_fracs
 
 def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt, 
-                       where_tbl_filt, and_tbl_filt):
+        where_tbl_filt, and_tbl_filt):
     """
     Returns chisq, p, min_count, perc_cells_lt_5
     """
@@ -432,7 +432,7 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
 # Heavily adapted for use by SciPy 2002 by Travis Oliphant
 
 def histogram (inlist, numbins=10, defaultreallimits=None, printextras=0,
-               inc_uppermost_val_in_top_bin=True):
+        inc_uppermost_val_in_top_bin=True):
     """
     From stats.py. Modified to include uppermost value in top bin. This is
         essential if wanting to have "nice", human-readable bins e.g. 10 to < 20
@@ -877,7 +877,7 @@ def ttest_rel (sample_a, sample_b, label_a='Sample1', label_b='Sample2'):
     return t, p, dic_a, dic_b, df, diffs
 
 def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
-    headless=False):
+        headless=False):
     """
     From stats.py - there are changes to variable labels and comments;
         and the output is extracted early to give greater control over 
@@ -926,8 +926,72 @@ def mannwhitneyu(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
              mg.STATS_DIC_MAX: max_b}
     return smallu, p, dic_a, dic_b, z
 
+def mannwhitneyu_details(sample_a, sample_b, label_a='Sample1',
+        label_b='Sample2', headless=False):
+    """
+    The example in "Simple Statistics - A course book for the social sciences"
+    Frances Clegg pp.164-166 refers to A as the shorted list (if uneven lengths)
+    so there is some risk of confusion because A in SOFA refers to the leftmost
+    variable. So using _1 and _2 for sample names. Doesn't alter result which is
+    1 or 2 - purely to reduce amount of calculation.
+
+    Note - the rank all the data approach vs the make every individual
+    comparison approach yield exactly the same results. The comparison approach
+    is more intuitive in meaning - the ranked approach is much faster.
+    """
+    MAX_WORKED_N = 100
+    if len(sample_a) > MAX_WORKED_N:
+        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
+            u"practical to display worked example") % MAX_WORKED_N}
+        return details
+    len_a = len(sample_a)
+    len_b = len(sample_b)
+    if len_b < len_a:  ## make a first unless b shorter
+        sample_1 = sample_b
+        sample_2 = sample_a
+        label_1 = label_b
+        label_2 = label_a
+    else:
+        sample_1 = sample_a
+        sample_2 = sample_b
+        label_1 = label_a
+        label_2 = label_b
+    len_1 = len(sample_1)
+    len_2 = len(sample_2)
+    ## vals, counter, ranking
+    val_dets_1 = [{u"sample": 1, u"val": val} for val in sample_1]
+    val_dets_2 = [{u"sample": 2, u"val": val} for val in sample_2]
+    val_dets = val_dets_1 + val_dets_2
+    val_dets.sort(key=lambda s: s[u"val"])
+    vals = sample_1 + sample_2
+    vals_ranked = rankdata(vals, headless)
+    val_ranks = dict(zip(vals, vals_ranked))  ## works because all abs diffs which are the same share a single rank
+    for counter, val_det in enumerate(val_dets, 1):
+        val_det[u"rank"] = val_ranks[val_det[u"val"]]
+        val_det[u"counter"] = counter
+    ranks_1 = [val_det[u"rank"] for val_det in val_dets
+        if val_det[u"sample"] == 1]
+    sum_rank_1 = sum(val_det[u"rank"] for val_det in val_dets
+        if val_det[u"sample"] == 1)
+    u_1 = len_1*len_2 + (len_1*(len_1 + 1))/2.0 - sum_rank_1
+    u_2 = len_1*len_2 - u_1
+    u = min(u_1, u_2)
+    details = {
+        mg.MANN_WHITNEY_LABEL_1: label_1,
+        mg.MANN_WHITNEY_LABEL_2: label_2,
+        mg.MANN_WHITNEY_N_1: len_1,
+        mg.MANN_WHITNEY_N_2: len_2,
+        mg.MANN_WHITNEY_RANKS_1: ranks_1,
+        mg.MANN_WHITNEY_VAL_DETS: val_dets,
+        mg.MANN_WHITNEY_SUM_RANK_1: sum_rank_1,
+        mg.MANN_WHITNEY_U_1: u_1,
+        mg.MANN_WHITNEY_U_2: u_2,
+        mg.MANN_WHITNEY_U: u,
+    }
+    return details
+
 def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
-    headless=False):
+        headless=False):
     """
     From stats.py.  Added error trapping. Changes to variable labels.
     Added calculation of n, medians, plus min and max values. And added headless
@@ -979,6 +1043,61 @@ def wilcoxont(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
              mg.STATS_DIC_MAX: max_b}
     return wt, prob, dic_a, dic_b
 
+def wilcoxont_details(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
+        headless=False):
+    """
+    Only return worked example if a small amount of data. Otherwise return an
+    empty dict.
+
+    See "Simple Statistics - A course book for the social sciences"
+    Frances Clegg pp.158-160
+
+    Not focused on performance - just clarity
+    """
+    MAX_WORKED_N = 100
+    if len(sample_a) > MAX_WORKED_N:
+        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
+            u"practical to display worked example") % MAX_WORKED_N}
+        return details
+    pairs = zip(sample_a, sample_b)
+    ## diffs between pairs (always in same order but which order doesn't matter
+    diff_dets = [{u"a": a, u"b": b, u"diff": a-b} for a, b in pairs]
+    ## get ranks on absolutes and then attach back
+    abs_diffs = [abs(x[u'diff']) for x in diff_dets]
+    abs_diffs.sort()
+    ranks = rankdata(abs_diffs)
+    ## link ranks to diffs and abs diffs
+    abs_diff_ranks = dict(zip(abs_diffs, ranks))  ## works because all abs diffs which are the same share a single rank
+    ranking_dets = []
+    for diff in diff_dets:
+        if diff[u"diff"] != 0:
+            ranking_dets.append(
+                {u"diff": diff[u"diff"],
+                 u"abs_diff": abs(diff[u"diff"]),
+                 u"rank": abs_diff_ranks[abs(diff[u"diff"])], })  ## remember - the ranks relates to the absolute value not the original value
+    ranking_dets.sort(key=lambda s: (abs(s[u"diff"]), s[u"diff"]))
+    ## add counter
+    for counter, ranking_det in enumerate(ranking_dets, 1):
+        ranking_det[u"counter"] = counter
+    plus_ranks = [x[u"rank"] for x in ranking_dets if x[u"diff"] > 0]
+    minus_ranks = [x[u"rank"] for x in ranking_dets if x[u"diff"] < 0]
+    ## sum the ranks separately
+    sum_plus_ranks = sum(plus_ranks)
+    sum_minus_ranks = sum(minus_ranks)
+    ## calculate t and N (N excludes 0-diff pairs)
+    t = min(sum_plus_ranks, sum_minus_ranks)
+    n = len(plus_ranks) + len(minus_ranks)
+    details = {
+        mg.WILCOXON_DIFF_DETS: diff_dets,
+        mg.WILCOXON_RANKING_DETS: ranking_dets,
+        mg.WILCOXON_PLUS_RANKS : plus_ranks,
+        mg.WILCOXON_MINUS_RANKS : minus_ranks,
+        mg.WILCOXON_SUM_PLUS_RANKS : round(sum_plus_ranks, 2),
+        mg.WILCOXON_SUM_MINUS_RANKS : round(sum_minus_ranks, 2),
+        mg.WILCOXON_T: t,
+        mg.WILCOXON_N: n,
+        }
+    return details
 
 def linregress(x,y):
     """
