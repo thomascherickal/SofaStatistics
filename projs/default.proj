@@ -17,3 +17,5 @@ default_dbs = {u'MySQL': None, u'SQLite': u'sofa_db'}
 default_tbls = {u'MySQL': None, u'SQLite': u'demo_tbl'}
 
 con_dets = {u'SQLite': {u'sofa_db': {'database': u"/home/g/Documents/sofastats/_internal/sofa_db"}}}
+
+open_on_start = False
