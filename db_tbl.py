@@ -17,10 +17,10 @@ class DbTbl(wx.grid.PyGridTableBase):
     """
     row and col idxs are zero-based.
     """
-    def __init__(self, dd, grid, var_labels, readonly):
+    def __init__(self, grid, var_labels, readonly):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
-        self.dd = dd
+        self.dd = mg.DATADETS_OBJ
         self.grid = grid
         self.objqtr = getdata.get_obj_quoter_func(self.dd.dbe)
         self.quote_val = getdata.get_val_quoter_func(self.dd.dbe)
@@ -28,10 +28,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.set_num_rows()
         self.fldnames = getdata.fldsdic_to_fldnames_lst(fldsdic=self.dd.flds)
         self.fldlbls = [var_labels.get(x, x.title()) for x in self.fldnames]
-        self.idx_id, self.must_quote = self.get_index_col(self.dd.flds,
-            self.dd.idxs)
+        self.idx_id, self.must_quote = self.get_index_col()
         self.id_col_name = self.fldnames[self.idx_id]
-        self.set_row_ids_lst(self.dd.dbe, self.dd.tbl, self.dd.cur)
+        self.set_row_ids_lst()
         self.row_vals_dic = {} # key = row, val = list of values
         if self.debug:
             pprint.pprint(self.fldnames)
@@ -46,7 +45,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.new_is_dirty = False # db_grid can set to True.  Is reset to 
             # False when adding a new record
     
-    def set_row_ids_lst(self, dbe, tbl, cur):
+    def set_row_ids_lst(self):
         """
         Row number and the value of the primary key will not always be the same.
         Need quick way of translating from row e.g. 0 to value of the id field 
@@ -57,12 +56,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         Zero-based.
         """
         SQL_get_id_vals = (u"SELECT %s FROM %s ORDER BY %s" %
-            (self.objqtr(self.id_col_name), getdata.tblname_qtr(dbe, tbl),
+            (self.objqtr(self.id_col_name), getdata.tblname_qtr(self.dd.dbe,
+                self.dd.tbl),
             self.objqtr(self.id_col_name)))
         if debug: print(SQL_get_id_vals)
-        cur.execute(SQL_get_id_vals)
+        self.dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
-        self.row_ids_lst = [x[0] for x in cur.fetchall()]
+        self.row_ids_lst = [x[0] for x in self.dd.cur.fetchall()]
     
     def get_fldname(self, col):
         return self.fldnames[col]
@@ -71,7 +71,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         fldname = self.get_fldname(col)
         return self.dd.flds[fldname]
     
-    def get_index_col(self, flds, idxs):
+    def get_index_col(self):
         """
         Pick first unique indexed column and return col position, and must_quote 
         (e.g. for string or date fields).
@@ -82,13 +82,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         
         each idx = (name, is_unique, flds)
         """
-        for idx in idxs:
+        for idx in self.dd.idxs:
             is_unique = idx[mg.IDX_IS_UNIQUE]
             fldnames = idx[mg.IDX_FLDS]
             if is_unique:
                 # pretend only ever one field (TODO see above)
                 fld2use = fldnames[0]
-                must_quote = not flds[fld2use][mg.FLD_BOLNUMERIC]
+                must_quote = not self.dd.flds[fld2use][mg.FLD_BOLNUMERIC]
                 col_idx = self.fldnames.index(fld2use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)

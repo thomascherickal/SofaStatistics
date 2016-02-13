@@ -154,20 +154,10 @@ class SofaApp(wx.App):
         """
         import db_grid
         ## the data form assumes the parent will want its var_labels etc updated. We won't use the results so OK to feed in empty dicts.
+        proj_dic = config_globals.get_settings_dic(
+            subfolder=mg.PROJS_FOLDER, fil_name=mg.DEFAULT_PROJ)
         try:
-            proj2use = mg.STARTUP_PROJ
-            startup_proj_dic = config_globals.get_settings_dic(
-                subfolder=mg.PROJS_FOLDER, fil_name=proj2use)
-            proj_dic2use = startup_proj_dic
-            open_on_start = True
-        except Exception:
-            proj2use = mg.DEFAULT_PROJ
-            default_proj_dic = config_globals.get_settings_dic(
-                subfolder=mg.PROJS_FOLDER, fil_name=proj2use)
-            proj_dic2use = default_proj_dic
-            open_on_start = False
-        try:
-            frame = StartFrame(proj2use, proj_dic2use)
+            frame = StartFrame(proj_dic)
             # on dual monitor, wx.BOTH puts in screen 2 (in Ubuntu at least)!
             frame.CentreOnScreen(wx.VERTICAL)
             frame.Show()
@@ -178,10 +168,10 @@ class SofaApp(wx.App):
         if mg.EXPORT_IMAGES_DIAGNOSTIC:
             wx.MessageBox("Diagnostic mode for export output is on - be ready "
                 "to take screen-shots.")
-        if open_on_start:
-            dd = mg.DATADETS_OBJ
-            readonly = getdata.get_readonly_settings(dd).readonly
-            db_grid.open_data_table(frame, dd, var_labels={}, var_notes={},
+        mg.OPEN_ON_START = proj_dic.get(mg.OPEN_ON_START_KEY, False)
+        if mg.OPEN_ON_START:
+            readonly = getdata.get_readonly_settings().readonly
+            db_grid.open_data_table(frame, var_labels={}, var_notes={},
                 var_types={}, val_dics={}, readonly=readonly)
 
 
@@ -416,8 +406,8 @@ def get_next_y_pos(start, height):
 
 
 class StartFrame(wx.Frame):
-    
-    def __init__(self, proj2use, proj_dic2use):
+
+    def __init__(self, proj_dic):
         # earliest point error msgs can be shown to user in a GUI.
         store_screen_dims()
         deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
@@ -437,16 +427,16 @@ class StartFrame(wx.Frame):
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
         self.Bind(wx.EVT_CLOSE, self.on_exit_click)
-        self.active_proj = proj2use
+        self.active_proj = mg.DEFAULT_PROJ
         print(u"Run on %s" % datetime.datetime.today().isoformat(" ")
             .split(".")[0] + " " + 20*(u"*"))
         try:
             # trying to actually connect to a database on start up
-            mg.DATADETS_OBJ = getdata.DataDets(proj_dic2use)
+            mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
             if show_early_steps: print(u"Initialised mg.DATADETS_OBJ")
         except Exception, e:
             lib.safe_end_cursor()
-            wx.MessageBox(_("Unable to connect to data as defined in " 
+            wx.MessageBox(_("Unable to connect to data as defined in "
                 "project %s. Please check your settings.") % self.active_proj)
             raise # for debugging
         try:

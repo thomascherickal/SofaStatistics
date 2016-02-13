@@ -624,7 +624,8 @@ def delete_row(id_fld, row_id):
             (SQL_delete, row_id) + u"\n\nOriginal error: %s" % b.ue(e))
         return False, u"%s" % b.ue(e)
 
-def get_readonly_settings(dd):
+def get_readonly_settings():
+    dd = mg.DATADETS_OBJ
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
     enabled = not sofa_default_db
     readonly = True

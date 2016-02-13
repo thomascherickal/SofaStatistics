@@ -269,7 +269,7 @@ class ConfigUI(object):
         # 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
         self.chk_readonly.SetFont(mg.GEN_FONT)
-        readonly_settings = getdata.get_readonly_settings(dd)
+        readonly_settings = getdata.get_readonly_settings()
         self.chk_readonly.SetValue(readonly_settings.readonly)
         self.chk_readonly.Enable(readonly_settings.enabled)
         # 4) Open
@@ -538,8 +538,7 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_database_sel called")
         if getdata.refresh_db_dets(self):
-            dd = mg.DATADETS_OBJ
-            readonly_settings = getdata.get_readonly_settings(dd)
+            readonly_settings = getdata.get_readonly_settings()
             self.chk_readonly.SetValue(readonly_settings.readonly)
             self.chk_readonly.Enable(readonly_settings.enabled)
             self.rows_n = self.get_rows_n()
@@ -551,8 +550,7 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_table_sel called")     
         getdata.refresh_tbl_dets(self)
-        dd = mg.DATADETS_OBJ
-        readonly_settings = getdata.get_readonly_settings(dd)
+        readonly_settings = getdata.get_readonly_settings()
         self.chk_readonly.SetValue(readonly_settings.readonly)
         self.chk_readonly.Enable(readonly_settings.enabled)
         self.rows_n = self.get_rows_n()

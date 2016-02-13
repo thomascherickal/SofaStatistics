@@ -407,10 +407,8 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
             return
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_a)
-        dd = mg.DATADETS_OBJ
-        updated = config_output.set_var_props(dd, choice_item, var_a,
-            var_label_a, self.var_labels, self.var_notes, self.var_types,
-            self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_a, var_label_a,
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_a(var_a)
     
@@ -422,10 +420,8 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
             return
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
             item_val=var_b)
-        dd = mg.DATADETS_OBJ
-        updated = config_output.set_var_props(dd, choice_item, var_b,
-            var_label_b, self.var_labels, self.var_notes, self.var_types,
-            self.val_dics)
+        updated = config_output.set_var_props(choice_item, var_b, var_label_b,
+            self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.setup_var_b(var_b)
     

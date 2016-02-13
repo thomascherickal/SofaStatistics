@@ -236,4 +236,6 @@ def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,
         + lib.get_escaped_dict_pre_write(default_tbls))
     content_list.append(u"\ncon_dets = " 
         + lib.get_escaped_dict_pre_write(con_dets))
+    ## no need to write open on start to proj file - if default, unwritable, if not default, doesn't start with it ;-) 
+    # content_list.append(u"\nopen_on_start = %s" % mg.OPEN_ON_START)
     return u"\n".join(content_list)

@@ -121,7 +121,7 @@ class DlgDataSelect(wx.Dialog):
         self.btn_design.Enable(sofa_default_db)
         delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
-        readonly_settings = getdata.get_readonly_settings(dd)
+        readonly_settings = getdata.get_readonly_settings()
         self.chk_readonly.SetValue(readonly_settings.readonly)
         self.chk_readonly.Enable(readonly_settings.enabled)
         
@@ -245,7 +245,7 @@ class DlgDataSelect(wx.Dialog):
         # open data
         wx.BeginBusyCursor()
         readonly = False
-        dlg = db_grid.TblEditor(self, dd, self.var_labels, self.var_notes,
+        dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes,
                                 self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()

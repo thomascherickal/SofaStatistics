@@ -1079,8 +1079,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             cell_val = self.get_val(row, col)
             choice_item = lib.get_choice_item(self.var_labels, cell_val)
             var_label = lib.get_item_label(self.var_labels, cell_val)
-            dd = mg.DATADETS_OBJ
-            config_output.set_var_props(dd, choice_item, cell_val, var_label,
+            config_output.set_var_props(choice_item, cell_val, var_label,
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
     
     def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 

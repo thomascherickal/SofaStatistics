@@ -315,8 +315,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
     def on_var_rclick(self, event):
         var_label = lib.get_item_label(self.var_labels, self.fldname)
         choice_item = lib.get_choice_item(self.var_labels, self.fldname)
-        dd = mg.DATADETS_OBJ
-        unused = config_output.set_var_props(dd, choice_item, self.fldname,
+        unused = config_output.set_var_props(choice_item, self.fldname,
             var_label, self.var_labels, self.var_notes, self.var_types,
             self.val_dics)
     def on_txt_to_char(self, event):

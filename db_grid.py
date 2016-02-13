@@ -76,9 +76,10 @@ def get_display_dims(maxheight, iswindows):
         myheight = 800
     return mywidth, myheight
 
-def open_data_table(parent, dd, var_labels, var_notes, var_types, val_dics,
+def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
         readonly):
     debug = False
+    dd = mg.DATADETS_OBJ
     if not dd.has_unique:
         msg = _(u"Table \"%s\" cannot be opened because it lacks a unique "
             u"index. You can still use it for analysis though.")
@@ -105,24 +106,23 @@ def open_data_table(parent, dd, var_labels, var_notes, var_types, val_dics,
                 return
         wx.BeginBusyCursor()
         set_colwidths = (rows_n < 1000)
-        dlg = TblEditor(parent, dd, var_labels, var_notes, var_types, val_dics,
+        dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
             readonly, set_colwidths=set_colwidths)
         lib.safe_end_cursor()
         dlg.ShowModal()
 
 def open_database(parent, event):
     readonly = parent.chk_readonly.IsChecked()
-    dd = mg.DATADETS_OBJ
-    open_data_table(parent, dd, parent.var_labels, parent.var_notes,
+    open_data_table(parent, parent.var_labels, parent.var_notes,
         parent.var_types, parent.val_dics, readonly)
     event.Skip()
     
     
 class TblEditor(wx.Dialog):
-    def __init__(self, parent, dd, var_labels, var_notes, var_types, val_dics,
+    def __init__(self, parent, var_labels, var_notes, var_types, val_dics,
                  readonly=True, set_colwidths=True):
         self.debug = False
-        self.dd = dd
+        self.dd = mg.DATADETS_OBJ
         self.readonly = readonly
         title = _("Data from ") + "%s.%s" % (self.dd.db, self.dd.tbl)
         if self.readonly:
@@ -143,11 +143,11 @@ class TblEditor(wx.Dialog):
         height_grid = 500
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not self.readonly)
-        self.dbtbl = db_tbl.DbTbl(dd, self.grid, var_labels, self.readonly)
+        self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, self.readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         self.readonly_cols = []
         # set col rendering (string is default)
-        for col_idx in range(len(dd.flds)):
+        for col_idx in range(len(self.dd.flds)):
             fld_dic = self.dbtbl.get_fld_dic(col_idx)
             if fld_dic[mg.FLD_BOLNUMERIC]:
                 if fld_dic[mg.FLD_DECPTS] > 0: # float
@@ -161,14 +161,14 @@ class TblEditor(wx.Dialog):
             self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
             self.current_col_idx = col2select
-            for col_idx in range(len(dd.flds)):
+            for col_idx in range(len(self.dd.flds)):
                 attr = wx.grid.GridCellAttr()
                 attr.SetBackgroundColour(mg.READONLY_COLOUR)
                 self.grid.SetColAttr(col_idx, attr)
         else:
             # disable any columns which do not allow data entry and set colour
             col2select = None # first editable col
-            for col_idx in range(len(dd.flds)):
+            for col_idx in range(len(self.dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(col_idx)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     self.readonly_cols.append(col_idx)
@@ -1001,9 +1001,8 @@ class TblEditor(wx.Dialog):
             var_name = self.dbtbl.fldnames[col]
             var_label = self.var_labels.get(var_name, "")
             choice_item = lib.get_choice_item(self.var_labels, var_name)
-            config_output.set_var_props(self.dd, choice_item, var_name,
-                var_label, self.var_labels, self.var_notes, self.var_types,
-                self.val_dics)
+            config_output.set_var_props(choice_item, var_name, var_label,
+                self.var_labels, self.var_notes, self.var_types, self.val_dics)
     
     def get_cell_tooltip(self, col, raw_val):
         """
