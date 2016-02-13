@@ -121,7 +121,9 @@ class DlgDataSelect(wx.Dialog):
         self.btn_design.Enable(sofa_default_db)
         delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
-        getdata.readonly_enablement(self.chk_readonly)
+        readonly_settings = getdata.get_readonly_settings(dd)
+        self.chk_readonly.SetValue(readonly_settings.readonly)
+        self.chk_readonly.Enable(readonly_settings.enabled)
         
     def on_database_sel(self, event):
         if getdata.refresh_db_dets(self):
@@ -228,8 +230,8 @@ class DlgDataSelect(wx.Dialog):
             ("var001", mg.FLDTYPE_NUMERIC_LBL),]
         fld_settings = [] # can read final result at the end
         if debug: print(mg.DATADETS_OBJ)
-        dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics, 
-                                 tblname_lst, init_fld_settings, fld_settings, 
+        dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics,
+                                 tblname_lst, init_fld_settings, fld_settings,
                                  readonly=False, new=True)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
@@ -243,7 +245,7 @@ class DlgDataSelect(wx.Dialog):
         # open data
         wx.BeginBusyCursor()
         readonly = False
-        dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes, 
+        dlg = db_grid.TblEditor(self, dd, self.var_labels, self.var_notes,
                                 self.var_types, self.val_dics, readonly)
         lib.safe_end_cursor()
         dlg.ShowModal()

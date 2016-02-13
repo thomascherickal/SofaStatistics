@@ -17,25 +17,26 @@ class DbTbl(wx.grid.PyGridTableBase):
     """
     row and col idxs are zero-based.
     """
-    def __init__(self, grid, var_labels, readonly):
-        dd = mg.DATADETS_OBJ
+    def __init__(self, dd, grid, var_labels, readonly):
         wx.grid.PyGridTableBase.__init__(self)
         self.debug = False
+        self.dd = dd
         self.grid = grid
-        self.objqtr = getdata.get_obj_quoter_func(dd.dbe)
-        self.quote_val = getdata.get_val_quoter_func(dd.dbe)
+        self.objqtr = getdata.get_obj_quoter_func(self.dd.dbe)
+        self.quote_val = getdata.get_val_quoter_func(self.dd.dbe)
         self.readonly = readonly        
         self.set_num_rows()
-        self.fldnames = getdata.fldsdic_to_fldnames_lst(fldsdic=dd.flds)
+        self.fldnames = getdata.fldsdic_to_fldnames_lst(fldsdic=self.dd.flds)
         self.fldlbls = [var_labels.get(x, x.title()) for x in self.fldnames]
-        self.idx_id, self.must_quote = self.get_index_col()
+        self.idx_id, self.must_quote = self.get_index_col(self.dd.flds,
+            self.dd.idxs)
         self.id_col_name = self.fldnames[self.idx_id]
-        self.set_row_ids_lst()
+        self.set_row_ids_lst(self.dd.dbe, self.dd.tbl, self.dd.cur)
         self.row_vals_dic = {} # key = row, val = list of values
         if self.debug:
             pprint.pprint(self.fldnames)
             pprint.pprint(self.fldlbls)
-            pprint.pprint(dd.flds)
+            pprint.pprint(self.dd.flds)
             pprint.pprint(self.row_ids_lst)
         self.bol_attempt_cell_update = False
         self.sql_cell_to_update = None
@@ -45,34 +46,32 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.new_is_dirty = False # db_grid can set to True.  Is reset to 
             # False when adding a new record
     
-    def set_row_ids_lst(self):
+    def set_row_ids_lst(self, dbe, tbl, cur):
         """
         Row number and the value of the primary key will not always be the same.
         Need quick way of translating from row e.g. 0 to value of the id field 
         e.g. "ABC123" or 128797 or even 0 ;-).
-        
+
         Using a list makes it easy to delete items and insert them.
-        
+
         Zero-based.
         """
-        dd = mg.DATADETS_OBJ
         SQL_get_id_vals = (u"SELECT %s FROM %s ORDER BY %s" %
-            (self.objqtr(self.id_col_name), getdata.tblname_qtr(dd.dbe, dd.tbl), 
+            (self.objqtr(self.id_col_name), getdata.tblname_qtr(dbe, tbl),
             self.objqtr(self.id_col_name)))
         if debug: print(SQL_get_id_vals)
-        dd.cur.execute(SQL_get_id_vals)
+        cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
-        self.row_ids_lst = [x[0] for x in dd.cur.fetchall()]
+        self.row_ids_lst = [x[0] for x in cur.fetchall()]
     
     def get_fldname(self, col):
         return self.fldnames[col]
     
     def get_fld_dic(self, col):
-        dd = mg.DATADETS_OBJ
         fldname = self.get_fldname(col)
-        return dd.flds[fldname]
+        return self.dd.flds[fldname]
     
-    def get_index_col(self):
+    def get_index_col(self, flds, idxs):
         """
         Pick first unique indexed column and return col position, and must_quote 
         (e.g. for string or date fields).
@@ -83,14 +82,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         
         each idx = (name, is_unique, flds)
         """
-        dd = mg.DATADETS_OBJ
-        for idx in dd.idxs:
+        for idx in idxs:
             is_unique = idx[mg.IDX_IS_UNIQUE]
             fldnames = idx[mg.IDX_FLDS]
             if is_unique:
                 # pretend only ever one field (TODO see above)
                 fld2use = fldnames[0]
-                must_quote = not dd.flds[fld2use][mg.FLD_BOLNUMERIC]
+                must_quote = not flds[fld2use][mg.FLD_BOLNUMERIC]
                 col_idx = self.fldnames.index(fld2use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)
@@ -99,8 +97,7 @@ class DbTbl(wx.grid.PyGridTableBase):
     
     def GetNumberCols(self):
         # wxPython
-        dd = mg.DATADETS_OBJ
-        num_cols = len(dd.flds)
+        num_cols = len(self.dd.flds)
         if self.debug: print(u"N cols: %s" % num_cols)
         return num_cols
 
@@ -117,11 +114,10 @@ class DbTbl(wx.grid.PyGridTableBase):
         idx_final_data_row -- index of final data row.
         """
         debug = False
-        dd = mg.DATADETS_OBJ
-        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(dd.dbe, 
-            dd.tbl)
-        dd.cur.execute(SQL_rows_n)
-        self.rows_n = dd.cur.fetchone()[0]
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(
+            self.dd.dbe, self.dd.tbl)
+        self.dd.cur.execute(SQL_rows_n)
+        self.rows_n = self.dd.cur.fetchone()[0]
         self.idx_final_data_row = self.rows_n - 1
         if not self.readonly:
             self.rows_n += 1  ## An extra row for data entry
@@ -199,7 +195,6 @@ class DbTbl(wx.grid.PyGridTableBase):
         """
         # try cache first
         debug = False
-        dd = mg.DATADETS_OBJ
         try:
             val = self.row_vals_dic[row][col]
         except KeyError:
@@ -238,7 +233,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 IN_clause_lst.append(value)
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = (u"SELECT * "
-                + u" FROM %s " % getdata.tblname_qtr(dd.dbe, dd.tbl)
+                + u" FROM %s " % getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
                 + u" WHERE %s IN(%s)" % (self.objqtr(self.id_col_name), 
                 IN_clause) + u" ORDER BY %s" % self.objqtr(self.id_col_name))
             if debug or self.debug: print(SQL_get_values)
@@ -247,10 +242,10 @@ class DbTbl(wx.grid.PyGridTableBase):
                 # [update - unable to confirm]
             # problem accessing cursor if committed in MS SQL
             # see http://support.microsoft.com/kb/321714
-            dd.cur.execute(SQL_get_values)
+            self.dd.cur.execute(SQL_get_values)
             #dd.con.commit()
             row_idx = row_min
-            for data_tup in dd.cur.fetchall(): # tuple of values
+            for data_tup in self.dd.cur.fetchall(): # tuple of values
                 # handle microsoft characters
                 data_tup = tuple([lib.handle_ms_data(x) for x in data_tup])
                 if debug or self.debug: print(data_tup)
@@ -293,7 +288,6 @@ class DbTbl(wx.grid.PyGridTableBase):
         updated.
         """
         debug = False
-        dd = mg.DATADETS_OBJ
         if self.debug or debug: 
             print(u"SetValue - row %s, " % row +
             u"col %s with value \"%s\" ************************" % (col, value))
@@ -302,8 +296,8 @@ class DbTbl(wx.grid.PyGridTableBase):
         else:
             self.bol_attempt_cell_update = True
             colname = self.fldnames[col]
-            raw_val_to_use = getdata.prep_val(dbe=dd.dbe, val=value, 
-                fld_dic=dd.flds[colname])
+            raw_val_to_use = getdata.prep_val(dbe=self.dd.dbe, val=value,
+                fld_dic=self.dd.flds[colname])
             self.val_of_cell_to_update = raw_val_to_use
             fld_dic = self.get_fld_dic(col)     
             if self.must_quote: # only refers to index column
@@ -316,7 +310,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 charset2try=fld_dic[mg.FLD_CHARSET]))
             # TODO - think about possibilities of SQL injection by hostile party
             SQL_update_value = (u"UPDATE %s " % 
-                getdata.tblname_qtr(dd.dbe, dd.tbl)
+                getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
                 + u" SET %s = %s " % (self.objqtr(colname), val2use)
                 + u" WHERE %s = " % self.id_col_name + unicode(id_value))
             if self.debug or debug: 

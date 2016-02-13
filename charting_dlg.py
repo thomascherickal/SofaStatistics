@@ -1235,8 +1235,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if var_name == mg.DROP_SELECT:
             return
         var_label = lib.get_item_label(self.var_labels, var_name)
-        updated = config_output.set_var_props(choice_item, var_name, var_label, 
-            self.var_labels, self.var_notes, self.var_types,  self.val_dics)
+        dd = mg.DATADETS_OBJ
+        updated = config_output.set_var_props(dd, choice_item, var_name,
+            var_label, self.var_labels, self.var_notes, self.var_types,
+            self.val_dics)
         if updated:
             self.setup_var_dropdowns()
             self.update_defaults()

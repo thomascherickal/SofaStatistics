@@ -205,8 +205,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         var_a, choice_item = self.get_var_a()
         var_label_a = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_a)
-        updated = config_output.set_var_props(choice_item, var_a, var_label_a, 
-            self.var_labels, self.var_notes, self.var_types, self.val_dics)
+        dd = mg.DATADETS_OBJ
+        updated = config_output.set_var_props(dd, choice_item, var_a,
+            var_label_a, self.var_labels, self.var_notes, self.var_types,
+            self.val_dics)
         if updated:
             self.refresh_vars()
 
@@ -214,8 +216,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         var_b, choice_item = self.get_var_b()
         var_label_b = lib.get_item_label(item_labels=self.var_labels, 
                                          item_val=var_b)
-        updated = config_output.set_var_props(choice_item, var_b, var_label_b, 
-            self.var_labels, self.var_notes, self.var_types, self.val_dics)
+        dd = mg.DATADETS_OBJ
+        updated = config_output.set_var_props(dd, choice_item, var_b,
+            var_label_b, self.var_labels, self.var_notes, self.var_types,
+            self.val_dics)
         if updated:
             self.refresh_vars()
 

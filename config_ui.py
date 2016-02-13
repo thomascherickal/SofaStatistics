@@ -269,8 +269,9 @@ class ConfigUI(object):
         # 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
         self.chk_readonly.SetFont(mg.GEN_FONT)
-        self.chk_readonly.SetValue(True)  ## a sane default that can be overridden
-        getdata.readonly_enablement(self.chk_readonly)
+        readonly_settings = getdata.get_readonly_settings(dd)
+        self.chk_readonly.SetValue(readonly_settings.readonly)
+        self.chk_readonly.Enable(readonly_settings.enabled)
         # 4) Open
         btn_size = (70,-1)
         self.btn_open = wx.Button(panel, wx.ID_OPEN, size=btn_size)
@@ -537,7 +538,10 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_database_sel called")
         if getdata.refresh_db_dets(self):
-            getdata.readonly_enablement(self.chk_readonly)
+            dd = mg.DATADETS_OBJ
+            readonly_settings = getdata.get_readonly_settings(dd)
+            self.chk_readonly.SetValue(readonly_settings.readonly)
+            self.chk_readonly.Enable(readonly_settings.enabled)
             self.rows_n = self.get_rows_n()
             return True
         return False
@@ -547,7 +551,10 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_table_sel called")     
         getdata.refresh_tbl_dets(self)
-        getdata.readonly_enablement(self.chk_readonly)
+        dd = mg.DATADETS_OBJ
+        readonly_settings = getdata.get_readonly_settings(dd)
+        self.chk_readonly.SetValue(readonly_settings.readonly)
+        self.chk_readonly.Enable(readonly_settings.enabled)
         self.rows_n = self.get_rows_n()
 
     def filters(self):

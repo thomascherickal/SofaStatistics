@@ -185,7 +185,7 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         self.SetReturnCode(wx.ID_OK)
 
 
-def set_var_props(choice_item, var_name, var_label, var_labels, var_notes, 
+def set_var_props(dd, choice_item, var_name, var_label, var_labels, var_notes,
         var_types, val_dics):
     """
     For selected variable (name) gives user ability to set properties e.g.
@@ -193,14 +193,13 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     
     Returns True if user clicks OK to properties (presumably modified).
     """
-    dd = mg.DATADETS_OBJ
     # get val_dic for variable (if any) and display in editable list
     settings_data = [] # get settings_data back updated
     bolnumeric = dd.flds[var_name][mg.FLD_BOLNUMERIC]
     boldecimal = dd.flds[var_name][mg.FLD_DECPTS]
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
     boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
-    init_settings_data, msg = projects.get_init_settings_data(val_dics, 
+    init_settings_data, msg = projects.get_init_settings_data(val_dics,
         var_name, bolnumeric)
     if msg: wx.MessageBox(msg)
     if bolnumeric:
@@ -285,7 +284,7 @@ class DlgListVars(wx.Dialog):
             dd = mg.DATADETS_OBJ
             print(var_name)
             pprint.pprint(dd.flds)
-        updated = set_var_props(choice_item, var_name, var_label, 
+        updated = set_var_props(dd, choice_item, var_name, var_label, 
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             event.Skip()

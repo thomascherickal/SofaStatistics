@@ -378,9 +378,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
-        label_gp = lib.get_item_label(item_labels=self.var_labels, 
+        label_gp = lib.get_item_label(item_labels=self.var_labels,
                                       item_val=var_gp)
-        updated = config_output.set_var_props(choice_item, var_gp, label_gp, 
+        dd = mg.DATADETS_OBJ
+        updated = config_output.set_var_props(dd, choice_item, var_gp, label_gp,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()

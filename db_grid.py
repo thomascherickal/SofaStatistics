@@ -76,9 +76,9 @@ def get_display_dims(maxheight, iswindows):
         myheight = 800
     return mywidth, myheight
 
-def open_database(parent, event):
+def open_data_table(parent, dd, var_labels, var_notes, var_types, val_dics,
+        readonly):
     debug = False
-    dd = mg.DATADETS_OBJ
     if not dd.has_unique:
         msg = _(u"Table \"%s\" cannot be opened because it lacks a unique "
             u"index. You can still use it for analysis though.")
@@ -104,23 +104,27 @@ def open_database(parent, event):
                     caption=_("LONG REPORT"), style=wx.YES_NO) == wx.NO:
                 return
         wx.BeginBusyCursor()
-        readonly = parent.chk_readonly.IsChecked()
         set_colwidths = (rows_n < 1000)
-        dlg = TblEditor(parent, parent.var_labels, parent.var_notes, 
-            parent.var_types, parent.val_dics, readonly, 
-            set_colwidths=set_colwidths)
+        dlg = TblEditor(parent, dd, var_labels, var_notes, var_types, val_dics,
+            readonly, set_colwidths=set_colwidths)
         lib.safe_end_cursor()
         dlg.ShowModal()
+
+def open_database(parent, event):
+    readonly = parent.chk_readonly.IsChecked()
+    dd = mg.DATADETS_OBJ
+    open_data_table(parent, dd, parent.var_labels, parent.var_notes,
+        parent.var_types, parent.val_dics, readonly)
     event.Skip()
     
     
 class TblEditor(wx.Dialog):
-    def __init__(self, parent, var_labels, var_notes, var_types, val_dics, 
+    def __init__(self, parent, dd, var_labels, var_notes, var_types, val_dics,
                  readonly=True, set_colwidths=True):
         self.debug = False
-        dd = mg.DATADETS_OBJ
+        self.dd = dd
         self.readonly = readonly
-        title = _("Data from ") + "%s.%s" % (dd.db, dd.tbl)
+        title = _("Data from ") + "%s.%s" % (self.dd.db, self.dd.tbl)
         if self.readonly:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
@@ -139,7 +143,7 @@ class TblEditor(wx.Dialog):
         height_grid = 500
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not self.readonly)
-        self.dbtbl = db_tbl.DbTbl(self.grid, var_labels, self.readonly)
+        self.dbtbl = db_tbl.DbTbl(dd, self.grid, var_labels, self.readonly)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         self.readonly_cols = []
         # set col rendering (string is default)
@@ -299,7 +303,6 @@ class TblEditor(wx.Dialog):
             print("SHOWING NATIVE BVR !!!!!!!")
             event.Skip()
             return
-        dd = mg.DATADETS_OBJ
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print("on_grid_key_down - keycode %s pressed" % keycode)
@@ -337,7 +340,7 @@ class TblEditor(wx.Dialog):
             if self.debug or debug: 
                 print("on_grid_key_down - keypress in row %s col %s"
                       " ******************************" % (src_row, src_col))
-            final_col = (src_col == len(dd.flds) - 1)
+            final_col = (src_col == len(self.dd.flds) - 1)
             if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
                 self.add_cell_move_evt(direction)
                 """
@@ -561,9 +564,8 @@ class TblEditor(wx.Dialog):
             cell at destination row and col.
         """
         debug = False
-        dd = mg.DATADETS_OBJ
         # 1) move type
-        was_final_col = (src_col == len(dd.flds) - 1)
+        was_final_col = (src_col == len(self.dd.flds) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
         was_final_row = self.is_final_row(self.current_row_idx)
         if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
@@ -866,9 +868,8 @@ class TblEditor(wx.Dialog):
         col2skip -- so we can skip validating a cell that has just passed e.g. 
             in leaving_new_row 
         """
-        dd = mg.DATADETS_OBJ
         if self.debug: print("row_ok_to_save - row %s" % row)
-        for col_idx in range(len(dd.flds)):
+        for col_idx in range(len(self.dd.flds)):
             if col_idx == col2skip:
                 continue
             if not self.cell_ok_to_save(row=row, col=col_idx):
@@ -888,14 +889,13 @@ class TblEditor(wx.Dialog):
             stamp but at 2pm.
         """
         debug = False
-        dd = mg.DATADETS_OBJ
         if self.debug or debug:
             print("update_cell - row %s col %s" % (row, col))
         bol_updated_cell = True
         try:
-            dd.con.commit()
-            dd.cur.execute(self.dbtbl.sql_cell_to_update)
-            dd.con.commit()
+            self.dd.con.commit()
+            self.dd.cur.execute(self.dbtbl.sql_cell_to_update)
+            self.dd.con.commit()
         except Exception, e:
             if self.debug or debug: 
                 print(u"update_cell failed to save %s. " %
@@ -915,11 +915,10 @@ class TblEditor(wx.Dialog):
             Not autonumber or timestamp etc.
         Updates rows_n and idx_final_data_row as part of process
         """
-        dd = mg.DATADETS_OBJ
         data = []
-        for col in range(len(dd.flds)):
+        for col in range(len(self.dd.flds)):
             fldname = self.dbtbl.fldnames[col]
-            flddic = dd.flds[fldname]
+            flddic = self.dd.flds[fldname]
             if not flddic[mg.FLD_DATA_ENTRY_OK]:
                 continue
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
@@ -927,7 +926,7 @@ class TblEditor(wx.Dialog):
                 raw_val = None
             raw_val = lib.fix_eols(raw_val) # everything being saved goes through here
             data.append((raw_val, fldname, flddic))
-        row_inserted, msg = getdata.insert_row(dd, data)
+        row_inserted, msg = getdata.insert_row(self.dd, data)
         if row_inserted:
             if self.debug: print("save_row - Just inserted row")
         else:
@@ -978,8 +977,7 @@ class TblEditor(wx.Dialog):
 
     def set_new_row_ed(self, row_idx):
         "Set cell editor for cells in new row"
-        dd = mg.DATADETS_OBJ
-        for col_idx in range(len(dd.flds)):
+        for col_idx in range(len(self.dd.flds)):
             self.grid.SetCellEditor(row_idx, col_idx, 
                                     wx.grid.GridCellTextEditor())
 
@@ -1003,8 +1001,9 @@ class TblEditor(wx.Dialog):
             var_name = self.dbtbl.fldnames[col]
             var_label = self.var_labels.get(var_name, "")
             choice_item = lib.get_choice_item(self.var_labels, var_name)
-            config_output.set_var_props(choice_item, var_name, var_label,
-                self.var_labels, self.var_notes, self.var_types, self.val_dics)
+            config_output.set_var_props(self.dd, choice_item, var_name,
+                var_label, self.var_labels, self.var_notes, self.var_types,
+                self.val_dics)
     
     def get_cell_tooltip(self, col, raw_val):
         """
@@ -1071,8 +1070,7 @@ class TblEditor(wx.Dialog):
         event.Skip()
         
     def get_cols_n(self):
-        dd = mg.DATADETS_OBJ
-        return len(dd.flds)
+        return len(self.dd.flds)
     
     def on_size_cols(self, event):
         n_data_rows = self.dbtbl.get_n_data_rows()
@@ -1106,7 +1104,6 @@ class TblEditor(wx.Dialog):
     def set_colwidths(self):
         "Set column widths based on display widths of fields"
         debug = False
-        dd = mg.DATADETS_OBJ
         wx.BeginBusyCursor()
         try:
             msg = ("Setting column widths (%s columns for %s rows)..." % 
@@ -1115,9 +1112,9 @@ class TblEditor(wx.Dialog):
         except Exception:
             pass
         pix_per_char = 8
-        sorted_fldnames = getdata.fldsdic_to_fldnames_lst(dd.flds)
+        sorted_fldnames = getdata.fldsdic_to_fldnames_lst(self.dd.flds)
         for col_idx, fldname in enumerate(sorted_fldnames):
-            fld_dic = dd.flds[fldname]
+            fld_dic = self.dd.flds[fldname]
             colwidth = None
             if fld_dic[mg.FLD_BOLTEXT]:
                 txt_len = fld_dic[mg.FLD_TEXT_LENGTH]

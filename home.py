@@ -152,8 +152,22 @@ class SofaApp(wx.App):
         Also responsible for setting translations etc so application 
         internationalised.
         """
+        import db_grid
+        ## the data form assumes the parent will want its var_labels etc updated. We won't use the results so OK to feed in empty dicts.
         try:
-            frame = StartFrame()
+            proj2use = mg.STARTUP_PROJ
+            startup_proj_dic = config_globals.get_settings_dic(
+                subfolder=mg.PROJS_FOLDER, fil_name=proj2use)
+            proj_dic2use = startup_proj_dic
+            open_on_start = True
+        except Exception:
+            proj2use = mg.DEFAULT_PROJ
+            default_proj_dic = config_globals.get_settings_dic(
+                subfolder=mg.PROJS_FOLDER, fil_name=proj2use)
+            proj_dic2use = default_proj_dic
+            open_on_start = False
+        try:
+            frame = StartFrame(proj2use, proj_dic2use)
             # on dual monitor, wx.BOTH puts in screen 2 (in Ubuntu at least)!
             frame.CentreOnScreen(wx.VERTICAL)
             frame.Show()
@@ -164,6 +178,11 @@ class SofaApp(wx.App):
         if mg.EXPORT_IMAGES_DIAGNOSTIC:
             wx.MessageBox("Diagnostic mode for export output is on - be ready "
                 "to take screen-shots.")
+        if open_on_start:
+            dd = mg.DATADETS_OBJ
+            readonly = getdata.get_readonly_settings(dd).readonly
+            db_grid.open_data_table(frame, dd, var_labels={}, var_notes={},
+                var_types={}, val_dics={}, readonly=readonly)
 
 
 def store_screen_dims():
@@ -398,7 +417,7 @@ def get_next_y_pos(start, height):
 
 class StartFrame(wx.Frame):
     
-    def __init__(self):
+    def __init__(self, proj2use, proj_dic2use):
         # earliest point error msgs can be shown to user in a GUI.
         store_screen_dims()
         deferred_error_msg = u"\n\n".join(mg.DEFERRED_ERRORS)
@@ -418,14 +437,12 @@ class StartFrame(wx.Frame):
         self.panel.Bind(wx.EVT_PAINT, self.on_paint)
         self.Bind(wx.EVT_SHOW, self.on_show) # doesn't run on Mac
         self.Bind(wx.EVT_CLOSE, self.on_exit_click)
-        self.active_proj = mg.DEFAULT_PROJ
-        proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
-            fil_name=self.active_proj)
+        self.active_proj = proj2use
         print(u"Run on %s" % datetime.datetime.today().isoformat(" ")
             .split(".")[0] + " " + 20*(u"*"))
         try:
             # trying to actually connect to a database on start up
-            mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
+            mg.DATADETS_OBJ = getdata.DataDets(proj_dic2use)
             if show_early_steps: print(u"Initialised mg.DATADETS_OBJ")
         except Exception, e:
             lib.safe_end_cursor()
@@ -985,15 +1002,14 @@ class StartFrame(wx.Frame):
             self.help_text_width, 260)
         panel_dc.DrawLabel(text2draw, myrect)
         event.Skip()
-        
+
     def on_data_click(self, event):
-        # open proj selection form
         import dataselect
         proj_name = self.active_proj
         dlgData = dataselect.DlgDataSelect(self, proj_name)
         dlgData.ShowModal()
         event.Skip()
-        
+
     def on_data_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)

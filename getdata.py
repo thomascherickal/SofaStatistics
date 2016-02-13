@@ -3,6 +3,7 @@
 from __future__ import print_function
 from __future__ import absolute_import
 
+from collections import namedtuple
 import pprint
 import sys
 import wx
@@ -14,6 +15,8 @@ import config_globals
 import lib
 import dbe_plugins.dbe_sqlite as dbe_sqlite
 debug = False
+
+ReadonlyDets = namedtuple('ReadonlyDets', 'readonly, enabled')
 
 # data resources
 
@@ -620,21 +623,13 @@ def delete_row(id_fld, row_id):
             (SQL_delete, row_id) + u"\n\nOriginal error: %s" % b.ue(e))
         return False, u"%s" % b.ue(e)
 
-def readonly_enablement(chk_readonly):
-    """
-    Intended to protect SOFA users from inadvertently damaging externally-linked 
-    databases from within SOFA.
-
-    Give user control over everything except the default database. For that,
-    disable control and make read-only for demo table and editable for all
-    others.
-    """
-    dd = mg.DATADETS_OBJ
+def get_readonly_settings(dd):
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
+    enabled = not sofa_default_db
+    readonly = True
     if sofa_default_db:
         readonly = (dd.tbl == mg.DEMO_TBL)
-        chk_readonly.SetValue(readonly)
-    chk_readonly.Enable(not sofa_default_db)
+    return ReadonlyDets(readonly, enabled)
 
 # Assumption - drop_tbls is always named as such
 def data_dropdown_settings_correct(parent):

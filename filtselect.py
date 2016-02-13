@@ -346,8 +346,10 @@ class DlgFiltSelect(wx.Dialog):
         var_name, choice_item = self.get_var()
         var_label = lib.get_item_label(item_labels=self.var_labels, 
                                        item_val=var_name)
-        updated = config_output.set_var_props(choice_item, var_name, var_label, 
-            self.var_labels, self.var_notes, self.var_types, self.val_dics)
+        dd = mg.DATADETS_OBJ
+        updated = config_output.set_var_props(dd, choice_item, var_name,
+            var_label, self.var_labels, self.var_notes, self.var_types,
+            self.val_dics)
         if updated:
             self.setup_vars(var_name)
     
