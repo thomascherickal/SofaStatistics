@@ -204,7 +204,7 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
                 pass # OK if no default - use idx of 0.
     return idx
 
-def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script, 
+def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,
         default_dbe, default_dbs, default_tbls, con_dets):
     debug = False
     if debug:
@@ -221,20 +221,20 @@ def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,
     content_list.append(u"""# "C:\\\\Users\\\\demo.txt" is also BAD""")
     content_list.append(u"\nproj_notes = u\"\"\"%s\"\"\"" %
         lib.escape_pre_write(proj_notes))
-    content_list.append(u"\nfil_var_dets = u\"%s\"" % 
+    content_list.append(u"\nfil_var_dets = u\"%s\"" %
         lib.escape_pre_write(fil_var_dets))
-    content_list.append(u"fil_css = u\"%s\"" % \
+    content_list.append(u"fil_css = u\"%s\"" %
         lib.escape_pre_write(fil_css))
-    content_list.append(u"fil_report = u\"%s\"" % 
+    content_list.append(u"fil_report = u\"%s\"" %
         lib.escape_pre_write(fil_report))
-    content_list.append(u"fil_script = u\"%s\"" % 
+    content_list.append(u"fil_script = u\"%s\"" %
         lib.escape_pre_write(fil_script))
     content_list.append(u"default_dbe = u\"%s\"" % default_dbe)
-    content_list.append(u"\ndefault_dbs = " 
+    content_list.append(u"\ndefault_dbs = "
         + lib.get_escaped_dict_pre_write(default_dbs))
-    content_list.append(u"\ndefault_tbls = " 
+    content_list.append(u"\ndefault_tbls = "
         + lib.get_escaped_dict_pre_write(default_tbls))
-    content_list.append(u"\ncon_dets = " 
+    content_list.append(u"\ncon_dets = "
         + lib.get_escaped_dict_pre_write(con_dets))
     ## no need to write open on start to proj file - if default, unwritable, if not default, doesn't start with it ;-) 
     # content_list.append(u"\nopen_on_start = %s" % mg.OPEN_ON_START)

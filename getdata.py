@@ -625,6 +625,10 @@ def delete_row(id_fld, row_id):
         return False, u"%s" % b.ue(e)
 
 def get_readonly_settings():
+    """
+    Can always edit the default database (apart from demo_tbl) so disabled and
+    True.
+    """
     dd = mg.DATADETS_OBJ
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
     enabled = not sofa_default_db
