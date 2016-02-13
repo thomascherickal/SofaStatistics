@@ -470,7 +470,7 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
         <h2>Worked Example of Key Calculations</h2>
         <p>Note - the method shown below is based on ranked values of the data
         as a whole, not on every possible comparison - but the result is exactly
-        the same.</p>
+        the same. Working with ranks is much more efficient.</p>
         <h3>Step 1 - Add ranks to all values</h3>
         <p>Note on ranking - rank such that all examples of a value get the
         median rank for all items of that value.</p>

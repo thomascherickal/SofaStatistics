@@ -24,15 +24,15 @@ ReadonlyDets = namedtuple('ReadonlyDets', 'readonly, enabled')
 Assumed that table names will be case insensitive e.g. tblitems == tblItems.
 """
 
-def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None, 
+def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         tbl=None, add_checks=False, stop=False):
     """
     default_dbs -- one per dbe (might be None for this dbe)
-    
+
     db -- may be changing dbe and db together (e.g. dbe-db dropdown).
-    
+
     add_checks -- only used by SQLite dbe.
-    
+
     If a db and tbl are provided, fail if not able to connect to that table in 
     that database. If table missing, try to connect to default or first table in 
     database as appropriate. If database missing, try to connect to first 
@@ -44,7 +44,7 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
         dbe_resources = {}
         if debug: print("About to update dbe resources with con resources")
         # no unicode keys for 2.6 bug http://bugs.python.org/issue2646
-        kwargs = {mg.PROJ_CON_DETS: con_dets, mg.PROJ_DEFAULT_DBS: default_dbs, 
+        kwargs = {mg.PROJ_CON_DETS: con_dets, mg.PROJ_DEFAULT_DBS: default_dbs,
             "db": db}
         if dbe == mg.DBE_SQLITE:
             kwargs["add_checks"] = add_checks
@@ -132,17 +132,17 @@ def tblname2parts(dbe, tblname):
 class DataDets(object):
     """
     A single place to get the current data state and to alter it in a safe way.
-    
+
     Includes connection and cursor objects ready to use and based on the
     current database.
-    
+
     Safe means that no steps will be missed and nothing will be left in an
     inconsistent state.
-    
+
     proj_dic -- dict including proj notes etc plus default dbe, default dbs,
     default tbls, and con_dets.
     """
-    
+
     def __init__(self, proj_dic):
         debug = False
         self.set_proj_dic(proj_dic)
@@ -152,7 +152,7 @@ class DataDets(object):
         """
         Setting project can have implications for default dbe, default dbs, 
         default tbls, dbs, db etc.
-    
+
         dic2restore --  if it turns to custard, what proj to restore to 
         (presumably a previously working one).
         """
@@ -165,7 +165,7 @@ class DataDets(object):
             db = default_dbs.get(dbe)
             tbl = default_tbls.get(dbe)
             add_checks = False
-            self.set_dbe(dbe, db, tbl, add_checks, con_dets, default_dbs, 
+            self.set_dbe(dbe, db, tbl, add_checks, con_dets, default_dbs,
                 default_tbls)
         except KeyError, e:
             self.restore_proj_dic(dic2restore)
@@ -188,13 +188,13 @@ class DataDets(object):
                 subfolder=mg.PROJS_FOLDER, fil_name=mg.DEFAULT_PROJ)
             self.set_proj_dic(dic2restore, default_proj_dic)
 
-    def set_dbe(self, dbe, db=None, tbl=None, add_checks=False, 
+    def set_dbe(self, dbe, db=None, tbl=None, add_checks=False,
             con_dets=None, default_dbs=None, default_tbls=None):
         """
         Changing dbe has implications for everything connected.
-        
+
         May want to refresh dbe and db together (e.g. dbe-db dropdown).
-        
+
         add_checks -- implemented in SQLite for making strictly typed tables as
         required.
         """
@@ -212,7 +212,7 @@ class DataDets(object):
         except Exception:
             pass
         try:
-            dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
+            dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs,
                 default_tbls, db, tbl, add_checks)
         except Exception, e:
             raise Exception(u"Unable to get dbe resources."
@@ -233,7 +233,7 @@ class DataDets(object):
         """
         Changing the db has implications for tbls, tbl etc.
         """
-        db_resources = get_db_resources(self.dbe, self.cur, db, 
+        db_resources = get_db_resources(self.dbe, self.cur, db,
             self.default_tbls, tbl)
         self.db = db # only change if getting db resources worked
         self.tbls = db_resources[mg.DBE_TBLS]
@@ -252,16 +252,16 @@ class DataDets(object):
     def __str__(self):
         return (u"dbe: %(dbe)s; dbs: %(dbs)s; db: %(db)s; tbls: %(tbls)s; "
             u"tbl: %(tbl)s; flds: %(flds)s; idxs: %(idxs)s; "
-            u"has_unique: %(has_unique)s" % {"dbe": self.dbe, "dbs": self.dbs, 
-            "db": self.db, "tbls": self.tbls, "tbl": self.tbl, 
-            "flds": self.flds, "idxs": self.idxs, 
+            u"has_unique: %(has_unique)s" % {"dbe": self.dbe, "dbs": self.dbs,
+            "db": self.db, "tbls": self.tbls, "tbl": self.tbl,
+            "flds": self.flds, "idxs": self.idxs,
             "has_unique": self.has_unique})
 
 def force_sofa_tbls_refresh(sofa_default_db_cur):
     """
     Sometimes you drop a table, make it, drop it, go to make it and it still 
     seems to be there. This seems to force a refresh.
-    
+
     commit() doesn't seem to solve the problem and it occurs even when only 
     one connection in play. 
     """
@@ -282,7 +282,7 @@ def reset_main_con_if_sofa_default(tblname=None, add_checks=False):
     """
     dd = mg.DATADETS_OBJ
     if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
-        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
+        dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname,
             add_checks=add_checks)
 
 def _get_gen_fldtype_lbl(fldtype):
@@ -301,6 +301,7 @@ def get_init_settings_data(default_dd, tblname):
     """
     Get ordered list of tuples of field names and field types for named table.
     "Numeric", "Date", "Text".
+
     Only works for an SQLite database (should be the default one).
     """
     debug = False
@@ -318,7 +319,7 @@ def get_init_settings_data(default_dd, tblname):
 def get_val2float_func(dbe):
     """
     Get appropriate syntax to force value to be treated as a float rather than 
-        an integer e.g. to ensure correct calculation of mean.
+    an integer e.g. to ensure correct calculation of mean.
     """
     try:
         val2float = mg.DBE_MODULES[dbe].val2float
@@ -366,10 +367,10 @@ def get_dbe_syntax_elements(dbe):
     Returns if_clause (string), left_obj_quote(string), right_obj_quote 
     (string), quote_obj(), quote_val(), placeholder (string), get_summable(), 
     gte_not_equals (string).
-    
+
     if_clause receives 3 inputs - the test, result if true, result if false
     e.g. MySQL "IF(%s, %s, %s)"
-    
+
     Sum and if statements are used to get frequencies in SOFA Statistics.
     """
     return mg.DBE_MODULES[dbe].get_syntax_elements()
@@ -391,13 +392,13 @@ def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, flds, quote_obj,
 def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
     """
     Make a filter clause with a field name = a value (numeric or non-numeric).
-    
+
     objqtr -- function specific to database engine for quoting objects
-    
+
     valqtr -- function specific to database engine for quoting values
-    
+
     Handle val=None. Treat as Null for clause.
-    
+
     If a string number is received e.g. u'56' it will be treated as a string
     if the dbe is SQLite and will be treated differently from 56 for filtering.
     """
@@ -440,7 +441,7 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
             clause = u"%s %s %s" % (objqtr(fldname), dbe_gte, 
                 repr(val).strip(u"L"))
         else:
-            clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte, 
+            clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte,
                 flds, objqtr, valqtr)
     if debug: print(clause)
     return clause
@@ -464,7 +465,7 @@ def fldsdic_to_fldnames_lst(fldsdic):
 def set_con_det_defaults(parent):
     """
     Check project connection settings to handle missing values and set 
-        sensible defaults.
+    sensible defaults.
     """
     for dbe in mg.DBES:
         mg.DBE_MODULES[dbe].set_con_det_defaults(parent)
@@ -472,16 +473,16 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Populate default_dbs, default_tbls, and con_dets.
-    
+
     con_dets must contain paths ready to record i.e. double backslashes where
     needed in paths.  Cannot use single backslashes as the standard approach
     because want unicode strings and will sometimes encounter \U within such
     string e.g. Vista and Win 7 C:\Users\...
-    
+
     Returns any_incomplete (partially completed connection details), any_cons 
     (any of them set completely), and completed_dbes. Completed_dbes is so we 
     can ensure the default dbe has con details set for it.
-    
+
     NB If any incomplete, stop processing and return None for any_cons.
     """
     any_incomplete = False
@@ -490,7 +491,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     for dbe in mg.DBES:
         # has_incomplete means started but some key detail(s) missing
         # has_con means all required details are completed
-        has_incomplete, has_con = mg.DBE_MODULES[dbe].process_con_dets(parent, 
+        has_incomplete, has_con = mg.DBE_MODULES[dbe].process_con_dets(parent,
             default_dbs, default_tbls, con_dets)
         if has_incomplete:
             return True, None, completed_dbes
@@ -512,16 +513,16 @@ def extract_db_dets(choice_text):
 def prep_val(dbe, val, fld_dic):
     """
     Prepare raw value for insertion/update via SQL.
-    
+
     Missing (.) and None -> None.
-    
+
     Any non-missing/null values in numeric fields are simply passed through.
-    
+
     Values in datetime fields are returned as datetime strings (if valid) ready 
     to include in SQL.  If not valid, the faulty value is returned as is in the 
     knowledge that it will fail validation later (cell_invalid) and not actually 
     be saved to a database (in db_grid.update_cell()).
-    
+
     Why is a faulty datetime allowed through?  Because we don't want to have to 
     handle exceptions at this point (things can happen in a different order 
     depending on whether a mouse click or tabbing occurred). It is cleaner to 
@@ -649,7 +650,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     """
     Returns drop_dbs and drop_tbls to frame with correct values and default 
     selection. Also returns some settings to store in the frame.
-    
+
     Note - must have exact same names.
     """
     debug = False
@@ -664,7 +665,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
     dbes.pop(dbes.index(dd.dbe))
     for oth_dbe in dbes: # may not have any connection details
         try:
-            oth_dbe_dbs_list = mg.DBE_MODULES[oth_dbe].get_dbs_list(dd.con_dets, 
+            oth_dbe_dbs_list = mg.DBE_MODULES[oth_dbe].get_dbs_list(dd.con_dets,
                 default_dbs)
             oth_db_choices = [(x, oth_dbe) for x in oth_dbe_dbs_list]
             db_choices.extend(oth_db_choices)
@@ -673,7 +674,7 @@ def get_data_dropdowns(parent, panel, default_dbs):
             pass # no connection possible
         except Exception, e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
-                " provided.\nCaused by error: %(e)s") % {"oth_dbe": oth_dbe, 
+                " provided.\nCaused by error: %(e)s") % {"oth_dbe": oth_dbe,
                 "e": b.ue(e)})
     db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
     drop_dbs = wx.Choice(panel, -1, choices=db_choice_items,
@@ -727,13 +728,13 @@ def get_fresh_drop_tbls(parent, szr, panel):
     szr.Remove(parent.drop_tbls_idx_in_szr) # remove from sizer before destroying
     parent.drop_tbls.Destroy()
     tbls_with_filts, idx_tbl = get_tblnames_and_idx()
-    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts, 
+    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts,
         size=(mg.STD_DROP_WIDTH,-1))
     extra_drop_tbls_setup(parent, drop_tbls, idx_tbl)
     flag = wx.RIGHT
     if parent.drop_tbls_can_grow:
         flag |= wx.GROW
-    szr.Insert(parent.drop_tbls_idx_in_szr, drop_tbls, 0, flag, 
+    szr.Insert(parent.drop_tbls_idx_in_szr, drop_tbls, 0, flag,
         parent.drop_tbls_rmargin)
     panel.Layout()
     return drop_tbls
@@ -753,18 +754,18 @@ def set_parent_db_dets(parent, dbe, db):
     parent.flds = dd.flds
     parent.idxs = dd.idxs
     parent.has_unique = dd.has_unique
-    parent.drop_tbls = get_fresh_drop_tbls(parent, parent.drop_tbls_szr, 
+    parent.drop_tbls = get_fresh_drop_tbls(parent, parent.drop_tbls_szr,
         parent.drop_tbls_panel)
     
 def refresh_db_dets(parent):
     """
     Responds to a database selection.
-    
+
     When the database dropdowns are created, the selected idx is stored. If
     need to undo, we set selection to that and also reset all database details. 
     If ok to accept change, reset the selected idx to what has just been 
     selected.
-    
+
     Returns False if no change (so we can avoid all the updating).
     """
     debug = False
@@ -816,7 +817,7 @@ def refresh_tbl_dets(parent):
 def get_default_db_dets():
     """
     Returns con, cur, dbs, tbls, flds, idxs, has_unique from default
-        SOFA SQLite database.
+    SOFA SQLite database.
     """
     proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
         fil_name=mg.DEFAULT_PROJ)
@@ -839,7 +840,7 @@ def make_flds_clause(settings_data):
     original and new names if an existing field which has changed name. Does not 
     include the sofa_id. NB a new field will only have a new name so the orig 
     name will be None.
-    
+
     settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
     TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
@@ -869,7 +870,7 @@ def make_flds_clause(settings_data):
 def get_oth_name_types(settings_data):
     """
     Returns name, type tuples for all fields except for the sofa_id.
-    
+
     settings_data -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
     TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
@@ -886,10 +887,10 @@ def get_create_flds_txt(oth_name_types, strict_typing=False, inc_sofa_id=True):
     statement. The table will be created inside the default SOFA SQLite 
     database. If the sofa_id is included, the text must define the sofa_id as 
     UNIQUE.
-    
+
     oth_name_types -- ok_fldname, fldtype. Does not include sofa_id. The 
     sofa_id can be added below if required.
-    
+
     strict_typing -- add check constraints to fields.
     """
     debug = False
@@ -926,19 +927,19 @@ def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False,
         headless=False):
     """
     Make a table into the SOFA default database. Must have autonumber SOFA_ID.
-    
+
     Optionally may apply type checking constraint on fields (NB no longer able
     to open database outside of this application which using user-defined
     functions in table definitions).
-    
+
     oth_name_types -- [(ok_fldname, fldtype), ...]. No need to reference old 
     names or types.
-    
+
     strict_typing -- uses user-defined functions to apply strict typing via
     check clauses as part of create table statements.
     """
     debug = False
-    fld_clause = get_create_flds_txt(oth_name_types, 
+    fld_clause = get_create_flds_txt(oth_name_types,
         strict_typing=strict_typing, inc_sofa_id=True)
     SQL_make_tbl = u"""CREATE TABLE "%s" (%s)""" % (tblname, fld_clause)
     if debug: print(SQL_make_tbl)
@@ -951,5 +952,5 @@ def make_sofa_tbl(con, cur, tblname, oth_name_types, strict_typing=False,
         # be reconnected to ensure the change has been registered.
         dd = mg.DATADETS_OBJ
         if dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB:
-            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname, 
+            dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tblname,
                 add_checks=False)
