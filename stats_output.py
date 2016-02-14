@@ -30,7 +30,7 @@ def _p_msg(p_sim):
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn, 
         mean_squ_bn, label_gp, label_a, label_b, label_avg, add_to_report, 
-        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
+        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=None,
         page_break_after=False):
     debug = False
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -194,6 +194,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                 (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
+    ## details
+    if details:
+        html.append(u"""<p>No worked example available for this test</p>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)
@@ -321,7 +324,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
 
 def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df, 
         label_avg, add_to_report, report_name, css_fil, css_idx=0,
-        dp=mg.DEFAULT_STATS_DP, details=False, page_break_after=False):
+        dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -354,6 +357,9 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                 (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
+    ## details
+    if details:
+        html.append(u"""<p>No worked example available for this test</p>""")
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = (mg.CSS_SUFFIX_TEMPLATE %
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx))
@@ -364,7 +370,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs, 
         add_to_report, report_name, css_fil, css_idx=0, label_avg=u"",
-        dp=mg.DEFAULT_STATS_DP, details=False, page_break_after=False):
+        dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
@@ -393,6 +399,9 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     except Exception, e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
             (histlbl, b.ue(e)))
+    ## details
+    if details:
+        html.append(u"""<p>No worked example available for this test</p>""")
     if page_break_after:
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % \
             (mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -403,7 +412,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     return html_str
 
 def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil, 
-        css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
+        css_idx=0, dp=mg.DEFAULT_STATS_DP, details=None,
         page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -666,7 +675,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
 
 def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
         add_to_report, report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP,
-        details=False, page_break_after=False):
+        details=None, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
     slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x,
@@ -703,6 +712,9 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)
+    ## details
+    if details:
+        html.append(u"""<p>No worked example available for this test</p>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)
@@ -858,7 +870,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
 def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report, 
         report_name, val_labels_a, val_labels_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
-        details=False, page_break_after=False):
+        details=None, page_break_after=False):
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, css_idx)
@@ -1074,7 +1086,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     output.append_divider(html, title, indiv_title=u"frequency")
 
 def kruskal_wallis_output(h, p, label_gp, label_a, label_b, dics, df, label_avg, 
-        css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=False,
+        css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=None,
         page_break_after=False):
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
@@ -1113,6 +1125,9 @@ def kruskal_wallis_output(h, p, label_gp, label_a, label_b, dics, df, label_avg,
             dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody></table>%s" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
+    ## details
+    if details:
+        html.append(u"""<p>No worked example available for this test</p>""")
     if page_break_after:
         html.append("<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)

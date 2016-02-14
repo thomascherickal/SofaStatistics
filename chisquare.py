@@ -72,15 +72,20 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"val_labels_a = [val_dic_a.get(x, unicode(x)) for "
                           u"x in vals_a]")
         script_lst.append(u"val_labels_b = [val_dic_b.get(x, unicode(x)) for "
-                          u"x in vals_b]")        
+                          u"x in vals_b]")
+        if details:
+            script_lst.append(
+                u"details = core_stats.chisquare_details(sample_a, sample_b,"
+                u" label_a, label_b, headless=False)")
+        else:
+            script_lst.append(u"details = {}")     
         script_lst.append(u"""
 chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a, 
     var_label_b, add_to_report, report_name, val_labels_a, val_labels_b,
     lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    details=%(details)s, page_break_after=False)""" %
-        {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
-        u'details': details})
+    details=details, page_break_after=False)""" %
+        {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(chisquare_output)")
         return u"\n".join(script_lst)
 

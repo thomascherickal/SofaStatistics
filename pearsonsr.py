@@ -56,13 +56,13 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.%(dbe)s,
         script_lst.append(u"label_a = u\"%s\"" % label_a)
         script_lst.append(u"label_b = u\"%s\"" % label_b)
         script_lst.append(u"r, p, df = core_stats.pearsonr(sample_a, sample_b)")
+        script_lst.append(u"details = True" if details else u"details = {}")
         script_lst.append(u"""
 pearsonsr_output = stats_output.pearsonsr_output(sample_a, sample_b, r, p, df,
     label_a, label_b, add_to_report, report_name,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    details=%(details)s, page_break_after=False)""" %
-            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx,
-             u'details': details})
+    details=details, page_break_after=False)""" %
+            {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(pearsonsr_output)")
         return u"\n".join(script_lst)
 
