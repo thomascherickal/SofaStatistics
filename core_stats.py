@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from collections import defaultdict
+from collections import defaultdict, namedtuple
 import copy
 import decimal
 import math
@@ -17,6 +17,9 @@ import getdata
 
 D = decimal.Decimal
 decimal.getcontext().prec = 200
+
+SpearmansInitTbl = namedtuple('SpearmansInitTbl', 'x, y, rank_x, rank_y, diff, '
+    'diff_squared')
 
 """
 Don't use dd - this and any other modules we wish to run as a standalone script 
@@ -1167,7 +1170,7 @@ def pearsonr(x,y):
     prob = betai(0.5*df,0.5,df/float(df+t*t))
     return r, prob, df
 
-def spearmanr(x,y, headless=False):
+def spearmanr(x, y, headless=False):
     """
     From stats.py.  No changes apart from addition of headless option and
     trapping zero division error.
@@ -1198,6 +1201,50 @@ def spearmanr(x,y, headless=False):
     # probability values for rs are from part 2 of the spearman function in
     # Numerical Recipes, p.510.  They are close to tables, but not exact. (?)
     return rs, probrs, df
+
+def spearmanr_details(sample_x, sample_y, label_x, label_y, headless=False):
+    MAX_WORKED_N = 100
+    if len(sample_x) > MAX_WORKED_N:
+        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
+            u"practical to display worked example") % MAX_WORKED_N}
+        return details
+    initial_tbl = []
+    n_x = len(sample_x)
+    assert n_x == len(sample_y)
+    rankx = rankdata(sample_x, headless)
+    x_and_rank = zip(sample_x, rankx)
+    x_and_rank.sort()
+    x2rank = dict(x_and_rank)
+    ranky = rankdata(sample_y, headless=True)
+    y_and_rank = zip(sample_y, ranky)
+    y_and_rank.sort()
+    y2rank = dict(y_and_rank)
+    n_cubed_minus_n = (n_x**3) - n_x
+    diff_squareds = []
+    for x, y in zip(sample_x, sample_y):
+        x_rank = x2rank[x]
+        y_rank = y2rank[y]
+        diff = x_rank - y_rank
+        diff_squared = diff**2
+        diff_squareds.append(diff_squared)
+        initial_tbl.append(SpearmansInitTbl(x, y, x_rank, y_rank, diff,
+            diff_squared))
+    tot_d_squared = sum(diff_squareds)
+    pre_rho = (tot_d_squared * 6) / float(n_cubed_minus_n)
+    rho = 1 - pre_rho
+    assert -1 <= pre_rho <= 1
+    details = {
+        mg.SPEARMANS_INIT_TBL: initial_tbl,
+        mg.SPEARMANS_X_RANKED: x_and_rank,
+        mg.SPEARMANS_Y_RANKED: y_and_rank,
+        mg.SPEARMANS_N: n_x,
+        mg.SPEARMANS_N_CUBED_MINUS_N: n_cubed_minus_n,
+        mg.SPEARMANS_TOT_D_SQUARED: round(tot_d_squared, 2),
+        mg.SPEARMANS_TOT_D_SQUARED_x_6: round(6*tot_d_squared, 2),
+        mg.SPEARMANS_PRE_RHO: round(pre_rho, 4),
+        mg.SPEARMANS_RHO: round(rho, 4),
+    }
+    return details
 
 def rankdata(inlist, headless=False):
     """

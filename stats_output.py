@@ -465,70 +465,76 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
     add_footnotes(footnotes, html)
     if details:
-        html.append(u"""
-        <hr>
-        <h2>Worked Example of Key Calculations</h2>
-        <p>Note - the method shown below is based on ranked values of the data
-        as a whole, not on every possible comparison - but the result is exactly
-        the same. Working with ranks is much more efficient.</p>
-        <h3>Step 1 - Add ranks to all values</h3>
-        <p>Note on ranking - rank such that all examples of a value get the
-        median rank for all items of that value.</p>
-        <p>If calculating by hand, and one sample is shorter than the others,
-        make that the first sample to reduce the number of calculations</p>
-        <p>For the rest of this worked example, sample 1 is "%s" and sample 2 "
-        u"is "%s".""" % (details[mg.MANN_WHITNEY_LABEL_1],
-            details[mg.MANN_WHITNEY_LABEL_2]))
-        html.append(u"""<table>
-        <thead>
-            <tr>
-                <th>Sample</th>
-                <th>Value</th>
-                <th>Counter</th>
-                <th>Rank</th>
-            </tr>
-        </thead>
-        <tbody>""")
-        for val_det in details[mg.MANN_WHITNEY_VAL_DETS]:
+        if mg.REASON_NO_DETAILS in details:
+            html.append(details[mg.REASON_NO_DETAILS])
+        else:
             html.append(u"""
-            <tr>
-                <td>%(sample)s</td>
-                <td>%(val)s</td>
-                <td>%(counter)s</td>
-                <td>%(rank)s</td>
-            </tr>""" % val_det)
-        html.append(u"""
-        </tbody>
-        </table>""")
-        html.append(u"""<h3>Step 2 - Sum the ranks for sample 1</h3>
-        <p>sum_ranks_1 = """ +
-        u" + ".join(str(x) for x in details[mg.MANN_WHITNEY_RANKS_1]) +
-        u" i.e. <strong>%(sum_rank_1)s</strong></p>""" %
-            {u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1]})
-        html.append(u"""<h3>Step 3 - Calculate U for sample 1 as per:</h3>
-        <p>u_1 = n_1*n_2 + (n_1*(n_1 + 1))/2.0 - sum(ranks_1)</p>""")
-        html.append(u"""<p>u_1 = %(n_1)s*%(n_2)s + (%(n_1)s*(%(n_1)s+1))/2 - 
-        %(sum_rank_1)s i.e. <strong>%(u_1)s</strong></p>""" %
-            {u"n_1": details[mg.MANN_WHITNEY_N_1],
-             u"n_2": details[mg.MANN_WHITNEY_N_2],
-             u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1],
-             u"u_1": details[mg.MANN_WHITNEY_U_1]})
-        html.append(u"""<h3>Step 4 - Calculate U for sample 2 as per:</h3>
-        <p>u_2 = n_1*n_2 - u_1</p>""")
-        html.append(u"""<p>u_2 = %(n_1)s*%(n_2)s - %(u_1)s i.e. <strong>%(u_2)s
-            </strong></p>""" %
-            {u"n_1": details[mg.MANN_WHITNEY_N_1],
-             u"n_2": details[mg.MANN_WHITNEY_N_2],
-             u"u_1": details[mg.MANN_WHITNEY_U_1],
-             u"u_2": details[mg.MANN_WHITNEY_U_2]})
-        html.append(u"""<h3>Step 5 - Identify the lowest of the U values</h3>
-        <p>The lowest value of %(u_1)s and %(u_2)s is <strong>%(u)s</strong></p>
-        """ % {u"u_1": details[mg.MANN_WHITNEY_U_1],
-               u"u_2": details[mg.MANN_WHITNEY_U_2],
-               u"u": details[mg.MANN_WHITNEY_U]})
-        html.append(u"""<p>After this, you would use the N values and other
-        methods to see if the value for U is likely to happen by chance but that
-        is outside of the scope of this worked example.</p>""")
+            <hr>
+            <h2>Worked Example of Key Calculations</h2>
+            <p>Note - the method shown below is based on ranked values of the
+            data as a whole, not on every possible comparison - but the result
+            is exactly the same. Working with ranks is much more efficient.</p>
+            <h3>Step 1 - Add ranks to all values</h3>
+            <p>Note on ranking - rank such that all examples of a value get the
+            median rank for all items of that value.</p>
+            <p>If calculating by hand, and one sample is shorter than the
+            others, make that the first sample to reduce the number of
+            calculations</p>
+            <p>For the rest of this worked example, sample 1 is "%s" and sample
+            2 is "%s".""" % (details[mg.MANN_WHITNEY_LABEL_1],
+                details[mg.MANN_WHITNEY_LABEL_2]))
+            html.append(u"""<table>
+            <thead>
+                <tr>
+                    <th>Sample</th>
+                    <th>Value</th>
+                    <th>Counter</th>
+                    <th>Rank</th>
+                </tr>
+            </thead>
+            <tbody>""")
+            for val_det in details[mg.MANN_WHITNEY_VAL_DETS]:
+                html.append(u"""
+                <tr>
+                    <td>%(sample)s</td>
+                    <td>%(val)s</td>
+                    <td>%(counter)s</td>
+                    <td>%(rank)s</td>
+                </tr>""" % val_det)
+            html.append(u"""
+            </tbody>
+            </table>""")
+            html.append(u"""<h3>Step 2 - Sum the ranks for sample 1</h3>
+            <p>sum_ranks_1 = """ +
+            u" + ".join(str(x) for x in details[mg.MANN_WHITNEY_RANKS_1]) +
+            u" i.e. <strong>%(sum_rank_1)s</strong></p>""" %
+                {u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1]})
+            html.append(u"""<h3>Step 3 - Calculate U for sample 1 as per:</h3>
+            <p>u_1 = n_1*n_2 + (n_1*(n_1 + 1))/2.0 - sum(ranks_1)</p>""")
+            html.append(u"""<p>u_1 = %(n_1)s*%(n_2)s + (%(n_1)s*(%(n_1)s+1))/2 - 
+            %(sum_rank_1)s i.e. <strong>%(u_1)s</strong></p>""" %
+                {u"n_1": details[mg.MANN_WHITNEY_N_1],
+                 u"n_2": details[mg.MANN_WHITNEY_N_2],
+                 u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1],
+                 u"u_1": details[mg.MANN_WHITNEY_U_1]})
+            html.append(u"""<h3>Step 4 - Calculate U for sample 2 as per:</h3>
+            <p>u_2 = n_1*n_2 - u_1</p>""")
+            html.append(u"""<p>u_2 = %(n_1)s*%(n_2)s - %(u_1)s i.e.
+                <strong>%(u_2)s</strong></p>""" %
+                {u"n_1": details[mg.MANN_WHITNEY_N_1],
+                 u"n_2": details[mg.MANN_WHITNEY_N_2],
+                 u"u_1": details[mg.MANN_WHITNEY_U_1],
+                 u"u_2": details[mg.MANN_WHITNEY_U_2]})
+            html.append(u"""<h3>Step 5 - Identify the lowest of the U values
+            </h3>
+            <p>The lowest value of %(u_1)s and %(u_2)s is
+            <strong>%(u)s</strong></p>
+            """ % {u"u_1": details[mg.MANN_WHITNEY_U_1],
+                   u"u_2": details[mg.MANN_WHITNEY_U_2],
+                   u"u": details[mg.MANN_WHITNEY_U]})
+            html.append(u"""<p>After this, you would use the N values and other
+            methods to see if the value for U is likely to happen by chance but
+            that is outside of the scope of this worked example.</p>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" %
             CSS_PAGE_BREAK_BEFORE)
@@ -580,75 +586,79 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
     add_footnotes(footnotes, html)
     ## details
     if details:
-        html.append(u"""
-        <hr>
-        <h2>Worked Example of Key Calculations</h2>
-        <h3>Step 1 - Get differences</h3>""")
-        html.append(u"""<table>
-        <thead>
-            <tr>
-                <th>%(label_a)s</th><th>%(label_b)s</th><th>Difference</th>
-            </tr>
-        </thead>
-        <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
-        for diff_det in details[mg.WILCOXON_DIFF_DETS]:
+        if mg.REASON_NO_DETAILS in details:
+            html.append(details[mg.REASON_NO_DETAILS])
+        else:
             html.append(u"""
-            <tr>
-                <td>%(a)s</td><td>%(b)s</td><td>%(diff)s</td>
-            </tr>""" % diff_det)
-        html.append(u"""
-        </tbody>
-        </table>""")
-        html.append(u"""<h3>Step 2 - Sort non-zero differences by absolute value
-        and rank</h3><p>Rank such that all examples of a value get the mean rank
-        for all items of that value</h3>""")
-        html.append(u"""<table>
-        <thead>
-            <tr>
-                <th>Difference</th>
-                <th>Absolute Difference</th>
-                <th>Counter</th>
-                <th>Rank<br>(on Abs Diff)</th>
-            </tr>
-        </thead>
-        <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
-        for rank_dets in details[mg.WILCOXON_RANKING_DETS]:
+            <hr>
+            <h2>Worked Example of Key Calculations</h2>
+            <h3>Step 1 - Get differences</h3>""")
+            html.append(u"""<table>
+            <thead>
+                <tr>
+                    <th>%(label_a)s</th><th>%(label_b)s</th><th>Difference</th>
+                </tr>
+            </thead>
+            <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
+            for diff_det in details[mg.WILCOXON_DIFF_DETS]:
+                html.append(u"""
+                <tr>
+                    <td>%(a)s</td><td>%(b)s</td><td>%(diff)s</td>
+                </tr>""" % diff_det)
             html.append(u"""
-            <tr>
-                <td>%(diff)s</td>
-                <td>%(abs_diff)s</td>
-                <td>%(counter)s</td>
-                <td>%(rank)s</td>
-            </tr>""" % rank_dets)
-        html.append(u"""
-        </tbody>
-        </table>""")
-        html.append(u"""<h3>Step 3 - Sum ranks for positive differences</h3>""")
-        html.append(u"<p>" +
-            u" + ".join(str(x) for x in details[mg.WILCOXON_PLUS_RANKS]) +
-            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_PLUS_RANKS] +
-            u"</p>")
-        html.append(u"""<h3>Step 4 - Sum ranks for negative differences</h3>""")
-        html.append(u"<p>" +
-            u" + ".join(str(x) for x in details[mg.WILCOXON_MINUS_RANKS]) +
-            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_MINUS_RANKS] +
-            u"</p>")
-        html.append(u"<h3>Step 5 - Get smallest of sums for positive or "
-            u"negative ranks</h3>")
-        html.append(u"<p>The lowest value of %(plus)s and %(minus)s is %(t)s so"
-            u" Wilcoxon's T statistic is <strong>%(t)s</strong></p>" % 
-            {u"plus": details[mg.WILCOXON_SUM_PLUS_RANKS],
-             u"minus": details[mg.WILCOXON_SUM_MINUS_RANKS],
-             u"t": details[mg.WILCOXON_T],
-        })
-        html.append(u"<h3>Step 6 - Get count of all non-zero diffs</h3>")
-        html.append(u"<p>Just the number of records in the table from Step 2 "
-            u"i.e. <strong>%s</strong></p>" % details[mg.WILCOXON_N])
-        html.append(u"<p>The only remaining question is the probability of a "
-            u"sum as large as that observed (T) for a given N value. The "
-            u"smaller the N and the bigger the T the less likely the difference"
-            u" between %s and %s could occur by chance.</p>" % (label_a,
-                label_b))
+            </tbody>
+            </table>""")
+            html.append(u"""<h3>Step 2 - Sort non-zero differences by absolute
+            value and rank</h3>
+            <p>Rank such that all examples of a value get the mean rank for all
+            items of that value</p>""")
+            html.append(u"""<table>
+            <thead>
+                <tr>
+                    <th>Difference</th>
+                    <th>Absolute Difference</th>
+                    <th>Counter</th>
+                    <th>Rank<br>(on Abs Diff)</th>
+                </tr>
+            </thead>
+            <tbody>""" % {u'label_a': label_a, u'label_b': label_b})
+            for rank_dets in details[mg.WILCOXON_RANKING_DETS]:
+                html.append(u"""
+                <tr>
+                    <td>%(diff)s</td>
+                    <td>%(abs_diff)s</td>
+                    <td>%(counter)s</td>
+                    <td>%(rank)s</td>
+                </tr>""" % rank_dets)
+            html.append(u"""
+            </tbody>
+            </table>""")
+            html.append(u"<h3>Step 3 - Sum ranks for positive differences</h3>")
+            html.append(u"<p>" +
+                u" + ".join(str(x) for x in details[mg.WILCOXON_PLUS_RANKS]) +
+                u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_PLUS_RANKS]
+                + u"</p>")
+            html.append(u"<h3>Step 4 - Sum ranks for negative differences</h3>")
+            html.append(u"<p>" +
+                u" + ".join(str(x) for x in details[mg.WILCOXON_MINUS_RANKS]) +
+                u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_MINUS_RANKS]
+                + u"</p>")
+            html.append(u"<h3>Step 5 - Get smallest of sums for positive or "
+                u"negative ranks</h3>")
+            html.append(u"<p>The lowest value of %(plus)s and %(minus)s is "
+                u"%(t)s so Wilcoxon's T statistic is <strong>%(t)s</strong>"
+                u"</p>" % {u"plus": details[mg.WILCOXON_SUM_PLUS_RANKS],
+                    u"minus": details[mg.WILCOXON_SUM_MINUS_RANKS],
+                    u"t": details[mg.WILCOXON_T],
+            })
+            html.append(u"<h3>Step 6 - Get count of all non-zero diffs</h3>")
+            html.append(u"<p>Just the number of records in the table from "
+                u"Step 2 i.e. <strong>%s</strong></p>" % details[mg.WILCOXON_N])
+            html.append(u"<p>The only remaining question is the probability of "
+                u"a sum as large as that observed (T) for a given N value. The "
+                u"smaller the N and the bigger the T the less likely the "
+                u"difference between %s and %s could occur by chance.</p>" %
+                (label_a, label_b))
     if page_break_after:
         html += u"<br><hr><br><div class='%s'></div>" % CSS_PAGE_BREAK_BEFORE
     output.append_divider(html, title, indiv_title=u"")
@@ -659,7 +669,8 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
         details=False, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
-    slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, list_y)
+    slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x,
+        list_y)
     line_lst = [y0, y1]
     html = []
     footnotes = []
@@ -700,7 +711,7 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
 
 def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y, 
         add_to_report, report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
-        details=False, page_break_after=False):
+        details=None, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
         css_idx)
     slope, intercept, unused, y0, y1 = core_stats.get_regression_dets(list_x, 
@@ -737,6 +748,107 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)
+    ## details
+    if details:
+        if mg.REASON_NO_DETAILS in details:
+            html.append(details[mg.REASON_NO_DETAILS])
+        else:
+            html.append(u"""
+            <hr>
+            <h2>Worked Example of Key Calculations</h2>
+            <h3>Step 1 - Set up table of paired results</h3>
+            <table>
+            <thead>
+                <tr><th>%(label_x)s</th><th>%(label_y)s</th></tr>
+            </thead>
+            <tbody>""" % {u"label_x": label_x, u"label_y": label_y})
+            for row in details[mg.SPEARMANS_INIT_TBL]:
+                html.append(u"""<tr><td>%s</td><td>%s</td></tr>""" % row[:2])
+            html.append(u"""</tbody></table>""")
+            html.append(u"""
+            <h3>Step 2 - Work out ranks for the x and y values</h3>
+            <p>Rank such that all examples of a value get the mean rank for all
+            items of that value</p>
+            <table>
+            <thead>
+                <tr><th>%(label_x)s</th><th>Rank within<br>%(label_x)s</th></tr>
+            </thead>
+            <tbody>""" % {u"label_x": label_x})
+            for x, x_rank in details[mg.SPEARMANS_X_RANKED]:
+                html.append(u"""<tr><td>%s</td><td>%s</td></tr>""" % (x,
+                    x_rank))
+            html.append(u"""</tbody></table>""")
+            html.append(u"""
+            <p>Do the same for %(label_y)s values</p>
+            <table>
+            <thead>
+                <tr><th>%(label_y)s</th><th>Rank within<br>%(label_y)s</th></tr>
+            </thead>
+            <tbody>""" % {u"label_y": label_y})
+            for y, y_rank in details[mg.SPEARMANS_Y_RANKED]:
+                html.append(u"""<tr><td>%s</td><td>%s</td></tr>""" % (y,
+                    y_rank))
+            html.append(u"""</tbody></table>""")
+            html.append(u"""
+            <h3>Step 3 - Add ranks to original table or pairs</h3>
+            <table>
+            <thead>
+                <tr>
+                    <th>%(label_x)s</th>
+                    <th>%(label_y)s</th>
+                    <th>%(label_x)s Ranks</th>
+                    <th>%(label_y)s Ranks</th>
+                </tr>
+            </thead>
+            <tbody>""" % {u"label_x": label_x, u"label_y": label_y})
+            for row in details[mg.SPEARMANS_INIT_TBL]:
+                html.append(u"""<tr>
+                    <td>%s</td><td>%s</td><td>%s</td><td>%s</td>
+                </tr>""" % row[:4])
+            html.append(u"""</tbody></table>""")
+            html.append(u"""
+            <h3>Step 4 - Add difference in ranks and get square of diff</h3>
+            <table>
+            <thead>
+                <tr>
+                    <th>%(label_x)s</th>
+                    <th>%(label_y)s</th>
+                    <th>%(label_x)s Ranks</th>
+                    <th>%(label_y)s Ranks</th>
+                    <th>Difference</th>
+                    <th>Diff Squared</th>
+                </tr>
+            </thead>
+            <tbody>""" % {u"label_x": label_x, u"label_y": label_y})
+            for row in details[mg.SPEARMANS_INIT_TBL]:
+                html.append(u"""<tr>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                    <td>%s</td>
+                </tr>""" % row)
+            html.append(u"""</tbody></table>""")
+            html.append(u"""
+            <h3>Step 5 - Count N pairs, cube it, and subtract N</h3>
+            N = %s<br>N cubed - N = %s""" % (details[mg.SPEARMANS_N],
+                details[mg.SPEARMANS_N_CUBED_MINUS_N]))
+            html.append(u"""
+            <h3>Step 6 - Total squared diffs, multiply by 6, divide by cubed N -
+            N value</h3>
+            Total squared diffs = %s<br>Multiplied by 6 = %s<br>Divided by cubed
+            N - N value (%s) = %s            
+            """ % (details[mg.SPEARMANS_TOT_D_SQUARED],
+                details[mg.SPEARMANS_TOT_D_SQUARED_x_6],
+                details[mg.SPEARMANS_N_CUBED_MINUS_N],
+                details[mg.SPEARMANS_PRE_RHO]))
+            html.append(u"""
+            <h3>Step 7 - Subtract from 1 to get Spearman's rho</h3>
+            rho = 1 - %s = %s (all rounded to 4dp)""" %
+            (details[mg.SPEARMANS_PRE_RHO], details[mg.SPEARMANS_RHO]))
+            html.append(u"""<p>The only remaining question is the probability of
+                a rho that size occurring for a given N value</p>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)
@@ -853,7 +965,9 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
             CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
     html.append(u"<hr><p>Interpreting the Proportions chart - look at the "
-        u"\"All combined\" category - the more different the other "
+        u"\"All combined\" category - the more d The "
+                u"smaller the N and the bigger the T the less likely the "
+                u"difference between %s and %s could occur by chance.ifferent the other "
         U"%(var_label_a)s categories look from this the more likely the Chi "
         u"Square test will detect a difference. Within each %(var_label_a)s "
         u"category the %(var_label_b)s values add up to 1 i.e. 100%%. This is "
