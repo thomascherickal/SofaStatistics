@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import print_function
-from collections import defaultdict, namedtuple
+from collections import defaultdict, namedtuple, OrderedDict
 import copy
 import decimal
 import math
@@ -406,6 +406,76 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
     chisq, p = chisquare(lst_obs, lst_exp, df)
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
+
+def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, lst_exp, df):
+    MAX_WORKED_N = 100
+    if len(lst_obs) > MAX_WORKED_N:
+        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
+            u"practical to display worked example") % MAX_WORKED_N}
+        return details
+    n_a = len(vals_a)
+    n_b = len(vals_b)
+    grand_total = sum(lst_obs)
+    obs_idx = 0
+    row_sums = defaultdict(int)
+    col_sums = defaultdict(int)
+    row_obs = defaultdict(list)
+    col_obs = defaultdict(list)
+    cells_data = OrderedDict()
+    ## round 1
+    for row_n, unused in enumerate(vals_a, 1):
+        for col_n, unused in enumerate(vals_b, 1):
+            observed = lst_obs[obs_idx]
+            row_sums[row_n] += observed
+            col_sums[col_n] += observed
+            row_obs[row_n].append(observed)
+            col_obs[col_n].append(observed)
+            cells_data[(row_n, col_n)] = {  ## can't add any more details until calculated row and column totals
+                mg.CHI_OBSERVED: observed,
+            }
+            obs_idx += 1
+    ## round 2 (now that we have row and column totals we can calculate the missing bits)
+    pre_chis = []
+    chi_squ = 0
+    for coord, cell_data in cells_data.items():
+        row_n, col_n = coord
+        row_sum = row_sums[row_n]
+        col_sum = col_sums[col_n]
+        observed = cell_data[mg.CHI_OBSERVED]
+        expected = (row_sum * col_sum)/float(grand_total)
+        cell_data[mg.CHI_CELL_ROW_SUM] = row_sum
+        cell_data[mg.CHI_CELL_COL_SUM] = col_sum
+        cell_data[mg.CHI_EXPECTED] = round(expected, 3)
+        max_obs_exp = max([observed, expected])
+        min_obs_exp = min([observed, expected])
+        cell_data[mg.CHI_MAX_OBS_EXP] = round(max_obs_exp, 3)
+        cell_data[mg.CHI_MIN_OBS_EXP] = round(min_obs_exp, 3)
+        diff = max_obs_exp - min_obs_exp
+        cell_data[mg.CHI_DIFF] = round(diff, 3)
+        diff_squ = diff ** 2
+        cell_data[mg.CHI_DIFF_SQU] = round(diff_squ, 3)
+        raw_pre_chi = diff_squ / float(expected)
+        chi_squ += raw_pre_chi
+        pre_chi = round(raw_pre_chi, 3)
+        cell_data[mg.CHI_PRE_CHI] = pre_chi
+        pre_chis.append(pre_chi)
+
+    details = {
+        mg.CHI_GRAND_TOT: grand_total,
+        mg.CHI_ROW_SUMS: row_sums,
+        mg.CHI_ROW_OBS: row_obs,
+        mg.CHI_COL_SUMS: col_sums,
+        mg.CHI_COL_OBS: col_obs,
+        mg.CHI_ROW_N: n_a,
+        mg.CHI_COL_N: n_b,
+        mg.CHI_ROW_N_MINUS_1: n_a - 1,
+        mg.CHI_COL_N_MINUS_1: n_b - 1,
+        mg.CHI_CELLS_DATA: cells_data,
+        mg.CHI_PRE_CHIS: pre_chis,
+        mg.CHI_CHI_SQU: round(chi_squ, 3),
+        mg.CHI_DF: df,
+    }
+    return details
 
 # Taken from v1.1 of statlib http://code.google.com/p/python-statlib/
 # NB lots of ongoing change at 

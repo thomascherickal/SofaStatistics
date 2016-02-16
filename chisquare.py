@@ -75,8 +75,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                           u"x in vals_b]")
         if details:
             script_lst.append(
-                u"details = core_stats.chisquare_details(sample_a, sample_b,"
-                u" label_a, label_b, headless=False)")
+                u"details = core_stats.chisquare_details(vals_a, vals_b,"
+                u"\n    var_label_a, var_label_b, lst_obs, lst_exp, df)")
         else:
             script_lst.append(u"details = {}")     
         script_lst.append(u"""

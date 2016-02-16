@@ -52,7 +52,8 @@ def get_szr_details(parent, panel):
     """
     Get self.szr_details with checkbox. 
     """
-    parent.chk_details = wx.CheckBox(panel, -1, _("Show all details in output"))
+    parent.chk_details = wx.CheckBox(panel, -1, _("Show worked examples where "
+        u"available in the output of statistical tests"))
     parent.chk_details.SetFont(mg.GEN_FONT)
     parent.chk_details.SetValue(False)  ## a sane default that can be overridden
     parent.szr_details = wx.BoxSizer(wx.HORIZONTAL)

@@ -1,3 +1,4 @@
+#! -*- coding: utf-8 -*-
 import cgi
 import numpy as np
 import boomslang
@@ -972,14 +973,82 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     html.append(u"\n<p>% " + _("cells with expected count < 5") + u": %s</p>" %
         round(perc_cells_lt_5, 1))
     add_footnotes(footnotes, html)
+    ## details
+    if details:
+        if mg.REASON_NO_DETAILS in details:
+            html.append(details[mg.REASON_NO_DETAILS])
+        else:
+            html.append(u"""
+            <hr>
+            <h2>Worked Example of Key Calculations</h2>
+            <h3>Step 1 - Calculate row and column sums</h3>""")
+            html.append(u"<h4>Row sums</h4>")
+            for row_n in range(1, details[mg.CHI_ROW_N] + 1):
+                vals_added = u" + ".join(str(x) for x
+                    in details[mg.CHI_ROW_OBS][row_n])
+                html.append(u"""
+                <p>Row %s Total: %s = <strong>%s</strong></p>""" % (row_n,
+                    vals_added, details[mg.CHI_ROW_SUMS][row_n]))
+            html.append(u"<h4>Column sums</h4>")
+            for col_n in range(1, details[mg.CHI_COL_N] + 1):
+                vals_added = u" + ".join(str(x) for x
+                    in details[mg.CHI_COL_OBS][col_n])
+                html.append(u"""
+                <p>Col %s Total: %s = <strong>%s</strong></p>""" % (col_n,
+                    vals_added, details[mg.CHI_COL_SUMS][col_n]))
+            html.append(u"""
+            <h3>Step 2 - Calculate expected values per cell</h3>
+            <p>Multiply row and column sums for cell and divide by grand total
+            </p>""")
+            for coord, cell_data in details[mg.CHI_CELLS_DATA].items():
+                row_n, col_n = coord
+                html.append(u"""<p>Row %(row_n)s, Col %(col_n)s:
+                (%(row_sum)s x %(col_sum)s)/%(grand_tot)s =
+                <strong>%(expected)s</strong></p>
+                """ % {u"row_n": row_n, u"col_n": col_n,
+                    u"row_sum": cell_data[mg.CHI_CELL_ROW_SUM],
+                    u"col_sum": cell_data[mg.CHI_CELL_COL_SUM],
+                    u"grand_tot": details[mg.CHI_GRAND_TOT],
+                    u"expected": cell_data[mg.CHI_EXPECTED]})
+            html.append(u"""
+            <h3>Step 3 - Calculate the differences between observed and expected
+            per cell, square them, and divide by expected value</h3>""")
+            for coord, cell_data in details[mg.CHI_CELLS_DATA].items():
+                row_n, col_n = coord
+                html.append(u"""<p>Row %(row_n)s, Col %(col_n)s:
+                (%(larger)s - %(smaller)s)² / %(expected)s =
+                (%(diff)s)² / %(expected)s =
+                %(diff_squ)s / %(expected)s = <strong>%(pre_chi)s</strong>
+                </p>""" % {u"row_n": row_n, u"col_n": col_n,
+                    u"larger": cell_data[mg.CHI_MAX_OBS_EXP],
+                    u"smaller": cell_data[mg.CHI_MIN_OBS_EXP],
+                    u"expected": cell_data[mg.CHI_EXPECTED],
+                    u"diff": cell_data[mg.CHI_DIFF],
+                    u"diff_squ": cell_data[mg.CHI_DIFF_SQU],
+                    u"pre_chi": cell_data[mg.CHI_PRE_CHI],
+                    })
+            html.append(u"""
+            <h3>Step 4 - Add up all the results to get Χ²</h3>""")
+            vals_added = u" + ".join(str(x) for x in details[mg.CHI_PRE_CHIS])
+            html.append(u"""
+            <p>%s = <strong>%s</strong></p>""" % (vals_added,
+                details[mg.CHI_CHI_SQU]))
+            html.append(u"""
+            <h3>Step 5 - Calculate degrees of freedom</h3>
+            <p>N rows - 1 multiplied by N columns - 1</p>
+            <p>(%s - 1) x (%s - 1) = %s x %s = <strong>%s</strong></p>""" %
+            (details[mg.CHI_ROW_N], details[mg.CHI_COL_N],
+                details[mg.CHI_ROW_N_MINUS_1], details[mg.CHI_COL_N_MINUS_1],
+                details[mg.CHI_DF]))
+            html.append(u"""<p>The only remaining question is the probability of
+                a Chi Square value that size occurring for a given degrees of
+                freedom value</p>""")
     if page_break_after:
         html.append(u"<br><hr><br><div class='%s'></div>" % 
             CSS_PAGE_BREAK_BEFORE)
     # clustered bar charts
     html.append(u"<hr><p>Interpreting the Proportions chart - look at the "
-        u"\"All combined\" category - the more d The "
-                u"smaller the N and the bigger the T the less likely the "
-                u"difference between %s and %s could occur by chance.ifferent the other "
+        u"\"All combined\" category - the more different the other "
         U"%(var_label_a)s categories look from this the more likely the Chi "
         u"Square test will detect a difference. Within each %(var_label_a)s "
         u"category the %(var_label_b)s values add up to 1 i.e. 100%%. This is "
