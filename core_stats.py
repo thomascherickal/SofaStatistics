@@ -282,7 +282,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     
     NB some dbes return integers and some return Decimals.
     
-    The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...    
+    The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
@@ -407,7 +407,7 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
 
-def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, lst_exp, df):
+def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, df):
     MAX_WORKED_N = 100
     if len(lst_obs) > MAX_WORKED_N:
         details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
@@ -415,6 +415,10 @@ def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, lst_exp, df):
         return details
     n_a = len(vals_a)
     n_b = len(vals_b)
+    ## Restructure lst_obs to nested lists following pattern of contingency table
+    ## The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...
+    ## (i.e. across the rows)
+    obs = np.reshape(lst_obs, (n_a, n_b))
     grand_total = sum(lst_obs)
     obs_idx = 0
     row_sums = defaultdict(int)
@@ -423,9 +427,9 @@ def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, lst_exp, df):
     col_obs = defaultdict(list)
     cells_data = OrderedDict()
     ## round 1
-    for row_n, unused in enumerate(vals_a, 1):
-        for col_n, unused in enumerate(vals_b, 1):
-            observed = lst_obs[obs_idx]
+    for col_n, unused in enumerate(vals_b, 1):
+        for row_n, unused in enumerate(vals_a, 1):
+            observed = obs[row_n - 1][col_n - 1]  ## need zero-based indexing for numpy
             row_sums[row_n] += observed
             col_sums[col_n] += observed
             row_obs[row_n].append(observed)
