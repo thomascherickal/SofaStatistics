@@ -408,11 +408,6 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
         perc_cells_lt_5, df)
 
 def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, df):
-    MAX_WORKED_N = 100
-    if len(lst_obs) > MAX_WORKED_N:
-        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
-            u"practical to display worked example") % MAX_WORKED_N}
-        return details
     n_a = len(vals_a)
     n_b = len(vals_b)
     ## Restructure lst_obs to nested lists following pattern of contingency table
@@ -463,7 +458,6 @@ def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, df):
         pre_chi = round(raw_pre_chi, 3)
         cell_data[mg.CHI_PRE_CHI] = pre_chi
         pre_chis.append(pre_chi)
-
     details = {
         mg.CHI_GRAND_TOT: grand_total,
         mg.CHI_ROW_SUMS: row_sums,
@@ -1016,11 +1010,6 @@ def mannwhitneyu_details(sample_a, sample_b, label_a='Sample1',
     comparison approach yield exactly the same results. The comparison approach
     is more intuitive in meaning - the ranked approach is much faster.
     """
-    MAX_WORKED_N = 100
-    if len(sample_a) > MAX_WORKED_N:
-        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
-            u"practical to display worked example") % MAX_WORKED_N}
-        return details
     len_a = len(sample_a)
     len_b = len(sample_b)
     if len_b < len_a:  ## make a first unless b shorter
@@ -1131,11 +1120,6 @@ def wilcoxont_details(sample_a, sample_b, label_a='Sample1', label_b='Sample2',
 
     Not focused on performance - just clarity
     """
-    MAX_WORKED_N = 100
-    if len(sample_a) > MAX_WORKED_N:
-        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
-            u"practical to display worked example") % MAX_WORKED_N}
-        return details
     pairs = zip(sample_a, sample_b)
     ## diffs between pairs (always in same order but which order doesn't matter
     diff_dets = [{u"a": a, u"b": b, u"diff": a-b} for a, b in pairs]
@@ -1277,11 +1261,6 @@ def spearmanr(x, y, headless=False):
     return rs, probrs, df
 
 def spearmanr_details(sample_x, sample_y, label_x, label_y, headless=False):
-    MAX_WORKED_N = 100
-    if len(sample_x) > MAX_WORKED_N:
-        details = {mg.REASON_NO_DETAILS: _(u"More than %s records so not "
-            u"practical to display worked example") % MAX_WORKED_N}
-        return details
     initial_tbl = []
     n_x = len(sample_x)
     assert n_x == len(sample_y)
