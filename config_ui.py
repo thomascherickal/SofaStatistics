@@ -130,22 +130,26 @@ class DlgVarConfig(wx.Dialog):
 
     def on_ok(self, event):
         """
-        If file doesn't exist, check if folder exists. If so, make file with 
-            required vdt variables initialised. If not, advise user that folder 
-            doesn't exist.
+        If file doesn't exist, check if folder exists. If so, make file with
+        required vdt variables initialised. If not, advise user that folder
+        doesn't exist.
+        
         If file exists, check it is a valid vdt file.
-        Best to prevent storing an invalid vdt file in a project rather than 
-            just catching once selected.
-        Still have to handle it if corrupted after being set as part of a 
-            project - just work with empty dicts for variable details until 
-            overwritten as part of any update. Will effectively wipe a faulty 
-            vdt except for the new item being added. Looks at everything stored 
-            (nothing ;-) plus new item) and stores that.
+        
+        Best to prevent storing an invalid vdt file in a project rather than
+        just catching once selected.
+        
+        Still have to handle it if corrupted after being set as part of a
+        project - just work with empty dicts for variable details until
+        overwritten as part of any update. Will effectively wipe a faulty vdt
+        except for the new item being added. Looks at everything stored (nothing
+        ;-) plus new item) and stores that.
         """
         entered_vdt_path = self.txt_var_dets_file.GetValue()
         file_exists = os.path.exists(entered_vdt_path)
         if file_exists: # exists but is it valid?
-            invalid_msg = lib.get_invalid_var_dets_msg(entered_vdt_path)
+            invalid_msg = lib.OutputLib.get_invalid_var_dets_msg(
+                entered_vdt_path)
             if not invalid_msg:
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
@@ -442,8 +446,8 @@ class ConfigUI(object):
             style_selector = wx.Choice(panel, -1, choices=style_choices)
             style_selector.Bind(wx.EVT_CHOICE, self.on_style_sel)
         style_selector.SetFont(mg.GEN_FONT)
-        style = (lib.path2style(css_file) if css_file 
-            else lib.path2style(cc[mg.CURRENT_CSS_PATH]))
+        style = (lib.OutputLib.path2style(css_file) if css_file 
+            else lib.OutputLib.path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
         style_selector.Enable(not self.readonly)
@@ -711,7 +715,7 @@ class ConfigUI(object):
         wx.BeginBusyCursor()
         (bolran_report, 
          str_content) = self.get_script_output(get_script_args, new_has_dojo)
-        lib.update_local_display(self.html, str_content)
+        lib.OutputLib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.align_export_btns(bolran_report)
         lib.GuiLib.safe_end_cursor()
@@ -725,9 +729,9 @@ class ConfigUI(object):
         try:
             self.run_report(get_script_args, new_has_dojo)
         except my_exceptions.MissingCss, e:    
-            lib.update_local_display(self.html, _("Please check the CSS file "
-                "exists or set another. Caused by error: %s") % b.ue(e), 
-                wrap_text=True)
+            lib.OutputLib.update_local_display(self.html,
+                _("Please check the CSS file exists or set another. Caused by "
+                  "error: %s") % b.ue(e), wrap_text=True)
             lib.GuiLib.safe_end_cursor()
         event.Skip()
         
@@ -789,7 +793,7 @@ class ConfigUI(object):
             if style == u"":
                 return
             if debug: print(u"Selected style is: %s" % style)
-            cc[mg.CURRENT_CSS_PATH] = lib.style2path(style)
+            cc[mg.CURRENT_CSS_PATH] = lib.OutputLib.style2path(style)
 
     def on_btn_expand(self, event):
         showhtml.display_report(self, self.content2expand, self.url_load)

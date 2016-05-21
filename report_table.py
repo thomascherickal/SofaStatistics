@@ -502,7 +502,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                 continue
             item_conf = tree.GetItemPyData(descendant)
             var_name = item_conf.var_name
-            fresh_label = lib.get_choice_item(self.var_labels, var_name)
+            fresh_label = lib.GuiLib.get_choice_item(self.var_labels, var_name)
             tree.SetItemText(descendant, fresh_label)
 
     # table type
@@ -647,7 +647,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCss, e:
-                lib.update_local_display(self.html, 
+                lib.OutputLib.update_local_display(self.html, 
                     _(u"Please check the CSS file exists or set another."
                     u"\nCaused by error: %s") % b.ue(e), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
@@ -700,10 +700,11 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             script_lst.append(u"col_names = " + unicode(col_names))
             script_lst.append(u"col_labels = " + unicode(col_labels))
             script_lst.append(u"col_sorting = " + unicode(col_sorting))
-            script_lst.append(u"flds = " + lib.dic2unicode(dd.flds))
+            script_lst.append(u"flds = " + lib.UniLib.dic2unicode(dd.flds))
             script_lst.append(u"var_labels = " +
-                lib.dic2unicode(self.var_labels))
-            script_lst.append(u"val_dics = " + lib.dic2unicode(self.val_dics))
+                lib.UniLib.dic2unicode(self.var_labels))
+            script_lst.append(u"val_dics = "
+                + lib.UniLib.dic2unicode(self.val_dics))
         # process title dets
         titles, subtitles = self.get_titles()
         script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
@@ -919,13 +920,13 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 else:
                     demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCss, e:
-                lib.update_local_display(self.html, _("Please check the CSS "
-                    "file exists or set another. Caused by error: %s") 
-                    % b.ue(e), wrap_text=True)
+                lib.OutputLib.update_local_display(self.html,
+                    _("Please check the CSS file exists or set another. Caused "
+                      "by error: %s") % b.ue(e), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
                 return demo_was_live
             except my_exceptions.TooFewValsForDisplay:
-                lib.update_local_display(self.html,
+                lib.OutputLib.update_local_display(self.html,
                     _("Not enough data to display. Please check variables and "
                     "any filtering."), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()

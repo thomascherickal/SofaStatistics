@@ -992,7 +992,7 @@ class GenTable(LiveTable):
         for row in row_label_rows_lst:
             for unused in col_term_nodes:
                 output_type = mg.MEASURE_LBL2KEY[data_item_presn_lst[i][1]]
-                num2display = lib.get_num2display(num=results[i], 
+                num2display = lib.OutputLib.get_num2display(num=results[i], 
                     output_type=output_type, inc_perc=self.show_perc)
                 row.append(data_item_presn_lst[i][0] 
                            + num2display + data_item_presn_lst[i][2])
@@ -1147,7 +1147,7 @@ class SummTable(LiveTable):
             except Exception:
                 return None
             if debug: print(val)
-            if val is not None and not lib.is_basic_num(val):
+            if val is not None and not lib.TypeLib.is_basic_num(val):
                 break
         return val
     

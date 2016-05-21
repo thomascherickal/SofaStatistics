@@ -86,7 +86,7 @@ class DemoTable(object):
                     cellclass = CSS_DATACELL
                 # build data row list
                 raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC_KEY)
-                num2display = lib.get_num2display(num=raw_val, 
+                num2display = lib.OutputLib.get_num2display(num=raw_val, 
                     output_type=mg.MEASURE_LBL2KEY[colmeasure], 
                     inc_perc=self.show_perc)
                 data_item_presn_lst.append(u"<td class='%s'>%s</td>" %

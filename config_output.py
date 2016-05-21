@@ -279,7 +279,7 @@ class DlgListVars(wx.Dialog):
             if debug: print(u"Clicked badly")
             event.Skip()
             return
-        var_label = lib.get_item_label(item_labels=self.var_labels, 
+        var_label = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_name)
         if debug:
             dd = mg.DATADETS_OBJ
@@ -306,8 +306,9 @@ class DlgListVars(wx.Dialog):
         """
         vals = projects.get_approp_var_names()
         dic_labels = self.var_labels
-        (var_choices, 
-         self.sorted_var_names) = lib.get_sorted_choice_items(dic_labels, vals)
+        (var_choices,
+         self.sorted_var_names) = lib.GuiLib.get_sorted_choice_items(
+             dic_labels, vals)
         self.lst_vars.SetItems(var_choices)
 
     def get_var(self):

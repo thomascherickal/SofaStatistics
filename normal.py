@@ -260,11 +260,11 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
                 wx.MessageBox(u"Unable to process first variable. "
                     u"Orig error: %s" % e)
                 return
-            self.var_label_a = lib.get_item_label(item_labels=self.var_labels, 
-                item_val=self.var_a)
+            self.var_label_a = lib.GuiLib.get_item_label(
+                item_labels=self.var_labels, item_val=self.var_a)
             if self.paired:
                 self.var_b, unused = self.get_var_b()
-                self.var_label_b = lib.get_item_label(
+                self.var_label_b = lib.GuiLib.get_item_label(
                     item_labels=self.var_labels, item_val=self.var_b)
             else:
                 self.var_b = None
@@ -368,7 +368,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
     def setup_vars(self, var_a=True, var_b=True, var=None):
         var_names = projects.get_approp_var_names(self.var_types,
             min_data_type=mg.VAR_TYPE_QUANT_KEY)
-        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
+        var_choices, self.sorted_var_names = lib.GuiLib.get_sorted_choice_items(
             dic_labels=self.var_labels, vals=var_names)
         if var_a:
             self.drop_var_a.SetItems(var_choices)
@@ -406,7 +406,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         except Exception:
             wx.MessageBox(u"Unable to edit selection - nothing selected")
             return
-        var_label_a = lib.get_item_label(item_labels=self.var_labels, 
+        var_label_a = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_a)
         updated = config_output.set_var_props(choice_item, var_a, var_label_a,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
@@ -419,7 +419,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         except Exception:
             wx.MessageBox(u"Unable to edit selection - nothing selected")
             return
-        var_label_b = lib.get_item_label(item_labels=self.var_labels, 
+        var_label_b = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_b)
         updated = config_output.set_var_props(choice_item, var_b, var_label_b,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)

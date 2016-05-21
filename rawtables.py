@@ -130,8 +130,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
                 if ((first_col_as_label and idx_col == 0) 
                         or row_val == u"-"):
                     pass
-                elif (lib.is_basic_num(row_val) 
-                      and lib.is_basic_num(row_tots[idx_col])):
+                elif (lib.TypeLib.is_basic_num(row_val) 
+                      and lib.TypeLib.is_basic_num(row_tots[idx_col])):
                     row_tots[idx_col] += row_val
                     row_tots_used.add(idx_col)
         idx_and_data_rows.append(idx_and_data(sorting_lbls, labelled_cols))

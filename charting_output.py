@@ -493,7 +493,7 @@ def _structure_gen_data(chart_type, raw_data, xlblsdic,
                 x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
                 (x_val_split_lbl,
                  actual_lbl_width,
-                 n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
+                 n_lines) = lib.OutputLib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                     max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
@@ -762,8 +762,9 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
                 if first_chart_by: # build xaxis_dets once
                     (x_val_split_lbl, 
                      actual_lbl_width,
-                     n_lines) = lib.get_lbls_in_lines(orig_txt=x_val_lbl, 
-                        max_width=17, dojo=True, rotate=rotate)
+                     n_lines) = lib.OutputLib.get_lbls_in_lines(
+                         orig_txt=x_val_lbl, max_width=17, dojo=True,
+                         rotate=rotate)
                     if actual_lbl_width > max_x_lbl_len:
                         max_x_lbl_len = actual_lbl_width
                     if n_lines > max_lbl_lines:
@@ -1484,9 +1485,10 @@ def simple_barchart_output(titles, subtitles, x_title, y_title,
         each series colour.
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
-    (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, stroke_width, tooltip_border_colour, 
-            colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    (outer_bg, grid_bg, axis_lbl_font_colour,
+     major_gridline_colour, gridline_width, stroke_width,
+     tooltip_border_colour, colour_mappings,
+     connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     item_colours = output.colour_mappings_to_item_colours(colour_mappings)
     fill = item_colours[0]
     outer_bg = (u"" if outer_bg == u""
@@ -1672,7 +1674,7 @@ def clustered_barchart_output(titles, subtitles, x_title, y_title,
     """
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
         gridline_width, stroke_width, tooltip_border_colour, colour_mappings, 
-        connector_style) = lib.extract_dojo_style(css_fil)
+        connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
@@ -1842,9 +1844,9 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
     height = 350 if multichart else 400
     radius = 120 if multichart else 140
     lbl_offset = -20 if multichart else -30
-    (outer_bg, grid_bg, axis_lbl_font_colour, 
-     unused, unused, unused, tooltip_border_colour, 
-     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+    (outer_bg, grid_bg, axis_lbl_font_colour, unused,
+     unused, unused, tooltip_border_colour, colour_mappings,
+     connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
                 else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
     colour_cases = setup_highlights(colour_mappings, single_colour=False, 
@@ -2041,7 +2043,8 @@ def _get_time_series_affected_dets(time_series, x_title, xaxis_dets, series_det,
         try:
             xs = []
             for val, unused, unused in xaxis_dets:
-                xs.append(lib.get_epoch_secs_from_datetime_str(str(val))*1000)
+                xs.append(lib.DateLib.get_epoch_secs_from_datetime_str(
+                    str(val))*1000)
         except Exception:
             raise my_exceptions.InvalidTimeSeriesInput(fldname=x_title)
         ys = series_det[mg.CHARTS_SERIES_Y_VALS]
@@ -2117,7 +2120,7 @@ def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     """
     (unused, unused, axis_lbl_font_colour, major_gridline_colour, 
             gridline_width, unused, tooltip_border_colour, 
-            unused, connector_style) = lib.extract_dojo_style(css_fil)
+            unused, connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     grid_bg, item_colours, unused = output.get_stats_chart_colours(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
@@ -2373,8 +2376,8 @@ def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
     (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-     gridline_width, unused, tooltip_border_colour, 
-     colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+     gridline_width, unused, tooltip_border_colour, colour_mappings,
+     connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     # Can't have white for line charts because always a white outer background
     axis_lbl_font_colour = (axis_lbl_font_colour
         if axis_lbl_font_colour != u"white" else u"black")
@@ -2498,7 +2501,7 @@ def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
     height = 300 if multichart else 350
     (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
         gridline_width, stroke_width, tooltip_border_colour, colour_mappings, 
-        connector_style) = lib.extract_dojo_style(css_fil)
+        connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     outer_bg = (u"" if outer_bg == u""
         else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
     single_colour = True
@@ -2860,7 +2863,8 @@ def make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
         minor_ticks = u"false" if few_unique_x_vals else u"true"
         (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
          gridline_width, stroke_width, tooltip_border_colour, 
-         colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+         colour_mappings,
+         connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
         # Can't have white for scatterplots because always a white outer background
         axis_lbl_font_colour = (axis_lbl_font_colour
             if axis_lbl_font_colour != u"white" else u"black")
@@ -3132,8 +3136,8 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
     From dojox.charting.action2d.Highlight but with extraneous % removed
     """
     (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-        gridline_width, unused, tooltip_border_colour, 
-        colour_mappings, connector_style) = lib.extract_dojo_style(css_fil)
+        gridline_width, unused, tooltip_border_colour, colour_mappings,
+        connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
     # Can't have white for boxplots because always a white outer background
     outer_bg = u"white"
     axis_lbl_font_colour = (axis_lbl_font_colour

@@ -242,7 +242,7 @@ def get_val_quoter(dbe, flds, fld, val):
     if not flds[fld][mg.FLD_BOLNUMERIC]:
         num = False
     elif dbe == mg.DBE_SQLITE:
-        if not lib.is_basic_num(val):
+        if not lib.TypeLib.is_basic_num(val):
             num = False
     if num:
         val_quoter = lambda s: s

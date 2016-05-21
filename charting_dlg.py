@@ -728,9 +728,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_names = projects.get_approp_var_names(self.var_types,
                                                   min_data_type)
         (var_choice_items, 
-         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
-                                                vals=var_names,
-                                                inc_drop_select=inc_drop_select)
+         sorted_vals) = lib.GuiLib.get_sorted_choice_items(
+             dic_labels=self.var_labels, vals=var_names,
+             inc_drop_select=inc_drop_select)
         while True:
             try:
                 del sorted_var_names[0]
@@ -1233,7 +1233,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         var_name, choice_item = self.get_var_dets(drop_var, sorted_var_names)
         if var_name == mg.DROP_SELECT:
             return
-        var_label = lib.get_item_label(self.var_labels, var_name)
+        var_label = lib.GuiLib.get_item_label(self.var_labels, var_name)
         updated = config_output.set_var_props(choice_item, var_name, var_label,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -1440,7 +1440,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 script_lst.append(u"%s_lbls = None" % var_role)
             else:
                 script_lst.append(u"%s = u\"%s\"" % (var_role, var_val)) # e.g. var_role_agg = "age"
-                var_name = lib.get_item_label(self.var_labels, var_val)
+                var_name = lib.GuiLib.get_item_label(self.var_labels, var_val)
                 script_lst.append(u"%s_name = u\"%s\"" % (var_role, var_name)) # e.g. var_role_agg_name = "Age"
                 val_lbls = self.val_dics.get(var_val, {})
                 script_lst.append(u"%s_lbls = %s" % (var_role, val_lbls)) # e.g. var_role_agg_lbls = {}

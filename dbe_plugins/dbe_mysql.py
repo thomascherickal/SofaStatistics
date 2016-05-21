@@ -40,9 +40,9 @@ def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val, charset2try="iso-8859-1"):
-    return lib.quote_val(raw_val, sql_str_literal_quote=u'"', 
-                         sql_esc_str_literal_quote=u'""', 
-                         pystr_use_double_quotes=False, charset2try=charset2try)
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote=u'"', 
+        sql_esc_str_literal_quote=u'""', pystr_use_double_quotes=False,
+        charset2try=charset2try)
 
 def get_summable(clause):
     return clause

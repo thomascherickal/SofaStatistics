@@ -422,7 +422,7 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
         if not bolnumeric:
             num = False
         elif bolsqlite: # if SQLite may still be non-numeric
-            if not lib.is_basic_num(val):
+            if not lib.TypeLib.is_basic_num(val):
                 num = False
         if num:
             # Need repr otherwise truncates decimals e.g. 111.582756811 instead 

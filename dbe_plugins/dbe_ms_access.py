@@ -39,9 +39,9 @@ def quote_obj(raw_val):
     return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
 
 def quote_val(raw_val, charset2try="iso-8859-1"):
-    return lib.quote_val(raw_val, sql_str_literal_quote=u"'", 
-                         sql_esc_str_literal_quote=u"''", 
-                         pystr_use_double_quotes=True, charset2try=charset2try)
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote=u"'", 
+        sql_esc_str_literal_quote=u"''", pystr_use_double_quotes=True,
+        charset2try=charset2try)
 
 def get_summable(clause):
     return u"ABS(%s)" % clause # true is -1 so we need to get sum of +1s
@@ -367,7 +367,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         for msaccess_setting in msaccess_settings:
             db_path = msaccess_setting[0]
             db_name = lib.get_file_name(db_path) # might not be unique
-            db_name_key = lib.get_unique_db_name_key(db_names, db_name)
+            db_name_key = lib.DbLib.get_unique_db_name_key(db_names, db_name)
             new_msaccess_dic = {}
             new_msaccess_dic[u"database"] = db_path
             new_msaccess_dic[u"mdw"] = msaccess_setting[1]

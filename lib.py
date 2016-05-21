@@ -29,6 +29,415 @@ DatetimeSplit = namedtuple('DatetimeSplit', 'date_part, time_part, '
     'boldate_then_time')
 
 
+class TypeLib(object):
+
+    @staticmethod
+    def is_numeric(val, comma_dec_sep_ok=False):
+        """
+        Is a value numeric?  This is operationalised to mean can a value be cast
+        as a float.  
+
+        NB the string 5 is numeric. Scientific notation is numeric. Complex
+        numbers are considered not numeric for general use.  
+
+        The type may not be numeric (e.g. might be the string '5') but the
+        "content" must be.
+
+        http://www.rosettacode.org/wiki/IsNumeric#Python
+        """
+        if TypeLib.is_pytime(val):
+            return False
+        elif val is None:
+            return False
+        else:
+            try:
+                if comma_dec_sep_ok:
+                    val = val.replace(u",", u".")
+            except AttributeError:
+                pass # Only needed to succeed if a string. Presumably wasn't so OK.
+            try:
+                unused = float(val)
+            except (ValueError, TypeError):
+                return False
+            else:
+                return True
+
+    @staticmethod
+    def is_basic_num(val):
+        """
+        Is a value of a basic numeric type - i.e. integer, long, float? NB complex 
+        or Decimal values are not considered basic numbers.
+
+        NB a string containing a numeric value is not a number type even though it
+        will pass is_numeric().
+        """
+        numtyped = type(val) in [int, long, float]
+        return numtyped
+
+    @staticmethod
+    def is_integer(val):
+        # http://mail.python.org/pipermail/python-list/2006-February/368113.html
+        return isinstance(val, (int, long))
+
+    @staticmethod
+    def is_string(val):
+        # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
+        return isinstance(val, basestring)
+
+    @staticmethod
+    def is_pytime(val): 
+        #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
+        return type(val).__name__ == 'time'
+
+
+class DbLib(object):
+
+    @staticmethod
+    def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, 
+                  pystr_use_double_quotes=True, charset2try=u"utf-8"):
+        """
+        Need to quote a value e.g. for inclusion in an SQL statement.
+
+        raw_val -- might be a string or a datetime but can't be a number.
+
+        sql_str_literal_quote -- e.g. ' for SQLite
+
+        sql_esc_str_literal_quote -- e.g. '' for SQLite
+
+        pystr_use_double_quotes -- Use double quotes for string declaration 
+        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
+        literal quotes used by the database engine to minimise escaping.
+        """
+        debug = False
+        try: # try to process as date first
+            val = raw_val.isoformat()
+            quoted_val = sql_str_literal_quote + val + sql_str_literal_quote
+        except AttributeError: # now try as string
+            """
+            E.g. val is: Don't say "Hello" like that
+
+            We need something ready for WHERE myval = 'Don''t say "Hello" like that'
+
+            So our string declaration ready for insertion into the SQL will need
+            to be something like:
+
+            mystr = u"'Don''t say \"Hello\" like that'"
+
+            Tricky because two levels of escaping ;-). 
+
+            1) Database engine dependent SQL escaping: The SQL statement itself
+            has its own escaping of internal quotes. So SQLite uses ' for quotes
+            and '' to escape them internally.
+
+            2) Python escaping: We need to create a Python string, and do any
+            internal escaping relative to that such that the end result when
+            included in a longer string is correctly escaped SQL. When escaping
+            the final Python string declaration, must escape relative to that
+            e.g. myvar = "..."..." needs to be "...\"...".
+
+            3) variable declaration of quoted value. The overall process is not
+            super hard when clearly understood as having two steps.
+            """
+            try: # 1) do sql escaping
+                try: # try as if already unicode
+                    val = raw_val.replace(sql_str_literal_quote, 
+                        sql_esc_str_literal_quote)
+                except UnicodeDecodeError:
+                    if debug: print(repr(raw_val))
+                    val = unicode(raw_val, charset2try).replace(
+                        sql_str_literal_quote, sql_esc_str_literal_quote)
+            except AttributeError, e:
+                raise Exception(u"Inappropriate attempt to quote non-string value."
+                    u"\nCaused by error: %s" % b.ue(e))
+            if pystr_use_double_quotes:
+                # 2) do Python escaping
+                pystr_esc_val = val.replace(u'"', u'\"')
+                # 3) variable declaration of quoted value
+                quoted_val = u"%s%s%s" % (sql_str_literal_quote, pystr_esc_val,
+                    sql_str_literal_quote)
+            else:
+                pystr_esc_val = val.replace(u"'", u"\'")
+                quoted_val = u'%s%s%s' % (sql_str_literal_quote, pystr_esc_val,
+                    sql_str_literal_quote)
+        return quoted_val
+
+    @staticmethod
+    def get_unique_db_name_key(db_names, db_name):
+        "Might have different paths but same name."
+        if db_name in db_names:
+            db_name_key = db_name + u"_" + unicode(db_names.count(db_name))
+        else:
+            db_name_key = db_name
+        db_names.append(db_name)
+        return db_name_key
+
+
+class OutputLib(object):
+
+    @staticmethod
+    def _extract_img_path(content, use_as_url=False):
+        """
+        Extract image path from html.
+
+        use_as_url -- is the path going to be used as a url (if not we need to 
+        unquote it) so the image path we extract can be used by the os e.g. to 
+        copy an image
+
+        IMG_SRC_START -- u"<img src='"
+        """
+        debug = False
+        idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
+        if debug: print(u"\n\n\nextract_img_path\n%s" % content)
+        content_after_start = content[idx_start:]
+        idx_end = content_after_start.index(mg.IMG_SRC_END) + idx_start
+        img_path = content[idx_start: idx_end]
+        if debug: 
+            print(u"idx_end: %s" % idx_end)
+            print(u"img_path: %s" % img_path)
+        if not use_as_url:
+            img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
+            if debug: print(u"not use_as_url img_path:\n%s" % img_path)
+        # strip off 'file:///' (or file:// as appropriate for os)
+        if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
+            img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_WIN)[1])
+        elif mg.FILE_URL_START_GEN in img_path:
+            img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_GEN)[1])
+        if debug: print(u"Final img_path:\n%s" % img_path)
+        return img_path
+
+    @staticmethod
+    def get_src_dst_preexisting_img(export_report, imgs_path, content):
+        """
+        export_report -- boolean (cf export output)
+        imgs_path -- 
+        e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM
+        e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images
+        content -- 
+        e.g. export output: <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
+        e.g. export report: <img src='test_exporting_images/000.png'>
+        want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png 
+            (not file:///home ...)
+        and dst to be
+        e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
+        e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images/000.png
+        """
+        debug = False
+        img_path = OutputLib._extract_img_path(content, use_as_url=False)
+        if debug: print(u"get_src_dst_preexisting_img\nimg_path:\n%s\n" % img_path)
+        if export_report: # trim off trailing divider, then split and get first part
+            src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
+        else:
+            src = img_path # the run_report process leaves an abs version. How nice!
+        if debug: print(u"src:\n%s\n" % src)
+        img_name = os.path.split(img_path)[1]
+        if debug: print(u"img_path:\n%s\n" % img_path)
+        dst = os.path.join(imgs_path, img_name)
+        if debug: print(u"dst:\n%s\n" % dst)
+        return src, dst
+
+    @staticmethod
+    def style2path(style):
+        "Get full path of css file from style name alone"
+        return os.path.join(mg.CSS_PATH, u"%s.css" % style)
+
+    @staticmethod
+    def path2style(path):
+        "Strip style out of full css path"
+        debug = False
+        if debug: print(u"path: %s" % path)
+        style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
+        if style == u"":
+            raise Exception("Problem stripping style out of path (%s)" % path)
+        return style
+
+    @staticmethod
+    def extract_dojo_style(css_fil):
+        try:
+            f = codecs.open(css_fil, "r", "utf-8")
+        except IOError, e:
+            raise my_exceptions.MissingCss(css_fil)
+        css = f.read()
+        f.close()
+        try:
+            css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
+            css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
+        except ValueError, e:
+            raise my_exceptions.MalformedCssDojo(css)
+        text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
+        css_dojo = b.get_exec_ready_text(text)
+        css_dojo_dic = {}
+        try:
+            exec css_dojo in css_dojo_dic
+        except SyntaxError, e:
+            wx.MessageBox(_(u"Syntax error in dojo settings in css file"
+                u" \"%(css_fil)s\"."
+                u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
+                u"css_dojo": css_dojo, u"err": b.ue(e)})
+            raise
+        except Exception, e:
+            wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
+                u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": b.ue(e)})
+            raise
+        return (css_dojo_dic[u"outer_bg"], 
+            css_dojo_dic[u"inner_bg"], # grid_bg
+            css_dojo_dic[u"axis_label_font_colour"], 
+            css_dojo_dic[u"major_gridline_colour"], 
+            css_dojo_dic[u"gridline_width"], 
+            css_dojo_dic[u"stroke_width"], 
+            css_dojo_dic[u"tooltip_border_colour"], 
+            css_dojo_dic[u"colour_mappings"],
+            css_dojo_dic[u"connector_style"],
+            )
+
+    @staticmethod
+    def update_local_display(html_ctrl, str_content, wrap_text=False):
+        str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
+        html_ctrl.show_html(str_content, url_load=True) # allow footnotes
+
+    @staticmethod
+    def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
+        """
+        Returns quoted text. Will not be further quoted.
+
+        Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
+
+        actual_lbl_width -- may be broken into lines if not rotated. If rotated, we
+        need sum of each line (no line breaks possible at present).
+        """
+        debug = False
+        lines = []
+        try:
+            words = orig_txt.split()
+        except Exception:
+            raise Exception("Tried to split a non-text label. "
+                "Is the script not supplying text labels?")
+        line_words = []
+        for word in words:
+            line_words.append(word)
+            line_width = len(u" ".join(line_words))
+            if line_width > max_width:
+                line_words.pop()
+                lines.append(u" ".join(line_words))
+                line_words = [word]
+        lines.append(u" ".join(line_words))
+        lines = [x.center(max_width) for x in lines]
+        if debug: 
+            print(line_words)
+            print(lines)
+        n_lines = len(lines)
+        if dojo:
+            if n_lines == 1:
+                raw_lbl = lines[0].strip()
+                wrapped_txt = u"\"" + raw_lbl + u"\""
+                actual_lbl_width = len(raw_lbl)
+            else:
+                if rotate: # displays <br> for some reason so can't use it
+                    # no current way identified for line breaks when rotated
+                    # see - http://grokbase.com/t/dojo/dojo-interest/09cat4bkvg/...
+                    #...dojox-charting-line-break-in-axis-labels-ie
+                    wrapped_txt = (u"\"" 
+                        + u"\" + \" \" + \"".join(x.strip() for x in lines) + u"\"")
+                    actual_lbl_width = sum(len(x)+1 for x in lines) - 1
+                else:
+                    wrapped_txt = (u"\""
+                        + u"\" + labelLineBreak + \"".join(lines) + u"\"")
+                    actual_lbl_width = max_width # they are centred in max_width
+        else:
+            if n_lines == 1:
+                raw_lbl = lines[0].strip()
+                wrapped_txt = raw_lbl
+                actual_lbl_width = len(raw_lbl)
+            else:
+                wrapped_txt = u"\n".join(lines)
+                actual_lbl_width = max_width # they are centred in max_width
+        if debug: print(wrapped_txt)
+        return wrapped_txt, actual_lbl_width, n_lines
+
+    @staticmethod
+    def get_p(p):
+        p_str = OutputLib.to_precision(num=p, precision=4)
+        if p < 0.001:
+            p_str = u"< 0.001 (%s)" % p_str
+        return p_str
+
+    @staticmethod
+    def get_num2display(num, output_type, inc_perc=True):
+        if output_type == mg.FREQ_KEY:
+            num2display = unicode(num)
+        else:
+            if inc_perc:
+                num2display = u"%s%%" % round(num, 1)
+            else:
+                num2display = u"%s" % round(num, 1)
+        return num2display
+
+    @staticmethod
+    def to_precision(num, precision):
+        """
+        Returns a string representation of x formatted with a precision of p.
+
+        Based on the webkit javascript implementation taken from here:
+        https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp
+
+        http://randlet.com/blog/python-significant-figures-format/
+        """
+        x = float(num)
+        if x == 0.:
+            return "0." + "0"*(precision - 1)
+        out = []
+        if x < 0:
+            out.append("-")
+            x = -x
+        e = int(math.log10(x))
+        tens = math.pow(10, e - precision + 1)
+        n = math.floor(x/tens)
+        if n < math.pow(10, precision - 1):
+            e = e -1
+            tens = math.pow(10, e - precision + 1)
+            n = math.floor(x / tens)
+        if abs((n + 1.) * tens - x) <= abs(n * tens -x):
+            n = n + 1
+        if n >= math.pow(10, precision):
+            n = n / 10.
+            e = e + 1
+        m = "%.*g" % (precision, n)
+        if e < -2 or e >= precision:
+            out.append(m[0])
+            if precision > 1:
+                out.append(".")
+                out.extend(m[1:precision])
+            out.append('e')
+            if e > 0:
+                out.append("+")
+            out.append(str(e))
+        elif e == (precision -1):
+            out.append(m)
+        elif e >= 0:
+            out.append(m[:e+1])
+            if e+1 < len(m):
+                out.append(".")
+                out.extend(m[e+1:])
+        else:
+            out.append("0.")
+            out.extend(["0"] * -(e+1))
+            out.append(m)
+        return u"".join(out)
+
+    @staticmethod
+    def get_invalid_var_dets_msg(fil_var_dets):
+        debug = False
+        try:
+            var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
+            var_dets = b.get_exec_ready_text(text=var_dets)
+            var_dets_dic = {}
+            exec var_dets in var_dets_dic
+            if debug: wx.MessageBox(u"%s got a clean bill of health from "
+                u"get_invalid_var_dets_msg()!" % fil_var_dets)
+            return None
+        except Exception, e:
+            return b.ue(e)
+
+
 class UniLib(object):
 
     cp1252 = {
@@ -160,7 +569,7 @@ class UniLib(object):
 
         If a number, avoids scientific notation if up to 16 places.
         """
-        if is_basic_num(raw):
+        if TypeLib.is_basic_num(raw):
             # only work with repr if you have to
             # 0.3 -> 0.3 if print() but 0.29999999999999999 if repr()
             strval = unicode(raw)
@@ -172,6 +581,44 @@ class UniLib(object):
             return UniLib._str2unicode(raw)
         else:
             return unicode(raw)
+
+    @staticmethod
+    def _get_unicode_repr(item):
+        if isinstance(item, unicode):
+            return u'u"%s"' % unicode(item).replace('"', '""')
+        elif isinstance(item, str):
+            return u'"%s"' % unicode(item).replace('"', '""')
+        elif item is None:
+            return u"None"
+        else:
+            return u"%s" % unicode(item).replace('"', '""')
+
+    @staticmethod
+    def dic2unicode(mydic, indent=1):
+        """
+        Needed because pprint.pformat() can't cope with strings like
+        'João Rosário'.
+
+        Pity so will have to wait till Python 3 version to handle more elegantly.
+
+        Goal is to make files that Python can run.
+
+        Note -- recursive so can cope with nested dictionaries.
+        """
+        try:
+            keyvals = sorted(mydic.items())
+        except Exception: # not a dict, just a value
+            return UniLib._get_unicode_repr(mydic)
+        ustr = u"{"
+        rows = []
+        for key, val in keyvals:
+            keystr = UniLib._get_unicode_repr(key) + u": "
+            rows.append(keystr + UniLib.dic2unicode(val,
+                indent + len(u"{" + keystr)))
+        joiner = u",\n%s" % (indent*u" ",)
+        ustr += (joiner.join(rows))
+        ustr += u"}"
+        return ustr
 
 
 class DateLib(object):
@@ -290,7 +737,7 @@ class DateLib(object):
         E.g. 1 Feb 2009 returned as [u"1 Feb 2009"]
         E.g. 1 Feb 2009 4pm returned as [u"1 Feb 2009", u"4pm"]
         E.g. 21/12/2009 4pm returned as [u"21/12/2009", u"4pm"]
-    
+
         Not sure which way round they are yet or no need to guarantee that the
         parts are even valid as either dates or times.
 
@@ -382,7 +829,7 @@ class DateLib(object):
         into a standard string for data entry.
         """
         debug = False
-        if not is_string(raw_datetime_str):
+        if not TypeLib.is_string(raw_datetime_str):
             if debug: print("%s is not a valid datetime string" % raw_datetime_str)
             return None
         if raw_datetime_str.strip() == u"":
@@ -522,7 +969,7 @@ class DateLib(object):
         """
         Takes a string and checks if there is a usable datetime in there (even a
         time without a date is OK).
-    
+
         If there is, returns a standard datetime object.
         """
         time_obj = DateLib._get_time_obj(raw_datetime_str)
@@ -876,6 +1323,49 @@ class GuiLib(object):
         col_labels = [var_labels.get(x, x.title()) for x in col_names]
         return col_names, col_labels, col_sorting
 
+    @staticmethod
+    def get_item_label(item_labels, item_val):
+        """
+        e.g. if lacking a label, turn agegrp into Agegrp
+        e.g. if has a label, turn agegrp into Age Group
+        """
+        item_val_u = UniLib.any2unicode(item_val)
+        return item_labels.get(item_val, item_val_u.title()) #.replace(u"\n", u" ") # leave as is
+
+    @staticmethod
+    def get_choice_item(item_labels, item_val):
+        """
+        e.g. "Age Group (agegrp)"
+        """
+        item_label = GuiLib.get_item_label(item_labels, item_val)
+        return u"%s (%s)" % (item_label, UniLib.any2unicode(item_val)) #.replace(u"\n", u" "))
+
+    @staticmethod
+    def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
+        """
+        Sorted by label, not name.
+
+        dic_labels - could be for either variables of values.
+
+        vals - either variables or values.
+
+        If DROP_SELECT in list, always appears first.
+
+        Returns choice_items_sorted, orig_items_sorted.
+
+        http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
+            ... sort-can-you-do-a-schwartzian-transform-in-python
+        """
+        sorted_vals = vals
+        sorted_vals.sort(
+            key=lambda s: GuiLib.get_choice_item(dic_labels, s).upper())
+        choice_items = [GuiLib.get_choice_item(dic_labels, x)
+            for x in sorted_vals]
+        if inc_drop_select:
+            choice_items.insert(0, mg.DROP_SELECT)
+            sorted_vals.insert(0, mg.DROP_SELECT)
+        return choice_items, sorted_vals
+
 
 class MultilineCheckBox(wx.CheckBox):
     """
@@ -951,8 +1441,8 @@ class StdCheckBox(wx.CheckBox):
 class DlgHelp(wx.Dialog):
     def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 
             help_pg):
-        wx.Dialog.__init__(self, parent=parent, title=title, 
-            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU, 
+        wx.Dialog.__init__(self, parent=parent, title=title,
+            style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU,
             pos=(mg.HORIZ_OFFSET+100,100))
         self.panel = wx.Panel(self)
         self.help_pg = help_pg
@@ -1041,21 +1531,59 @@ class StaticWrapText(wx.StaticText):
         self.__wrap()
 
 
+class ItemConfig(object):
+    """
+    Item config storage and retrieval.
+
+    Has: var_name, measures, has_tot, sort order, bolnumeric
+
+    bolnumeric is only used for verbose summary reporting.
+
+    Note - won't have a var name if it is the column config item.
+    """
+
+    def __init__(self, sort_order, var_name=None, measures_lst=None,
+            has_tot=False, bolnumeric=False):
+        self.var_name = var_name
+        if measures_lst:
+            self.measures_lst = measures_lst
+        else:
+            self.measures_lst = []
+        self.has_tot = has_tot
+        self.sort_order = sort_order
+        self.bolnumeric = bolnumeric
+
+    def get_summary(self, verbose=False):
+        """
+        String summary of data (apart from variable name).
+        """
+        str_parts = []
+        total_part = _("Has TOTAL") if self.has_tot else None
+        if total_part:
+            str_parts.append(total_part)
+        # ordinary sorting by freq (may include rows and cols)
+        order2lbl_dic = {mg.SORT_NONE_KEY: u"Not Sorted",
+            mg.SORT_VALUE_KEY: u"Sort by Value",
+            mg.SORT_LBL_KEY: _("Sort by Label"),
+            mg.SORT_INCREASING_KEY: _("Sort by Freq (Asc)"),
+            mg.SORT_DECREASING_KEY: _("Sort by Freq (Desc)")}
+        sort_order_part = order2lbl_dic.get(self.sort_order)
+        if sort_order_part:
+            str_parts.append(sort_order_part)
+        if verbose:
+            if self.bolnumeric:
+                str_parts.append(_("Numeric"))
+            else:
+                str_parts.append(_("Not numeric"))
+        measures = ", ".join(self.measures_lst)
+        measures_part = _("Measures: %s") % measures if measures else None
+        if measures_part:
+            str_parts.append(measures_part)
+        return u"; ".join(str_parts)
+
+
 def get_safer_name(rawname):
     return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
-
-def style2path(style):
-    "Get full path of css file from style name alone"
-    return os.path.join(mg.CSS_PATH, u"%s.css" % style)
-
-def path2style(path):
-    "Strip style out of full css path"
-    debug = False
-    if debug: print(u"path: %s" % path)
-    style = path[len(mg.CSS_PATH)+1:-len(u".css")] # +1 to miss trailing slash
-    if style == u"":
-        raise Exception("Problem stripping style out of path (%s)" % path)
-    return style
 
 def get_gettext_setup_txt():
     """
@@ -1091,65 +1619,6 @@ def formatnum(num):
         formatted = num
     return formatted
 
-def extract_img_path(content, use_as_url=False):
-    """
-    Extract image path from html.
-    
-    use_as_url -- is the path going to be used as a url (if not we need to 
-    unquote it) so the image path we extract can be used by the os e.g. to 
-    copy an image
-    
-    IMG_SRC_START -- u"<img src='"
-    """
-    debug = False
-    idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
-    if debug: print(u"\n\n\nextract_img_path\n%s" % content)
-    content_after_start = content[idx_start:]
-    idx_end = content_after_start.index(mg.IMG_SRC_END) + idx_start
-    img_path = content[idx_start: idx_end]
-    if debug: 
-        print(u"idx_end: %s" % idx_end)
-        print(u"img_path: %s" % img_path)
-    if not use_as_url:
-        img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
-        if debug: print(u"not use_as_url img_path:\n%s" % img_path)
-    # strip off 'file:///' (or file:// as appropriate for os)
-    if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
-        img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_WIN)[1])
-    elif mg.FILE_URL_START_GEN in img_path:
-        img_path = os.path.join(u"", img_path.split(mg.FILE_URL_START_GEN)[1])
-    if debug: print(u"Final img_path:\n%s" % img_path)
-    return img_path
-
-def get_src_dst_preexisting_img(export_report, imgs_path, content):
-    """
-    export_report -- boolean (cf export output)
-    imgs_path -- 
-    e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM
-    e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images
-    content -- 
-    e.g. export output: <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
-    e.g. export report: <img src='test_exporting_images/000.png'>
-    want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png 
-        (not file:///home ...)
-    and dst to be
-    e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
-    e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images/000.png
-    """
-    debug = False
-    img_path = extract_img_path(content, use_as_url=False)
-    if debug: print(u"get_src_dst_preexisting_img\nimg_path:\n%s\n" % img_path)
-    if export_report: # trim off trailing divider, then split and get first part
-        src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
-    else:
-        src = img_path # the run_report process leaves an abs version. How nice!
-    if debug: print(u"src:\n%s\n" % src)
-    img_name = os.path.split(img_path)[1]
-    if debug: print(u"img_path:\n%s\n" % img_path)
-    dst = os.path.join(imgs_path, img_name)
-    if debug: print(u"dst:\n%s\n" % dst)
-    return src, dst
-
 def fix_eols(orig):
     """
     Prevent EOL errors by replacing any new lines with spaces.
@@ -1161,16 +1630,6 @@ def fix_eols(orig):
         fixed = orig
     return fixed
 
-def get_num2display(num, output_type, inc_perc=True):
-    if output_type == mg.FREQ_KEY:
-        num2display = unicode(num)
-    else:
-        if inc_perc:
-            num2display = u"%s%%" % round(num, 1)
-        else:
-            num2display = u"%s" % round(num, 1)
-    return num2display
-
 def current_lang_rtl():
     return wx.GetApp().GetLayoutDirection() == wx.Layout_RightToLeft
 
@@ -1178,141 +1637,6 @@ def mustreverse():
     "Other OSs may require it too but uncertain at this stage"
     #return True #testing
     return current_lang_rtl() and mg.PLATFORM == mg.WINDOWS
-
-def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, 
-              pystr_use_double_quotes=True, charset2try=u"utf-8"):
-    """
-    Need to quote a value e.g. for inclusion in an SQL statement.
-    
-    raw_val -- might be a string or a datetime but can't be a number.
-    
-    sql_str_literal_quote -- e.g. ' for SQLite
-    
-    sql_esc_str_literal_quote -- e.g. '' for SQLite
-    
-    pystr_use_double_quotes -- Use double quotes for string declaration 
-    e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
-    literal quotes used by the database engine to minimise escaping.
-    """
-    debug = False
-    try: # try to process as date first
-        val = raw_val.isoformat()
-        quoted_val = sql_str_literal_quote + val + sql_str_literal_quote
-    except AttributeError: # now try as string
-        """
-        E.g. val is: Don't say "Hello" like that
-        
-        We need something ready for WHERE myval = 'Don''t say "Hello" like that'
-        
-        So our string declaration ready for insertion into the SQL will need to 
-        be something like:
-        
-        mystr = u"'Don''t say \"Hello\" like that'"
-        
-        Tricky because two levels of escaping ;-). 
-        
-        1) Database engine dependent SQL escaping: The SQL statement itself has 
-        its own escaping of internal quotes. So SQLite uses ' for quotes and '' 
-        to escape them internally.
-        
-        2) Python escaping: We need to create a Python string, and do any 
-        internal escaping relative to that such that the end result when 
-        included in a longer string is correctly escaped SQL. When escaping the 
-        final Python string declaration, must escape relative to that e.g. 
-        myvar = "..."..." needs to be "...\"...". 
-        
-        3) variable declaration of quoted value
-        The overall process is not super hard when clearly understood as having 
-        two steps.
-        """
-        try: # 1) do sql escaping
-            try: # try as if already unicode
-                val = raw_val.replace(sql_str_literal_quote, 
-                    sql_esc_str_literal_quote)
-            except UnicodeDecodeError:
-                if debug: print(repr(raw_val))
-                val = unicode(raw_val, charset2try).replace(
-                    sql_str_literal_quote, sql_esc_str_literal_quote)
-        except AttributeError, e:
-            raise Exception(u"Inappropriate attempt to quote non-string value."
-                u"\nCaused by error: %s" % b.ue(e))
-        if pystr_use_double_quotes:
-            # 2) do Python escaping
-            pystr_esc_val = val.replace(u'"', u'\"')
-            # 3) variable declaration of quoted value
-            quoted_val = u"%s%s%s" % (sql_str_literal_quote, pystr_esc_val,
-                sql_str_literal_quote)
-        else:
-            pystr_esc_val = val.replace(u"'", u"\'")
-            quoted_val = u'%s%s%s' % (sql_str_literal_quote, pystr_esc_val,
-                sql_str_literal_quote)
-    return quoted_val
-
-def to_precision(num, precision):
-    """
-    Returns a string representation of x formatted with a precision of p.
-
-    Based on the webkit javascript implementation taken from here:
-    https://code.google.com/p/webkit-mirror/source/browse/JavaScriptCore/kjs/number_object.cpp
-    
-    http://randlet.com/blog/python-significant-figures-format/
-    """
-    x = float(num)
-    if x == 0.:
-        return "0." + "0"*(precision - 1)
-    out = []
-    if x < 0:
-        out.append("-")
-        x = -x
-    e = int(math.log10(x))
-    tens = math.pow(10, e - precision + 1)
-    n = math.floor(x/tens)
-    if n < math.pow(10, precision - 1):
-        e = e -1
-        tens = math.pow(10, e - precision + 1)
-        n = math.floor(x / tens)
-    if abs((n + 1.) * tens - x) <= abs(n * tens -x):
-        n = n + 1
-    if n >= math.pow(10, precision):
-        n = n / 10.
-        e = e + 1
-    m = "%.*g" % (precision, n)
-    if e < -2 or e >= precision:
-        out.append(m[0])
-        if precision > 1:
-            out.append(".")
-            out.extend(m[1:precision])
-        out.append('e')
-        if e > 0:
-            out.append("+")
-        out.append(str(e))
-    elif e == (precision -1):
-        out.append(m)
-    elif e >= 0:
-        out.append(m[:e+1])
-        if e+1 < len(m):
-            out.append(".")
-            out.extend(m[e+1:])
-    else:
-        out.append("0.")
-        out.extend(["0"] * -(e+1))
-        out.append(m)
-    return u"".join(out)
-
-def get_p(p):
-    p_str = to_precision(num=p, precision=4)
-    if p < 0.001:
-        p_str = u"< 0.001 (%s)" % p_str
-    return p_str
-
-def get_unique_db_name_key(db_names, db_name):
-    "Might have different paths but same name."
-    if db_name in db_names:
-        db_name_key = db_name + u"_" + unicode(db_names.count(db_name))
-    else:
-        db_name_key = db_name
-    db_names.append(db_name)
-    return db_name_key
 
 def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     """
@@ -1325,44 +1649,6 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
         vals_etc_lst.sort(key=itemgetter(idx_measure), reverse=True)
     elif sort_order == mg.SORT_LBL_KEY:
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
-
-def extract_dojo_style(css_fil):
-    try:
-        f = codecs.open(css_fil, "r", "utf-8")
-    except IOError, e:
-        raise my_exceptions.MissingCss(css_fil)
-    css = f.read()
-    f.close()
-    try:
-        css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
-        css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
-    except ValueError, e:
-        raise my_exceptions.MalformedCssDojo(css)
-    text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
-    css_dojo = b.get_exec_ready_text(text)
-    css_dojo_dic = {}
-    try:
-        exec css_dojo in css_dojo_dic
-    except SyntaxError, e:
-        wx.MessageBox(_(u"Syntax error in dojo settings in css file"
-            u" \"%(css_fil)s\"."
-            u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
-            u"css_dojo": css_dojo, u"err": b.ue(e)})
-        raise
-    except Exception, e:
-        wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
-            u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": b.ue(e)})
-        raise
-    return (css_dojo_dic[u"outer_bg"], 
-        css_dojo_dic[u"inner_bg"], # grid_bg
-        css_dojo_dic[u"axis_label_font_colour"], 
-        css_dojo_dic[u"major_gridline_colour"], 
-        css_dojo_dic[u"gridline_width"], 
-        css_dojo_dic[u"stroke_width"], 
-        css_dojo_dic[u"tooltip_border_colour"], 
-        css_dojo_dic[u"colour_mappings"],
-        css_dojo_dic[u"connector_style"],
-        )
 
 def get_bins(min_val, max_val):
     """
@@ -1490,10 +1776,10 @@ def get_val_type(val, comma_dec_sep_ok=False):
     """
     comma_dec_sep_ok -- Some countries use commas as decimal separators.
     """
-    if is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
+    if TypeLib.is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
             # _as a number_ into a numeric field
         val_type = mg.VAL_NUMERIC
-    elif is_pytime(val): # COM on Windows
+    elif TypeLib.is_pytime(val): # COM on Windows
         val_type = mg.VAL_DATE
     else:
         usable_datetime = DateLib.is_usable_datetime_str(val)
@@ -1528,14 +1814,10 @@ def get_overall_fldtype(type_set):
         fldtype = mg.FLDTYPE_STRING_KEY   
     return fldtype
 
-def update_local_display(html_ctrl, str_content, wrap_text=False):
-    str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
-    html_ctrl.show_html(str_content, url_load=True) # allow footnotes
-
 def esc_str_input(raw):
     """
     Escapes input ready to go into a string using %.
-    
+
     So "variable %Y has fields %s" % fields will fail because variables with 
     name %Y will confuse the string formatting operation.  %%Y will be fine.
     """
@@ -1545,19 +1827,6 @@ def esc_str_input(raw):
         raise Exception(u"Unable to escape str input."
             u"\nCaused by error: %s" % b.ue(e))
     return new_str
-
-def get_invalid_var_dets_msg(fil_var_dets):
-    debug = False
-    try:
-        var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
-        var_dets = b.get_exec_ready_text(text=var_dets)
-        var_dets_dic = {}
-        exec var_dets in var_dets_dic
-        if debug: wx.MessageBox(u"%s got a clean bill of health from "
-            u"get_invalid_var_dets_msg()!" % fil_var_dets)
-        return None
-    except Exception, e:
-        return b.ue(e)
 
 def get_var_dets(fil_var_dets):
     """
@@ -1584,7 +1853,7 @@ def get_var_dets(fil_var_dets):
                 if orig_type in mg.VAR_TYPE_KEYS:
                     new_type = orig_type
                 else:
-                    new_type = mg.VAR_TYPE_LBL2KEY.get(orig_type, 
+                    new_type = mg.VAR_TYPE_LBL2KEY.get(orig_type,
                         mg.VAR_TYPE_CAT_KEY)
                 var_types[key] = new_type
             results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
@@ -1667,109 +1936,10 @@ def get_next_fldname(existing_fldnames):
     next_fldname = mg.NEXT_FLDNAME_TEMPLATE % free_num
     return next_fldname
 
-def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
-    """
-    Returns quoted text. Will not be further quoted.
-    
-    Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
-    
-    actual_lbl_width -- may be broken into lines if not rotated. If rotated, we
-    need sum of each line (no line breaks possible at present).
-    """
-    debug = False
-    lines = []
-    try:
-        words = orig_txt.split()
-    except Exception:
-        raise Exception("Tried to split a non-text label. "
-            "Is the script not supplying text labels?")
-    line_words = []
-    for word in words:
-        line_words.append(word)
-        line_width = len(u" ".join(line_words))
-        if line_width > max_width:
-            line_words.pop()
-            lines.append(u" ".join(line_words))
-            line_words = [word]
-    lines.append(u" ".join(line_words))
-    lines = [x.center(max_width) for x in lines]
-    if debug: 
-        print(line_words)
-        print(lines)
-    n_lines = len(lines)
-    if dojo:
-        if n_lines == 1:
-            raw_lbl = lines[0].strip()
-            wrapped_txt = u"\"" + raw_lbl + u"\""
-            actual_lbl_width = len(raw_lbl)
-        else:
-            if rotate: # displays <br> for some reason so can't use it
-                # no current way identified for line breaks when rotated
-                # see - http://grokbase.com/t/dojo/dojo-interest/09cat4bkvg/...
-                #...dojox-charting-line-break-in-axis-labels-ie
-                wrapped_txt = (u"\"" 
-                    + u"\" + \" \" + \"".join(x.strip() for x in lines) + u"\"")
-                actual_lbl_width = sum(len(x)+1 for x in lines) - 1
-            else:
-                wrapped_txt = (u"\""
-                    + u"\" + labelLineBreak + \"".join(lines) + u"\"")
-                actual_lbl_width = max_width # they are centred in max_width
-    else:
-        if n_lines == 1:
-            raw_lbl = lines[0].strip()
-            wrapped_txt = raw_lbl
-            actual_lbl_width = len(raw_lbl)
-        else:
-            wrapped_txt = u"\n".join(lines)
-            actual_lbl_width = max_width # they are centred in max_width
-    if debug: print(wrapped_txt)
-    return wrapped_txt, actual_lbl_width, n_lines
-
-def is_numeric(val, comma_dec_sep_ok=False):
-    """
-    Is a value numeric?  This is operationalised to mean can a value be cast as 
-    a float.  
-    
-    NB the string 5 is numeric.  Scientific notation is numeric. Complex numbers 
-    are considered not numeric for general use.  
-    
-    The type may not be numeric (e.g. might be the string '5') but the "content" 
-    must be.
-    
-    http://www.rosettacode.org/wiki/IsNumeric#Python
-    """
-    if is_pytime(val):
-        return False
-    elif val is None:
-        return False
-    else:
-        try:
-            if comma_dec_sep_ok:
-                val = val.replace(u",", u".")
-        except AttributeError:
-            pass # Only needed to succeed if a string. Presumably wasn't so OK.
-        try:
-            unused = float(val)
-        except (ValueError, TypeError):
-            return False
-        else:
-            return True
-
-def is_basic_num(val):
-    """
-    Is a value of a basic numeric type - i.e. integer, long, float? NB complex 
-    or Decimal values are not considered basic numbers.
-    
-    NB a string containing a numeric value is not a number type even though it
-    will pass is_numeric().
-    """
-    numtyped = type(val) in [int, long, float]
-    return numtyped
-
 def n2d(f):
     """
     Convert a floating point number to a Decimal with no loss of information
-    
+
     http://docs.python.org/library/decimal.html with added error trapping and
     handling of non-floats.
     """
@@ -1792,42 +1962,6 @@ def n2d(f):
         ctx.prec *= 2
         result = ctx.divide(numerator, denominator)
     return result
-
-# uncovered
-
-def get_unicode_repr(item):
-    if isinstance(item, unicode):
-        return u'u"%s"' % unicode(item).replace('"', '""')
-    elif isinstance(item, str):
-        return u'"%s"' % unicode(item).replace('"', '""')
-    elif item is None:
-        return u"None"
-    else:
-        return u"%s" % unicode(item).replace('"', '""')
-
-def dic2unicode(mydic, indent=1):
-    """
-    Needed because pprint.pformat() can't cope with strings like 'João Rosário'.
-    
-    Pity so will have to wait till Python 3 version to handle more elegantly.
-    
-    Goal is to make files that Python can run.
-    
-    Note -- recursive so can cope with nested dictionaries.
-    """
-    try:
-        keyvals = sorted(mydic.items())
-    except Exception: # not a dict, just a value
-        return get_unicode_repr(mydic)
-    ustr = u"{"
-    rows = []
-    for key, val in keyvals:
-        keystr = get_unicode_repr(key) + u": "
-        rows.append(keystr + dic2unicode(val, indent + len(u"{" + keystr)))
-    joiner = u",\n%s" % (indent*u" ",)
-    ustr += (joiner.join(rows))
-    ustr += u"}"
-    return ustr
 
 def get_escaped_dict_pre_write(mydict):
     # process each part and escape the paths only
@@ -1854,12 +1988,12 @@ def escape_pre_write(txt):
     """
     Useful when writing a path to a text file etc.
     Note - must escape your escapes.
-    
+
     Warning - do not use on a python expression e.g.
-    
+
     default_dbs = {"mysql": "/home..." because becomes
     default_dbs = {\"mysql\": \"/home/fred\'s home...\"
-    
+
     Only ever use on the contents e.g. home/fred\'s home...
     """
     esctxt = txt.replace("\\", "\\\\")
@@ -1871,120 +2005,17 @@ def get_file_name(path):
     "Works on Windows paths as well"
     path = path.replace("\\\\", "\\").replace("\\", "/")
     return os.path.split(path)[1]
-
-def is_integer(val):
-    # http://mail.python.org/pipermail/python-list/2006-February/368113.html
-    return isinstance(val, (int, long))
-
-def is_string(val):
-    # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
-    return isinstance(val, basestring)
-
-def is_pytime(val): 
-    #http://aspn.activestate.com/ASPN/Cookbook/Python/Recipe/511451
-    return type(val).__name__ == 'time'
     
 def if_none(val, default):
     """
     Returns default if value is None - otherwise returns value.
-    
+
     While there is a regression in pywin32 cannot compare pytime with anything
     see http://mail.python.org/pipermail/python-win32/2009-March/008920.html
     """
-    if is_pytime(val):
+    if TypeLib.is_pytime(val):
         return val
     elif val is None:
         return default
     else:
         return val
-
-# data
-
-def get_item_label(item_labels, item_val):
-    """
-    e.g. if lacking a label, turn agegrp into Agegrp
-    e.g. if has a label, turn agegrp into Age Group
-    """
-    item_val_u = UniLib.any2unicode(item_val)
-    return item_labels.get(item_val, item_val_u.title()) #.replace(u"\n", u" ") # leave as is
-
-def get_choice_item(item_labels, item_val):
-    """
-    e.g. "Age Group (agegrp)"
-    """
-    item_label = get_item_label(item_labels, item_val)
-    return u"%s (%s)" % (item_label, UniLib.any2unicode(item_val)) #.replace(u"\n", u" "))
-
-def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
-    """
-    Sorted by label, not name.
-    
-    dic_labels - could be for either variables of values.
-    
-    vals - either variables or values.
-    
-    If DROP_SELECT in list, always appears first.
-    
-    Returns choice_items_sorted, orig_items_sorted.
-    
-    http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
-        ... sort-can-you-do-a-schwartzian-transform-in-python
-    """
-    sorted_vals = vals
-    sorted_vals.sort(key=lambda s: get_choice_item(dic_labels, s).upper())
-    choice_items = [get_choice_item(dic_labels, x) for x in sorted_vals]
-    if inc_drop_select:
-        choice_items.insert(0, mg.DROP_SELECT)
-        sorted_vals.insert(0, mg.DROP_SELECT)
-    return choice_items, sorted_vals
-
-
-class ItemConfig(object):
-    """
-    Item config storage and retrieval.
-    
-    Has: var_name, measures, has_tot, sort order, bolnumeric
-    
-    bolnumeric is only used for verbose summary reporting.
-    
-    Note - won't have a var name if it is the column config item.
-    """
-    
-    def __init__(self, sort_order, var_name=None, measures_lst=None, 
-            has_tot=False, bolnumeric=False):
-        self.var_name = var_name
-        if measures_lst:
-            self.measures_lst = measures_lst
-        else:
-            self.measures_lst = []
-        self.has_tot = has_tot
-        self.sort_order = sort_order
-        self.bolnumeric = bolnumeric
-
-    def get_summary(self, verbose=False):
-        """
-        String summary of data (apart from variable name).
-        """
-        str_parts = []
-        total_part = _("Has TOTAL") if self.has_tot else None
-        if total_part:
-            str_parts.append(total_part)
-        # ordinary sorting by freq (may include rows and cols)
-        order2lbl_dic = {mg.SORT_NONE_KEY: u"Not Sorted",
-            mg.SORT_VALUE_KEY: u"Sort by Value", 
-            mg.SORT_LBL_KEY: _("Sort by Label"),
-            mg.SORT_INCREASING_KEY: _("Sort by Freq (Asc)"),
-            mg.SORT_DECREASING_KEY: _("Sort by Freq (Desc)")}
-        sort_order_part = order2lbl_dic.get(self.sort_order)        
-        if sort_order_part:
-            str_parts.append(sort_order_part)
-        if verbose:
-            if self.bolnumeric:
-                str_parts.append(_("Numeric"))
-            else:
-                str_parts.append(_("Not numeric"))
-        measures = ", ".join(self.measures_lst)
-        measures_part = _("Measures: %s") % measures if measures else None
-        if measures_part:
-            str_parts.append(measures_part)
-        return u"; ".join(str_parts)

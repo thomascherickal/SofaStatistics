@@ -288,9 +288,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         var_names = projects.get_approp_var_names()
         dic_labels = self.var_labels
         (var_gp_by_items, 
-         self.sorted_var_names_by) = lib.get_sorted_choice_items(dic_labels, 
-                                          vals=var_names, 
-                                          inc_drop_select=self.inc_gp_by_select)
+         self.sorted_var_names_by) = lib.GuiLib.get_sorted_choice_items(
+             dic_labels, vals=var_names, inc_drop_select=self.inc_gp_by_select)
         idx_gp_by = projects.get_idx_to_select(var_gp_by_items, var_gp, 
                                            self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by = self.get_fresh_drop_group_by(var_gp_by_items, 
@@ -378,8 +377,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_by(self, event):
         var_gp, choice_item = self.get_group_by()
-        label_gp = lib.get_item_label(item_labels=self.var_labels,
-                                      item_val=var_gp)
+        label_gp = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_gp)
         updated = config_output.set_var_props(choice_item, var_gp, label_gp,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -388,8 +387,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def on_rclick_vars(self, event):
         var_name, choice_item = self.get_var_dets(self.drop_avg, 
                                                   self.sorted_var_names_avg)
-        var_label = lib.get_item_label(item_labels=self.var_labels, 
-                                       item_val=var_name)
+        var_label = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_name)
         updated = config_output.set_var_props(choice_item, var_name, var_label, 
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -524,9 +523,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         var_names = projects.get_approp_var_names(self.var_types,
                                                   min_data_type)
         (var_choice_items, 
-         sorted_vals) = lib.get_sorted_choice_items(dic_labels=self.var_labels,
-                                                vals=var_names,
-                                                inc_drop_select=inc_drop_select)
+         sorted_vals) = lib.GuiLib.get_sorted_choice_items(
+             dic_labels=self.var_labels, vals=var_names,
+             inc_drop_select=inc_drop_select)
         while True:
             try:
                 del sorted_var_names[0]
@@ -624,13 +623,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 wx.MessageBox(u"No suitable values to group by in \"%s\"" % 
                               var_gp)
         self.lbl_chop_warning.SetLabel(chop_warning)
-        self.gp_choice_items_sorted = [lib.get_choice_item(val_dic, x) 
+        self.gp_choice_items_sorted = [lib.GuiLib.get_choice_item(val_dic, x) 
                                        for x in self.gp_vals_sorted]
         items_a = self.gp_choice_items_sorted
         items_b = self.gp_choice_items_sorted
         # set selections
         if val_a:
-            item_new_version_a = lib.get_choice_item(val_dic, val_a)
+            item_new_version_a = lib.GuiLib.get_choice_item(val_dic, val_a)
             idx_a = self.gp_choice_items_sorted.index(item_new_version_a)
         else: # use defaults if possible
             idx_a = 0
@@ -640,7 +639,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 except ValueError:
                     pass # Using idx of 0 is OK
         if val_b:
-            item_new_version_b = lib.get_choice_item(val_dic, val_b)
+            item_new_version_b = lib.GuiLib.get_choice_item(val_dic, val_b)
             idx_b = self.gp_choice_items_sorted.index(item_new_version_b)
         else: # use defaults if possible
             idx_b = 0
@@ -661,7 +660,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         dd = mg.DATADETS_OBJ
         selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
-        label_gp = lib.get_item_label(item_labels=self.var_labels, 
+        label_gp = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_gp)
         var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
         # Now the a and b choices under the group
@@ -672,17 +671,17 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 u"your data and any filtering applied.")
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.UniLib.any2unicode(val_a_raw)
-        label_a = lib.get_item_label(item_labels=val_dic, 
+        label_a = lib.GuiLib.get_item_label(item_labels=val_dic,
             item_val=val_a_raw)
         selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
         val_b = lib.UniLib.any2unicode(val_b_raw)
-        label_b = lib.get_item_label(item_labels=val_dic, 
+        label_b = lib.GuiLib.get_item_label(item_labels=val_dic,
             item_val=val_b_raw)
         # the avg variable(s)
         selection_idx_avg = self.drop_avg.GetSelection()
         var_avg = self.sorted_var_names_avg[selection_idx_avg]
-        label_avg = lib.get_item_label(item_labels=self.var_labels, 
+        label_avg = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_avg)
         return (var_gp_numeric, var_gp, label_gp, val_a, label_a, 
             val_b, label_b, var_avg, label_avg)

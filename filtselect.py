@@ -24,7 +24,7 @@ def get_val(raw_val, flds, fldname):
     bolnumeric = flds[fldname][mg.FLD_BOLNUMERIC]
     boldatetime = flds[fldname][mg.FLD_BOLDATETIME]
     if bolnumeric:
-        if lib.is_numeric(raw_val):
+        if lib.TypeLib.is_numeric(raw_val):
             return float(raw_val)
         else: # not a num - a valid string?
             if isinstance(raw_val, basestring):
@@ -140,7 +140,7 @@ class DlgFiltSelect(wx.Dialog):
 
     def setup_vars(self, var=None):
         var_names = projects.get_approp_var_names()
-        var_choices, self.sorted_var_names = lib.get_sorted_choice_items(
+        var_choices, self.sorted_var_names = lib.GuiLib.get_sorted_choice_items(
             dic_labels=self.var_labels, vals=var_names)
         self.drop_vars.SetItems(var_choices)
         idx = self.sorted_var_names.index(var) if var else 0
@@ -345,8 +345,8 @@ class DlgFiltSelect(wx.Dialog):
     
     def on_rclick_vars(self, event):
         var_name, choice_item = self.get_var()
-        var_label = lib.get_item_label(item_labels=self.var_labels, 
-                                       item_val=var_name)
+        var_label = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_name)
         updated = config_output.set_var_props(choice_item, var_name, var_label,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:

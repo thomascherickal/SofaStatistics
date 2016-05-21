@@ -107,7 +107,7 @@ def process_orig(orig, fldname, fldtype):
             has_min = True
         else:
             if (fldtype == mg.FLDTYPE_NUMERIC_KEY 
-                    and not lib.is_numeric(l_part)):
+                    and not lib.TypeLib.is_numeric(l_part)):
                 num_mismatch = True
             elif (fldtype == mg.FLDTYPE_DATE_KEY
                     and not lib.DateLib.is_std_datetime_str(l_part)):
@@ -116,7 +116,7 @@ def process_orig(orig, fldname, fldtype):
             has_max = True
         else:
             if (fldtype == mg.FLDTYPE_NUMERIC_KEY 
-                    and not lib.is_numeric(r_part)):
+                    and not lib.TypeLib.is_numeric(r_part)):
                 num_mismatch = True
             elif (fldtype == mg.FLDTYPE_DATE_KEY
                     and not lib.DateLib.is_std_datetime_str(r_part)):
@@ -150,7 +150,7 @@ def process_orig(orig, fldname, fldtype):
         if fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
             orig_clause = u"%s = %s" % (fld, valqtr(orig, charset2try="utf-8"))
         elif fldtype == mg.FLDTYPE_NUMERIC_KEY:
-            if not lib.is_numeric(orig):
+            if not lib.TypeLib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
                     "are trying to recode a non-numeric value"))
             orig_clause = u"%s = %s" % (fld, orig)
@@ -313,8 +313,8 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.fldname = self.fldnames[var_idx]
 
     def on_var_rclick(self, event):
-        var_label = lib.get_item_label(self.var_labels, self.fldname)
-        choice_item = lib.get_choice_item(self.var_labels, self.fldname)
+        var_label = lib.GuiLib.get_item_label(self.var_labels, self.fldname)
+        choice_item = lib.GuiLib.get_choice_item(self.var_labels, self.fldname)
         unused = config_output.set_var_props(choice_item, self.fldname,
             var_label, self.var_labels, self.var_notes, self.var_types,
             self.val_dics)

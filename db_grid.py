@@ -774,7 +774,7 @@ class TblEditor(wx.Dialog):
             # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
             raise Exception(u"This field should have been read only")
         elif fld_dic[mg.FLD_BOLNUMERIC]:
-            if not lib.is_numeric(raw_val):
+            if not lib.TypeLib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
                               "Either enter a valid number or "
                               "the missing value character (.)") % raw_val)
@@ -1000,7 +1000,7 @@ class TblEditor(wx.Dialog):
             if debug: wx.MessageBox("Col %s was clicked" % col)
             var_name = self.dbtbl.fldnames[col]
             var_label = self.var_labels.get(var_name, "")
-            choice_item = lib.get_choice_item(self.var_labels, var_name)
+            choice_item = lib.GuiLib.get_choice_item(self.var_labels, var_name)
             config_output.set_var_props(choice_item, var_name, var_label,
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
     

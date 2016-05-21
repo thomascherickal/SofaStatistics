@@ -403,7 +403,7 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
     ok_data = False        
     if fldtype == mg.FLDTYPE_NUMERIC_KEY:
         # must be numeric or empty string or dot (which we'll turn to NULL)
-        if lib.is_numeric(raw_val, comma_dec_sep_ok):
+        if lib.TypeLib.is_numeric(raw_val, comma_dec_sep_ok):
             if raw_val == "NaN":
                 ok_data = True
                 val = u"NULL"
@@ -525,7 +525,7 @@ def process_val(feedback, vals, row_num, row, ok_fldname, fldtypes,
         raise Exception(_("Row %(row_num)s doesn't have a value for the "
             "\"%(ok_fldname)s\" field %(msg)s") % {u"row_num": row_num, 
             u"ok_fldname": ok_fldname, u"msg": msg})
-    is_pytime = lib.is_pytime(rawval)
+    is_pytime = lib.TypeLib.is_pytime(rawval)
     fldtype = fldtypes[ok_fldname]
     val = get_val(feedback, rawval, is_pytime, fldtype, ok_fldname, 
         faulty2missing_fld_list, row_num, comma_dec_sep_ok)

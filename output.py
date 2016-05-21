@@ -152,8 +152,9 @@ def colour_mappings_to_item_colours(colour_mappings):
     return item_colours
 
 def get_stats_chart_colours(css_fil):
-    (unused, grid_bg, unused, major_gridline_colour, unused, 
-     unused, unused, colour_mappings, unused) = lib.extract_dojo_style(css_fil)
+    (unused, grid_bg, unused, major_gridline_colour,
+     unused, unused, unused, colour_mappings,
+     unused) = lib.OutputLib.extract_dojo_style(css_fil)
     item_colours = colour_mappings_to_item_colours(colour_mappings)
     line_colour = major_gridline_colour
     return grid_bg, item_colours, line_colour
@@ -1043,11 +1044,11 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f.write(full_datestamp)
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
-    con_dets_str = lib.dic2unicode(dd.con_dets)
+    con_dets_str = lib.UniLib.dic2unicode(dd.con_dets)
     f.write(u"\n" + u"con_dets = %s" % con_dets_str.replace(u"\\", u"\\\\"))
-    default_dbs_str = lib.dic2unicode(dd.default_dbs)
+    default_dbs_str = lib.UniLib.dic2unicode(dd.default_dbs)
     f.write(u"\n" + u"default_dbs = %s" % default_dbs_str)
-    default_tbls_str = lib.dic2unicode(dd.default_tbls)
+    default_tbls_str = lib.UniLib.dic2unicode(dd.default_tbls)
     f.write(u"\ndefault_tbls = %s" % default_tbls_str)
     f.write(u"\ndbe =\"%s\"" % dd.dbe)
     f.write(u"\ndbe_resources = getdata.get_dbe_resources(dbe,")

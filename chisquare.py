@@ -67,8 +67,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
              u"where_tbl_filt": where_tbl_filt, u"and_tbl_filt": and_tbl_filt})
         val_dic_a = self.val_dics.get(var_a, {})
         val_dic_b = self.val_dics.get(var_b, {})
-        script_lst.append(u"val_dic_a = %s" % lib.dic2unicode(val_dic_a))
-        script_lst.append(u"val_dic_b = %s" % lib.dic2unicode(val_dic_b))
+        script_lst.append(u"val_dic_a = %s" % lib.UniLib.dic2unicode(val_dic_a))
+        script_lst.append(u"val_dic_b = %s" % lib.UniLib.dic2unicode(val_dic_b))
         script_lst.append(u"val_labels_a = [val_dic_a.get(x, unicode(x)) for "
                           u"x in vals_a]")
         script_lst.append(u"val_labels_b = [val_dic_b.get(x, unicode(x)) for "

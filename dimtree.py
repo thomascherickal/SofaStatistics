@@ -148,14 +148,14 @@ class DimTree(object):
         tree.SelectItem(item)
         item_conf = tree.GetItemPyData(item)
         var_name = item_conf.var_name
-        var_label = lib.get_item_label(self.var_labels, var_name)
-        choice_item = lib.get_choice_item(self.var_labels, var_name)
+        var_label = lib.GuiLib.get_item_label(self.var_labels, var_name)
+        choice_item = lib.GuiLib.get_choice_item(self.var_labels, var_name)
         updated = config_output.set_var_props(choice_item, var_name, var_label,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             # update var label in tree and update demo html
             tree.SetItemText(event.GetItem(),
-                    lib.get_choice_item(self.var_labels, var_name))
+                    lib.GuiLib.get_choice_item(self.var_labels, var_name))
             self.update_demo_display()
     
     def on_row_add(self, event):
@@ -191,8 +191,8 @@ class DimTree(object):
             min_data_type = mg.VAR_TYPE_CAT_KEY
         var_names = projects.get_approp_var_names(self.var_types, min_data_type)
         (sorted_choices, 
-         sorted_vars) = lib.get_sorted_choice_items(dic_labels=self.var_labels, 
-                                                    vals=var_names)
+         sorted_vars) = lib.GuiLib.get_sorted_choice_items(
+             dic_labels=self.var_labels, vals=var_names)
         selected_idxs = self.get_selected_idxs(dim, sorted_choices)
         if selected_idxs:
             # only use in one dimension
@@ -330,7 +330,8 @@ class DimTree(object):
         dd = mg.DATADETS_OBJ
         var_names = dd.flds.keys()
         (sorted_choices, 
-         sorted_vars) = lib.get_sorted_choice_items(self.var_labels, var_names)
+         sorted_vars) = lib.GuiLib.get_sorted_choice_items(
+             self.var_labels, var_names)
         selected_idxs = self.get_selected_idxs(dim, sorted_choices)
         if not selected_idxs:
             return

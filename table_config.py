@@ -628,7 +628,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 break # run out of rows
             row_dict = dict(zip(db_flds_orig_names, row_obj))
             if debug:
-                print(u"\nRow dicts is \n%s" % lib.dic2unicode(row_dict)) 
+                print(u"\nRow dicts is \n%s" % lib.UniLib.dic2unicode(row_dict)) 
             row_lst = []
             row_dets = zip(design_flds_orig_names, design_flds_new_names, 
                 design_flds_col_labels, design_flds_types)
@@ -1077,8 +1077,8 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         if col == 0:
             row = event.GetRow()
             cell_val = self.get_val(row, col)
-            choice_item = lib.get_choice_item(self.var_labels, cell_val)
-            var_label = lib.get_item_label(self.var_labels, cell_val)
+            choice_item = lib.GuiLib.get_choice_item(self.var_labels, cell_val)
+            var_label = lib.GuiLib.get_item_label(self.var_labels, cell_val)
             config_output.set_var_props(choice_item, cell_val, var_label,
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
     

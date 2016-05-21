@@ -368,7 +368,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""
             style = self.style_selector.GetStringSelection()
-            fil_css = lib.style2path(style)
+            fil_css = lib.OutputLib.style2path(style)
             fil_report = self.txt_report_file.GetValue()
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}

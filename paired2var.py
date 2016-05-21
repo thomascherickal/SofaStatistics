@@ -203,8 +203,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_a(self, event):
         var_a, choice_item = self.get_var_a()
-        var_label_a = lib.get_item_label(item_labels=self.var_labels, 
-                                         item_val=var_a)
+        var_label_a = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_a)
         updated = config_output.set_var_props(choice_item, var_a, var_label_a,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -212,8 +212,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_b(self, event):
         var_b, choice_item = self.get_var_b()
-        var_label_b = lib.get_item_label(item_labels=self.var_labels, 
-                                         item_val=var_b)
+        var_label_b = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_b)
         updated = config_output.set_var_props(choice_item, var_b, var_label_b,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -249,9 +249,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
             except Exception: # no html ctrl yet so defer and display when ready
                 pass
         (fld_choice_items, 
-         self.sorted_var_names) = lib.get_sorted_choice_items(
-                                                     dic_labels=self.var_labels, 
-                                                     vals=var_names)
+         self.sorted_var_names) = lib.GuiLib.get_sorted_choice_items(
+                                    dic_labels=self.var_labels, vals=var_names)
         return fld_choice_items
        
     def on_database_sel(self, event):
@@ -312,10 +311,10 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         Returns var_a, label_a, var_b, label_b.
         """
         var_a, var_b = self.get_vars()
-        label_a = lib.get_item_label(item_labels=self.var_labels, 
-                                     item_val=var_a)
-        label_b = lib.get_item_label(item_labels=self.var_labels, 
-                                     item_val=var_b)
+        label_a = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_a)
+        label_b = lib.GuiLib.get_item_label(item_labels=self.var_labels,
+            item_val=var_b)
         return var_a, label_a, var_b, label_b
     
     def update_phrase(self):

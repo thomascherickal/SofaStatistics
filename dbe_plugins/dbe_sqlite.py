@@ -41,7 +41,7 @@ def quote_val(raw_val, charset2try="iso-8859-1"):
     Single quote is the literal delimiter and internal single quotes need 
     escaping by repeating them.
     """
-    return lib.quote_val(raw_val, sql_str_literal_quote=u"'", 
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote=u"'", 
         sql_esc_str_literal_quote=u"''", pystr_use_double_quotes=True, 
         charset2try=charset2try)
 
@@ -58,7 +58,7 @@ def get_first_sql(quoted_tblname, top_n, order_val=None):
         {"top_n": top_n, "tblname": quoted_tblname, "orderby": orderby}
         
 def add_funcs_to_con(con):
-    con.create_function("is_numeric", 1, lib.is_numeric)
+    con.create_function("is_numeric", 1, lib.TypeLib.is_numeric)
     con.create_function("is_std_datetime_str", 1,
         lib.DateLib.is_std_datetime_str)
 
@@ -78,7 +78,7 @@ def get_con(con_dets, db, add_checks=False):
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     # able to extract con dets in a form usable for scripts?
     try:
-        sqlite_con_dets_str = lib.dic2unicode(con_dets_sqlite)
+        sqlite_con_dets_str = lib.UniLib.dic2unicode(con_dets_sqlite)
     except Exception, e:
         raise Exception(u"Unable to extract connection details from %s."
             u"\nCaused by error: %s" % (con_dets_sqlite, b.ue(e)))
@@ -400,7 +400,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             if db_is_default_sofa_db(db_name):
                 lacks_default_sofa_db = False
             # need unique version to use as key
-            db_name_key = lib.get_unique_db_name_key(db_names, db_name)
+            db_name_key = lib.DbLib.get_unique_db_name_key(db_names, db_name)
             new_sqlite_dic = {}
             new_sqlite_dic[DATABASE_KEY] = db_path
             con_dets_sqlite[db_name_key] = new_sqlite_dic
