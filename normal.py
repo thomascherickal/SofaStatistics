@@ -25,8 +25,8 @@ def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
         selected variables.
     """
     dd = mg.DATADETS_OBJ
-    unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-    unused, and_filt = lib.get_tbl_filts(tbl_filt)
+    unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+    unused, and_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     objqtr = getdata.get_obj_quoter_func(dd.dbe)
     if not paired:
         s = u"""SELECT %(var)s
@@ -113,7 +113,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     # histogram
     charting_pylab.gen_config()
     fig = pylab.figure()
-    fig.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
+    fig.GuiLib.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
     (grid_bg, item_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     histlbl = u"Histogram of differences" if paired else None
@@ -228,7 +228,7 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         self.panel.SetSizer(szr_main)
         self.szr_lst = [self.szr_desc, self.szr_data, szr_vars, 
             self.szr_output_config, szr_lower]
-        lib.set_size(window=self, szr_lst=self.szr_lst, width_init=1024)
+        lib.GuiLib.set_size(window=self, szr_lst=self.szr_lst, width_init=1024)
 
     def on_show(self, event):
         if self.exiting:
@@ -279,7 +279,8 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
             else "False"))
         script_lst.append(u"report_name = u\"%s\"" %
@@ -302,7 +303,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
 
     def set_size(self):
         horiz_padding = 15 if mg.PLATFORM == mg.MAC else 10
-        lib.set_size(window=self, szr_lst=self.szr_lst, height_init=560, 
+        lib.GuiLib.set_size(window=self, szr_lst=self.szr_lst, height_init=560,
             horiz_padding=horiz_padding)
 
     def on_rad_paired(self, event):
@@ -325,11 +326,11 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
         msg_font_sz = 10
         reverse = lib.mustreverse()
-        lib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white", 
+        lib.GuiLib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white",
             left=20, top=20)
-        if reverse: bmp_blank_hist = lib.reverse_bmp(bmp_blank_hist)
+        if reverse: bmp_blank_hist = lib.GuiLib.reverse_bmp(bmp_blank_hist)
         return bmp_blank_hist
-        
+
     def set_output_to_blank(self):
         if self.paired:
             msg = _("Select two variables and click Check button to see results"

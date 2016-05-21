@@ -543,7 +543,7 @@ def prep_val(dbe, val, fld_dic):
                 val2use = None
             else:
                 try:
-                    val2use = lib.get_std_datetime_str(val)
+                    val2use = lib.DateLib.get_std_datetime_str(val)
                 except Exception:
                     # will not pass cell validation later and better to
                     # avoid throwing exceptions in the middle of things
@@ -703,7 +703,7 @@ def get_tblnames_and_idx():
     for i, tblname in enumerate(dd.tbls):
         if tblname.lower() == dd.tbl.lower():
             idx_tbl = i
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, tblname)
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, tblname)
         if tbl_filt:
             tbl_with_filt = "%s %s" % (tblname, _("(filtered)"))
         else:
@@ -796,7 +796,7 @@ def refresh_db_dets(parent):
         set_parent_db_dets(parent, orig_dbe, orig_db)
         parent.drop_dbs.SetSelection(orig_selected_dbe_db_idx)
     finally:
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
     return True
 
 def refresh_tbl_dets(parent):
@@ -817,7 +817,7 @@ def refresh_tbl_dets(parent):
         wx.MessageBox(_("Experienced problem refreshing table details"))
         raise
     finally:
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
 
 def get_default_db_dets():
     """

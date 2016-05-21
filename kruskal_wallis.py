@@ -48,7 +48,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
                 % b.ue(e))
         script_lst = [u"dp = 3"]
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         lst_samples = []
         lst_labels = []
         # need sample for each of the values in range

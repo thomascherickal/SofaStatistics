@@ -18,8 +18,6 @@ import my_exceptions
 import getdata
 import output
 
-GAUGE_STEPS = 100
-
 
 class UnicodeWriter:
     """
@@ -83,8 +81,8 @@ class DlgExportData(wx.Dialog):
         szr_btns.AddGrowableCol(1,2) # idx, propn
         szr_btns.Add(self.btn_cancel, 0)
         szr_btns.Add(self.btn_export, 0, wx.ALIGN_RIGHT)
-        self.progbar = wx.Gauge(self, -1, GAUGE_STEPS, size=(-1, 20),
-            style=wx.GA_PROGRESSBAR)
+        self.progbar = wx.Gauge(self, -1, mg.EXPORT_DATA_GAUGE_STEPS,
+            size=(-1, 20), style=wx.GA_PROGRESSBAR)
         self.btn_close = wx.Button(self, wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         szr.Add(szr_btns, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
@@ -196,7 +194,8 @@ class DlgExportData(wx.Dialog):
                                 val2use = val
                             else:
                                 try:
-                                    val2use = lib.get_datetime_from_str(val)
+                                    val2use = lib.DateLib.get_datetime_from_str(
+                                        val)
                                 except Exception:
                                     val2use = u""
                             sheet.write(idx_row, idx_final_cols, val2use, 
@@ -215,7 +214,8 @@ class DlgExportData(wx.Dialog):
                         idx_final_cols += 1
                 raw_list.append(row_raw)
                 idx_row += 1
-                gauge2set = ((1.0*idx_row)/self.n_rows)*GAUGE_STEPS
+                gauge2set = min(((1.0*idx_row)/self.n_rows)*mg.EXPORT_DATA_GAUGE_STEPS,
+                    mg.EXPORT_DATA_GAUGE_STEPS)
                 self.progbar.SetValue(gauge2set)
             except my_exceptions.ExportCancel:
                 wx.MessageBox(u"Export Cancelled")
@@ -224,7 +224,7 @@ class DlgExportData(wx.Dialog):
                 if debug: print(msg)
                 wx.MessageBox(msg)
                 self.progbar.SetValue(0)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
                 return
@@ -247,8 +247,8 @@ class DlgExportData(wx.Dialog):
             f_csv.close()
         if do_spreadsheet:
             book.save(filpath_xls)
-        self.progbar.SetValue(GAUGE_STEPS)
-        lib.safe_end_cursor()
+        self.progbar.SetValue(mg.EXPORT_DATA_GAUGE_STEPS)
+        lib.GuiLib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
         wx.MessageBox(_(u"Your data has been exported to your desktop"))
         self.progbar.SetValue(0)

@@ -169,12 +169,12 @@ class DlgProjSelect(wx.Dialog):
             proj_name = projects.filname2projname(fil_proj) # might not be a sensible ...proj file
             self.parent.set_proj_lbl(proj_name)
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                 u"check name of file and its contents using %(def_proj)s as "
                 u"example.\nCaused by error: %(err)s") % 
                 {u"def_proj": mg.DEFAULT_PROJ, u"err": b.ue(e)})
             return
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         self.Destroy()
         

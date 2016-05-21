@@ -212,7 +212,7 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
                 caption=_("SLOW EXPORT PREDICTED"), style=wx.YES_NO) == wx.NO:
             if progbar: progbar.SetValue(0)
             raise my_exceptions.ExportCancel
-    gauge2show = gauge_start_imgs
+    gauge2show = min(gauge_start_imgs, mg.EXPORT_IMG_GAUGE_STEPS)
     if progbar: progbar.SetValue(gauge2show)
     ftr = u"</body></html>"
     for i, item in enumerate(img_items, 1): # the core - where images are actually exported
@@ -522,4 +522,4 @@ def copy_output():
     wx.TheClipboard.AddData(do)
     wx.TheClipboard.Close()
     bi.Destroy()
-    lib.safe_end_cursor()
+    lib.GuiLib.safe_end_cursor()

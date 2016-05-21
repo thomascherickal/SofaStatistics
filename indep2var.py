@@ -30,7 +30,7 @@ def get_range_idxs(vals, val_a, val_b):
         print(vals)
         print(type(val_a).__name__, val_a)
         print(type(val_b).__name__, val_b)
-    uvals = [lib.any2unicode(x) for x in vals]
+    uvals = [lib.UniLib.any2unicode(x) for x in vals]
     idx_val_a = uvals.index(val_a.strip('"'))
     idx_val_b = uvals.index(val_b.strip('"'))
     return idx_val_a, idx_val_b
@@ -205,7 +205,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
         self.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
-        lib.set_size(window=self, szr_lst=szr_lst)
+        lib.GuiLib.set_size(window=self, szr_lst=szr_lst)
         if msg: # otherwise appears before dialog even open and visible
             wx.CallAfter(lambda: wx.MessageBox(msg))
 
@@ -320,7 +320,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         """
         dd = mg.DATADETS_OBJ
         unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        where_filt, and_filt = lib.get_tbl_filts(tbl_filt)
+        where_filt, and_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
         var_gp, choice_item = self.get_group_by()
         no_selection = (not choice_item or choice_item == mg.DROP_SELECT)
         if no_selection:
@@ -331,7 +331,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             (msg, items_a, idx_a, 
              items_b, idx_b) = self.get_items_and_idxs_for_a_and_b(var_gp, 
                                              val_a, val_b, where_filt, and_filt)
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             enable = True
         self.drop_group_a = self.get_fresh_drop_a(items_a, idx_a)
         self.drop_group_b = self.get_fresh_drop_b(items_b, idx_b)
@@ -671,12 +671,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             raise Exception(u"Unable to set values for groups a and b. Check "
                 u"your data and any filtering applied.")
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
-        val_a = lib.any2unicode(val_a_raw)
+        val_a = lib.UniLib.any2unicode(val_a_raw)
         label_a = lib.get_item_label(item_labels=val_dic, 
             item_val=val_a_raw)
         selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
-        val_b = lib.any2unicode(val_b_raw)
+        val_b = lib.UniLib.any2unicode(val_b_raw)
         label_b = lib.get_item_label(item_labels=val_dic, 
             item_val=val_b_raw)
         # the avg variable(s)

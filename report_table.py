@@ -114,20 +114,15 @@ class RptTypeOpts(object):
     font size smaller than the system font. Have to build a collection of 
     individual widgets myself.
     """
-    
+
     def __init__(self, parent, panel):
         group_lbl = _("Table Type")
-        tab_type_choices = (mg.FREQS_LBL, mg.CROSSTAB_LBL, mg.ROW_STATS_LBL, 
-            mg.DATA_LIST_LBL)
-        if not config_output.IS_MAC:
-            self.rad_opts = wx.RadioBox(panel, -1, group_lbl, 
-                choices=tab_type_choices, style=wx.RA_SPECIFY_COLS)
-            self.rad_opts.SetFont(mg.GEN_FONT)
-            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
-        else:
+        tab_type_choices = [mg.FREQS_LBL, mg.CROSSTAB_LBL, mg.ROW_STATS_LBL,
+            mg.DATA_LIST_LBL]
+        if config_output.IS_MAC:
             bx_rpt_type = wx.StaticBox(panel, -1, group_lbl)
             szr_rad_rpt_type = wx.StaticBoxSizer(bx_rpt_type, wx.HORIZONTAL)
-            self.rad_freq = wx.RadioButton(panel, -1, mg.FREQS_LBL, 
+            self.rad_freq = wx.RadioButton(panel, -1, mg.FREQS_LBL,
                 style=wx.RB_GROUP) # leads
             self.rad_freq.SetFont(mg.GEN_FONT)
             self.rad_freq.Bind(wx.EVT_RADIOBUTTON, parent.on_tab_type_change)
@@ -139,7 +134,7 @@ class RptTypeOpts(object):
             szr_rad_rpt_type.Add(self.rad_cross, 0, wx.LEFT, 5)
             self.rad_row_stats = wx.RadioButton(panel, -1, mg.ROW_STATS_LBL)
             self.rad_row_stats.SetFont(mg.GEN_FONT)
-            self.rad_row_stats.Bind(wx.EVT_RADIOBUTTON, 
+            self.rad_row_stats.Bind(wx.EVT_RADIOBUTTON,
                 parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_row_stats, 0, wx.LEFT, 5)
             self.rad_data_list = wx.RadioButton(panel, -1, mg.DATA_LIST_LBL)
@@ -148,6 +143,12 @@ class RptTypeOpts(object):
                 parent.on_tab_type_change)
             szr_rad_rpt_type.Add(self.rad_data_list, 0, wx.LEFT, 5)
             self.rad_opts = szr_rad_rpt_type
+        else:
+            self.rad_opts = wx.RadioBox(panel, -1, group_lbl,
+                choices=tab_type_choices, style=wx.RA_SPECIFY_COLS)
+            self.rad_opts.SetFont(mg.GEN_FONT)
+            self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
+
 
     def GetSelection(self):
         debug = False
@@ -156,7 +157,7 @@ class RptTypeOpts(object):
         except AttributeError:
             for idx, szr_item in enumerate(self.rad_opts.GetChildren()):
                 rad = szr_item.GetWindow()
-                if debug: print(u"Item %s with value of %s" % (idx, 
+                if debug: print(u"Item %s with value of %s" % (idx,
                     rad.GetValue()))
                 if rad.GetValue():
                     return idx
@@ -201,7 +202,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.exiting = False
         cc = output.get_cc()
         self.title = _("Make Report Table")
-        wx.Dialog.__init__(self, parent=None, id=-1, title=self.title, 
+        wx.Dialog.__init__(self, parent=None, id=-1, title=self.title,
             pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
@@ -212,7 +213,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             "output", "getdata"]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True # btn_expand    
-        (self.var_labels, self.var_notes, 
+        (self.var_labels, self.var_notes,
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.col_no_vars_item = None #  needed if no variable in columns.  Must
@@ -416,7 +417,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_top, szr_tab_type, szr_trees, szr_titles, 
             self.szr_output_config, szr_bottom]
-        lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
+        lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def on_show(self, event):
         if self.exiting:
@@ -427,7 +428,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             pass # need on Mac or exceptn survives
         finally: # any initial content
             has_rows, has_cols = self.get_row_col_status()
-            waiting_msg = get_missing_dets_msg(self.tab_type, has_rows, 
+            waiting_msg = get_missing_dets_msg(self.tab_type, has_rows,
                 has_cols)
             self.html.show_html(waiting_msg)
 
@@ -479,10 +480,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         "Update all labels, including those already displayed"
         output.update_var_dets(dlg=self)
         # update dim trees
-        rowdescendants = lib.get_tree_ctrl_descendants(self.rowtree, 
+        rowdescendants = lib.GuiLib.get_tree_ctrl_descendants(self.rowtree,
             self.rowroot)
         self.refresh_descendants(self.rowtree, rowdescendants)
-        coldescendants = lib.get_tree_ctrl_descendants(self.coltree, 
+        coldescendants = lib.GuiLib.get_tree_ctrl_descendants(self.coltree,
             self.colroot)
         self.refresh_descendants(self.coltree, coldescendants)
         # update demo area
@@ -525,8 +526,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
         if self.tab_type != mg.DATA_LIST:
-            rowdescendants = lib.get_tree_ctrl_descendants(tree=self.rowtree, 
-                parent=self.rowroot)
+            rowdescendants = lib.GuiLib.get_tree_ctrl_descendants(
+                tree=self.rowtree, parent=self.rowroot)
             for tree_dims_item in rowdescendants:
                 item_conf = self.rowtree.GetItemPyData(tree_dims_item)
                 if item_conf is not None:
@@ -649,7 +650,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                 lib.update_local_display(self.html, 
                     _(u"Please check the CSS file exists or set another."
                     u"\nCaused by error: %s") % b.ue(e), wrap_text=True)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 event.Skip()
                 return
             script = self.get_script(css_idx, has_cols)
@@ -670,7 +671,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
-            for child in lib.get_tree_ctrl_children(tree=self.rowtree, 
+            for child in lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree, 
                     item=self.rowroot):
                 # child -- NB GUI tree items, not my Dim Node obj
                 item_conf = self.rowtree.GetItemPyData(child)
@@ -682,8 +683,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             script_lst.append(u"# Columns" + 57*u"*")
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
-                for child in lib.get_tree_ctrl_children(tree=self.coltree, 
-                        item=self.colroot):
+                for child in lib.GuiLib.get_tree_ctrl_children(
+                        tree=self.coltree, item=self.colroot):
                     item_conf = self.coltree.GetItemPyData(child)
                     child_fldname = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
@@ -693,8 +694,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.DATA_LIST:
             (col_names, col_labels, 
-             col_sorting) = lib.get_col_dets(self.coltree, self.colroot, 
-                self.var_labels)
+             col_sorting) = lib.GuiLib.get_col_dets(self.coltree, self.colroot, 
+                                                    self.var_labels)
             # pprint.pformat() fails on non-ascii - a shame
             script_lst.append(u"col_names = " + unicode(col_names))
             script_lst.append(u"col_labels = " + unicode(col_labels))
@@ -705,7 +706,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             script_lst.append(u"val_dics = " + lib.dic2unicode(self.val_dics))
         # process title dets
         titles, subtitles = self.get_titles()
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         # NB the following text is all going to be run
         if self.tab_type in (mg.FREQS, mg.CROSSTAB):
             show_perc = (u"True" if self.chk_show_perc_symbol.IsChecked() 
@@ -828,7 +830,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         script_lst.append(u"%s.add_child(%s)" % (parent_node_label, 
             child_node_label))
         # send child through for each grandchild
-        for grandchild in lib.get_tree_ctrl_children(tree=tree, item=child):
+        for grandchild in lib.GuiLib.get_tree_ctrl_children(tree=tree,
+                item=child):
             # grandchild -- NB GUI tree items, not my Dim Node obj
             item_conf = tree.GetItemPyData(grandchild)
             grandchild_fldname = item_conf.var_name
@@ -919,13 +922,13 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                 lib.update_local_display(self.html, _("Please check the CSS "
                     "file exists or set another. Caused by error: %s") 
                     % b.ue(e), wrap_text=True)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 return demo_was_live
             except my_exceptions.TooFewValsForDisplay:
                 lib.update_local_display(self.html,
                     _("Not enough data to display. Please check variables and "
                     "any filtering."), wrap_text=True)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 return demo_was_live
             if demo_html == u"":
                 has_rows, has_cols = self.get_row_col_status()
@@ -955,9 +958,9 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         return demo_was_live
 
     def get_row_col_status(self):
-        has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
+        has_rows = lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree, 
             item=self.rowroot)
-        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
+        has_cols = lib.GuiLib.get_tree_ctrl_children(tree=self.coltree, 
             item=self.colroot)
         return has_rows, has_cols
 

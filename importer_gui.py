@@ -19,7 +19,6 @@ FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
-GAUGE_STEPS = 50
 FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
     u"\nValue: \"%(value)s\""
     u"\nExpected column type: %(fldtype)s")
@@ -123,8 +122,8 @@ class DlgImportFileSelect(wx.Dialog):
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import)
         self.btn_import.Enable(False)
         # progress
-        self.progbar = wx.Gauge(self.panel, -1, GAUGE_STEPS, size=(-1, 20),
-            style=wx.GA_PROGRESSBAR)
+        self.progbar = wx.Gauge(self.panel, -1, mg.IMPORT_GAUGE_STEPS,
+            size=(-1, 20), style=wx.GA_PROGRESSBAR)
         # sizers
         szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
         szr_file_path.Add(btn_help, 0, wx.LEFT, 10)
@@ -419,21 +418,21 @@ def run_import(self, headless=False, file_path=None, tblname=None,
         else:
             wx.MessageBox(_("Unable to import data after getting "
                 u"parameters\n\nError") + u": %s" % b.ue(e))
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
     if proceed:
         try:
             file_importer.import_content(self.progbar, self.import_status,
                 self.lbl_feedback)
             if not headless: dd.set_db(dd.db, tbl=tblname)
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
         except my_exceptions.ImportConfirmationRejected, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             if headless: # although should never occur when headless
                 raise
             else:
                 wx.MessageBox(b.ue(e))
         except my_exceptions.ImportCancel, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             self.import_status[mg.CANCEL_IMPORT] = False # reinit
             if not headless: # should never occur when headless
                 wx.MessageBox(b.ue(e))
@@ -442,7 +441,7 @@ def run_import(self, headless=False, file_path=None, tblname=None,
                 raise
             else:
                 self.progbar.SetValue(0)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 wx.MessageBox(_(u"Unable to import data\n\nHelp available "
                     u"at %s\n\n") % mg.CONTACT + u"Error: %s" % b.ue(e))
     if not headless:

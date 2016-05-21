@@ -505,8 +505,8 @@ class ConfigUI(object):
         debug = False
         dd = mg.DATADETS_OBJ
         # count records in table
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_tbl_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
         tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
         s = u"SELECT COUNT(*) FROM %s %s" % (tblname, where_tbl_filt)
         try:
@@ -566,7 +566,7 @@ class ConfigUI(object):
             self.refresh_vars()
             parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
                 parent.drop_tbls_szr, parent.drop_tbls_panel)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
 
     def on_rclick_tables(self, event):
         "Allow addition or removal of data filter"
@@ -672,7 +672,7 @@ class ConfigUI(object):
         wx.BeginBusyCursor()
         try:
             export_output_images.copy_output()
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             """
             Copying to the clipboard does not actually copy anything, it just 
             posts a promise to provide the data later when when it is asked for. 
@@ -683,7 +683,7 @@ class ConfigUI(object):
                 u"pasting the output or it won't work." % self.title), 
                 caption=u"COPIED OUTPUT")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
                 % b.ue(e))
     
@@ -714,7 +714,7 @@ class ConfigUI(object):
         lib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.align_export_btns(bolran_report)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
 
     def align_export_btns(self, enable_btns):
         self.btn_expand.Enable(enable_btns)
@@ -728,7 +728,7 @@ class ConfigUI(object):
             lib.update_local_display(self.html, _("Please check the CSS file "
                 "exists or set another. Caused by error: %s") % b.ue(e), 
                 wrap_text=True)
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
         event.Skip()
         
     def on_btn_view(self, event):

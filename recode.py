@@ -110,7 +110,7 @@ def process_orig(orig, fldname, fldtype):
                     and not lib.is_numeric(l_part)):
                 num_mismatch = True
             elif (fldtype == mg.FLDTYPE_DATE_KEY
-                    and not lib.is_std_datetime_str(l_part)):
+                    and not lib.DateLib.is_std_datetime_str(l_part)):
                 date_mismatch = True
         if r_part == MAX:
             has_max = True
@@ -119,7 +119,7 @@ def process_orig(orig, fldname, fldtype):
                     and not lib.is_numeric(r_part)):
                 num_mismatch = True
             elif (fldtype == mg.FLDTYPE_DATE_KEY
-                    and not lib.is_std_datetime_str(r_part)):
+                    and not lib.DateLib.is_std_datetime_str(r_part)):
                 date_mismatch = True
         if num_mismatch:
             if debug: print(l_part, r_part)

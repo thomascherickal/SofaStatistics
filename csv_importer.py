@@ -206,7 +206,7 @@ def get_prob_has_hdr(sample_rows, file_path, dialect):
         hdr_sample = "\n".join(sample_rows)
         prob_has_hdr = sniffer.has_header(hdr_sample)
     except csv.Error, e:
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         if b.ue(e).startswith(ERR_NO_DELIM):
             pass # I'll have to try it myself
         elif b.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
@@ -563,7 +563,7 @@ class DlgImportDisplay(wx.Dialog):
             |wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.SYSTEM_MENU|wx.CAPTION
             |wx.CLIP_CHILDREN)
         debug = False
-        lib.safe_end_cursor() # needed for Mac
+        lib.GuiLib.safe_end_cursor() # needed for Mac
         self.parent = parent
         self.file_path = file_path
         self.dialect = dialect
@@ -687,14 +687,14 @@ class DlgImportDisplay(wx.Dialog):
             tmp_reader = UnicodeCsvReader(self.utf8_encoded_csv_sample, 
                 dialect=self.dialect)
         except csv.Error, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             if b.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
                 fix_text(self.file_path)
                 raise my_exceptions.ImportNeededFix
             else:
                 raise
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
                 u"\nCaused by error: %s" % b.ue(e))
         try:
@@ -706,7 +706,7 @@ class DlgImportDisplay(wx.Dialog):
                     if len(strdata) >= ROWS_TO_SHOW_USER:
                         break
         except csv.Error, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             if b.ue(e).startswith(ERR_NEW_LINE_IN_STRING):
                 raise Exception(u"Problem with row %s - line break in the "
                     u"middle of a field." % str(i+1))
@@ -786,7 +786,7 @@ class CsvImporter(importer.FileImporter):
             # process row
             sample_data.append(row) # include Nones even if going to change to 
                 # empty strings or whatever later.
-            gauge_val = i*steps_per_item
+            gauge_val = min(i*steps_per_item, mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
             if not self.headless:
                 i2break = (ROWS_TO_SHOW_USER if self.has_header 
@@ -866,10 +866,10 @@ class CsvImporter(importer.FileImporter):
             (dialect, encoding, self.has_header, 
                 utf8_encoded_csv_sample) = self.get_sample_with_dets()
         except my_exceptions.ImportConfirmationRejected, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to get sample of csv with details. "
                 u"\nCaused by error: %s" % b.ue(e))
         if not self.headless:
@@ -882,7 +882,7 @@ class CsvImporter(importer.FileImporter):
             except Exception, e:
                 # should have already been successfully through this in 
                 # get_sample_with_dets()
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
                     u"\nCaused by error: %s" % b.ue(e)) 
             ok_fldnames = importer.process_fldnames(tmp_reader.fieldnames,
@@ -895,7 +895,7 @@ class CsvImporter(importer.FileImporter):
             except Exception, e:
                 # should have already been successfully through this in 
                 # get_sample_with_dets()
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 raise Exception(u"Unable to get sample of csv with details. "
                     u"\nCaused by error: %s" % b.ue(e)) 
             for row in tmp_reader:
@@ -928,13 +928,13 @@ class CsvImporter(importer.FileImporter):
             (dialect, encoding, 
              ok_fldnames, row_size) = self.get_init_csv_details()
         except my_exceptions.ImportNeededFix:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             return
         except my_exceptions.ImportConfirmationRejected, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to get initial csv details. "
                 u"\nCaused by error: %s" % b.ue(e))
         comma_delimiter = has_comma_delim(dialect)
@@ -948,7 +948,7 @@ class CsvImporter(importer.FileImporter):
             # If not enough field_names, will use None as key for a list of any 
             # extra values.
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to get count of rows. "
                 u"\nCaused by error: %s" % b.ue(e))
         try:
@@ -958,7 +958,7 @@ class CsvImporter(importer.FileImporter):
             reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
                 dialect=dialect, fieldnames=ok_fldnames)
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
                 u"\nCaused by error: %s" % b.ue(e)) 
         default_dd = getdata.get_default_db_dets()

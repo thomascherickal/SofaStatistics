@@ -37,7 +37,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         try:
             var_a, label_a, var_b, label_b = self.get_drop_vals()
         except Exception, e:

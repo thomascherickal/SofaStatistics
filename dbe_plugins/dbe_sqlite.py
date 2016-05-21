@@ -59,7 +59,8 @@ def get_first_sql(quoted_tblname, top_n, order_val=None):
         
 def add_funcs_to_con(con):
     con.create_function("is_numeric", 1, lib.is_numeric)
-    con.create_function("is_std_datetime_str", 1, lib.is_std_datetime_str)
+    con.create_function("is_std_datetime_str", 1,
+        lib.DateLib.is_std_datetime_str)
 
 def get_con(con_dets, db, add_checks=False):
     """

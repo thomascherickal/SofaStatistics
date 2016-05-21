@@ -17,7 +17,6 @@ FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
 FILE_ODS = u"ods"
 FILE_UNKNOWN = u"unknown"
-GAUGE_STEPS = 50
 FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
     u"\nValue: \"%(value)s\""
     u"\nExpected column type: %(fldtype)s")
@@ -431,7 +430,7 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
         # or empty string or dot (which we'll turn to NULL).
         if is_pytime:
             if debug: print(u"pytime raw val: %s" % raw_val)
-            val = lib.pytime_to_datetime_str(raw_val)
+            val = lib.DateLib.pytime_to_datetime_str(raw_val)
             if debug: print(u"pytime val: %s" % val)
             ok_data = True
         else:
@@ -447,7 +446,7 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
             else:
                 try:
                     if debug: print(u"Raw val: %s" % raw_val)
-                    val = lib.get_std_datetime_str(raw_val)
+                    val = lib.DateLib.get_std_datetime_str(raw_val)
                     if debug: print(u"Date val: %s" % val)
                     ok_data = True
                 except Exception:
@@ -625,7 +624,8 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
         if debug: print(SQL_insert_row)
         try:
             cur.execute(SQL_insert_row)
-            gauge_val = gauge_start + (row_num*steps_per_item)
+            gauge_val = min(gauge_start + (row_num*steps_per_item),
+                mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
         except Exception, e:
             raise Exception(u"Unable to add row %s.\nCaused by error: %s"
@@ -635,14 +635,14 @@ def add_rows(feedback, import_status, con, cur, rows, has_header, ok_fldnames,
 def get_steps_per_item(items_n):
     """
     Needed for progress bar - how many items before displaying another of the 
-    steps as set by GAUGE_STEPS.
+    steps as set by mg.IMPORT_GAUGE_STEPS.
     
     Chunks per item e.g. 0.01.
     """
     if items_n != 0:
         # we go through the sample once at start for sampling and then again
         # for adding to table
-        steps_per_item = float(GAUGE_STEPS)/items_n
+        steps_per_item = float(mg.IMPORT_GAUGE_STEPS)/items_n
     else:
         steps_per_item = None
     return steps_per_item
@@ -655,7 +655,7 @@ def drop_tmp_tbl(con, cur):
 
 def post_fail_tidy(progbar, con, cur):
     drop_tmp_tbl(con, cur)
-    lib.safe_end_cursor()
+    lib.GuiLib.safe_end_cursor()
     cur.close()
     con.commit()
     con.close()
@@ -781,7 +781,7 @@ def tmp_to_named_tbl(con, cur, tblname, file_path, progbar, nulled_dots,
     except Exception, e:
         raise Exception(u"Unable to rename temporary table."
             u"\nCaused by error: %s" % b.ue(e))
-    progbar.SetValue(GAUGE_STEPS)
+    progbar.SetValue(mg.IMPORT_GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
         msg += _("\n\nAt least one field contained a single dot '.'.  This was "

@@ -61,7 +61,7 @@ class DlgGetTest(wx.Dialog):
         subject = output.percent_encode("Please send free %s extension" % label)
         link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension", 
             URL=u"mailto:%s?subject=%s" % (mg.CONTACT, subject))
-        lib.setup_link(link=link_home, link_colour="black", 
+        lib.GuiLib.setup_link(link=link_home, link_colour="black",
             bg_colour=wx.NullColour)
         btn_ok = wx.Button(self, wx.ID_OK) # autobound to close event by id
         szr.Add(lbl_msg1, 0, wx.TOP|wx.LEFT|wx.RIGHT, 10)

@@ -402,7 +402,8 @@ class LiveTable(DimTable):
         self.dbe = dbe
         self.tbl = tbl
         self.tbl_filt = tbl_filt
-        self.where_tbl_filt, self.and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+        self.where_tbl_filt, self.and_tbl_filt = lib.FiltLib.get_tbl_filts(
+            tbl_filt)
         (self.if_clause, unused, unused, 
          self.quote_obj, unused, 
          self.placeholder, self.get_summable, 
@@ -734,7 +735,7 @@ class LiveTable(DimTable):
         debug = False
         val_freq_label_lst = []
         for (val, val_freq) in all_vals:
-            def_val_label = lib.any2unicode(val)
+            def_val_label = lib.UniLib.any2unicode(val)
             val_label = tree_dims_node.labels.get(val, def_val_label)
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)

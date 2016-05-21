@@ -247,13 +247,14 @@ class DbTbl(wx.grid.PyGridTableBase):
             row_idx = row_min
             for data_tup in self.dd.cur.fetchall(): # tuple of values
                 # handle microsoft characters
-                data_tup = tuple([lib.handle_ms_data(x) for x in data_tup])
+                data_tup = tuple([lib.UniLib.handle_ms_data(x)
+                    for x in data_tup])
                 if debug or self.debug: print(data_tup)
                 self.add_data_to_row_vals_dic(self.row_vals_dic, row_idx, 
                     data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
-        display_val = lib.any2unicode(val)
+        display_val = lib.UniLib.any2unicode(val)
         return display_val
     
     def add_data_to_row_vals_dic(self, row_vals_dic, row_idx, data_tup):

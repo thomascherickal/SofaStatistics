@@ -22,6 +22,8 @@ STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
     TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, TEST_TTEST_PAIRED, 
     TEST_WILCOXON]
 
+t2d = lib.GuiLib.get_text_to_draw
+
 
 class DlgStatsSelect(wx.Dialog):
     
@@ -83,7 +85,7 @@ class DlgStatsSelect(wx.Dialog):
             stats_sel_img = u"stats_select.gif"
         else:
             stats_sel_img = u"stats_select_tight.gif"
-        img_stats_select = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
+        img_stats_select = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images",
                                                  stats_sel_img), 
                            wx.BITMAP_TYPE_GIF)
         self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
@@ -93,11 +95,11 @@ class DlgStatsSelect(wx.Dialog):
                             style=wx.RB_GROUP) # groups all till next RB_GROUP
         self.rad_direct.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
         self.rad_direct.SetValue(True)
-        self.rad_assisted = wx.RadioButton(self.panel, -1, 
+        self.rad_assisted = wx.RadioButton(self.panel, -1,
                                           pos=(self.main_left - 25, 95))
         self.rad_assisted.Bind(wx.EVT_RADIOBUTTON, self.on_radio_assisted_btn)
         # main assisted options
-        self.rad_differences = wx.RadioButton(self.panel, -1, 
+        self.rad_differences = wx.RadioButton(self.panel, -1,
                                              pos=(self.main_left, 
                                                   self.diff_top), 
                                              style=wx.RB_GROUP)
@@ -111,7 +113,7 @@ class DlgStatsSelect(wx.Dialog):
         # choices (NB can't use RadioBoxes and wallpaper in Windows)
         # choices line 1
         DIFF_LN_1 = self.diff_top + 65
-        self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"), 
+        self.rad_2groups = wx.RadioButton(self.panel, -1, _("2 groups"),
                                           style=wx.RB_GROUP,
                                           pos=(self.btn1_left, DIFF_LN_1))
         self.rad_2groups.Bind(wx.EVT_RADIOBUTTON, self.on_radio2_groups_btn)
@@ -132,7 +134,7 @@ class DlgStatsSelect(wx.Dialog):
         DIFF_LN_2 = DIFF_LN_1 + 45
         lbl_normal = _("Normal")
         lbl_not_normal = _("Not normal")
-        self.rad_normal1 = wx.RadioButton(self.panel, -1, lbl_normal, 
+        self.rad_normal1 = wx.RadioButton(self.panel, -1, lbl_normal,
                                          style=wx.RB_GROUP,
                                          pos=(self.btn1_left, DIFF_LN_2))
         self.rad_normal1.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
@@ -151,7 +153,7 @@ class DlgStatsSelect(wx.Dialog):
                       size=(self.div_line_width, 1))
         # choices line 3
         DIFF_LN_3 = DIFF_LN_2 + 45
-        self.rad_indep = wx.RadioButton(self.panel, -1, _("Independent"), 
+        self.rad_indep = wx.RadioButton(self.panel, -1, _("Independent"),
                                        style=wx.RB_GROUP,
                                        pos=(self.btn1_left, DIFF_LN_3))
         self.rad_indep.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
@@ -161,13 +163,13 @@ class DlgStatsSelect(wx.Dialog):
         self.rad_indep.Enable(False)
         self.rad_paired.Enable(False)
         self.btn_indep_help = wx.Button(self.panel, wx.ID_HELP,
-                                        pos=(self.help_left, 
+                                        pos=(self.help_left,
                                              DIFF_LN_3 - self.btn_lift))
         self.btn_indep_help.Bind(wx.EVT_BUTTON, self.on_indep_help_btn)
         self.btn_indep_help.Enable(False)
         # choices line 4
         DIFF_LN_4 = self.rel_top + 60
-        self.rad_nominal = wx.RadioButton(self.panel, -1, _("Names Only"), 
+        self.rad_nominal = wx.RadioButton(self.panel, -1, _("Names Only"),
                                           style=wx.RB_GROUP,
                                           pos=(self.btn1_left, DIFF_LN_4))
         self.rad_nominal.Bind(wx.EVT_RADIOBUTTON, self.on_radio_nominal_btn)
@@ -176,8 +178,8 @@ class DlgStatsSelect(wx.Dialog):
         self.rad_ordered.Bind(wx.EVT_RADIOBUTTON, self.on_radio_ordered_btn)
         self.rad_nominal.Enable(False)
         self.rad_ordered.Enable(False)
-        self.btn_type_help = wx.Button(self.panel, wx.ID_HELP, 
-                                       pos=(self.help_left, 
+        self.btn_type_help = wx.Button(self.panel, wx.ID_HELP,
+                                       pos=(self.help_left,
                                             DIFF_LN_4 - self.btn_lift))
         self.btn_type_help.Bind(wx.EVT_BUTTON, self.on_type_help_btn)
         self.btn_type_help.Enable(False)
@@ -186,7 +188,7 @@ class DlgStatsSelect(wx.Dialog):
                       size=(self.div_line_width, 1))   
         # choices line 4
         DIFF_LN_5 = self.rel_top + 105
-        self.rad_normal2 = wx.RadioButton(self.panel, -1, lbl_normal, 
+        self.rad_normal2 = wx.RadioButton(self.panel, -1, lbl_normal,
                                          style=wx.RB_GROUP,
                                          pos=(self.btn1_left, DIFF_LN_5))
         self.rad_normal2.Bind(wx.EVT_RADIOBUTTON, self.on_radio_btn)
@@ -223,8 +225,8 @@ class DlgStatsSelect(wx.Dialog):
                                     "ordered etc"))
         btn_type.Bind(wx.EVT_BUTTON, self.on_type_btn)
         # listbox of tests
-        self.lst_tests = wx.ListCtrl(self.panel, -1, 
-                 pos=(self.lst_left, self.lst_top), 
+        self.lst_tests = wx.ListCtrl(self.panel, -1,
+                 pos=(self.lst_left, self.lst_top),
                  size=(self.lst_width+self.scroll_allowance, self.lst_height),
                  style=wx.LC_REPORT|wx.LC_HRULES|wx.LC_SINGLE_SEL)
         il = wx.ImageList(16, 16)
@@ -245,13 +247,13 @@ class DlgStatsSelect(wx.Dialog):
             self.lst_tests.SetStringItem(i, 1, u"", self.idx_blank)
         unused = self.lst_tests.InsertStringItem(i+1, u"")
         self.lst_tests.Select(0)
-        self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED, 
+        self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED,
                            self.on_list_item_selected)
-        self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED, 
+        self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                            self.on_list_item_activated)
         # tips etc
         self.lbl_tips = wx.StaticText(self.panel, -1,
-                                      pos=(self.lst_left, 
+                                      pos=(self.lst_left,
                                            self.lst_top+self.lst_height+40))
         self.lbl_tips.SetFont(mg.LABEL_FONT)
         self.lbl_tips.SetForegroundColour(self.text_brown)
@@ -260,7 +262,7 @@ class DlgStatsSelect(wx.Dialog):
              pos=(self.config_left + self.lst_width + 55, self.lst_top))
         self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
-        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE, 
+        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE,
                                    pos=(self.form_width-100,
                                         self.form_height-42))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
@@ -293,37 +295,35 @@ class DlgStatsSelect(wx.Dialog):
         test_sel_txt = _("SELECT A STATISTICAL TEST HERE")
         test_sel_max_width = 350
         test_sel_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
-        test_sel_fs = lib.get_font_size_to_fit(text=test_sel_txt, 
-                                               max_width=test_sel_max_width, 
-                                               font_sz=test_sel_font_sz,
-                                               min_font_sz=10)
+        test_sel_fs = lib.GuiLib.get_font_size_to_fit(text=test_sel_txt, 
+            max_width=test_sel_max_width, font_sz=test_sel_font_sz,
+            min_font_sz=10)
         panel_dc.SetFont(wx.Font(test_sel_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(test_sel_txt, wx.Rect(self.main_left, 53, 100, 100))
         get_help_txt = _("OR GET HELP CHOOSING BELOW")
         get_help_max_width = 350
         get_help_font_sz = 16 if mg.PLATFORM == mg.MAC else 13
-        get_help_fs = lib.get_font_size_to_fit(text=get_help_txt, 
-                                               max_width=get_help_max_width, 
-                                               font_sz=get_help_font_sz,
-                                               min_font_sz=11)
+        get_help_fs = lib.GuiLib.get_font_size_to_fit(text=get_help_txt,
+            max_width=get_help_max_width, font_sz=get_help_font_sz,
+            min_font_sz=11)
         panel_dc.SetFont(wx.Font(get_help_fs, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(get_help_txt, wx.Rect(self.main_left, 95, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tests that show if there is a difference"), 
            wx.Rect(self.btn1_left, self.diff_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        diff_txt = lib.get_text_to_draw(_("E.g. Do females have a larger "
-                           "vocabulary average than males?"), 300)
-        panel_dc.DrawLabel(diff_txt, 
+        diff_txt = t2d(_("E.g. Do females have a larger vocabulary average than"
+            " males?"), 300)
+        panel_dc.DrawLabel(diff_txt,
            wx.Rect(self.btn1_left, self.diff_top + 20, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(_("Tests that show if there is a relationship"), 
+        panel_dc.DrawLabel(_("Tests that show if there is a relationship"),
            wx.Rect(self.btn1_left, self.rel_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.NORMAL))
-        panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"), 
+        panel_dc.DrawLabel(_("E.g. Does wealth increase with age?"),
            wx.Rect(self.btn1_left, self.rel_top + 27, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(_("Answering questions about your data"), 
+        panel_dc.DrawLabel(_("Answering questions about your data"),
            wx.Rect(self.btn1_left, self.questions_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
         panel_dc.DrawLabel(_("Tips"), 
@@ -402,7 +402,7 @@ class DlgStatsSelect(wx.Dialog):
         cc = output.get_cc()
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
                                     lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        dlg = normal.DlgNormality(self, self.var_labels, self.var_notes, 
+        dlg = normal.DlgNormality(self, self.var_labels, self.var_notes,
                                   self.var_types, self.val_dics)
         dlg.ShowModal()
     
@@ -447,11 +447,11 @@ class DlgStatsSelect(wx.Dialog):
     def on_radio_nominal_btn(self, event):
         self.normal_rel_setup(enable=False)
         self.respond_to_assisted_choices()
-    
+
     def on_radio_ordered_btn(self, event):
         self.normal_rel_setup(enable=True)
         self.respond_to_assisted_choices()
-    
+
     def on_type_help_btn(self, event):
         wx.MessageBox(_("Names only data (Nominal) is just labels or names. "
           "Ordered data has a sense of order and includes Ordinal (order "
@@ -460,7 +460,7 @@ class DlgStatsSelect(wx.Dialog):
           "'Badminton', 'Skiing' etc)"
           "\n\nExample of Ordered data: ratings of restaurant "
           "service standards (1 - Very Poor, 2 - Poor, 3 - Average etc)."))
-    
+
     def on_normal_help2_btn(self, event):
         wx.MessageBox(self.normality_msg)
         event.Skip()
@@ -470,20 +470,20 @@ class DlgStatsSelect(wx.Dialog):
         import report_table
         try:
             dlg = report_table.DlgMakeTable()
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to open report table")
             wx.MessageBox(msg)
             raise Exception(u"%s.\nCaused by error: %s" % (msg, b.ue(e)))
         finally:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             event.Skip()
 
     def on_normality_btn(self, event):
         self.examine_normality()
         event.Skip()
-    
+
     def on_type_btn(self, event):
         cc = output.get_cc()
         updated = set() # will get populated with a True to indicate update
@@ -492,7 +492,7 @@ class DlgStatsSelect(wx.Dialog):
         dlg = config_output.DlgListVars(self.var_labels, self.var_notes, 
             self.var_types, self.val_dics, updated)
         dlg.ShowModal()
-    
+
     def normal_rel_setup(self, enable=True):
         # set left first
         try:
@@ -502,10 +502,10 @@ class DlgStatsSelect(wx.Dialog):
         self.rad_normal2.Enable(enable)
         self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)
-    
+
     def on_radio_btn(self, event):
         self.respond_to_assisted_choices()
-    
+
     def respond_to_assisted_choices(self):
         test_type = self.select_test()
         if test_type:
@@ -513,7 +513,7 @@ class DlgStatsSelect(wx.Dialog):
             self.indicate_test(test_type)
             self.update_test_tips(test_type, assisted=True)
         self.lst_tests.SetFocus()
-    
+
     def update_test_tips(self, test_type, assisted=True):
         """
         assisted -- the system has chosen this.  If not assisted, just say 
@@ -523,43 +523,43 @@ class DlgStatsSelect(wx.Dialog):
         tips_width = 390
         if test_type == TEST_ANOVA:
             if assisted:
-                tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
+                tips = t2d(_("The ANOVA (Analysis Of Variance)"
                     " is probably a good choice. The Kruskal-Wallis H may "
                     "still be preferable if your data is not adequately "
                     "normal."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                tips += t2d(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The ANOVA (Analysis Of Variance)"
+                tips = t2d(_("The ANOVA (Analysis Of Variance)"
                     " is good for seeing if there is a difference in means "
                     "between multiple groups when the data is numerical and "
                     "adequately normal. Generally the ANOVA is robust to "
                     "non-normality."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                tips += t2d(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
         elif test_type == TEST_KRUSKAL_WALLIS:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
+                tips = t2d(_("The Kruskal-Wallis H"
                     " is probably a good choice. The ANOVA (Analysis Of "
                     "Variance) may still be preferable if your data is "
                     "numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Kruskal-Wallis H"
+                tips = t2d(_("The Kruskal-Wallis H"
                     " is good for seeing if there is a difference in values "
                     "between multiple groups when the data is at least ordered"
                     " (ordinal). The ANOVA (Analysis Of "
@@ -567,17 +567,16 @@ class DlgStatsSelect(wx.Dialog):
                     "numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, tips_width)
         elif test_type == TEST_CHI_SQUARE:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Chi Square test"
-                    " is probably a good choice."), 
+                tips = t2d(_("The Chi Square test is probably a good choice."), 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Chi Square test is one of "
+                tips = t2d(_("The Chi Square test is one of "
                     "the most widely used tests in social science. It is good "
                     "for seeing if the results for two variables are "
                     "independent or related. Is there a relationship between "
@@ -585,7 +584,7 @@ class DlgStatsSelect(wx.Dialog):
                     tips_width)
         elif test_type == TEST_PEARSONS_R:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
+                tips = t2d(_("The Pearson's R Correlation test"
                     " is probably a good choice if you are testing linear "
                     "correlation. Always look at the scatterplot to decide if a"
                     " linear relationship. The Spearman's R Correlation test "
@@ -593,13 +592,13 @@ class DlgStatsSelect(wx.Dialog):
                     " to extreme outliers (isolated high or low values)."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Pearson's R Correlation test"
+                tips = t2d(_("The Pearson's R Correlation test"
                     " is good for testing linear "
                     "correlation when your data is numerical and adequately "
                     "normal. Always look at the scatterplot to decide if a "
@@ -608,14 +607,14 @@ class DlgStatsSelect(wx.Dialog):
                     " to extreme outliers (isolated high or low values)."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
         elif test_type == TEST_SPEARMANS_R:
             if assisted:
-                tips = lib.get_text_to_draw(_(u"The Spearman's R Correlation "
+                tips = t2d(_(u"The Spearman's R Correlation "
                     u"test is probably a good choice if you are testing to see "
                     u"if two variables change together e.g. if one increases, "
                     u"the other also increases (or at least stays the same). "
@@ -625,13 +624,13 @@ class DlgStatsSelect(wx.Dialog):
                     u"numerical and adequately normal."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_(u"The Spearman's R Correlation "
+                tips = t2d(_(u"The Spearman's R Correlation "
                     u"test is good for testing to see if two variables change "
                     u"together e.g. if one increases, the other also increases "
                     u"(or at least stays the same). Always look at the "
@@ -641,119 +640,119 @@ class DlgStatsSelect(wx.Dialog):
                     u"normal."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
         elif test_type == TEST_TTEST_INDEP:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Independent t-test is "
+                tips = t2d(_("The Independent t-test is "
                     "probably a good choice.  The Mann-Whitney may still be "
                     "preferable in some cases because of its resistance"
                     " to extreme outliers (isolated high or low values)."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("The Mann-Whitney also copes "
+                tips += t2d(_("The Mann-Whitney also copes "
                     "better with small sample sizes e.g. < 20."), tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
+                tips += t2d(_(u"You can evaluate normality by "
                     u"clicking on the \"%s\" button down the bottom left.")
                     % self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Independent t-test is a very"
+                tips = t2d(_("The Independent t-test is a very"
                     " popular test. It is good for seeing if there is a "
                     "difference between two groups when the data is numerical "
                     "and adequately normal. Generally the t-test is robust to "
                     "non-normality."), 
                     tips_width)
                 tips += u"\n\n" 
-                tips += lib.get_text_to_draw(_("The Mann-Whitney may be "
+                tips += t2d(_("The Mann-Whitney may be "
                     "preferable in some cases because of its resistance"
-                    " to extreme outliers (isolated high or low values)."), 
+                    " to extreme outliers (isolated high or low values)."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("It also copes better with small"
+                tips += t2d(_("It also copes better with small"
                     " sample sizes e.g. < 20."), 
                     tips_width)
         elif test_type == TEST_MANN_WHITNEY:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Mann-Whitney is probably a "
+                tips = t2d(_("The Mann-Whitney is probably a "
                     "good choice.  The Independent t-test may still be "
                     "preferable if your data is numerical and doesn't violate "
                     "normality too much.  Generally the t-test is robust"
                     " to non-normality."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Mann-Whitney is good for "
+                tips = t2d(_("The Mann-Whitney is good for "
                     "seeing if there is a difference between two groups when "
-                    "the data is at least ordinal (ordered)."), 
+                    "the data is at least ordinal (ordered)."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"The Independent t-test may be "
+                tips += t2d(_(u"The Independent t-test may be "
                     u"preferable if your data is numerical and doesn't violate "
                     u"normality too much.  Generally the t-test is robust"
-                    u" to non-normality."), 
+                    u" to non-normality."),
                     tips_width)
         elif test_type == TEST_TTEST_PAIRED:
             if assisted:
-                tips = lib.get_text_to_draw(_("The paired t-test"
+                tips = t2d(_("The paired t-test"
                     " is probably a good choice.  The Wilcoxon Signed Ranks "
                     "test may still be preferable because of its resistance"
-                    " to extreme outliers (isolated high or low values)."), 
+                    " to extreme outliers (isolated high or low values)."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"If your data is numerical, you"
+                tips += t2d(_(u"If your data is numerical, you"
                     u" can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The paired t-test is good for "
+                tips = t2d(_("The paired t-test is good for "
                     "looking at differences in paired numerical data e.g. two "
                     "values recorded for the same person at different times. "
-                    "The results must be adequately normal"), 
+                    "The results must be adequately normal"),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                tips += t2d(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
         elif test_type == TEST_WILCOXON:
             if assisted:
-                tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks"
+                tips = t2d(_("The Wilcoxon Signed Ranks"
                     " is probably a good choice as long as your data is "
                     "measured at (approximately) an interval level. The paired "
                     "t-test may be preferable if your data is numerical and "
-                    "doesn't violate normality too much."), 
+                    "doesn't violate normality too much."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                tips += t2d(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
             else:
-                tips = lib.get_text_to_draw(_("The Wilcoxon Signed Ranks is "
+                tips = t2d(_("The Wilcoxon Signed Ranks is "
                     "good for looking at differences in paired data e.g. two "
                     "values recorded for the same person at different times. "
                     "The data must be measured at (approximately) an interval "
                     "level."), 
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_("The paired t-test may be "
+                tips += t2d(_("The paired t-test may be "
                     "preferable if your data is numerical and doesn't violate "
-                    "normality too much."), 
+                    "normality too much."),
                     tips_width)
                 tips += u"\n\n"
-                tips += lib.get_text_to_draw(_(u"You can evaluate normality by "
-                    u"clicking on the \"%s\" button down the bottom left.") % 
+                tips += t2d(_(u"You can evaluate normality by "
+                    u"clicking on the \"%s\" button down the bottom left.") %
                     self.normality_label, 
                     tips_width)
         else:

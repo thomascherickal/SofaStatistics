@@ -108,7 +108,7 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
         set_colwidths = (rows_n < 1000)
         dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
             readonly, set_colwidths=set_colwidths)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
 
 def open_database(parent, event):
@@ -222,9 +222,9 @@ class TblEditor(wx.Dialog):
         szr_lst = [self.grid, szr_bottom]
         iswindows = (mg.PLATFORM == mg.WINDOWS)
         mywidth, myheight = get_display_dims(maxheight=mg.MAX_HEIGHT,
-                                             iswindows=iswindows)
-        lib.set_size(window=self, szr_lst=szr_lst, width_init=mywidth, 
-                     height_init=myheight)
+            iswindows=iswindows)
+        lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=mywidth,
+            height_init=myheight)
         self.grid.SetFocus()
     
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
@@ -786,7 +786,7 @@ class TblEditor(wx.Dialog):
                 return True
             return False
         elif fld_dic[mg.FLD_BOLDATETIME]:
-            usable_datetime = lib.is_usable_datetime_str(raw_val)
+            usable_datetime = lib.DateLib.is_usable_datetime_str(raw_val)
             if not usable_datetime:
                 eg1 = mg.OK_DATE_FORMAT_EXAMPLES[0]
                 eg2 = mg.OK_DATE_FORMAT_EXAMPLES[1]
@@ -1147,7 +1147,7 @@ class TblEditor(wx.Dialog):
             self.parent.add_feedback(u"")
         except Exception:
             pass
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
     
     def is_new_row(self, row):
         new_row = self.dbtbl.is_new_row(row)

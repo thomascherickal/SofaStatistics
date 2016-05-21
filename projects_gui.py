@@ -251,7 +251,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError, e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
+                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj,
                 u"def_proj": mg.DEFAULT_PROJ})
             raise Exception(u"Key error reading from proj_dic."
                 u"\nCaused by error: %s" % b.ue(e))
@@ -362,6 +362,8 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             except Exception:
                 print(u"Failed to change to %s%s" % (proj_name, mg.PROJ_EXT))
                 pass # Only needed if returning to projselect form so OK to fail otherwise.
+            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s%s" %
+                (proj_name, mg.PROJ_EXT))
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else u""
@@ -392,8 +394,12 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                 fil_css, fil_report, fil_script, default_dbe, default_dbs, 
                 default_tbls, con_dets)
             # write the data
-            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, u"%s%s" % 
-                (proj_name, mg.PROJ_EXT))
+            if (os.path.exists(fil_name)
+                and wx.MessageBox(_(u"A project file of this name already "
+                    u"exists. Do you wish to override it?"),
+                    caption=_("PROJECT ALREADY EXISTS"),
+                    style=wx.YES_NO) == wx.NO):
+                return
             # In Windows, MySQL.proj and mysql.proj are the same in the file 
             # system - if already a file with same name, delete it first
             # otherwise will write to mysql.proj when saving MySQL.proj.

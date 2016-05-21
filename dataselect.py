@@ -105,7 +105,7 @@ class DlgDataSelect(wx.Dialog):
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.ctrl_enablement()
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
 
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)
@@ -247,7 +247,7 @@ class DlgDataSelect(wx.Dialog):
         readonly = False
         dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes,
                                 self.var_types, self.val_dics, readonly)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
         # restore dd to original if necessary
         if not sofa_default_db:

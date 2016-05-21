@@ -216,11 +216,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.SetSizer(self.szr_main)
         szr_lst = [self.szr_help_data, self.szr_vars, self.szr_mid, 
             self.szr_bottom] # each has a panel of its own
-        lib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
+        lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024, 
             height_init=myheight)
     
     def get_drop_val_opts(self, panel):
-        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPT_LBLS, 
+        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPT_LBLS,
             size=(90,-1))
         drop_opts.SetFont(mg.GEN_FONT)
         idx_data_opt = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
@@ -238,7 +238,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_sort)
         drop_opts.SetToolTipString(_(u"Sort order for categories"))
         return drop_opts
-    
+
     def setup_simple_bar(self):
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
@@ -478,7 +478,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_boxplot.Add(lbl_box_opts, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_boxplot.Add(self.drop_box_opts, 0, wx.TOP, 5)
         self.szr_boxplot.AddSpacer(10)
-        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.TOP|wx.BOTTOM, 10)
+        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.BOTTOM, 10)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
     
@@ -838,6 +838,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             # any initial content
             html2show = _(u"<p>Waiting for a chart to be run.</p>")
             self.html.show_html(html2show)
+        
 
     def on_btn_help(self, event):
         import webbrowser
@@ -1056,8 +1057,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if self.panel_displayed == panel:
             return # just reclicking on same one
         self.panel_displayed.Show(False)
-        self.szr_mid.Remove(self.panel_displayed)
-        self.szr_mid.Add(panel, 0, wx.GROW)
         self.panel_displayed = panel
         panel.Show(True)
         self.panel_mid.Layout() # self.Layout() doesn't work in Windows
@@ -1417,7 +1416,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         titles, subtitles = self.get_titles()
         script_lst.append(u"titles=%s" % unicode(titles))
         script_lst.append(u"subtitles=%s" % unicode(subtitles))
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         myvars = self.get_vars()
         if debug: print(myvars)
         # other variables to set up
@@ -1661,18 +1661,18 @@ def get_scatterplot_script(css_fil, css_idx, show_borders, inc_regression):
     dd = mg.DATADETS_OBJ
     regression = "True" if inc_regression else "False"
     script = (u"""
-(overall_title, 
+(overall_title,
  scatterplot_dets) = charting_output.get_scatterplot_dets(dbe, cur, tbl, 
-    tbl_filt, flds, var_role_x_axis, var_role_x_axis_name, 
-    var_role_y_axis, var_role_y_axis_name, 
+    tbl_filt, flds, var_role_x_axis, var_role_x_axis_name,
+    var_role_y_axis, var_role_y_axis_name,
     var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+    var_role_charts, var_role_charts_name, var_role_charts_lbls,
     unique=True, inc_regression=%(regression)s)
 chart_output = charting_output.scatterplot_output(titles, subtitles,
-    overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name, 
-    add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s", 
+    overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name,
+    add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s",
     css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx, 
+    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx,
         u"show_borders": show_borders, u"regression": regression})
     return script
 

@@ -7,6 +7,9 @@ import my_globals as mg
 import lib
 import paired2var
 
+"""
+Add Kendall rank correlation coefficient?
+"""
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
     
@@ -43,7 +46,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         except Exception, e:
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
                 % b.ue(e))
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         script_lst.append(u"""
 sample_x, sample_y, data_tups = core_stats.get_paired_data(
     dbe=mg.%(dbe)s, cur=cur, tbl=u"%(tbl)s",

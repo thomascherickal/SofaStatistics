@@ -12,7 +12,7 @@ def display_report(parent, str_content, url_load=False):
     dlg = DlgHTML(parent=parent, title=_("Report"), url=None, 
         content=str_content, url_load=url_load)
     dlg.ShowModal()
-    lib.safe_end_cursor() # again to be sure
+    lib.GuiLib.safe_end_cursor() # again to be sure
 
 def get_html(title, content, template, root="", file_name="", print_folder=""):
     """
@@ -96,7 +96,7 @@ class DlgHTML(wx.Dialog):
                       mg.MAX_HEIGHT-(height_reduction+height_adj)))
         self.SetPosition((10, pos_y))
         self.Restore()
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
 
     def on_show(self, event):
         try:

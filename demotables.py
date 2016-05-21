@@ -14,14 +14,14 @@ class DemoTable(object):
     """
     All demo tables, whether dim tables or raw tables, derive from this class.
     """
-    
+
     def get_demo_html_if_ok(self, css_idx):
         "Show demo table if sufficient data to do so"
-        has_cols = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                              item=self.colroot)
+        has_cols = lib.GuiLib.get_tree_ctrl_children(tree=self.coltree,
+            item=self.colroot)
         if self.needs_rows:
-            has_rows = lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                  item=self.rowroot)
+            has_rows = lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree,
+                item=self.rowroot)
             is_ok = has_rows and has_cols
         else:
             is_ok = has_cols
@@ -62,8 +62,8 @@ class DemoTable(object):
                 u"Orig error: %s</td>" % b.ue(e)]
         return row_label_rows_lst
 
-    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
-            col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
+    def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst,
+            col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst,
             row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
         """
         Get list of row data. Each row in the list is represented
@@ -169,15 +169,15 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
             settings when instantiated - may change after that.
         """
         dd = mg.DATADETS_OBJ
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
-        (col_names, col_labels, 
-         col_sorting) = lib.get_col_dets(self.coltree, self.colroot, 
-                                         self.var_labels)
-        demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,  
-                              col_labels, col_names, col_sorting, dd.tbl, 
-                              dd.flds, dd.cur, self.first_col_as_label, 
-                              self.val_dics, self.add_total_row, where_tbl_filt, 
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_tbl_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
+        (col_names, col_labels,
+         col_sorting) = lib.GuiLib.get_col_dets(self.coltree, self.colroot,
+                                                self.var_labels)
+        demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,
+                              col_labels, col_names, col_sorting, dd.tbl,
+                              dd.flds, dd.cur, self.first_col_as_label,
+                              self.val_dics, self.add_total_row, where_tbl_filt,
                               css_idx, page_break_after=False, display_n=4)
         return demo_html
 
@@ -190,7 +190,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         the trees get wiped every time a database or table change is made. So
         always fresh and running off selected data.
     """
-    def __init__(self, txt_titles, txt_subtitles, tab_type, colroot, rowroot, 
+    def __init__(self, txt_titles, txt_subtitles, tab_type, colroot, rowroot,
                  rowtree, coltree, col_no_vars_item, var_labels, val_dics):
         self.debug = False
         self.txt_titles = txt_titles
@@ -216,7 +216,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         "Returns demo_html"
         debug = False
         html = []
-        title_dets_html = output.get_title_dets_html(self.titles, 
+        title_dets_html = output.get_title_dets_html(self.titles,
                                                      self.subtitles, css_idx,
                                                      istable=True)
         html.append(title_dets_html)
@@ -261,10 +261,10 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             row labels).
         """
         tree_row_labels = dimtables.LabelNodeTree()
-        for row_child_item in lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                         item=self.rowroot):
-            self.add_subtree_to_label_tree(tree_dims_item=row_child_item, 
-                              tree_labels_node=tree_row_labels.root_node, 
+        for row_child_item in lib.GuiLib.get_tree_ctrl_children(
+                tree=self.rowtree, item=self.rowroot):
+            self.add_subtree_to_label_tree(tree_dims_item=row_child_item,
+                              tree_labels_node=tree_row_labels.root_node,
                               dim=mg.ROWDIM_KEY)
         # If no row variables, make a special row node.
         if tree_row_labels.get_depth() == 1:
@@ -272,7 +272,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             tree_row_labels.add_child(child)
         return self.process_row_tree(tree_row_labels, css_idx)
 
-    def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node, 
+    def add_subtree_to_label_tree(self, tree_dims_item, tree_labels_node,
                                      dim):
         """
         Overview -- 1) if col_no_vars, just the measures; 2) if row summ, vars 
@@ -313,7 +313,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             else:
                 measures = [self.default_measure]
             for measure in measures:
-                tree_labels_node.add_child(dimtables.LabelNode(label=measure, 
+                tree_labels_node.add_child(dimtables.LabelNode(label=measure,
                                                                measure=measure))
             return
         # Add var e.g. gender (and if not row summ, then values below e.g. Male, 
@@ -366,7 +366,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     measures = item_conf.measures_lst
                     if not measures:
                         measures = [self.default_measure]
-                    self.add_measures(subitem_node, measures, is_coltot, 
+                    self.add_measures(subitem_node, measures, is_coltot,
                                       force_freq)
                 else:
                     # for each child of tree_dims_item e.g. Eth and Age Gp
@@ -374,16 +374,15 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                         tree = self.coltree
                     elif dim == mg.ROWDIM_KEY:
                         tree = self.rowtree
-                    child_items = lib.get_tree_ctrl_children(tree=tree, 
-                                                            item=tree_dims_item)
+                    child_items = lib.GuiLib.get_tree_ctrl_children(tree=tree,
+                        item=tree_dims_item)
                     if debug:
-                        print(lib.get_sub_tree_items(tree=tree,
-                                                     parent=tree_dims_item))
+                        print(lib.GuiLib.get_sub_tree_items(tree=tree,
+                            parent=tree_dims_item))
                     for child_item in child_items:
                         self.add_subtree_to_label_tree(
-                                                  tree_dims_item=child_item, 
-                                                  tree_labels_node=subitem_node, 
-                                                  dim=dim)
+                            tree_dims_item=child_item,
+                            tree_labels_node=subitem_node, dim=dim)
     
     def add_measures(self, node, measures, is_coltot=False, force_freq=False):
         sep_measures = measures[:]
@@ -400,11 +399,10 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
             here (unlike Live Tables). It will be handled by the calling class 
             e.g. by adding measures or raising an exception.
         """
-        dim_children = lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                  item=self.colroot)
+        dim_children = lib.GuiLib.get_tree_ctrl_children(tree=self.coltree,
+            item=self.colroot)
         for dim_child_item in dim_children:
-            self.add_subtree_to_label_tree(tree_dims_item=dim_child_item, 
-                                         tree_labels_node=tree_labels.root_node, 
-                                         dim=mg.COLDIM_KEY)
+            self.add_subtree_to_label_tree(tree_dims_item=dim_child_item,
+                tree_labels_node=tree_labels.root_node, dim=mg.COLDIM_KEY)
         return tree_labels
     

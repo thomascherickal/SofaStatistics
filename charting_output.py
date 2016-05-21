@@ -597,7 +597,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
                 u"chart type." % (var_role, chart_type))
     # misc
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
-    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     xlblsdic = var_role_cat_lbls
     # Get data as per setup
     SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, 
@@ -629,6 +629,11 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         var_role_series, var_role_series_name, var_role_series_lbls, sort_opt, 
         rotate=False, boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
     """
+    Desc, Category, Series correspond to dropdown 1-3 respectively. E.g. if the
+    averaged variable is age, the split within the series is gender, and the
+    different series (each with own colour) is country, we have var desc = age,
+    var cat = gender, and var series = country.
+
     NB can't just use group by SQL to get results - need upper and lower 
     quartiles etc and we have to work on the raw values to achieve this. We have 
     to do more work outside of SQL to get the values we need.
@@ -654,7 +659,7 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
-    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     boxplot_width = 0.25
     chart_dets = []
     xaxis_dets = [] # (0, u"''", u"''")]
@@ -666,8 +671,13 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
         u"where_tbl_filt": where_tbl_filt, 
         u"and_tbl_filt": and_tbl_filt, 
         u"tbl": getdata.tblname_qtr(dbe, tbl)}
-    # 1) Get all series vals appearing in any rows where all fields are 
-    # non-missing.
+    # 1) What are our series to display? If there is no data for an entire
+    # series, we want to leave it out. E.g. if country = Palau has no skiing
+    # data it won't appear as a series. So get all series vals appearing in any
+    # rows where all fields are non-missing. If a series even has one value, we
+    # show the series and a box plot for every category that has a value to be
+    # averaged, even if only one value (resulting in a single line rather than a
+    # box as such).
     if var_role_series:
         SQL_series_vals = u"""SELECT %(var_role_series)s 
             FROM %(tbl)s 
@@ -774,21 +784,14 @@ def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_desc,
             %(and_tbl_filt)s""" % sql_dic
             cur.execute(SQL_vals2desc)
             vals2desc = [x[0] for x in cur.fetchall()]
-            enough_vals = (len(vals2desc) > mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
-            enough_diff = False
-            if enough_vals:
+            has_vals = (len(vals2desc) > 0)
+            if has_vals:
                 median = round(np.median(vals2desc),2)
                 lq, uq = core_stats.get_quartiles(vals2desc)
                 lbox = round(lq, 2)
                 ubox = round(uq, 2)
-                # Round them because even if all vals the same e.g. 1.0 will differ
-                # very slightly because of method used to calc quartiles using 
-                # floating point.
-                line_vals = set([round(lbox,5), round(median,5), round(ubox,5)])
-                enough_diff = (len(line_vals) == 3)
-                if debug: print("%s, %s %s %s %s" % (enough_vals, enough_diff, 
-                    lbox, median, ubox))
-            boxplot_display = enough_vals and enough_diff
+                if debug: print("%s %s %s" % (lbox, median, ubox))
+            boxplot_display = has_vals
             if not boxplot_display:
                 any_missing_boxes = True
                 box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
@@ -943,7 +946,7 @@ def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin,
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     sql_dic = {u"var_role_charts": objqtr(var_role_charts), 
        u"var_role_bin": objqtr(var_role_bin),
        u"and_tbl_filt": and_tbl_filt, 
@@ -1070,7 +1073,7 @@ def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds,
     """
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
-    where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     fld_x_axis = objqtr(var_role_x_axis)
     fld_y_axis = objqtr(var_role_y_axis)
     xy_filt_tpl = (u" %%s %s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis, 
@@ -3120,9 +3123,8 @@ def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
         margin_offset_l += 10  
     html = []
     if any_missing_boxes:
-        html.append(u"<p>At least one box will not be displayed because it "
-            u"needed more than %s values or has inadequate variability.</p>" % 
-            mg.MIN_DISPLAY_VALS_FOR_BOXPLOT)
+        html.append(u"<p>At least one box will not be displayed because there "
+            u"was no data in that category and series</p>")
     """
     For each series, set colour details.
     For the collection of series as a whole, set the highlight mapping from 

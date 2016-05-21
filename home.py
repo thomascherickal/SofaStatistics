@@ -106,6 +106,11 @@ if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
 
+t2d = lib.GuiLib.get_text_to_draw
+t2b = lib.GuiLib.add_text_to_bitmap
+get_bmp = lib.GuiLib.get_bmp
+reverse_bmp = lib.GuiLib.reverse_bmp
+
 def setup_lang_and_fonts():
     """
     Must be done after redirection has occurred in __init__ so printing output 
@@ -435,7 +440,7 @@ class StartFrame(wx.Frame):
             mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
             if show_early_steps: print(u"Initialised mg.DATADETS_OBJ")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_("Unable to connect to data as defined in "
                 "project %s. Please check your settings.") % self.active_proj)
             raise # for debugging
@@ -443,28 +448,28 @@ class StartFrame(wx.Frame):
             config_output.add_icon(frame=self)
             if show_more_steps: print(u"Added icon to frame")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem adding icon to frame")
             raise # for debugging
         try:
             self.make_sized_imgs()
             if show_more_steps: print(u"Made sized images")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem making sized images")
             raise # for debugging
         try:
             self.setup_stable_imgs()
             if show_more_steps: print(u"Set up stable images")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem making sized images")
             raise # for debugging
         try:
             self.setup_buttons()
             if show_more_steps: print(u"Set up buttons")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up buttons")
             raise # for debug
         # text
@@ -481,7 +486,7 @@ class StartFrame(wx.Frame):
             self.set_help_imgs()
             if show_more_steps: print(u"Set up help images")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Problem setting up help images."
                 u"\nCaused by error: %s" % b.ue(e))
         # upgrade available?
@@ -494,7 +499,7 @@ class StartFrame(wx.Frame):
             self.setup_links(new_version)
             if show_more_steps: print(u"Set up links")
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up links")
             raise # for debugging
             return
@@ -628,157 +633,156 @@ class StartFrame(wx.Frame):
             raise Exception(u"Problem finding background button image.  "
                 u"Missing path: %s" % sofabg)
         try:
-            self.bmp_sofabg = lib.get_bmp(src_img_path=sofabg, reverse=REVERSE)
+            self.bmp_sofabg = get_bmp(src_img_path=sofabg, reverse=REVERSE)
         except Exception:
             raise Exception(u"Problem creating background button image from %s"
                 % sofabg)
-    
+
     def set_help_imgs(self):
         # help images
         help_img = os.path.join(mg.SCRIPT_PATH, u"images", u"help.gif")
-        self.bmp_help = lib.get_bmp(src_img_path=help_img, reverse=REVERSE)
+        self.bmp_help = get_bmp(src_img_path=help_img, reverse=REVERSE)
         get_started = os.path.join(mg.SCRIPT_PATH, u"images",
             u"step_by_step.gif")
-        self.bmp_get_started = lib.get_bmp(src_img_path=get_started, 
+        self.bmp_get_started = get_bmp(src_img_path=get_started,
             reverse=REVERSE)
-        self.bmp_data = lib.get_bmp(src_img_path=self.data_sized, 
-            reverse=REVERSE)
+        self.bmp_data = get_bmp(src_img_path=self.data_sized, reverse=REVERSE)
         imprt = os.path.join(mg.SCRIPT_PATH, u"images", u"import.gif")
-        self.bmp_import = lib.get_bmp(src_img_path=imprt, reverse=REVERSE)
+        self.bmp_import = get_bmp(src_img_path=imprt, reverse=REVERSE)
         tabs = os.path.join(mg.SCRIPT_PATH, u"images", u"table.gif")
-        self.bmp_tabs = lib.get_bmp(src_img_path=tabs, reverse=REVERSE)
-        self.bmp_chart = lib.get_bmp(src_img_path=self.demo_chart_sized, 
+        self.bmp_tabs = get_bmp(src_img_path=tabs, reverse=REVERSE)
+        self.bmp_chart = get_bmp(src_img_path=self.demo_chart_sized,
             reverse=REVERSE)
         stats = os.path.join(mg.SCRIPT_PATH, u"images", u"stats.gif")
-        self.bmp_stats = lib.get_bmp(src_img_path=stats, reverse=REVERSE)
-        self.bmp_proj = lib.get_bmp(src_img_path=self.proj_sized, 
-            reverse=REVERSE)
+        self.bmp_stats = get_bmp(src_img_path=stats, reverse=REVERSE)
+        self.bmp_proj = get_bmp(src_img_path=self.proj_sized, reverse=REVERSE)
         prefs = os.path.join(mg.SCRIPT_PATH, u"images", u"prefs.gif")
-        self.bmp_prefs = lib.get_bmp(src_img_path=prefs, reverse=REVERSE)
+        self.bmp_prefs = get_bmp(src_img_path=prefs, reverse=REVERSE)
         backup = os.path.join(mg.SCRIPT_PATH, u"images", u"backup.gif")
-        self.bmp_backup = lib.get_bmp(src_img_path=backup, reverse=REVERSE)
+        self.bmp_backup = get_bmp(src_img_path=backup, reverse=REVERSE)
         exit_img = os.path.join(mg.SCRIPT_PATH, u"images", u"exit.gif")
-        self.bmp_exit = lib.get_bmp(src_img_path=exit_img, reverse=REVERSE)
+        self.bmp_exit = get_bmp(src_img_path=exit_img, reverse=REVERSE)
         agpl3 = os.path.join(mg.SCRIPT_PATH, u"images", u"agpl3.xpm")
-        self.bmp_agpl3 = lib.get_bmp(src_img_path=agpl3, 
+        self.bmp_agpl3 = get_bmp(src_img_path=agpl3,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-    
+
     def setup_stable_imgs(self):
         upgrade = os.path.join(mg.SCRIPT_PATH, u"images", u"upgrade.xpm")
-        self.bmp_upgrade = lib.get_bmp(src_img_path=upgrade, 
+        self.bmp_upgrade = get_bmp(src_img_path=upgrade,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-        quote_left = os.path.join(mg.SCRIPT_PATH, u"images", 
+        quote_left = os.path.join(mg.SCRIPT_PATH, u"images",
             u"speech_mark_large.xpm")
-        self.bmp_quote_left = lib.get_bmp(src_img_path=quote_left, 
+        self.bmp_quote_left = get_bmp(src_img_path=quote_left,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-        quote_right = os.path.join(mg.SCRIPT_PATH, u"images", 
+        quote_right = os.path.join(mg.SCRIPT_PATH, u"images",
             u"speech_mark_small.xpm")
-        self.bmp_quote_right = lib.get_bmp(src_img_path=quote_right, 
+        self.bmp_quote_right = get_bmp(src_img_path=quote_right,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-        self.bmp_top_sofa = lib.get_bmp(src_img_path=self.top_sofa) # ok if reversed
+        self.bmp_top_sofa = get_bmp(src_img_path=self.top_sofa) # ok if reversed
         # slice of image to be refreshed (where text and image will be)
-        blankwp_rect = wx.Rect(self.main_left, self.help_text_top, 
+        blankwp_rect = wx.Rect(self.main_left, self.help_text_top,
             self.help_img_left+35, self.blankwp_height)
         self.blank_wallpaper = self.bmp_sofabg.GetSubBitmap(blankwp_rect)
         blankps_rect = wx.Rect(self.main_left, 218, 610, 30)
         self.blank_proj_strip = self.bmp_sofabg.GetSubBitmap(blankps_rect)
-    
+
     def setup_buttons(self):
         btn_font_sz = 14 if mg.PLATFORM == mg.MAC else 10
         g = get_next_y_pos(284, self.btn_drop)
         # get started
-        get_started_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
-        bmp_btn_get_started = lib.add_text_to_bitmap(get_started_btn_bmp,
-            _("Get Started"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_get_started = lib.reverse_bmp(bmp_btn_get_started)
-        self.btn_get_started = wx.BitmapButton(self.panel, -1, 
+        get_started_btn_bmp = lib.GuiLib.get_blank_btn_bmp(
+            xpm=u"blankhelpbutton.xpm")
+        bmp_btn_get_started = t2b(get_started_btn_bmp, _("Get Started"),
+            btn_font_sz, "white")
+        if REVERSE: bmp_btn_get_started = reverse_bmp(bmp_btn_get_started)
+        self.btn_get_started = wx.BitmapButton(self.panel, -1,
             bmp_btn_get_started, pos=(self.btn_left, g.next()))
         self.btn_get_started.Bind(wx.EVT_BUTTON, self.on_get_started_click)
-        self.btn_get_started.Bind(wx.EVT_ENTER_WINDOW, 
+        self.btn_get_started.Bind(wx.EVT_ENTER_WINDOW,
             self.on_get_started_enter)
         self.btn_get_started.SetDefault()
         # Data entry
-        bmp_btn_data = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
-            _("Enter/Edit Data"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_data = lib.reverse_bmp(bmp_btn_data)
-        self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data, 
+        bmp_btn_data = t2b(lib.GuiLib.get_blank_btn_bmp(), _("Enter/Edit Data"),
+            btn_font_sz, "white")
+        if REVERSE: bmp_btn_data = reverse_bmp(bmp_btn_data)
+        self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data,
             pos=(self.btn_left, g.next()))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
         self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
-        bmp_btn_import = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_import = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Import Data"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_import = lib.reverse_bmp(bmp_btn_import)
-        self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import, 
+        if REVERSE: bmp_btn_import = reverse_bmp(bmp_btn_import)
+        self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import,
             pos=(self.btn_left, g.next()))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
         self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Report tables
-        bmp_btn_tables = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
+        bmp_btn_tables = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Report Tables"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_tables = lib.reverse_bmp(bmp_btn_tables)
-        self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables, 
+        if REVERSE: bmp_btn_tables = reverse_bmp(bmp_btn_tables)
+        self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables,
             pos=(self.btn_left, g.next()))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
-        bmp_btn_charts = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_charts = t2b(lib.GuiLib.get_blank_btn_bmp(), 
             _("Charts"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_charts = lib.reverse_bmp(bmp_btn_charts)
-        self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts, 
+        if REVERSE: bmp_btn_charts = reverse_bmp(bmp_btn_charts)
+        self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts,
             pos=(self.btn_left, g.next()))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
-        bmp_btn_stats = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(),
+        bmp_btn_stats = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Statistics"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_stats = lib.reverse_bmp(bmp_btn_stats)
-        self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats, 
+        if REVERSE: bmp_btn_stats = reverse_bmp(bmp_btn_stats)
+        self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats,
             pos=(self.btn_left, g.next()))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Right
         g = get_next_y_pos(284, self.btn_drop)
         # on-line help
-        help_btn_bmp = lib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
-        bmp_btn_help = lib.add_text_to_bitmap(help_btn_bmp, 
+        help_btn_bmp = lib.GuiLib.get_blank_btn_bmp(xpm=u"blankhelpbutton.xpm")
+        bmp_btn_help = t2b(help_btn_bmp,
             _("Online Help"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_help = lib.reverse_bmp(bmp_btn_help)
-        self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help, 
+        if REVERSE: bmp_btn_help = reverse_bmp(bmp_btn_help)
+        self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help,
             pos=(self.btn_right, g.next()))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
         # Proj
         self.sel_proj_lbl = _("Select Project")
-        bmp_btn_proj = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_proj = t2b(lib.GuiLib.get_blank_btn_bmp(),
             self.sel_proj_lbl, btn_font_sz, "white")
-        if REVERSE: bmp_btn_proj = lib.reverse_bmp(bmp_btn_proj)
-        self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj, 
+        if REVERSE: bmp_btn_proj = reverse_bmp(bmp_btn_proj)
+        self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj,
             pos=(self.btn_right, g.next()))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         # Prefs
-        bmp_btn_prefs = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_prefs = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Preferences"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_prefs = lib.reverse_bmp(bmp_btn_prefs)
-        self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_prefs, 
+        if REVERSE: bmp_btn_prefs = reverse_bmp(bmp_btn_prefs)
+        self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_prefs,
             pos=(self.btn_right, g.next()))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Backup
-        bmp_btn_backup = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_backup = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Run Backup"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_backup = lib.reverse_bmp(bmp_btn_backup)
-        self.btn_backup = wx.BitmapButton(self.panel, -1, bmp_btn_backup, 
+        if REVERSE: bmp_btn_backup = reverse_bmp(bmp_btn_backup)
+        self.btn_backup = wx.BitmapButton(self.panel, -1, bmp_btn_backup,
             pos=(self.btn_right, g.next()))
         self.btn_backup.Bind(wx.EVT_BUTTON, self.on_backup_click)
         self.btn_backup.Bind(wx.EVT_ENTER_WINDOW, self.on_backup_enter)
         # Exit
-        bmp_btn_exit = lib.add_text_to_bitmap(lib.get_blank_btn_bmp(), 
+        bmp_btn_exit = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Exit"), btn_font_sz, "white")
-        if REVERSE: bmp_btn_exit = lib.reverse_bmp(bmp_btn_exit)
-        self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit, 
+        if REVERSE: bmp_btn_exit = reverse_bmp(bmp_btn_exit)
+        self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit,
             pos=(self.btn_right, g.next()))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
@@ -803,17 +807,17 @@ class StartFrame(wx.Frame):
         """
         # home link
         home_link_hpos = self.version_right if REVERSE else self.main_left
-        link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com", 
+        link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com",
             pos=(home_link_hpos, self.top_top), 
             URL="http://www.sofastatistics.com")
-        lib.setup_link(link=link_home, link_colour=wx.Colour(255,255,255), 
-            bg_colour=wx.Colour(0, 0, 0))
+        lib.GuiLib.setup_link(link=link_home,
+            link_colour=wx.Colour(255,255,255), bg_colour=wx.Colour(0, 0, 0))
         # help link
         link_help = hl.HyperLinkCtrl(self.panel, -1, 
             _("Get help from community"), 
             pos=(self.main_left, self.top_top + 200), 
             URL="http://groups.google.com/group/sofastatistics")
-        lib.setup_link(link=link_help, link_colour=self.text_brown, 
+        lib.GuiLib.setup_link(link=link_help, link_colour=self.text_brown, 
             bg_colour=wx.Colour(205, 217, 215))
         # upgrade link
         if self.upgrade_available:
@@ -823,7 +827,8 @@ class StartFrame(wx.Frame):
                 _(u"Upgrade to %s here") % new_version, 
                 pos=(upgrade_link_hpos, self.top_top), 
                 URL="http://www.sofastatistics.com/downloads.php")
-            lib.setup_link(link=link_upgrade, link_colour=wx.Colour(255,255,255), 
+            lib.GuiLib.setup_link(link=link_upgrade,
+                link_colour=wx.Colour(255,255,255),
                 bg_colour=wx.Colour(0, 0, 0))
         # feedback link
         feedback_link_hpos = (self.main_left if REVERSE
@@ -831,7 +836,8 @@ class StartFrame(wx.Frame):
         link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK, 
             pos=(feedback_link_hpos, self.form_height-53), 
             URL="http://www.sofastatistics.com/feedback.htm")
-        lib.setup_link(link=link_feedback, link_colour=wx.Colour(255,255,255), 
+        lib.GuiLib.setup_link(link=link_feedback,
+            link_colour=wx.Colour(255,255,255),
             bg_colour=wx.Colour(116, 99, 84))
     
     def on_deferred_warning_msg(self, deferred_warning_msg):
@@ -898,7 +904,7 @@ class StartFrame(wx.Frame):
                 self.help_img_left+self.chart_img_offset, self.help_img_top-20, 
                 True)
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9, 
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
             version_link_hpos = (self.main_left if REVERSE
                 else self.version_right)
@@ -908,46 +914,46 @@ class StartFrame(wx.Frame):
             main_text = _("Statistics Open For All")
             extra_width = 40 if mg.PLATFORM == mg.MAC else 60
             main_text_width = self.max_help_text_width + extra_width
-            main_fs = lib.get_font_size_to_fit(main_text, main_text_width, 
-                font_sz, min_font_sz=14)
+            main_fs = lib.GuiLib.get_font_size_to_fit(main_text,
+                main_text_width, font_sz, min_font_sz=14)
             panel_dc.SetFont(wx.Font(main_fs, wx.SWISS, wx.NORMAL, wx.NORMAL))
-            panel_dc.DrawLabel(main_text, wx.Rect(self.main_left, 80, 
+            panel_dc.DrawLabel(main_text, wx.Rect(self.main_left, 80,
                 main_text_width, 100))
-            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 9, 
+            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 9,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.SetTextForeground(self.text_brown)
             panel_dc.DrawLabel(_("SOFA - Statistics Open For All"
                 "\nthe user-friendly, open-source statistics,"
-                "\nanalysis & reporting package"), wx.Rect(self.main_left, 115, 
+                "\nanalysis & reporting package"), wx.Rect(self.main_left, 115,
                 100, 100))
             panel_dc.SetFont(self.help_font)
             txt1 = _(u"Welcome to SOFA Statistics. Hovering the mouse "
                 u"over the buttons lets you see what you can do.")
             txt2 = _(u"Note - SOFA is great at working with raw data. For data "
                 u"that is already summarised you need to use other tools.")
-            txt2draw = (lib.get_text_to_draw(txt1, self.max_help_text_width) + 
-                u"\n\n" + lib.get_text_to_draw(txt2, self.max_help_text_width))
-            panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, 
+            txt2draw = (t2d(txt1, self.max_help_text_width) + 
+                u"\n\n" + t2d(txt2, self.max_help_text_width))
+            panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left,
                 self.help_text_top, self.help_text_width, 260))
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8, 
+            panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
             panel_dc.DrawLabel(u"Fully open source and\nreleased under the "
-                u"AGPL3 licence", 
+                u"AGPL3 licence",
                 wx.Rect(self.main_left, self.form_height-53, 100, 50))
-            panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115, 
+            panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115,
                 self.form_height-58, True)
             # make default db if not already there
             def_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
             con = sqlite.connect(def_db) #@UndefinedVariable
             con.close()
-            panel_dc.DrawBitmap(self.blank_proj_strip, self.main_left, 218, 
+            panel_dc.DrawBitmap(self.blank_proj_strip, self.main_left, 218,
                 False)
             panel_dc.SetTextForeground(wx.WHITE)
-            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11, 
+            panel_dc.SetFont(wx.Font(14 if mg.PLATFORM == mg.MAC else 11,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
             active_projname = projects.filname2projname(self.active_proj)
-            panel_dc.DrawLabel(_(u"Currently using \"%s\" project settings") % 
+            panel_dc.DrawLabel(_(u"Currently using \"%s\" project settings") %
                 active_projname, wx.Rect(self.main_left, 247, 400, 30))
             event.Skip()
         except Exception, e:
@@ -957,12 +963,12 @@ class StartFrame(wx.Frame):
             self.Destroy()
 
     def draw_blank_wallpaper(self, panel_dc):
-        panel_dc.DrawBitmap(self.blank_wallpaper, self.main_left, 
+        panel_dc.DrawBitmap(self.blank_wallpaper, self.main_left,
             self.help_text_top, False)
         
     def set_proj_lbl(self, proj_text=""):
         if proj_text.endswith(mg.PROJ_EXT):
-            raise Exception(u"proj_text must NOT have %s on the end" % 
+            raise Exception(u"proj_text must NOT have %s on the end" %
                 mg.PROJ_EXT)
         debug = False
         self.active_proj = u"%s%s" % (proj_text, mg.PROJ_EXT)
@@ -980,15 +986,14 @@ class StartFrame(wx.Frame):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_get_started, 
-            self.help_img_left+self.get_started_img_offset, 
+            self.help_img_left+self.get_started_img_offset,
             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_get_started = _(u"Step-by-step examples with screen-shots to get "
             u"you started.")
-        text2draw = lib.get_text_to_draw(txt_get_started, 
-            self.max_help_text_width)
-        myrect = wx.Rect(self.main_left, self.help_text_top, 
+        text2draw = t2d(txt_get_started, self.max_help_text_width)
+        myrect = wx.Rect(self.main_left, self.help_text_top,
             self.help_text_width, 260)
         panel_dc.DrawLabel(text2draw, myrect)
         event.Skip()
@@ -1016,15 +1021,15 @@ class StartFrame(wx.Frame):
         txt6 = _(u"* recode values from one field into another")
         txt7 = _(u"e.g. age into age group")
         text2draw = (
-            lib.get_text_to_draw(txt1, self.max_help_text_width) + u"\n\n" +
-            lib.get_text_to_draw(txt2, self.max_help_text_width) + u"\n " +
-            lib.get_text_to_draw(txt3, self.max_help_text_width) + u"\n " +
-            lib.get_text_to_draw(txt4, self.max_help_text_width) + u"\n " +
-            lib.get_text_to_draw(txt5, self.max_help_text_width) + u"\n " +
-            lib.get_text_to_draw(txt6, self.max_help_text_width) + u"\n    " +
-            lib.get_text_to_draw(txt7, self.max_help_text_width)
+            t2d(txt1, self.max_help_text_width) + u"\n\n" +
+            t2d(txt2, self.max_help_text_width) + u"\n " +
+            t2d(txt3, self.max_help_text_width) + u"\n " +
+            t2d(txt4, self.max_help_text_width) + u"\n " +
+            t2d(txt5, self.max_help_text_width) + u"\n " +
+            t2d(txt6, self.max_help_text_width) + u"\n    " +
+            t2d(txt7, self.max_help_text_width)
         )
-        panel_dc.DrawLabel(text2draw, wx.Rect(self.main_left, 
+        panel_dc.DrawLabel(text2draw, wx.Rect(self.main_left,
             self.help_text_top, self.help_text_width, 260))
         event.Skip()
 
@@ -1037,18 +1042,18 @@ class StartFrame(wx.Frame):
     def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_import, 
-            self.help_img_left+self.import_img_offset, self.help_img_top-20, 
+        panel_dc.DrawBitmap(self.bmp_import,
+            self.help_img_left+self.import_img_offset, self.help_img_top-20,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_entry = (_(u"Import data e.g. a csv file, or a spreadsheet (Excel, "
             u"Open Document, or Google Docs). To connect to databases, click on"
-            u" %s and configure connection settings instead.") % 
+            u" %s and configure connection settings instead.") %
             self.sel_proj_lbl)
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_entry, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width-10, 260))
+        panel_dc.DrawLabel(t2d(txt_entry, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top,
+                self.help_text_width-10, 260))
         event.Skip()
 
     def on_tables_click(self, event):
@@ -1057,7 +1062,7 @@ class StartFrame(wx.Frame):
         import report_table
         try:
             dlg = report_table.DlgMakeTable()
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to open report table dialog."
@@ -1065,14 +1070,14 @@ class StartFrame(wx.Frame):
             print(traceback.format_exc())
             wx.MessageBox(msg)
         finally:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             event.Skip()
         
     def on_tables_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_tabs, 
-            self.help_img_left+self.report_img_offset, self.help_img_top-10, 
+            self.help_img_left+self.report_img_offset, self.help_img_top-10,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1080,9 +1085,9 @@ class StartFrame(wx.Frame):
         txt2 = _(u"Can make simple Frequency Tables, Crosstabs, Row Stats "
             u"Tables (mean, median, standard deviation etc), and simple lists "
             u"of data.")
-        txt2draw = (lib.get_text_to_draw(txt1, self.max_help_text_width) + 
-            u"\n\n" + lib.get_text_to_draw(txt2, self.max_help_text_width))
-        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top, 
+        txt2draw = (t2d(txt1, self.max_help_text_width) + u"\n\n"
+            + t2d(txt2, self.max_help_text_width))
+        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top,
             self.help_text_width, 260))      
         event.Skip()
     
@@ -1096,16 +1101,16 @@ class StartFrame(wx.Frame):
         wx.BeginBusyCursor()
         try:
             dlg = charting_dlg.DlgCharting(_("Make Chart"))
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _(u"Unable to connect to data as defined in project %s.  "
                 u"Please check your settings") % self.active_proj
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by errors:\n\n%s" % 
+            raise Exception(u"%s.\nCaused by errors:\n\n%s" %
                 (msg, traceback.format_exc()))
         finally:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             event.Skip()
         
     def on_charts_enter(self, event):
@@ -1118,9 +1123,9 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(self.help_font)
         txt_charts = _("Make attractive charts with dynamic visual effects "
             "e.g. a bar chart of sales")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_charts, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_charts, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()
     
     def on_stats_click(self, event):
@@ -1129,23 +1134,23 @@ class StartFrame(wx.Frame):
         import stats_select
         try:
             dlg = stats_select.DlgStatsSelect(self.active_proj)
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
         except Exception, e:
             msg = _("Unable to connect to data as defined in project %s.  "
                 "Please check your settings.") % self.active_proj
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by error: %s" % (msg, 
+            raise Exception(u"%s.\nCaused by error: %s" % (msg,
                 traceback.format_exc()))
         finally:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             event.Skip()
         
     def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_stats, 
-            self.help_img_left+self.stats_img_offset, self.help_img_top-25, 
+            self.help_img_left+self.stats_img_offset, self.help_img_top-25,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1155,13 +1160,13 @@ class StartFrame(wx.Frame):
             u"of the time.")
         txt3 = u"QUOTE: %s (%s)" % quotes.get_quote()
         txt2draw = (
-            lib.get_text_to_draw(txt1, self.max_help_text_width) + 
+            t2d(txt1, self.max_help_text_width) + 
             u"\n\n" +
-            lib.get_text_to_draw(txt2, self.max_help_text_width) + 
+            t2d(txt2, self.max_help_text_width) + 
             u"\n\n" +
-            lib.get_text_to_draw(txt3, self.max_help_text_width)
+            t2d(txt3, self.max_help_text_width)
             )
-        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top, 
+        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top,
             self.help_text_width, 260))
         event.Skip()
 
@@ -1174,16 +1179,16 @@ class StartFrame(wx.Frame):
     def on_help_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_help, 
+        panel_dc.DrawBitmap(self.bmp_help,
             self.help_img_left+self.help_img_offset, self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_help = _(u"Get help on-line, including screen shots and "
             u"step-by-step instructions. Connect to the community. Get direct "
             u"help from the developer.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_help, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_help, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()
 
     def on_proj_click(self, event):
@@ -1207,9 +1212,9 @@ class StartFrame(wx.Frame):
         txt_projs = _("Projects let SOFA know how to connect to your data, "
             "what labels to use, your favourite styles etc. The default "
             "project is OK to get you started.")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_projs, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_projs, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()
     
     def on_prefs_click(self, event):
@@ -1234,9 +1239,9 @@ class StartFrame(wx.Frame):
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_pref = _("Set preferences")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_pref, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_pref, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()
     
     def on_backup_click(self, event):
@@ -1245,7 +1250,7 @@ class StartFrame(wx.Frame):
             msg = backup_sofa.run_backup()
         except Exception, e:
             msg = u"Unable to make backup.\n\nOrig error: %s" % e
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         wx.MessageBox(msg)
         event.Skip()
     
@@ -1259,9 +1264,9 @@ class StartFrame(wx.Frame):
         panel_dc.SetFont(self.help_font)
         txt_backup = _(u"Backup your data, reports, and variable and project "
             u"details")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_backup, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_backup, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()
             
     def on_exit_click(self, event):
@@ -1273,7 +1278,7 @@ class StartFrame(wx.Frame):
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)
             os.remove(delme)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         self.Destroy()
         
     def on_exit_enter(self, event):
@@ -1284,7 +1289,7 @@ class StartFrame(wx.Frame):
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_exit = _("Exit SOFA Statistics")
-        panel_dc.DrawLabel(lib.get_text_to_draw(txt_exit, 
-            self.max_help_text_width), wx.Rect(self.main_left, 
-            self.help_text_top, self.help_text_width, 260))
+        panel_dc.DrawLabel(t2d(txt_exit, self.max_help_text_width),
+            wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
+                260))
         event.Skip()

@@ -50,8 +50,8 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append(u"dp = 3")
         script_lst.append(u"var_label_a = u\"%s\"" % label_a)
         script_lst.append(u"var_label_b = u\"%s\"" % label_b)
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-        where_tbl_filt, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
         script_lst.append(u"""
 (chisq, p, vals_a, vals_b, lst_obs, lst_exp, 
  min_count, perc_cells_lt_5, df) = core_stats.pearsons_chisquare(dbe=mg.%(dbe)s,

@@ -187,7 +187,7 @@ def get_list(dbe, cur, tbl, tbl_filt, flds, fld_measure, fld_filter,
     fld_val_clause = getdata.make_fld_val_clause(dbe, flds, fld_filter, 
                                                  filter_val)
     objqtr = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     SQL_get_list = (u"SELECT %s " % objqtr(fld_measure) +
                     u"FROM %s " % getdata.tblname_qtr(dbe, tbl) +
                     u"WHERE %s IS NOT NULL " % objqtr(fld_measure) +
@@ -209,7 +209,7 @@ def get_paired_data(dbe, cur, tbl, tbl_filt, fld_a, fld_b, unique=False):
     unique -- only look at unique pairs.  Useful for scatter plotting.
     """
     objqtr = getdata.get_obj_quoter_func(dbe)
-    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     sql_dic = {u"fld_a": objqtr(fld_a),u"fld_b": objqtr(fld_b),
                u"tbl": getdata.tblname_qtr(dbe, tbl), 
                u"and_tbl_filt": and_tbl_filt}
@@ -370,7 +370,7 @@ def get_fracs(cur, tbl_filt, qtbl, qfld, oth_qfld):
     Returns lst_fracs
     """
     debug = False
-    unused, and_tbl_filt = lib.get_tbl_filts(tbl_filt)
+    unused, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     SQL_get_fracs = u"""SELECT %(qfld)s, COUNT(*)
         FROM %(qtbl)s 
         WHERE %(qfld)s IS NOT NULL

@@ -47,5 +47,6 @@ def export2spreadsheet(hdr, tbl_items, save2report_path, report_path,
         spreadsheet_saved_msg = (u"The spreadsheet has been saved "
             u"to your desktop in the \"%s\" folder" % foldername)
     msgs.append(spreadsheet_saved_msg)
-    gauge2show = gauge_start_tbls + (steps_per_tbl*n_tbls)
+    gauge2show = min(gauge_start_tbls + (steps_per_tbl*n_tbls),
+        mg.EXPORT_IMG_GAUGE_STEPS)
     progbar.SetValue(gauge2show)

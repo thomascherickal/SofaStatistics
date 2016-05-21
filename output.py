@@ -774,7 +774,7 @@ def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     and time stamp; and a filter description.
     """
     debug = False
-    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+    filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
     pagebreak = u" page-break-before: always " if page_break_before else u""
     div = (u"""\n<br><br>\n<hr style="clear: both; %s">\n%s\n<p>%s</p>\n%s""" %
         (pagebreak, source, filt_msg, mg.VISUAL_DIVIDER_BEFORE_THIS))
@@ -782,7 +782,7 @@ def get_divider(source, tbl_filt_label, tbl_filt, page_break_before=False):
     return div
 
 def get_source(db, tblname):
-    full_datestamp = u"on %s" % lib.get_unicode_datestamp()
+    full_datestamp = u"on %s" % lib.DateLib.get_unicode_datestamp()
     source = u"\n<p>From %s.%s %s</p>" % (db, tblname, full_datestamp)
     return source
 
@@ -967,7 +967,7 @@ def export_script(script, css_fils, new_has_dojo=False):
     else:
         insert_prelim_code(modules, f, cc[mg.CURRENT_REPORT_PATH], css_fils, 
             new_has_dojo)
-    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+    tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
         inc_divider=True)
     add_end_script_code(f)
@@ -1036,7 +1036,8 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt,
     f - open file handle ready for writing
     """
     dd = mg.DATADETS_OBJ
-    full_datestamp = u"\n# Script exported %s" % lib.get_unicode_datestamp()
+    full_datestamp = (u"\n# Script exported %s" %
+        lib.DateLib.get_unicode_datestamp())
     # Fresh connection for each in case it changes in between tables
     f.write(u"#%s" % (u"-"*65))
     f.write(full_datestamp)
@@ -1204,8 +1205,8 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
     dd = mg.DATADETS_OBJ
     cc = get_cc()
     source = get_source(dd.db, dd.tbl)
-    tbl_filt_label, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-    filt_msg = lib.get_filt_msg(tbl_filt_label, tbl_filt)
+    tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+    filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
     try:
         generate_script(modules, css_fils, new_has_dojo, inner_script,
             tbl_filt_label, tbl_filt)

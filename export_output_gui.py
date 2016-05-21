@@ -150,7 +150,7 @@ class DlgExportOutput(wx.Dialog):
         do_imgs = self.chk_imgs.IsChecked()
         do_tbls = self.chk_tbls.IsChecked()
         if not (do_pdf or do_imgs or do_tbls):
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             self.align_btns_to_exporting(exporting=False)
             wx.MessageBox(u"Please select a format(s) to export in.")
             return
@@ -160,7 +160,7 @@ class DlgExportOutput(wx.Dialog):
         n_imgs = len(img_items)
         n_tbls = len(tbl_items)
         if not (do_pdf or (do_imgs and n_imgs) or (do_tbls and n_tbls)):
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             self.align_btns_to_exporting(exporting=False)
             wx.MessageBox(u"No output of the selected type(s) to export.")
             return
@@ -193,7 +193,7 @@ class DlgExportOutput(wx.Dialog):
                     msgs, self.progbar)
             except Exception, e:
                 self.progbar.SetValue(0)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
                 wx.MessageBox(u"Unable to export PDF. Orig error: %s" % b.ue(e))
@@ -215,7 +215,7 @@ class DlgExportOutput(wx.Dialog):
                     if debug: print(msg)
                     wx.MessageBox(msg)
                 self.progbar.SetValue(0)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
                 return
@@ -240,12 +240,12 @@ class DlgExportOutput(wx.Dialog):
                         if debug: print(msg)
                         wx.MessageBox(msg)
                     self.progbar.SetValue(0)
-                    lib.safe_end_cursor()
+                    lib.GuiLib.safe_end_cursor()
                     self.align_btns_to_exporting(exporting=False)
                     self.export_status[mg.CANCEL_EXPORT] = False
                     return
         self.progbar.SetValue(mg.EXPORT_IMG_GAUGE_STEPS)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
         msg = u"\n\n".join(msgs)
         caption = (_(u"EXPORTED REPORT") if self.save2report_path 

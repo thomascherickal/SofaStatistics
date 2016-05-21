@@ -82,7 +82,7 @@ def get_contents_xml_tree(filename, lbl_feedback=None, progbar=None,
     cont = myzip.open("content.xml")
     myzip.close()
     if debug: print("Starting parse process ...")
-    if progbar is not None: progbar.SetValue(prog_step1)
+    if progbar is not None: progbar.SetValue(min(prog_step1, mg.IMPORT_GAUGE_STEPS))
     if lbl_feedback is not None:
         lbl_feedback.SetLabel(_("Please be patient. The next step may take a "
             "few minutes ..."))
@@ -90,7 +90,7 @@ def get_contents_xml_tree(filename, lbl_feedback=None, progbar=None,
     tree = etree.parse(cont) # the most time-intensive bit
     if lbl_feedback is not None: lbl_feedback.SetLabel(u"")
     wx.Yield()
-    if progbar is not None: progbar.SetValue(prog_step2)
+    if progbar is not None: progbar.SetValue(min(prog_step2, mg.IMPORT_GAUGE_STEPS))
     wx.Yield()
     if debug: print("Finishing parse process.")
     return tree
@@ -439,7 +439,8 @@ def get_ods_dets(lbl_feedback, progbar, tbl, fldnames, faulty2missing_fld_list,
                 fld_first_mismatches, row, row_num)
             if valdict:
                 datarows.append(valdict)
-            gauge_val = next_prog_val + ((row_num-1)*steps_per_item)
+            gauge_val = min(next_prog_val + ((row_num-1)*steps_per_item),
+                mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
             wx.Yield()
         except Exception, e:
@@ -579,8 +580,8 @@ def get_val_and_type(attrib_dict, el_det):
                 probable_date_formats.remove(u"%Y")
             except ValueError:
                 pass # If not there, OK that removing it failed
-            usable_datetime = lib.is_usable_datetime_str(raw_datetime_str=text, 
-                ok_date_formats=probable_date_formats)
+            usable_datetime = lib.DateLib.is_usable_datetime_str(
+                raw_datetime_str=text, ok_date_formats=probable_date_formats)
             # OK for this purpose to accept invalid dates - we calculate the 
             # datetime from the number anyway - this is just an indicator that 
             # this is meant to be a date e.g. 50/23/2010 17:50:32.
@@ -588,7 +589,8 @@ def get_val_and_type(attrib_dict, el_det):
             if usable_datetime or attempted_date:
                 days_since_1900 = xml_value
                 if days_since_1900:
-                    val2use = lib.dates_1900_to_datetime_str(days_since_1900)
+                    val2use = lib.DateLib.dates_1900_to_datetime_str(
+                        days_since_1900)
                     coltype = mg.VAL_DATE
                     if debug: print(xml_value, val2use)
         except Exception:

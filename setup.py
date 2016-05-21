@@ -48,7 +48,7 @@ if not(hasattr(sys, 'frozen') and sys.frozen):
     try:
         import wxversion
         try:
-            wxversion.select("2.8")
+            wxversion.select("3.0") # 2.8
         except wxversion.AlreadyImportedError, e:
             pass
     except Exception, e:

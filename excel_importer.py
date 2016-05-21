@@ -188,7 +188,7 @@ class ExcelImporter(importer.FileImporter):
             has_rows = True
             rowdict = self.get_rowdict(row_idx, wkbook, wksheet, ok_fldnames)
             sample_data.append(rowdict)
-            gauge_val = row_idx*steps_per_item
+            gauge_val = min(row_idx*steps_per_item, mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
             if not self.headless:
                 if row_idx == (ROWS_TO_SAMPLE - 1):
@@ -225,11 +225,11 @@ class ExcelImporter(importer.FileImporter):
             ok_fldnames = self.get_ok_fldnames(wksheet)
             if debug: print(ok_fldnames)
         except IOError, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to find file \"%s\" for importing."
                 % self.file_path)
         except Exception, e:
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to read spreadsheet."
                 u"\nCaused by error: %s" % b.ue(e))
         default_dd = getdata.get_default_db_dets()

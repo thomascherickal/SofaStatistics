@@ -87,7 +87,7 @@ class OdsImporter(importer.FileImporter):
                         "names"))
                 rows = ods_reader.get_rows(tbl, inc_empty=False, 
                     n=importer.ROWS_TO_SHOW_USER)
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 strdata = []
                 for i, row in enumerate(rows, 1):
                     strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
@@ -124,7 +124,7 @@ class OdsImporter(importer.FileImporter):
             wx.BeginBusyCursor()
         # Use up 2/3rds of the progress bar in initial step (parsing html and  
         # then extracting data from it) and 1/3rd adding to the SQLite database.
-        prog_steps_for_xml_steps = importer.GAUGE_STEPS*(2.0/3.0)
+        prog_steps_for_xml_steps = mg.IMPORT_GAUGE_STEPS*(2.0/3.0)
         prog_step1 = prog_steps_for_xml_steps/5.0 # to encourage them ;-)
         prog_step2 = prog_steps_for_xml_steps/2.0
         tree = ods_reader.get_contents_xml_tree(self.file_path, lbl_feedback, 
@@ -166,4 +166,4 @@ class OdsImporter(importer.FileImporter):
         default_dd.con.commit()
         default_dd.con.close()
         progbar.SetValue(0)
-        lib.safe_end_cursor()
+        lib.GuiLib.safe_end_cursor()

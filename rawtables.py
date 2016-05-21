@@ -208,7 +208,7 @@ class RawTable(object):
         self.var_labels = var_labels
         self.val_dics = val_dics
         self.tbl = tbl
-        self.where_tbl_filt, unused = lib.get_tbl_filts(tbl_filt)
+        self.where_tbl_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
         if debug: 
             print(tbl_filt)
             print(self.where_tbl_filt)

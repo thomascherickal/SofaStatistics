@@ -341,12 +341,12 @@ class DimTree(object):
             ancestor_labels = []
             parent_text = tree.GetItemText(selected_id)
             ancestor_labels.append(parent_text)
-            ancestors = lib.get_tree_ancestors(tree, selected_id)
+            ancestors = lib.GuiLib.get_tree_ancestors(tree, selected_id)
             parent_ancestor_labels = [tree.GetItemText(x) for x in ancestors]
             ancestor_labels += parent_ancestor_labels
             # text cannot be anywhere in other dim tree
             used_in_oth_dim = self.used_in_oth_dim(text, oth_dim_tree, 
-                                                   oth_dim_root)                
+                oth_dim_root) 
             if text in ancestor_labels:
                 msg = _("Variable %s cannot be an ancestor of itself")
                 wx.MessageBox(msg % text)
@@ -360,33 +360,33 @@ class DimTree(object):
         for idx in selected_idxs:
             text = sorted_choices[idx]
             new_id = tree.AppendItem(selected_id, text)
-            var_name = sorted_vars[idx] 
+            var_name = sorted_vars[idx]
             self.set_initial_config(tree, dim, new_id, var_name)
             # empty all measures from ancestors and ensure sorting 
             # is appropriate
-            for ancestor in lib.get_tree_ancestors(tree, new_id):
+            for ancestor in lib.GuiLib.get_tree_ancestors(tree, new_id):
                 item_conf = tree.GetItemPyData(ancestor)
                 if item_conf: #ignore root node
                     item_conf.measures_lst = []
                     if item_conf.sort_order in [mg.SORT_INCREASING_LBL, 
                                                 mg.SORT_DECREASING_LBL]:
                         item_conf.sort_order = mg.SORT_VALUE_LBL
-                    tree.SetItemText(ancestor, item_conf.get_summary(), 1)                        
+                    tree.SetItemText(ancestor, item_conf.get_summary(), 1)
         tree.ExpandAll(root)
         tree.UnselectAll() # multiple
         tree.SelectItem(new_id)
         self.update_demo_display()
-    
+
     def used_in_oth_dim(self, text, oth_dim_tree, oth_dim_root):
         "Is this variable used in the other dimension at all?"
-        oth_dim_items = lib.get_tree_ctrl_descendants(oth_dim_tree, 
-                                                      oth_dim_root)
+        oth_dim_items = lib.GuiLib.get_tree_ctrl_descendants(oth_dim_tree,
+            oth_dim_root)
         oth_dim_labels = [oth_dim_tree.GetItemText(x) for x in oth_dim_items]
         return text in oth_dim_labels
     
     def used_in_this_dim(self, text, dim_tree, dim_root):
         "Is this variable already used in this dimension?"
-        dim_items = lib.get_tree_ctrl_descendants(dim_tree, dim_root)
+        dim_items = lib.GuiLib.get_tree_ctrl_descendants(dim_tree, dim_root)
         dim_labels = [dim_tree.GetItemText(x) for x in dim_items]
         return text in dim_labels
                 
@@ -468,7 +468,7 @@ class DimTree(object):
             raise Exception(u"Missing appropriate dim for config_dim().")
         # error 1
         # ItemHasChildren is buggy if root hidden i.e. if only the root there.
-        empty_tree = not lib.item_has_children(tree=tree, parent=root)
+        empty_tree = not lib.GuiLib.item_has_children(tree=tree, parent=root)
         if empty_tree:
             raise Exception(u"Cannot configure a missing %s item" % itemlbl)
         # error 2
@@ -481,10 +481,10 @@ class DimTree(object):
         # if one has children, they all must.
         # if one has no children, none can.
         have_children_mismatch = False
-        first_has_children = lib.item_has_children(tree=tree,
-                                                   parent=selected_ids[0])
+        first_has_children = lib.GuiLib.item_has_children(tree=tree,
+            parent=selected_ids[0])
         for selected_id in selected_ids[1:]:
-            if lib.item_has_children(tree=tree,
+            if lib.GuiLib.item_has_children(tree=tree,
                                      parent=selected_id) != first_has_children:
                 have_children_mismatch = True
                 break
@@ -501,7 +501,7 @@ class DimTree(object):
             sort_opt_allowed = mg.SORT_NO_OPTS
         elif self.tab_type == mg.DATA_LIST:
             sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPT_LBLS
-        elif not lib.item_has_children(tree, parent=selected_ids[0]):
+        elif not lib.GuiLib.item_has_children(tree, parent=selected_ids[0]):
             sort_opt_allowed = mg.STD_SORT_OPT_LBLS
         else:
             sort_opt_allowed = mg.SORT_VAL_AND_LABEL_OPT_LBLS
@@ -599,8 +599,8 @@ class DimTree(object):
         Enable or disable row buttons according to table type and presence or
             absence of row items.
         """
-        has_rows = bool(lib.get_tree_ctrl_children(tree=self.rowtree, 
-                                                   item=self.rowroot))
+        has_rows = bool(lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree,
+            item=self.rowroot))
         if self.tab_type in (mg.FREQS, mg.CROSSTAB, mg.ROW_STATS):
             self.btn_row_add.Enable(True)
             self.btn_row_add_under.Enable(has_rows)
@@ -617,8 +617,8 @@ class DimTree(object):
         Enable or disable column buttons according to table type and presence or
             absence of column items.
         """
-        has_cols = bool(lib.get_tree_ctrl_children(tree=self.coltree, 
-                                                   item=self.colroot))
+        has_cols = bool(lib.GuiLib.get_tree_ctrl_children(tree=self.coltree,
+            item=self.colroot))
         if self.tab_type == mg.FREQS:
             self.btn_col_add.Enable(False)
             self.btn_col_add_under.Enable(False)

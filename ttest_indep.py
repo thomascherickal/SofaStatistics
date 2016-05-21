@@ -46,7 +46,8 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
                 % b.ue(e))
         script_lst.append(u"dp = 3")
-        script_lst.append(lib.get_tbl_filt_clause(dd.dbe, dd.db, dd.tbl))
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
+            dd.tbl))
         val_str_quoted_a = val_a if var_gp_numeric else u"u\"%s\"" % val_a
         val_str_quoted_b = val_b if var_gp_numeric else u"u\"%s\"" % val_b
         str_get_sample = (u"""

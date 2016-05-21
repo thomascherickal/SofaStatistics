@@ -33,10 +33,10 @@ def get_val(raw_val, flds, fldname):
         raise Exception(u"Only a number, an empty string, or Null can be "
                         u"entered for filtering a numeric field")
     elif boldatetime:
-        usable_datetime = lib.is_usable_datetime_str(raw_val)
+        usable_datetime = lib.DateLib.is_usable_datetime_str(raw_val)
         if usable_datetime:
             if debug: print("A valid datetime: '%s'" % raw_val)
-            return lib.get_std_datetime_str(raw_val)
+            return lib.DateLib.get_std_datetime_str(raw_val)
         else: # not a datetime - a valid string?
             if isinstance(raw_val, basestring):
                 if raw_val == "" or raw_val.lower() == "null":
@@ -58,7 +58,8 @@ class DlgFiltSelect(wx.Dialog):
         self.var_notes = var_notes
         self.var_types = var_types
         self.val_dics = val_dics
-        tbl_filt_label, self.tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        tbl_filt_label, self.tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe,
+            dd.db, dd.tbl)
         title = _("Current filter") if self.tbl_filt else _("Apply filter")
         wx.Dialog.__init__(self, parent=parent, title=title, 
                            style=wx.CAPTION|wx.SYSTEM_MENU, 
@@ -276,20 +277,20 @@ class DlgFiltSelect(wx.Dialog):
             try:
                 tbl_filt = self.get_quick_filter()
                 if tbl_filt is None:
-                    lib.safe_end_cursor()
+                    lib.GuiLib.safe_end_cursor()
                     wx.MessageBox(u"Please set a filter and try again. Or just "
                                   u"Cancel")
                     self.txt_val.SetFocus()
                     return
             except Exception, e:
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 wx.MessageBox(_("Problem with design of filter: %s") % b.ue(e))
                 self.txt_val.SetFocus()
                 return
         else:
             tbl_filt = self.txt_flex_filter.GetValue()
             if not tbl_filt:
-                lib.safe_end_cursor()
+                lib.GuiLib.safe_end_cursor()
                 wx.MessageBox(_("Please enter a filter"))
                 return
         # Must work with a simple query to that database
@@ -300,7 +301,7 @@ class DlgFiltSelect(wx.Dialog):
             dd.cur.execute(filt_test_SQL)
         except Exception:
             demo = self.get_demo()
-            lib.safe_end_cursor()
+            lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_("Problem applying filter \"%(filt)s\" to"
                             " \"%(tbl)s\"") % {"filt": tbl_filt, 
                                                "tbl": dd.tbl} + u"\n\n" + demo +

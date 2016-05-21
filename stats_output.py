@@ -136,7 +136,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     dic_sample_tups = zip(dics, samples)
     for dic, sample in dic_sample_tups:
-        results = (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+        results = (dic[mg.STATS_DIC_LBL],
+            lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEAN], dp), "%s - %s" % 
             (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
             tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
@@ -298,7 +299,8 @@ def ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
             u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td>" +
             u"<td class='%s'>" % CSS_ALIGN_RIGHT + u"%s</td></tr>")
     for dic, sample in [(dic_a, sample_a), (dic_b, sample_b)]:
-        results = (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+        results = (dic[mg.STATS_DIC_LBL],
+            lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEAN], dp), "%s - %s" % 
             (tpl % round(dic[mg.STATS_DIC_CI][0], dp), 
             tpl % round(dic[mg.STATS_DIC_CI][1], dp)), 
@@ -469,7 +471,8 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL],
+            lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEDIAN], dp), round(dic["avg rank"], dp),
             dic[mg.STATS_DIC_MIN], dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
@@ -521,32 +524,33 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
             for x in details[mg.MANN_WHITNEY_RANKS_1][:MAX_DISPLAY_ROWS]]
         diff_ranks_1 = details[mg.MANN_WHITNEY_N_1] - MAX_DISPLAY_ROWS
         if diff_ranks_1 > 0:
-            val_1s2add.append(u"%s other values not displayed" % diff_ranks_1)
-        html.append(u"""<p>sum_ranks_1 = """ + u" + ".join(val_1s2add) +
+            val_1s2add.append(u"%s other values not displayed" %
+                lib.formatnum(diff_ranks_1))
+        html.append(u"""<p>sum_ranks<sub>1</sub> = """ + u" + ".join(val_1s2add) +
         u" i.e. <strong>%(sum_rank_1)s</strong></p>""" %
-            {u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1]})
+            {u"sum_rank_1": lib.formatnum(details[mg.MANN_WHITNEY_SUM_RANK_1])})
         html.append(u"""<h3>Step 3 - Calculate U for sample 1 as per:</h3>
-        <p>u_1 = n_1*n_2 + (n_1*(n_1 + 1))/2.0 - sum(ranks_1)</p>""")
-        html.append(u"""<p>u_1 = %(n_1)s*%(n_2)s + (%(n_1)s*(%(n_1)s+1))/2 - 
+        <p>u<sub>1</sub> = n<sub>1</sub>*n<sub>2</sub> + ((n<sub>1</sub>*(n<sub>1</sub> + 1))/2.0) - sum_ranks<sub>1</sub></p>""")
+        html.append(u"""<p>u<sub>1</sub> = %(n_1)s*%(n_2)s + (%(n_1)s*(%(n_1)s+1))/2 -
         %(sum_rank_1)s i.e. <strong>%(u_1)s</strong></p>""" %
-            {u"n_1": details[mg.MANN_WHITNEY_N_1],
-             u"n_2": details[mg.MANN_WHITNEY_N_2],
-             u"sum_rank_1": details[mg.MANN_WHITNEY_SUM_RANK_1],
-             u"u_1": details[mg.MANN_WHITNEY_U_1]})
+            {u"n_1": lib.formatnum(details[mg.MANN_WHITNEY_N_1]),
+             u"n_2": lib.formatnum(details[mg.MANN_WHITNEY_N_2]),
+             u"sum_rank_1": lib.formatnum(details[mg.MANN_WHITNEY_SUM_RANK_1]),
+             u"u_1": lib.formatnum(details[mg.MANN_WHITNEY_U_1])})
         html.append(u"""<h3>Step 4 - Calculate U for sample 2 as per:</h3>
-        <p>u_2 = n_1*n_2 - u_1</p>""")
-        html.append(u"""<p>u_2 = %(n_1)s*%(n_2)s - %(u_1)s i.e.
+        <p>u<sub>2</sub> = n<sub>1</sub>*n<sub>2</sub> - u<sub>1</sub></p>""")
+        html.append(u"""<p>u<sub>2</sub> = %(n_1)s*%(n_2)s - %(u_1)s i.e.
             <strong>%(u_2)s</strong></p>""" %
-            {u"n_1": details[mg.MANN_WHITNEY_N_1],
-             u"n_2": details[mg.MANN_WHITNEY_N_2],
-             u"u_1": details[mg.MANN_WHITNEY_U_1],
-             u"u_2": details[mg.MANN_WHITNEY_U_2]})
+            {u"n_1": lib.formatnum(details[mg.MANN_WHITNEY_N_1]),
+             u"n_2": lib.formatnum(details[mg.MANN_WHITNEY_N_2]),
+             u"u_1": lib.formatnum(details[mg.MANN_WHITNEY_U_1]),
+             u"u_2": lib.formatnum(details[mg.MANN_WHITNEY_U_2])})
         html.append(u"""<h3>Step 5 - Identify the lowest of the U values</h3>
         <p>The lowest value of %(u_1)s and %(u_2)s is
         <strong>%(u)s</strong></p>
-        """ % {u"u_1": details[mg.MANN_WHITNEY_U_1],
-               u"u_2": details[mg.MANN_WHITNEY_U_2],
-               u"u": details[mg.MANN_WHITNEY_U]})
+        """ % {u"u_1": lib.formatnum(details[mg.MANN_WHITNEY_U_1]),
+               u"u_2": lib.formatnum(details[mg.MANN_WHITNEY_U_2]),
+               u"u": lib.formatnum(details[mg.MANN_WHITNEY_U])})
         html.append(u"""<p>After this, you would use the N values and other
         methods to see if the value for U is likely to happen by chance but
         that is outside of the scope of this worked example.</p>""")
@@ -594,7 +598,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
     row_tpl = (u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" +
         u"<td>%s</td><td>%s</td><td>%s</td></tr>")
     for dic in [dic_a, dic_b]:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL],
+            lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEDIAN], dp), dic[mg.STATS_DIC_MIN], 
             dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody>\n</table>%s\n" % mg.REPORT_TABLE_END)
@@ -622,7 +627,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
         diff_diffs = len(diff_dets) - MAX_DISPLAY_ROWS
         if diff_diffs > 0: 
             html.append(u"""
-            <tr><td colspan="3">%s rows not displayed</td></tr>""" % diff_diffs)
+            <tr><td colspan="3">%s rows not displayed</td></tr>""" %
+                lib.formatnum(diff_diffs))
         html.append(u"""
         </tbody>
         </table>""")
@@ -652,42 +658,44 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
         diff_ranks = len(ranks_dets) - MAX_DISPLAY_ROWS
         if diff_ranks > 0: 
             html.append(u"""
-            <tr><td colspan="4">%s rows not displayed</td></tr>""" % diff_ranks)
+            <tr><td colspan="4">%s rows not displayed</td></tr>""" %
+                lib.formatnum(diff_ranks))
         html.append(u"""
         </tbody>
         </table>""")
         html.append(u"<h3>Step 3 - Sum ranks for positive differences</h3>")
-        pos_rank_vals2add = [str(x)
+        pos_rank_vals2add = [lib.formatnum(x)
             for x in details[mg.WILCOXON_PLUS_RANKS][:MAX_DISPLAY_ROWS]]
         diff_pos_ranks = len(details[mg.WILCOXON_PLUS_RANKS]) - MAX_DISPLAY_ROWS
         if diff_pos_ranks > 0:
             pos_rank_vals2add.append(u"%s other values not displayed" %
-                diff_pos_ranks)
+                lib.formatnum(diff_pos_ranks))
         html.append(u"<p>" + u" + ".join(pos_rank_vals2add) +
-            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_PLUS_RANKS]
+            u" = <strong>%s</strong>" % lib.formatnum(details[mg.WILCOXON_SUM_PLUS_RANKS])
             + u"</p>")
         html.append(u"<h3>Step 4 - Sum ranks for negative differences</h3>")
-        neg_rank_vals2add = [str(x)
+        neg_rank_vals2add = [lib.formatnum(x)
             for x in details[mg.WILCOXON_MINUS_RANKS][:MAX_DISPLAY_ROWS]]
         diff_neg_ranks = (len(details[mg.WILCOXON_MINUS_RANKS])
             - MAX_DISPLAY_ROWS)
         if diff_neg_ranks > 0:
             neg_rank_vals2add.append(u"%s other values not displayed" %
-                diff_neg_ranks)
+                lib.formatnum(diff_neg_ranks))
         html.append(u"<p>" + u" + ".join(neg_rank_vals2add) +
-            u" = <strong>%s</strong>" % details[mg.WILCOXON_SUM_MINUS_RANKS]
+            u" = <strong>%s</strong>" % lib.formatnum(details[mg.WILCOXON_SUM_MINUS_RANKS])
             + u"</p>")
         html.append(u"<h3>Step 5 - Get smallest of sums for positive or "
             u"negative ranks</h3>")
         html.append(u"<p>The lowest value of %(plus)s and %(minus)s is "
             u"%(t)s so Wilcoxon's T statistic is <strong>%(t)s</strong>"
-            u"</p>" % {u"plus": details[mg.WILCOXON_SUM_PLUS_RANKS],
-                u"minus": details[mg.WILCOXON_SUM_MINUS_RANKS],
-                u"t": details[mg.WILCOXON_T],
+            u"</p>" % {
+                u"plus": lib.formatnum(details[mg.WILCOXON_SUM_PLUS_RANKS]),
+                u"minus": lib.formatnum(details[mg.WILCOXON_SUM_MINUS_RANKS]),
+                u"t": lib.formatnum(details[mg.WILCOXON_T]),
         })
         html.append(u"<h3>Step 6 - Get count of all non-zero diffs</h3>")
         html.append(u"<p>Just the number of records in the table from Step 2 "
-            u"i.e. <strong>%s</strong></p>" % details[mg.WILCOXON_N])
+            u"i.e. <strong>%s</strong></p>" % lib.formatnum(details[mg.WILCOXON_N]))
         html.append(u"<p>The only remaining question is the probability of a "
             u"sum as large as that observed (T) for a given N value. The "
             u"smaller the N and the bigger the T the less likely the difference"
@@ -802,7 +810,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         diff_init = len(init_tbl) - MAX_DISPLAY_ROWS
         if diff_init > 0: 
             html.append(u"""
-            <tr><td colspan="2">%s rows not displayed</td></tr>""" % diff_init)
+            <tr><td colspan="2">%s rows not displayed</td></tr>""" %
+                lib.formatnum(diff_init))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 2 - Work out ranks for the x and y values</h3>
@@ -820,7 +829,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         diff_x_ranked = len(x_ranked) - MAX_DISPLAY_ROWS
         if diff_x_ranked > 0: 
             html.append(u"<tr><td colspan='2'>%s rows not displayed</td></tr>" %
-                diff_x_ranked)
+                lib.formatnum(diff_x_ranked))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <p>Do the same for %(label_y)s values</p>
@@ -836,7 +845,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         diff_y_ranked = len(y_ranked) - MAX_DISPLAY_ROWS
         if diff_y_ranked > 0: 
             html.append(u"<tr><td colspan='2'>%s rows not displayed</td></tr>" %
-                diff_y_ranked)
+                lib.formatnum(diff_y_ranked))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 3 - Add ranks to original table or pairs</h3>
@@ -856,7 +865,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
             </tr>""" % row[:4])
         if diff_init > 0: 
             html.append(u"<tr><td colspan='4'>%s rows not displayed</td></tr>" %
-                diff_init)
+                lib.formatnum(diff_init))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 4 - Add difference in ranks and get square of diff</h3>
@@ -883,21 +892,21 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
             </tr>""" % row)
         if diff_init > 0: 
             html.append(u"<tr><td colspan='6'>%s rows not displayed</td></tr>" %
-                diff_init)
+                lib.formatnum(diff_init))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 5 - Count N pairs, cube it, and subtract N</h3>
-        N = %s<br>N cubed - N = %s""" % (details[mg.SPEARMANS_N],
-            details[mg.SPEARMANS_N_CUBED_MINUS_N]))
+        N = %s<br>N<sup>3</sup> - N = %s""" % (lib.formatnum(details[mg.SPEARMANS_N]),
+            lib.formatnum(details[mg.SPEARMANS_N_CUBED_MINUS_N])))
         html.append(u"""
-        <h3>Step 6 - Total squared diffs, multiply by 6, divide by cubed N -
+        <h3>Step 6 - Total squared diffs, multiply by 6, divide by N<sup>3</sup> -
         N value</h3>
-        Total squared diffs = %s<br>Multiplied by 6 = %s<br>Divided by cubed
-        N - N value (%s) = %s            
-        """ % (details[mg.SPEARMANS_TOT_D_SQUARED],
-            details[mg.SPEARMANS_TOT_D_SQUARED_x_6],
-            details[mg.SPEARMANS_N_CUBED_MINUS_N],
-            details[mg.SPEARMANS_PRE_RHO]))
+        Total squared diffs = %s
+        <br>Multiplied by 6 = %s<br>Divided by N<sup>3</sup> - N value (%s) = %s
+        """ % (lib.formatnum(details[mg.SPEARMANS_TOT_D_SQUARED]),
+            lib.formatnum(details[mg.SPEARMANS_TOT_D_SQUARED_x_6]),
+            lib.formatnum(details[mg.SPEARMANS_N_CUBED_MINUS_N]),
+            lib.formatnum(details[mg.SPEARMANS_PRE_RHO])))
         html.append(u"""
         <h3>Step 7 - Subtract from 1 to get Spearman's rho</h3>
         rho = 1 - %s = %s (all rounded to 4dp)""" %
@@ -1023,18 +1032,18 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         <h3>Step 1 - Calculate row and column sums</h3>""")
         html.append(u"<h4>Row sums</h4>")
         for row_n in range(1, details[mg.CHI_ROW_N] + 1):
-            vals_added = u" + ".join(str(x) for x
+            vals_added = u" + ".join(lib.formatnum(x) for x
                 in details[mg.CHI_ROW_OBS][row_n])
             html.append(u"""
             <p>Row %s Total: %s = <strong>%s</strong></p>""" % (row_n,
-                vals_added, details[mg.CHI_ROW_SUMS][row_n]))
+                vals_added, lib.formatnum(details[mg.CHI_ROW_SUMS][row_n])))
         html.append(u"<h4>Column sums</h4>")
         for col_n in range(1, details[mg.CHI_COL_N] + 1):
-            vals_added = u" + ".join(str(x) for x
+            vals_added = u" + ".join(lib.formatnum(x) for x
                 in details[mg.CHI_COL_OBS][col_n])
             html.append(u"""
             <p>Col %s Total: %s = <strong>%s</strong></p>""" % (col_n,
-                vals_added, details[mg.CHI_COL_SUMS][col_n]))
+                vals_added, lib.formatnum(details[mg.CHI_COL_SUMS][col_n])))
         html.append(u"""
         <h3>Step 2 - Calculate expected values per cell</h3>
         <p>Multiply row and column sums for cell and divide by grand total
@@ -1045,29 +1054,29 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
             (%(row_sum)s x %(col_sum)s)/%(grand_tot)s =
             <strong>%(expected)s</strong></p>
             """ % {u"row_n": row_n, u"col_n": col_n,
-                u"row_sum": cell_data[mg.CHI_CELL_ROW_SUM],
-                u"col_sum": cell_data[mg.CHI_CELL_COL_SUM],
-                u"grand_tot": details[mg.CHI_GRAND_TOT],
-                u"expected": cell_data[mg.CHI_EXPECTED]})
+                u"row_sum": lib.formatnum(cell_data[mg.CHI_CELL_ROW_SUM]),
+                u"col_sum": lib.formatnum(cell_data[mg.CHI_CELL_COL_SUM]),
+                u"grand_tot": lib.formatnum(details[mg.CHI_GRAND_TOT]),
+                u"expected": lib.formatnum(cell_data[mg.CHI_EXPECTED])})
         html.append(u"""
         <h3>Step 3 - Calculate the differences between observed and expected per
         cell, square them, and divide by expected value</h3>""")
         for coord, cell_data in details[mg.CHI_CELLS_DATA].items():
             row_n, col_n = coord
             html.append(u"""<p>Row %(row_n)s, Col %(col_n)s:
-            (%(larger)s - %(smaller)s)² / %(expected)s =
-            (%(diff)s)² / %(expected)s =
+            (%(larger)s - %(smaller)s)<sup>2</sup> / %(expected)s =
+            (%(diff)s)<sup>2</sup> / %(expected)s =
             %(diff_squ)s / %(expected)s = <strong>%(pre_chi)s</strong></p>""" %
                {u"row_n": row_n, u"col_n": col_n,
-                u"larger": cell_data[mg.CHI_MAX_OBS_EXP],
-                u"smaller": cell_data[mg.CHI_MIN_OBS_EXP],
-                u"expected": cell_data[mg.CHI_EXPECTED],
-                u"diff": cell_data[mg.CHI_DIFF],
-                u"diff_squ": cell_data[mg.CHI_DIFF_SQU],
-                u"pre_chi": cell_data[mg.CHI_PRE_CHI],
+                u"larger": lib.formatnum(cell_data[mg.CHI_MAX_OBS_EXP]),
+                u"smaller": lib.formatnum(cell_data[mg.CHI_MIN_OBS_EXP]),
+                u"expected": lib.formatnum(cell_data[mg.CHI_EXPECTED]),
+                u"diff": lib.formatnum(cell_data[mg.CHI_DIFF]),
+                u"diff_squ": lib.formatnum(cell_data[mg.CHI_DIFF_SQU]),
+                u"pre_chi": lib.formatnum(cell_data[mg.CHI_PRE_CHI]),
                 })
         html.append(u"""
-        <h3>Step 4 - Add up all the results to get Χ²</h3>""")
+        <h3>Step 4 - Add up all the results to get Χ<sup>2</sup></h3>""")
         vals_added = u" + ".join(str(x) for x in details[mg.CHI_PRE_CHIS])
         html.append(u"""
         <p>%s = <strong>%s</strong></p>""" % (vals_added,
@@ -1228,7 +1237,8 @@ def kruskal_wallis_output(h, p, label_gp, label_a, label_b, dics, df, label_avg,
     row_tpl = u"\n<tr><td class='%s'>" % CSS_LBL + u"%s</td><td>%s</td>" + \
         u"<td>%s</td><td>%s</td><td>%s</td></tr>"
     for dic in dics:
-        html.append(row_tpl % (dic[mg.STATS_DIC_LBL], dic[mg.STATS_DIC_N], 
+        html.append(row_tpl % (dic[mg.STATS_DIC_LBL],
+            lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEDIAN], dp), dic[mg.STATS_DIC_MIN], 
             dic[mg.STATS_DIC_MAX]))
     html.append(u"\n</tbody></table>%s" % mg.REPORT_TABLE_END)

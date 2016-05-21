@@ -130,7 +130,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.panel.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, self.szr_output_config,
             szr_bottom]
-        lib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
+        lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
     def get_fresh_drop_a(self, items, idx_a):
         """

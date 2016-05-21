@@ -20,7 +20,7 @@ of the GUI on settings only found when running in the GUI.
 
 debug = False
 
-VERSION = u"1.4.7"
+VERSION = u"1.5.0"
 ATTRIBUTION = u"sofastatistics.com"
 CONTACT = u"grant@sofastatistics.com"
 # http://docs.wxwidgets.org/2.9/language_8h.html
@@ -28,7 +28,7 @@ CONTACT = u"grant@sofastatistics.com"
 LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH, LANGUAGE_SPANISH_ARGENTINA
 """
-TEST_LANGID = wx.LANGUAGE_SPANISH
+TEST_LANGID = wx.LANGUAGE_FRENCH
 LOCALEDIR = './locale' # overridden in setup.py
 LANGDIR = None # overridden in start.py 
 CANON_NAME = None # overridden in start.py 
@@ -1041,7 +1041,6 @@ MAX_SCATTERPLOT_SERIES = 5
 MAX_CHARTS_IN_SET = 16
 MAX_SERIES_IN_BOXPLOT = 8
 MAX_BOXPLOTS_IN_SERIES = 20
-MIN_DISPLAY_VALS_FOR_BOXPLOT = 4
 JS_WRAPPER_L = u"\n\n<script type=\"text/javascript\">"
 JS_WRAPPER_R = u"\n</script>"
 REGISTERED = u"registered"
@@ -1062,6 +1061,8 @@ MAC_FRAMEWORK_PATH = os.path.join(os.path.split(os.path.dirname(__file__))[0],
 OVERRIDE_FOLDER = None # override to send them somewhere specific
 EXPORT_IMAGES_DIAGNOSTIC = False # override to get more feedback
 EXPORT_IMG_GAUGE_STEPS = 100
+EXPORT_DATA_GAUGE_STEPS = 100
+IMPORT_GAUGE_STEPS = 50
 DRAFT_DPI = 72
 SCREEN_DPI = 150
 PRINT_DPI = 300
