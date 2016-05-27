@@ -1012,12 +1012,12 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     for module in modules:
         f.write(u"\nimport %s" % module)
     f.write(u"\nimport my_exceptions")
-    f.write(u"\n\n#Uncomment next block to use this script stand-alone:")
-    f.write(u"\n#import config_globals")
-    f.write(u"\n#config_globals.set_SCRIPT_PATH()")
-    f.write(u"\n#config_globals.set_ok_date_formats()")
-    f.write(u"\n#config_globals.set_DEFAULT_LEVEL()")
-    f.write(u"\n#config_globals.import_dbe_plugins() # as late as possible because uses local modules e.g. my_exceptions, lib")
+    f.write(u"\nrun_locally = False  ## set to True to test by running locally")
+    f.write(u"\nif run_locally:\n    import config_globals")
+    f.write(u"\n    config_globals.set_SCRIPT_PATH()")
+    f.write(u"\n    config_globals.set_ok_date_formats()")
+    f.write(u"\n    config_globals.set_DEFAULT_DETAILS()")
+    f.write(u"\n    config_globals.import_dbe_plugins()  ## as late as possible because uses local modules e.g. my_exceptions, lib")
     f.write(u"""\n\nfil = codecs.open(u"%s",""" %
         lib.escape_pre_write(fil_report) + u""" "w", "utf-8")""")
     css_fils_esc = [lib.escape_pre_write(x) for x in css_fils]

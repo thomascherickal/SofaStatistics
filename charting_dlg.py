@@ -305,31 +305,39 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_pie(self):
         self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
-        lbl_sort = wx.StaticText(self.panel_pie_chart, -1, 
+        lbl_sort = wx.StaticText(self.panel_pie_chart, -1,
                                  _(u"Sort order\nof %s:") % SLICES_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_pie_sort = self.get_drop_sort_opts(self.panel_pie_chart)
-        self.chk_val_dets = wx.CheckBox(self.panel_pie_chart, -1, 
-                                       _("Show Count and %?"))
-        self.chk_val_dets.SetFont(mg.GEN_FONT)
-        self.chk_val_dets.SetValue(False)
-        self.chk_val_dets.SetToolTipString(_("Show Count and %?"))
+        ## count
+        self.chk_show_count = wx.CheckBox(self.panel_pie_chart, -1,
+            _("Show Count?"))
+        self.chk_show_count.SetFont(mg.GEN_FONT)
+        self.chk_show_count.SetValue(False)
+        self.chk_show_count.SetToolTipString(_("Show Count?"))
+        ## percentage
+        self.chk_show_pct = wx.CheckBox(self.panel_pie_chart, -1, _("Show %?"))
+        self.chk_show_pct.SetFont(mg.GEN_FONT)
+        self.chk_show_pct.SetValue(False)
+        self.chk_show_pct.SetToolTipString(_("Show %?"))
         self.szr_pie_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_pie_chart.Add(self.drop_pie_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_pie_chart.AddSpacer(10)
-        self.szr_pie_chart.Add(self.chk_val_dets, 0, wx.TOP, 
-                               self.tickbox_down_by)
+        self.szr_pie_chart.Add(self.chk_show_count, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_pie_chart.Add(self.chk_show_pct, 0, wx.TOP,
+            self.tickbox_down_by)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
     
     def setup_line(self):
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_line_chart, -1, 
+        lbl_val = wx.StaticText(self.panel_line_chart, -1,
             _(u"Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_line_val = self.get_drop_val_opts(self.panel_line_chart)
-        lbl_sort = wx.StaticText(self.panel_line_chart, -1, 
+        lbl_sort = wx.StaticText(self.panel_line_chart, -1,
             _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart,
@@ -345,11 +353,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_hide_markers = self.get_chk_hide_markers(
             self.panel_line_chart)
-        self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1, 
+        self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1,
             trend2use)
         self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetToolTipString(_(u"Show trend line?"))
-        self.chk_line_smooth = self.checkbox2use(self.panel_line_chart, -1, 
+        self.chk_line_smooth = self.checkbox2use(self.panel_line_chart, -1,
             smooth2use)
         self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTipString(_(u"Show smoothed data line?"))
@@ -1479,10 +1487,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 show_borders=self.chk_clust_borders.IsChecked(), 
                 css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.PIE_CHART:
-            inc_val_dets = (u"True" if self.chk_val_dets.IsChecked()
+            inc_count = (u"True" if self.chk_show_count.IsChecked()
+                else u"False")
+            inc_pct = (u"True" if self.chk_show_pct.IsChecked()
                 else u"False")
             script_lst.append(get_pie_chart_script(css_fil, css_idx, 
-                inc_val_dets))
+                inc_count, inc_pct))
         elif self.chart_type == mg.LINE_CHART:
             inc_trend = (u"True" if self.chk_line_trend.IsChecked()
                 and self.chk_line_trend.Enabled else u"False")
@@ -1564,21 +1574,21 @@ chart_output = charting_output.clustered_barchart_output(titles, subtitles,
            u"css_idx": css_idx})
     return script
 
-def get_pie_chart_script(css_fil, css_idx, inc_val_dets):
+def get_pie_chart_script(css_fil, css_idx, inc_count, inc_pct):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
-chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART, 
-    dbe, cur, tbl, tbl_filt, 
-    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-    var_role_cat, var_role_cat_name, var_role_cat_lbls, 
-    var_role_series, var_role_series_name, var_role_series_lbls, 
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
+chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
+    dbe, cur, tbl, tbl_filt,
+    var_role_agg, var_role_agg_name, var_role_agg_lbls,
+    var_role_cat, var_role_cat_name, var_role_cat_lbls,
+    var_role_series, var_role_series_name, var_role_series_lbls,
+    var_role_charts, var_role_charts_name, var_role_charts_lbls,
     sort_opt=mg.%(sort_opt)s)
 chart_output = charting_output.piechart_output(titles, subtitles,
-    chart_output_dets, inc_val_dets=%(inc_val_dets)s, 
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" % 
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"css_fil": esc_css_fil, 
-    u"css_idx": css_idx, u"inc_val_dets": inc_val_dets})
+    chart_output_dets, inc_count=%(inc_count)s, inc_pct=%(inc_pct)s,
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" %
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"css_fil": esc_css_fil,
+    u"css_idx": css_idx, u"inc_count": inc_count, u"inc_pct": inc_pct})
     return script
 
 def get_line_chart_script(ytitle2use, time_series, rotate, major_ticks,

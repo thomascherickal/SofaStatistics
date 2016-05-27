@@ -755,7 +755,7 @@ class ConfigUI(object):
             wx.MessageBox(msg)
         else:
             url = output.path2url(cc[mg.CURRENT_REPORT_PATH])
-            if debug: print(url)            
+            if debug: print(url)
             webbrowser.open_new_tab(url)
         event.Skip()
 

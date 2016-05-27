@@ -1826,7 +1826,7 @@ makechartRenumber%(chart_idx)s = function(){
             CSS_PAGE_BREAK_BEFORE)
     return u"".join(html)
 
-def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets, 
+def piechart_output(titles, subtitles, chart_output_dets, inc_count, inc_pct,
         css_fil, css_idx, page_break_after):
     """
     chart_output_dets -- see structure_gen_data()
@@ -1878,10 +1878,16 @@ def piechart_output(titles, subtitles, chart_output_dets, inc_val_dets,
             colours_for_this_chart.append(cat_colours_by_lbl[val_lbl])
             tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
             slice_pct = round((100.0*y_val)/tot_y_vals, 1)
-            tooltip = u"%s<br>%s (%s%%)" % (tiplbl, int(y_val), slice_pct)
-            val2show = u"\"%s\"" % tooltip if inc_val_dets else split_lbl
+            if inc_count or inc_pct:
+                raw_val2show = lib.OutputLib.get_count_pct_dets(inc_count,
+                    inc_pct, lbl=tiplbl, count=y_val, pct=slice_pct)
+                val2show = u'"%s"' % raw_val2show
+            else:
+                val2show = split_lbl
             if mg.PLATFORM == mg.WINDOWS:
                 val2show = val2show.replace(u"<br>", u": ")
+            tooltip = lib.OutputLib.get_count_pct_dets(inc_count=True,
+                inc_pct=True, lbl=tiplbl, count=y_val, pct=slice_pct)
             slices_js_lst.append(u"{\"y\": %(y)s, \"text\": %(text)s, " 
                 u"\"tooltip\": \"%(tooltip)s\"}" % {u"y": y_val, 
                 u"text": val2show, u"tooltip": tooltip})

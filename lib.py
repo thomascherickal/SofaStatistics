@@ -175,6 +175,18 @@ class DbLib(object):
 class OutputLib(object):
 
     @staticmethod
+    def get_count_pct_dets(inc_count, inc_pct, lbl, count, pct):
+        count_pct = ""
+        if inc_count:
+            count_pct += u"%s<br>%s" % (lbl, int(count))
+        if inc_pct:
+            if inc_count:
+                count_pct += u" (%s%%)" % pct
+            else:
+                count_pct += u"%s" % pct
+        return count_pct
+
+    @staticmethod
     def _extract_img_path(content, use_as_url=False):
         """
         Extract image path from html.
