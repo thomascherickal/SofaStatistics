@@ -1583,7 +1583,7 @@ class ItemConfig(object):
 
 
 def get_safer_name(rawname):
-    return rawname.replace(u" ", u"_").replace(u".", u"_").replace(u"-", u"_")
+    return re.sub('[^A-Za-z0-9]+', '_', rawname)
 
 def get_gettext_setup_txt():
     """

@@ -16,6 +16,8 @@ show_early_steps = True
 force_error = False
 debug = False
 
+WXPYTHON_VERSION = '3.0'  # 2.8
+
 INIT_DEBUG_MSG = (u"Please note the messages above (e.g. with a screen-shot)"
     u" and press any key to close")
 import warnings
@@ -48,7 +50,7 @@ if not(hasattr(sys, 'frozen') and sys.frozen):
     try:
         import wxversion
         try:
-            wxversion.select("3.0") # 2.8
+            wxversion.select(WXPYTHON_VERSION)
         except wxversion.AlreadyImportedError, e:
             pass
     except Exception, e:

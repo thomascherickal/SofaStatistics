@@ -89,8 +89,8 @@ def copy_existing_img(item, report_path, imgs_path, headless=False,
     Merely copying an existing image
     """
     export_report = not (report_path == mg.INT_REPORT_PATH)
-    src, dst = lib.get_src_dst_preexisting_img(export_report, imgs_path, 
-        item.content)
+    src, dst = lib.OutputLib.get_src_dst_preexisting_img(export_report,
+        imgs_path, item.content)
     try:
         shutil.copyfile(src, dst)
     except Exception, e:
@@ -131,8 +131,7 @@ def export2img(i, item, hdr, ftr, report_path, imgs_path, html4pdf_path,
     if export_status[mg.CANCEL_EXPORT]:
         if progbar: progbar.SetValue(0)
         raise my_exceptions.ExportCancel
-    img_name_no_ext = "%04i_%s" % (i, item.title.replace(u" - ", u"_").
-        replace(u" ", u"_").replace(u":", u"_"))
+    img_name_no_ext = "%04i_%s" % (i, lib.get_safer_name(item.title))
     img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
     if mg.IMG_SRC_START in item.content:
         copy_existing_img(item, report_path, imgs_path, headless, progbar)
