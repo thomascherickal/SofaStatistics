@@ -161,9 +161,9 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
             fontsize=7, rotation=270)
 
-def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
-        label_a, label_b, a_vs_b, xmin=None, xmax=None, ymin=None, ymax=None, 
-        dot_colour=None, series_colours_by_lbl=None):
+def config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
+        series_dets, label_a, label_b, a_vs_b, xmin=None, xmax=None, ymin=None,
+        ymax=None, dot_colour=None, series_colours_by_lbl=None):
     """
     Configure scatterplot with line of best fit.
     Size is set externally.
@@ -207,23 +207,26 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets,
         ncol=6, borderaxespad=3, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
         fontsize=7, rotation=270)
+    pylab.annotate(n_chart, xy=(0.02, 0.96),
+        textcoords='axes fraction', fontsize=7)
 
-def add_scatterplot(grid_bg, show_borders, line_colour, series_dets, label_x, 
-        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html, 
-        width_inches=7.5, height_inches=4.5, xmin=None, xmax=None, ymin=None, 
-        ymax=None, dot_colour=None, series_colours_by_lbl=None):
+def add_scatterplot(grid_bg, show_borders, line_colour, n_chart, series_dets,
+        label_x, label_y, x_vs_y, title_dets_html, add_to_report, report_name,
+        html, width_inches=7.5, height_inches=4.5, xmin=None, xmax=None,
+        ymin=None, ymax=None, dot_colour=None, series_colours_by_lbl=None):
     """
     Toggle prefix so every time this is run internally only, a different image 
-        is referred to in the html <img src=...>.
+    is referred to in the html <img src=...>.
+
     This works because there is only ever one scatterplot per internal html.
     width_inches and height_inches -- see dpi to get image size in pixels
     """
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
-    config_scatterplot(grid_bg, show_borders, line_colour, fig, series_dets, 
-        label_x, label_y, x_vs_y, xmin, xmax, ymin, ymax, dot_colour, 
-        series_colours_by_lbl)
+    config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
+        series_dets, label_x, label_y, x_vs_y, xmin, xmax, ymin, ymax,
+        dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)

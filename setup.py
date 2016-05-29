@@ -10,7 +10,6 @@ configuration inside files e.g. paths.
 # 1) importing, and anything required to enable importing e.g. sys.path changes
 
 from __future__ import absolute_import
-
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True
 force_error = False

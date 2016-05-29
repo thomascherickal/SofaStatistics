@@ -29,6 +29,7 @@ LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH, LANGUAGE_SPANISH_ARGENTINA
 """
 TEST_LANGID = wx.LANGUAGE_FRENCH
+DOJO_DEBUG = True  ## so can use unminified javascript and tweak it
 LOCALEDIR = './locale' # overridden in setup.py
 LANGDIR = None # overridden in start.py 
 CANON_NAME = None # overridden in start.py 
@@ -960,6 +961,7 @@ DOJO_COLOURS = ['indigo', 'gold', 'hotpink', 'firebrick', 'indianred',
     'blueviolet', 'azure', 'lightsteelblue', 'oldlace']
 LBL_LINE_BREAK_JS = """var labelLineBreak = (dojo.isIE) ? "\\n" : "<br>";"""
 CHARTS_CHART_DETS = u"chart_dets"
+CHARTS_CHART_N = u"chart_n"
 CHARTS_CHART_LBL = u"Chart lbl" # Label for top of chart e.g. Gender: Male
 CHARTS_OVERALL_TITLE = u"charts_overall_title" # e.g. Agegroup by Gender
 CHARTS_OVERALL_LEGEND_LBL = u"Overall Legend Label" # One per chart

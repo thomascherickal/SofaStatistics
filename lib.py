@@ -183,7 +183,7 @@ class OutputLib(object):
             if inc_count:
                 count_pct += u" (%s%%)" % pct
             else:
-                count_pct += u"%s" % pct
+                count_pct += u"%s%%" % pct
         return count_pct
 
     @staticmethod
@@ -1037,14 +1037,14 @@ class FiltLib(object):
         except KeyError:
             tbl_filt_label, tbl_filt = u"", u""
         return tbl_filt_label, tbl_filt
-    
+
     @staticmethod
     def get_tbl_filt_clause(dbe, db, tbl):
         """Clause must be self-contained so AND/OR problems don't occur"""
         unused, tbl_filt = FiltLib.get_tbl_filt(dbe, db, tbl)
         tbl_filt_clause = u'tbl_filt = u""" %s """' % tbl_filt
         return tbl_filt_clause
-    
+
     @staticmethod
     def get_tbl_filts(tbl_filt):
         """
@@ -1066,7 +1066,7 @@ class FiltLib(object):
             where_tbl_filt = u""
             and_tbl_filt = u""
         return where_tbl_filt, and_tbl_filt
-    
+
     @staticmethod
     def get_filt_msg(tbl_filt_label, tbl_filt):
         """

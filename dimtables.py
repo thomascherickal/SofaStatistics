@@ -1192,7 +1192,7 @@ class SummTable(LiveTable):
                 + overall_filter)
             try:
                 self.cur.execute(SQL_get_min)
-                data_val = self.cur.fetchone()[0]
+                data_val = lib.formatnum(self.cur.fetchone()[0])
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.MAX_KEY:
@@ -1201,7 +1201,7 @@ class SummTable(LiveTable):
                 + overall_filter)
             try:
                 self.cur.execute(SQL_get_max)
-                data_val = self.cur.fetchone()[0]
+                data_val = lib.formatnum(self.cur.fetchone()[0])
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.RANGE_KEY:
@@ -1219,7 +1219,7 @@ class SummTable(LiveTable):
                 + overall_filter)
             try:
                 self.cur.execute(SQL_get_sum)
-                data_val = self.cur.fetchone()[0]
+                data_val = lib.formatnum(self.cur.fetchone()[0])
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.MEAN_KEY:
@@ -1250,7 +1250,8 @@ class SummTable(LiveTable):
                     data_val = u"Too many modes to display"
                 else:
                     mode2show = u", ".join(unicode(x) for x in mode)
-                    data_val = u"%s (N=%s)" % (mode2show, maxfreq)
+                    data_val = u"%s (N=%s)" % (mode2show,
+                        lib.formatnum(maxfreq))
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1300,7 +1301,7 @@ class SummTable(LiveTable):
                     overall_filter)
             try:
                 self.cur.execute(SQL_get_n)
-                data_val = u"N=%s" % self.cur.fetchone()[0]
+                data_val = u"N=%s" % lib.formatnum(self.cur.fetchone()[0])
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.STD_DEV_KEY:

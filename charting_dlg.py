@@ -17,6 +17,7 @@ import projects
 CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
 CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
 ROTATE = False
+SHOW_N = False
 MAJOR = False
 HIDE_MARKERS = False
 BARS_SORTED_LBL = u"bars"
@@ -123,10 +124,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         # Chart Settings
         if mg.PLATFORM == mg.WINDOWS:
             self.tickbox_down_by = 10 # to line up with a combo
+            self.tickbox_splitline_down_by = self.tickbox_down_by  ## Windows too dumb to split
         elif mg.PLATFORM == mg.LINUX:
-            self.tickbox_down_by = 10
+            self.tickbox_down_by = 9
+            self.tickbox_splitline_down_by = 5
         else:
-            self.tickbox_down_by = 10
+            self.tickbox_down_by = 9
+            self.tickbox_splitline_down_by = 5
         # setup charts
         self.setup_simple_bar()
         self.setup_clust_bar()
@@ -262,11 +266,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_bar_chart.Add(self.drop_bar_sort, 0, wx.TOP, 5)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP, 
-                               self.tickbox_down_by)
+        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_bar_borders, 0, wx.TOP, 
-                               self.tickbox_down_by)
+        self.szr_bar_chart.Add(self.chk_bar_borders, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_bar_chart.AddSpacer(10)
+        self.chk_simple_bar_show_n = self.get_chk_show_n(self.panel_bar_chart)
+        self.szr_bar_chart.Add(self.chk_simple_bar_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
         
@@ -294,11 +302,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_clust_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_clust_bar_chart.Add(self.drop_clust_sort, 0, wx.TOP, 5)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP, 
-                                     self.tickbox_down_by)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_borders, 0, wx.TOP, 
-                                     self.tickbox_down_by)
+        self.szr_clust_bar_chart.Add(self.chk_clust_borders, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_clust_bar_chart.AddSpacer(10)
+        self.chk_clust_bar_show_n = self.get_chk_show_n(self.panel_clust_bar)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_clust_bar.SetSizer(self.szr_clust_bar_chart)
         self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar)
     
@@ -327,6 +339,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.tickbox_down_by)
         self.szr_pie_chart.Add(self.chk_show_pct, 0, wx.TOP,
             self.tickbox_down_by)
+        self.szr_pie_chart.AddSpacer(10)
+        self.chk_pie_show_n = self.get_chk_show_n(self.panel_pie_chart)
+        self.szr_pie_chart.Add(self.chk_pie_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
     
@@ -369,21 +385,31 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_line_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_line_chart.Add(self.drop_line_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_time_series, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_time_series, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.setup_line_extras()
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_hide_markers, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_hide_markers, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP)
+        self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
+        self.szr_line_chart.AddSpacer(10)
+        self.chk_line_show_n = self.get_chk_show_n(self.panel_line_chart)
+        self.szr_line_chart.Add(self.chk_line_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
-    
+
     def setup_area(self):
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
@@ -408,16 +434,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_area_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.Add(self.drop_area_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_time_series, 0, wx.TOP)
+        self.szr_area_chart.Add(self.chk_area_time_series, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP)
+        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_hide_markers, 0, wx.TOP)
+        self.szr_area_chart.Add(self.chk_area_hide_markers, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP)
+        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
+        self.szr_area_chart.AddSpacer(10)
+        self.chk_area_show_n = self.get_chk_show_n(self.panel_area_chart)
+        self.szr_area_chart.Add(self.chk_area_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
-    
+
     def setup_histogram(self):
         self.szr_histogram = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_histogram = wx.Panel(self.panel_mid)
@@ -431,11 +465,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_hist_borders.SetFont(mg.GEN_FONT)
         self.chk_hist_borders.SetValue(True)
         self.chk_hist_borders.SetToolTipString(_("Show borders around bars?"))
-        self.szr_histogram.Add(self.chk_show_normal, 0, 
-                               wx.TOP|wx.BOTTOM|wx.LEFT, 10)
+        self.szr_histogram.Add(self.chk_show_normal, 0, wx.TOP,
+            self.tickbox_down_by)
         self.szr_histogram.AddSpacer(10)
-        self.szr_histogram.Add(self.chk_hist_borders, 0, wx.TOP, 
-                               self.tickbox_down_by)
+        self.szr_histogram.Add(self.chk_hist_borders, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_histogram.AddSpacer(10)
+        self.chk_histogram_show_n = self.get_chk_show_n(self.panel_histogram)
+        self.szr_histogram.Add(self.chk_histogram_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
     
@@ -453,9 +491,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_regression.SetFont(mg.GEN_FONT)
         self.chk_regression.SetValue(False)
         self.chk_regression.SetToolTipString(_("Show regression line?"))
-        self.szr_scatterplot.Add(self.chk_dot_borders, 0, wx.TOP|wx.BOTTOM, 10)
-        self.szr_scatterplot.Add(self.chk_regression, 0, wx.LEFT|wx.TOP|
-            wx.BOTTOM, 10)
+        self.szr_scatterplot.Add(self.chk_dot_borders, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_scatterplot.Add(self.chk_regression, 0, wx.TOP,
+            self.tickbox_down_by)
+        self.szr_scatterplot.AddSpacer(10)
+        self.chk_scatterplot_show_n = self.get_chk_show_n(
+            self.panel_scatterplot)
+        self.szr_scatterplot.Add(self.chk_scatterplot_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
     
@@ -486,7 +530,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_boxplot.Add(lbl_box_opts, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_boxplot.Add(self.drop_box_opts, 0, wx.TOP, 5)
         self.szr_boxplot.AddSpacer(10)
-        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.BOTTOM, 10)
+        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
+        self.szr_boxplot.AddSpacer(10)
+        self.chk_boxplot_show_n = self.get_chk_show_n(self.panel_boxplot)
+        self.szr_boxplot.Add(self.chk_boxplot_show_n, 0, wx.TOP,
+            self.tickbox_splitline_down_by)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
     
@@ -805,6 +854,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chk.Bind(wx.EVT_CHECKBOX, event_func)
         return chk
 
+    def get_chk_show_n(self, panel):
+        if mg.PLATFORM == mg.WINDOWS:
+            show_n2use = _("Show chart N?")
+        else:
+            show_n2use = _("Show\nchart N?")
+        chk_show_n = wx.CheckBox(panel, -1, show_n2use)
+        chk_show_n.Bind(wx.EVT_CHECKBOX, self.on_chk_show_n)
+        chk_show_n.SetToolTipString(_(u"Show chart N"))
+        chk_show_n.SetValue(SHOW_N)
+        return chk_show_n
+
     def on_drop_sort(self, event):
         debug = False
         global CUR_SORT_OPT_LBL
@@ -846,7 +906,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             # any initial content
             html2show = _(u"<p>Waiting for a chart to be run.</p>")
             self.html.show_html(html2show)
-        
 
     def on_btn_help(self, event):
         import webbrowser
@@ -1053,6 +1112,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_area_major_ticks.Enable(show_major)
         self.setup_var_dropdowns()
         self.panel_area_chart.Refresh()
+
+    def on_chk_show_n(self, event):
+        global SHOW_N
+        chk = event.GetEventObject()
+        SHOW_N = chk.IsChecked()
+        self.chk_simple_bar_show_n.SetValue(SHOW_N)
+        self.chk_clust_bar_show_n.SetValue(SHOW_N)
+        self.chk_pie_show_n.SetValue(SHOW_N)
+        self.chk_line_show_n.SetValue(SHOW_N)
+        self.chk_area_show_n.SetValue(SHOW_N)
+        self.chk_histogram_show_n.SetValue(SHOW_N)
+        self.chk_scatterplot_show_n.SetValue(SHOW_N)
+        self.chk_boxplot_show_n.SetValue(SHOW_N)
 
     def btn_chart(self, event, btn, btn_bmp, btn_sel_bmp, panel):
         btn.SetFocus()
@@ -1418,6 +1490,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         rotate = u"True" if ROTATE else u"False"
         major = u"True" if MAJOR else u"False"
         hide_markers = u"True" if HIDE_MARKERS else u"False"
+        show_n = u"True" if SHOW_N else u"False"
         line_time_series = self.chk_line_time_series.IsChecked()
         area_time_series = self.chk_area_time_series.IsChecked()
         script_lst = []
@@ -1479,12 +1552,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                     if CUR_DATA_OPT_LBL == mg.SHOW_AVG_LBL
                     else u'u"Sum of %s"' % agg_fldlbl)
         if self.chart_type == mg.SIMPLE_BARCHART:
-            script_lst.append(get_simple_barchart_script(ytitle2use, rotate, 
-                show_borders=self.chk_bar_borders.IsChecked(), css_fil=css_fil, 
-                css_idx=css_idx))
+            script_lst.append(get_simple_barchart_script(ytitle2use, rotate,
+                show_n, show_borders=self.chk_bar_borders.IsChecked(),
+                css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(get_clustered_barchart_script(ytitle2use, rotate, 
-                show_borders=self.chk_clust_borders.IsChecked(), 
+                show_n, show_borders=self.chk_clust_borders.IsChecked(), 
                 css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.PIE_CHART:
             inc_count = (u"True" if self.chk_show_count.IsChecked()
@@ -1492,38 +1565,38 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_pct = (u"True" if self.chk_show_pct.IsChecked()
                 else u"False")
             script_lst.append(get_pie_chart_script(css_fil, css_idx, 
-                inc_count, inc_pct))
+                inc_count, inc_pct, show_n))
         elif self.chart_type == mg.LINE_CHART:
             inc_trend = (u"True" if self.chk_line_trend.IsChecked()
                 and self.chk_line_trend.Enabled else u"False")
             inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else u"False")
             script_lst.append(get_line_chart_script(ytitle2use,
-                line_time_series, rotate, major, inc_trend, inc_smooth,
+                line_time_series, rotate, show_n, major, inc_trend, inc_smooth,
                 hide_markers, css_fil, css_idx))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(get_area_chart_script(ytitle2use,
-                area_time_series, rotate, major, hide_markers, css_fil,
+                area_time_series, rotate, show_n, major, hide_markers, css_fil,
                 css_idx))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (u"True" if self.chk_show_normal.IsChecked()
                 else u"False")
-            script_lst.append(get_histogram_script(inc_normal, 
+            script_lst.append(get_histogram_script(inc_normal, show_n,
                 show_borders=self.chk_hist_borders.IsChecked(), css_fil=css_fil, 
                 css_idx=css_idx))
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(get_scatterplot_script(css_fil, css_idx, 
-                show_borders=self.chk_dot_borders.IsChecked(),
+                show_n, show_borders=self.chk_dot_borders.IsChecked(),
                 inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             boxplot_opt = mg.CHART_BOXPLOT_OPTIONS[self.drop_box_opts.GetSelection()]
             script_lst.append(get_boxplot_script(rotate, boxplot_opt,
-                css_fil, css_idx))
+                css_fil, css_idx, show_n))
         script_lst.append(u"fil.write(chart_output)")
         return u"\n".join(script_lst)
 
-def get_simple_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
-                               css_idx):
+def get_simple_barchart_script(ytitle2use, rotate, show_n, show_borders,
+        css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
@@ -1537,44 +1610,46 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(
     data_show=mg.%(data_show)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
-chart_output = charting_output.simple_barchart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
+chart_output = charting_output.BarChart.simple_barchart_output(
+    titles, subtitles, x_title, y_title,
+    chart_output_dets, rotate=%(rotate)s, show_n=%(show_n)s,
     show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % 
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
-           u"ytitle2use": ytitle2use, u"rotate": rotate,
+           u"ytitle2use": ytitle2use, u"rotate": rotate, u"show_n": show_n,
            u"show_borders": show_borders, u"css_fil": esc_css_fil, 
            u"css_idx": css_idx})
     return script
 
-def get_clustered_barchart_script(ytitle2use, rotate, show_borders, css_fil, 
-                                  css_idx):
+def get_clustered_barchart_script(ytitle2use, rotate, show_n, show_borders,
+        css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
-    mg.CLUSTERED_BARCHART, 
-    dbe, cur, tbl, tbl_filt, 
-    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
+    mg.CLUSTERED_BARCHART,
+    dbe, cur, tbl, tbl_filt,
+    var_role_agg, var_role_agg_name, var_role_agg_lbls,
     var_role_cat, var_role_cat_name, var_role_cat_lbls,
     var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+    var_role_charts, var_role_charts_name, var_role_charts_lbls,
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
     data_show=mg.%(data_show)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
-chart_output = charting_output.clustered_barchart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, 
-    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)""" % 
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
-           u"ytitle2use": ytitle2use, u"rotate": rotate, 
-           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
+chart_output = charting_output.BarChart.clustered_barchart_output(
+    titles, subtitles,
+    x_title, y_title, chart_output_dets, rotate=%(rotate)s, show_n=%(show_n)s,
+    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s",
+    css_idx=%(css_idx)s, page_break_after=False)""" %
+    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL],
+    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
+           u"ytitle2use": ytitle2use, u"rotate": rotate, u"show_n": show_n,
+           u"show_borders": show_borders, u"css_fil": esc_css_fil,
            u"css_idx": css_idx})
     return script
 
-def get_pie_chart_script(css_fil, css_idx, inc_count, inc_pct):
+def get_pie_chart_script(css_fil, css_idx, inc_count, inc_pct, show_n):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
@@ -1584,14 +1659,16 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls,
     sort_opt=mg.%(sort_opt)s)
-chart_output = charting_output.piechart_output(titles, subtitles,
+chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
     chart_output_dets, inc_count=%(inc_count)s, inc_pct=%(inc_pct)s,
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" %
+    show_n=%(show_n)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
+    page_break_after=False)""" %
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"css_fil": esc_css_fil,
-    u"css_idx": css_idx, u"inc_count": inc_count, u"inc_pct": inc_pct})
+    u"css_idx": css_idx, u"inc_count": inc_count, u"inc_pct": inc_pct,
+    u"show_n": show_n})
     return script
 
-def get_line_chart_script(ytitle2use, time_series, rotate, major_ticks,
+def get_line_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
         inc_trend, inc_smooth, hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
@@ -1608,21 +1685,22 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s, 
     time_series=%(time_series)s)
 %(xy_titles)s
-chart_output = charting_output.linechart_output(titles, subtitles, 
+chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, time_series=%(time_series)s, 
-    rotate=%(rotate)s, major_ticks=%(major_ticks)s, inc_trend=%(inc_trend)s, 
-    inc_smooth=%(inc_smooth)s, hide_markers=%(hide_markers)s,
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)""" %
+    rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
+    inc_trend=%(inc_trend)s, inc_smooth=%(inc_smooth)s,
+    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
+    page_break_after=False)""" %
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series,
-    u"rotate": rotate, u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
+    u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
+    u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
     u"inc_trend": inc_trend, u"inc_smooth": inc_smooth,
     u"hide_markers": hide_markers, u"css_fil": esc_css_fil,
     u"css_idx": css_idx})
     return script
 
-def get_area_chart_script(ytitle2use, time_series, rotate, major_ticks,
+def get_area_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
         hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
@@ -1638,76 +1716,82 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
     time_series=%(time_series)s)
 x_title = var_role_cat_name
 y_title = %(ytitle2use)s
-chart_output = charting_output.areachart_output(titles, subtitles, 
+chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles, 
     x_title, y_title, chart_output_dets, time_series=%(time_series)s,
-    rotate=%(rotate)s, major_ticks=%(major_ticks)s,
+    rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
     hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
     u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series, u"rotate": rotate, u"major_ticks": major_ticks,
+    u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
+    u"major_ticks": major_ticks,
     u"hide_markers": hide_markers, u"ytitle2use": ytitle2use,
     u"css_fil": esc_css_fil, u"css_idx": css_idx})
     return script
 
-def get_histogram_script(inc_normal, show_borders, css_fil, css_idx):
+def get_histogram_script(inc_normal, show_n, show_borders, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
 (overall_title, 
-chart_dets) = charting_output.get_histo_dets(dbe, cur, tbl, tbl_filt, flds,
+chart_dets) = charting_output.Histo.get_histo_dets(
+    dbe, cur, tbl, tbl_filt, flds,
     var_role_bin, var_role_bin_name, var_role_charts, var_role_charts_name, 
     var_role_charts_lbls, inc_normal=%(inc_normal)s)
-chart_output = charting_output.histogram_output(titles, subtitles, 
+chart_output = charting_output.Histo.histogram_output(titles, subtitles, 
     var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
-    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
+    show_n=%(show_n)s, show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
         u"inc_normal": inc_normal, u"show_borders": show_borders, 
-        u"css_fil": esc_css_fil, u"css_idx": css_idx})
+        u"css_fil": esc_css_fil, u"css_idx": css_idx, u"show_n": show_n})
     return script
 
-def get_scatterplot_script(css_fil, css_idx, show_borders, inc_regression):
+def get_scatterplot_script(css_fil, css_idx, show_n, show_borders,
+        inc_regression):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     regression = "True" if inc_regression else "False"
     script = (u"""
 (overall_title,
- scatterplot_dets) = charting_output.get_scatterplot_dets(dbe, cur, tbl, 
-    tbl_filt, flds, var_role_x_axis, var_role_x_axis_name,
+ scatterplot_dets) = charting_output.ScatterPlot.get_scatterplot_dets(
+    dbe, cur, tbl, tbl_filt, flds,
+    var_role_x_axis, var_role_x_axis_name,
     var_role_y_axis, var_role_y_axis_name,
     var_role_series, var_role_series_name, var_role_series_lbls,
     var_role_charts, var_role_charts_name, var_role_charts_lbls,
     unique=True, inc_regression=%(regression)s)
-chart_output = charting_output.scatterplot_output(titles, subtitles,
+chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
     overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name,
-    add_to_report, report_name, %(show_borders)s, css_fil=u"%(css_fil)s",
-    css_idx=%(css_idx)s, page_break_after=False)
+    add_to_report, report_name, show_n=%(show_n)s,
+    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
+    page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx,
-        u"show_borders": show_borders, u"regression": regression})
+        u"show_borders": show_borders, u"regression": regression,
+        u"show_n": show_n})
     return script
 
-def get_boxplot_script(rotate, boxplot_opt, css_fil, css_idx):
+def get_boxplot_script(rotate, boxplot_opt, css_fil, css_idx, show_n):
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
-(xaxis_dets, xmin, xmax, ymin, ymax, 
+(n_chart, xaxis_dets, xmin, xmax, ymin, ymax, 
  max_label_len, max_lbl_lines, 
  overall_title, chart_dets, 
- any_missing_boxes) = charting_output.get_boxplot_dets(dbe, cur, tbl, tbl_filt, 
-                    flds, var_role_desc, var_role_desc_name,
-                    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                    var_role_series, var_role_series_name, var_role_series_lbls,
-                    sort_opt="%(sort_opt)s", rotate=%(rotate)s,
-                    boxplot_opt="%(boxplot_opt)s")
+ any_missing_boxes) = charting_output.BoxPlot.get_boxplot_dets(dbe, cur, tbl,
+                tbl_filt, flds, var_role_desc, var_role_desc_name,
+                var_role_cat, var_role_cat_name, var_role_cat_lbls,
+                var_role_series, var_role_series_name, var_role_series_lbls,
+                sort_opt="%(sort_opt)s", rotate=%(rotate)s,
+                boxplot_opt="%(boxplot_opt)s")
 x_title = var_role_cat_name if var_role_cat_name else u""
 y_title = var_role_desc_name 
-chart_output = charting_output.boxplot_output(titles, subtitles, 
-            any_missing_boxes, x_title, y_title, var_role_series_name, 
-            xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets, 
-            xmin, xmax, ymin, ymax, rotate=%(rotate)s,
-            boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s", 
+chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
+            any_missing_boxes, x_title, y_title, var_role_series_name, n_chart,
+            xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets,
+            xmin, xmax, ymin, ymax, rotate=%(rotate)s, show_n=%(show_n)s,
+            boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s",
             css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, 
+    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"show_n": show_n,
         u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"rotate": rotate,
         u"boxplot_opt": boxplot_opt, u"css_idx": css_idx})
     return script

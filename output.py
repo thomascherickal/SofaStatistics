@@ -361,10 +361,9 @@ td, th {
             var keepGoing = true;
         }
     }""" % (mg.JS_N_CHARTS_STR, new_js_n_charts)
-        dojo_debug = False
         dojo_js_source = (
-            u"file:///home/g/sofastats/reports/sofastats_report_extras"
-            u"/sofalayer.js.uncompressed.js") if dojo_debug \
+            u"file:///home/g/Documents/sofastats/reports/sofastats_report_extras"
+            u"/sofastats.js.uncompressed.js") if mg.DOJO_DEBUG \
             else u"sofastats_report_extras/sofastatsdojo_minified.js"
         dojo_insert = u"""
 <link rel='stylesheet' type='text/css' 
