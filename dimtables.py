@@ -174,17 +174,17 @@ class DimTable(object):
         if debug: print(tree_col_labels)
         # includes root so -1, includes title/subtitle row so +1 (share row)
         col_label_rows_n = tree_col_labels.get_depth()
-        col_label_rows_lst = [[u"<tr>"] for x in range(col_label_rows_n)]
+        col_label_rows_lst = [[u"<tr>"] for unused in range(col_label_rows_n)]
         # start off with spaceholder heading cell
         col_label_rows_lst[1].append(u"<th class='%s' rowspan='%s' " %
                             (CSS_SPACEHOLDER, tree_col_labels.get_depth() - 1) +
                             u"colspan='%s'>&nbsp;&nbsp;</th>" %
                             row_label_cols_n)
         col_label_rows_lst = self.col_label_row_bldr(
-                                          node=tree_col_labels.root_node,
-                                          col_label_rows_lst=col_label_rows_lst, 
-                                          col_label_rows_n=col_label_rows_n, 
-                                          row_offset=0, css_idx=css_idx)
+            node=tree_col_labels.root_node,
+            col_label_rows_lst=col_label_rows_lst, 
+            col_label_rows_n=col_label_rows_n, 
+            row_offset=0, css_idx=css_idx)
         hdr_html = u"\n<thead>"
         for row in col_label_rows_lst:
             # flatten row list
@@ -202,36 +202,38 @@ class DimTable(object):
             row_label_rows_n = len(tree_row_labels.get_terminal_nodes())
         except my_exceptions.NoNodes:
             raise my_exceptions.TooFewValsForDisplay
-        row_label_rows_lst = [[u"<tr>"] for x in range(row_label_rows_n)]
+        row_label_rows_lst = [[u"<tr>"] for unused in range(row_label_rows_n)]
         row_offset_dic = {}
         for i in range(row_label_cols_n):
             row_offset_dic[i]=0
         row_label_rows_lst = self.row_label_row_bldr(
-                                    node=tree_row_labels.root_node,
-                                    row_label_rows_lst=row_label_rows_lst,
-                                    row_label_cols_n=row_label_cols_n, 
-                                    row_offset_dic=row_offset_dic, col_offset=0, 
-                                    css_idx=css_idx)
+            node=tree_row_labels.root_node,
+            row_label_rows_lst=row_label_rows_lst,
+            row_label_cols_n=row_label_cols_n,
+            row_offset_dic=row_offset_dic, col_offset=0, 
+            css_idx=css_idx)
         return (row_label_rows_lst, tree_row_labels, row_label_cols_n)       
 
     def row_label_row_bldr(self, node, row_label_rows_lst, row_label_cols_n, 
                            row_offset_dic, col_offset, css_idx):
         """
         Adds cells to the row label rows list as it goes through all nodes.
-            NB nodes are not processed level by level but from from 
-            parent to child.
-        Which row do we add a cell to?  It depends entirely on the 
-            row offset for the level concerned.  (NB colspanning doesn't 
-            affect the which row a cell goes in, or in which order it appears 
-            in the row.)
-        So we need a row_offset_dic with a key for each level and a value
-            which represents the offset (which is updated as we pass through 
-            siblings).  If a cell for level X needs to span Y rows
-            we add Y to the value for row_offset_dic[X].
-        As for colspanning, we need to know how many cols have been
-            filled already, and how many cols there are to come to the right.
+        NB nodes are not processed level by level but from from parent to child.
+
+        Which row do we add a cell to? It depends entirely on the row offset for
+        the level concerned. (NB colspanning doesn't affect the which row a cell
+        goes in, or in which order it appears in the row.) So we need a
+        row_offset_dic with a key for each level and a value which represents
+        the offset (which is updated as we pass through siblings).  If a cell
+        for level X needs to span Y rows we add Y to the value for
+        row_offset_dic[X].
+
+        As for colspanning, we need to know how many cols have been filled
+        already, and how many cols there are to come to the right.
+
         If there is a gap, colspan the cell to cover it, and increase the
-            col_offset being passed down the subtree.
+        col_offset being passed down the subtree.
+
         node - the node we are adding a cell to the table based upon.
         row_label_rows_lst - one row per row in row label section 
         row_label_cols_n - number of cols in row label section        
@@ -246,8 +248,9 @@ class DimTable(object):
             = value, odd level = variable.
         """
         debug = False
+        CSS_SUBTABLE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SUBTABLE, css_idx)
         CSS_FIRST_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_ROW_VAR, 
-                                                      css_idx)
+            css_idx)
         CSS_TOPLINE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_TOPLINE, css_idx)
         CSS_ROW_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAR, css_idx)
         CSS_ROW_VAL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ROW_VAL, css_idx)
@@ -269,31 +272,36 @@ class DimTable(object):
             gap = cols_to_fill - cols_to_right            
             col_offset += gap
             if gap > 0:
-                colspan = u" colspan='%s' " % (1 + gap,)
+                colspan = u" colspan='%s' " % (1 + gap, )
             else:
                 colspan = u""
             # styling
             classes = []
+            #classes.append("cols_to_right: {}; cols_filled: {}; row_idx: {}"
+            #    .format(cols_to_right, cols_filled, row_idx))
             if cols_to_right % 2 > 0: # odd
                 if cols_filled == 1: # first from left
                     classes.append(CSS_FIRST_ROW_VAR)
                     if row_idx > 0: # not first from top
                         classes.append(CSS_TOPLINE) # separate from row above
+                        ## already has u"<tr>" as first item
+                        row_label_rows_lst[row_idx][0] = (u"<tr class='%s'>"
+                            % CSS_SUBTABLE)
                 else:
                     classes.append(CSS_ROW_VAR)
             else:
                 classes.append(CSS_ROW_VAL)
             cellclass=u"class='%s'" % u" ".join(classes)
-            row_label_rows_lst[row_idx].append(u"<td %s %s %s>%s</td>" % \
-                                (cellclass, rowspan, colspan, node.label))
+            row_label_rows_lst[row_idx].append(u"<td %s %s %s>%s</td>"
+                % (cellclass, rowspan, colspan, node.label))
             if debug: print(node.label)
         for child in node.children:
-            row_label_rows_lst = self.row_label_row_bldr(child, 
-                                        row_label_rows_lst, row_label_cols_n, 
-                                        row_offset_dic, col_offset, css_idx)
+            row_label_rows_lst = self.row_label_row_bldr(
+                child, row_label_rows_lst, row_label_cols_n, row_offset_dic,
+                col_offset, css_idx)
         # Finish level, set all child levels to start with this one's final 
-        #    offset.  Otherwise Gender, Gender->Asst a problem (whereas 
-        #    Gender->Asst, Gender is fine).
+        # offset.  Otherwise Gender, Gender->Asst a problem (whereas 
+        # Gender->Asst, Gender is fine).
         if level > 0: # don't do this on the root
             for i in range(row_offset + 1, row_label_cols_n):
                 row_offset_dic[i] = row_offset_dic[row_offset]

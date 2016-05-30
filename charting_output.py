@@ -2583,10 +2583,10 @@ class ScatterPlot(object):
         where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
         fld_x_axis = objqtr(var_role_x_axis)
         fld_y_axis = objqtr(var_role_y_axis)
-        xy_filt_tpl = (u" %%s %s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis,
-            fld_y_axis))
-        where_xy_filt = (xy_filt_tpl % u"WHERE")
-        and_xy_filt = (xy_filt_tpl % u"AND")
+        xy_filt = u"%s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis,
+            fld_y_axis)
+        where_xy_filt = u" WHERE " + xy_filt
+        and_xy_filt = u" AND" + xy_filt
         sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl),
             u"fld_x_axis": objqtr(var_role_x_axis),
             u"fld_y_axis": objqtr(var_role_y_axis),

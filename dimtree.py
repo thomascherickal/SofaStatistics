@@ -204,7 +204,9 @@ class DimTree(object):
                 if used_in_oth_dim:
                     msg = _("Variable '%(text)s' has already been used in "
                             "%(oth_dim)s dimension")
-                    wx.MessageBox(msg % {"text": text, "oth_dim": oth_dim})
+                    wx.MessageBox(msg % {
+                        "text": text,
+                        "oth_dim": mg.DIM_KEY2LBL.get(oth_dim, oth_dim)})
                     return
                 # in raw tables, can only use once
                 if self.tab_type == mg.DATA_LIST:
