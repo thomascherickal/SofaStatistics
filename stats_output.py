@@ -742,7 +742,8 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
+    n_chart=''
+    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, n_chart,
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)
@@ -790,7 +791,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
+    n_chart=''
+    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, n_chart,
         series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
         report_name, html, dot_colour=dot_colours[0])
     add_footnotes(footnotes, html)

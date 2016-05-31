@@ -1125,7 +1125,8 @@ class TblEditor(wx.Dialog):
                             else None)
             #elif fld_dic[mg.FLD_BOLDATETIME]:
             #    colwidth = 150
-            fldname_width = len(fldname)*pix_per_char
+            visible_var_label = self.var_labels.get(fldname, fldname)
+            fldname_width = len(visible_var_label)*pix_per_char
             if colwidth:
                 if debug or self.debug: 
                     print("Width of %s set to %s" % (fldname, colwidth))

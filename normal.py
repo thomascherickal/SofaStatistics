@@ -113,7 +113,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     # histogram
     charting_pylab.gen_config()
     fig = pylab.figure()
-    fig.GuiLib.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
+    fig.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
     (grid_bg, item_colours, 
      line_colour) = output.get_stats_chart_colours(css_fil)
     histlbl = u"Histogram of differences" if paired else None
