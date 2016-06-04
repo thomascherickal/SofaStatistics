@@ -60,10 +60,12 @@ SOFA_VAL = u"internal_sofa_val"
 SOFA_X = u"internal_sofa_x"
 SOFA_Y = u"internal_sofa_y"
 
-def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt, 
-         var_role_agg, var_role_cat, var_role_series, 
-         var_role_charts, data_show):
+def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
+        var_role_agg, var_role_cat, var_role_series, var_role_charts,
+        data_show):
     """
+    var_role_xxxx -- might be None.
+
     Returns a list of row tuples.
 
     Each row tuple follows the same templates. Dummy values are used to fill
@@ -127,15 +129,30 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     debug = False
     objqtr = getdata.get_obj_quoter_func(dbe)
     cartesian_joiner = getdata.get_cartesian_joiner(dbe)
-    if not var_role_cat:
+    has_charts = bool(var_role_charts)
+    has_series = bool(var_role_series)
+    has_cat = bool(var_role_cat)
+    if not has_cat:
         raise Exception(u"All general charts require a category variable to be "
             u"identified")
+    ## Get everything ready to use in queries by quoting and, if required,
+    ## autofilling. tbl_quoted is already quoted and ready to go.
+
+    # Series and charts are optional so we need to autofill them with something
+    # which will keep them in the same group.
+    var_role_charts = (objqtr(var_role_charts) if has_charts 
+        else mg.GROUPING_PLACEHOLDER)
+    var_role_series = (objqtr(var_role_series) if has_series 
+        else mg.GROUPING_PLACEHOLDER)
+    var_role_cat = objqtr(var_role_cat)
+    var_role_agg = objqtr(var_role_agg)
     is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS)
-    agg_filt = (u" AND %s IS NOT NULL " % objqtr(var_role_agg) if is_agg
-        else u" ")
+    agg_filt = u" AND %s IS NOT NULL " % var_role_agg if is_agg else u" "
     sql_dic = {u"tbl": tbl_quoted,
-        u"var_role_cat": objqtr(var_role_cat),
-        u"var_role_agg": objqtr(var_role_agg),
+        u"var_role_charts": var_role_charts,
+        u"var_role_series": var_role_series,
+        u"var_role_cat": var_role_cat,
+        u"var_role_agg": var_role_agg,
         u"where_tbl_filt": where_tbl_filt,
         u"and_tbl_filt": and_tbl_filt,
         u"and_agg_filt": agg_filt,
@@ -145,35 +162,54 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         u"sofa_val": SOFA_VAL,
         u"sofa_val2show": SOFA_VAL2SHOW,
     }
-    # Series and charts are optional so we need to autofill them with something 
-    #     which will keep them in the same group.
-    if var_role_charts:
-        sql_dic[u"var_role_charts"] = objqtr(var_role_charts)
-    else:
-        sql_dic[u"var_role_charts"] = mg.GROUPING_PLACEHOLDER
-    if var_role_series:
-        sql_dic[u"var_role_series"] = objqtr(var_role_series)
-    else:
-        sql_dic[u"var_role_series"] = mg.GROUPING_PLACEHOLDER
-    # 1) grouping variables
-    if var_role_charts:
-        SQL_charts = ("""SELECT %(var_role_charts)s 
+    ## 1) grouping variables
+    ## Charts ***************************
+    """
+    SQL_charts_n -
+    Just trying to get counts per chart. If only chart the chart value will be a
+    dummy value of 1 or whatever mg.GROUPING_PLACEHOLDER is. And the same
+    approach for series.
+
+    But we only want to count records per chart where the data is actually going
+    to be used. So must have category populated and any other filters in place
+    e.g. the filter currently applied to this table and the filter on the
+    aggregated variable if relevant (e.g. getting the mean age for a given
+    category e.g. country. Then a simple aggregate query grouping by chart to
+    get count.
+    """
+    ## Keeping SQL_chart_ns and SQL_charts near to each other - so similar in logic
+    SQL_chart_ns = (u"""SELECT
+        %(var_role_charts)s,
+            COUNT(%(var_role_charts)s)
+        AS chart_n
+        FROM %(tbl)s
+        WHERE %(var_role_charts)s IS NOT NULL
+            AND %(var_role_series)s IS NOT NULL
+            AND %(var_role_cat)s IS NOT NULL
+            %(and_tbl_filt)s
+            %(and_agg_filt)s
+        GROUP BY %(var_role_charts)s""" % sql_dic)
+    if debug: print("SQL_chart_ns:\n{0}".format(SQL_chart_ns))
+    if has_charts:
+        SQL_charts = ("""SELECT
+            %(var_role_charts)s
         AS %(sofa_charts)s
         FROM %(tbl)s
-        WHERE %(var_role_charts)s IS NOT NULL 
-            AND %(var_role_series)s IS NOT NULL 
+        WHERE %(var_role_charts)s IS NOT NULL
+            AND %(var_role_series)s IS NOT NULL
             AND %(var_role_cat)s IS NOT NULL
             %(and_tbl_filt)s
             %(and_agg_filt)s
         GROUP BY %(var_role_charts)s""" % sql_dic)
     else:
         if dbe == mg.DBE_MS_ACCESS: # one can't touch Access without getting a few warts ;-)
-            SQL_charts = u"""SELECT TOP 1 1 AS %(sofa_charts)s 
+            SQL_charts = u"""SELECT TOP 1 1 AS %(sofa_charts)s
                 FROM %(tbl)s""" % sql_dic
         else:
             SQL_charts = u"SELECT 1 AS %(sofa_charts)s" % sql_dic
-    if debug: print(SQL_charts)
-    if var_role_series:
+    if debug: print("SQL_charts:\n{0}".format(SQL_charts))
+    ## Series ***************************
+    if has_series:
         SQL_series = ("""SELECT %(var_role_series)s 
         AS %(sofa_series)s
         FROM %(tbl)s
@@ -185,11 +221,11 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         GROUP BY %(var_role_series)s""" % sql_dic)
     else:
         if dbe == mg.DBE_MS_ACCESS:
-            SQL_series = (u"SELECT TOP 1 1 AS %(sofa_series)s FROM %(tbl)s" % 
-                sql_dic)
+            SQL_series = (u"SELECT TOP 1 1 AS %(sofa_series)s FROM %(tbl)s"
+                % sql_dic)
         else:
             SQL_series = u"SELECT 1 AS %(sofa_series)s" % sql_dic
-    if debug: print(SQL_series)
+    if debug: print("SQL_series:\n{0}".format(SQL_series))
     SQL_cat = ("""SELECT %(var_role_cat)s 
     AS %(sofa_cat)s
     FROM %(tbl)s
@@ -199,12 +235,12 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         %(and_tbl_filt)s
         %(and_agg_filt)s
     GROUP BY %(var_role_cat)s""" % sql_dic)
-    if debug: print(SQL_cat)
+    if debug: print("SQL_cat:\n{0}".format(SQL_cat))
     SQL_group_by_vars = """SELECT * FROM (%s) AS qrycharts %s 
         (%s) AS qryseries %s
         (%s) AS qrycat""" % (SQL_charts, cartesian_joiner, SQL_series, 
         cartesian_joiner, SQL_cat)
-    if debug: print(u"SQL_group_by_vars:\n%s" % SQL_group_by_vars)
+    if debug: print(u"SQL_group_by_vars:\n{0}".format(SQL_group_by_vars))
     # 2) Now get measures field with all grouping vars ready to join to full list
     if data_show not in mg.AGGREGATE_DATA_SHOW_OPT_KEYS:
         sql_dic[u"val2show"] = u" COUNT(*) "
@@ -216,9 +252,9 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
             data_show)
     groupby_vars = []
-    if var_role_charts: groupby_vars.append(objqtr(var_role_charts))
-    if var_role_series: groupby_vars.append(objqtr(var_role_series))
-    groupby_vars.append(objqtr(var_role_cat))
+    if has_charts: groupby_vars.append(var_role_charts)
+    if has_series: groupby_vars.append(var_role_series)
+    groupby_vars.append(var_role_cat)
     sql_dic[u"groupby_charts_series_cats"] = (u" GROUP BY " 
         + u", ".join(groupby_vars))
     SQL_vals2show = u"""SELECT %(var_role_charts)s
@@ -232,14 +268,14 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     FROM %(tbl)s
     %(where_tbl_filt)s
     %(groupby_charts_series_cats)s""" % sql_dic
-    if debug: print(u"SQL_vals2show:\n%s" % SQL_vals2show)
+    if debug: print(u"SQL_vals2show:\n{0}".format(SQL_vals2show))
     # 3) Put all group by vars on left side of join with measures by those 
     # grouping vars.
     sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
     sql_dic[u"SQL_vals2show"] = SQL_vals2show
     sql_dic[u"get_val2show"] = (mg.DBE_MODULES[dbe].if_clause % 
         (u"%s IS NULL" % SOFA_VAL2SHOW, u"0", SOFA_VAL2SHOW))
-    SQL_get_raw_data = """SELECT qrygrouping_vars.%(sofa_charts)s, 
+    SQL_raw_data = """SELECT qrygrouping_vars.%(sofa_charts)s, 
     qrygrouping_vars.%(sofa_series)s, 
     qrygrouping_vars.%(sofa_cat)s,
         %(get_val2show)s 
@@ -251,8 +287,8 @@ def get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     AND qrygrouping_vars.%(sofa_cat)s = qryvals2show.%(sofa_cat)s
     ORDER BY qrygrouping_vars.%(sofa_charts)s, qrygrouping_vars.%(sofa_series)s, 
         qrygrouping_vars.%(sofa_cat)s""" % sql_dic    
-    if debug: print(u"SQL_get_raw_data:\n%s" % SQL_get_raw_data)
-    return SQL_get_raw_data
+    if debug: print(u"SQL_raw_data:\n{0}".format(SQL_raw_data))
+    return SQL_raw_data, SQL_chart_ns
 
 def _get_sorted_y_dets(data_show, major_ticks, time_series, sort_opt,
         vals_etc_lst, dp, multiseries):
@@ -288,16 +324,17 @@ def _get_sorted_y_dets(data_show, major_ticks, time_series, sort_opt,
             tooltip_dets.append(u"x-val: %s" % val)
             tooltip_dets.append(u"y-val: %s" % measure2show)
         else:
-            tooltip_dets.append(u"%s" % measure2show)
+            tooltip_dets.append(u"{:,}".format(measure2show))
         if data_show not in mg.AGGREGATE_DATA_SHOW_OPT_KEYS: # OK to show percentage
-            tooltip_dets.append(u"%s%%" % round(perc,1))
+            dp_tpl = u"%.{0}f%%".format(mg.DEFAULT_REPORT_DP)
+            tooltip_dets.append(dp_tpl % perc)
         tooltip = u"<br>".join(tooltip_dets)
         sorted_tooltips.append(tooltip)
     return sorted_xaxis_dets, sorted_y_vals, sorted_tooltips
 
-def get_prestructured_grouped_data(raw_data, fldnames, chart_ns=None):
+def get_prestructured_grouped_data(raw_data, fldnames, chart_ns):
     """
-    chart_ns -- usually summarised data so counting records per chart if simply
+    chart_ns -- usually summarised data so counting records per chart is simply
     a matter of summing a few y-vals. But with scatterplot data, which is a list
     of unique x-y combinations, we need this data supplied. And no, we can't
     just count records per chart because they may have been aggregated into
@@ -336,7 +373,7 @@ def get_prestructured_grouped_data(raw_data, fldnames, chart_ns=None):
         chart_val, series_val, x_val, y_val = raw_data_row
         same_chart = (chart_val == prev_chart_val)
         if not same_chart:  ## initialise a fresh chart with a fresh series
-            n_recs_to_add = chart_ns[chart_val] if chart_ns else y_val
+            n_recs_to_add = chart_ns[chart_val]
             chart_dic = {CHART_VAL_KEY: chart_val,
                          CHART_N_KEY: n_recs_to_add,  ## add to as we go (SQL would have been better but the SQL is more than tricky enough already and very, very fast doing it here ayway)
                          CHART_SERIES_KEY:  ## may add more if we find more series for this chart
@@ -350,9 +387,6 @@ def get_prestructured_grouped_data(raw_data, fldnames, chart_ns=None):
             prev_series_val = series_val
         else:  ## same chart
             same_chart_dic = prestructure[-1]
-            ## increase chart_n with y_val
-            n_recs_to_add = 0 if chart_ns else y_val  ## 0 because we got the complete value at once when initiating chart data
-            same_chart_dic[CHART_N_KEY] += n_recs_to_add
             # same series?
             same_series = (series_val == prev_series_val)
             # add to existing series or set up new one in existing chart
@@ -368,7 +402,7 @@ def get_prestructured_grouped_data(raw_data, fldnames, chart_ns=None):
                 same_series_dic[XY_KEY].append((x_val, y_val))
     return prestructure
 
-def get_overall_title(var_role_agg_name, var_role_cat_name, 
+def get_overall_title(var_role_agg_name, var_role_cat_name,
         var_role_series_name, var_role_charts_name):
     title_bits = []
     if var_role_agg_name:
@@ -384,12 +418,12 @@ def get_overall_title(var_role_agg_name, var_role_cat_name,
         title_bits.append(u"By %s" % var_role_charts_name)
     return u" ".join(title_bits)
 
-def charts_append_divider(html, titles, overall_title, indiv_title=u"", 
-                          item_type=u""):
+def charts_append_divider(html, titles, overall_title, indiv_title=u"",
+        item_type=u""):
     title = overall_title if not titles else titles[0]
     output.append_divider(html, title, indiv_title, item_type)
 
-def _structure_gen_data(chart_type, raw_data, xlblsdic, 
+def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic, 
         var_role_agg, var_role_agg_name, var_role_agg_lbls,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls,
@@ -443,7 +477,8 @@ def _structure_gen_data(chart_type, raw_data, xlblsdic,
     max_lbl_lines = 0
     fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
         var_role_agg_name]
-    prestructure = get_prestructured_grouped_data(raw_data, fldnames)
+    prestructure = get_prestructured_grouped_data(raw_data, fldnames,
+        chart_ns=chart_ns)
     chart_dets = []
     n_charts = len(prestructure)
     if n_charts > mg.MAX_CHARTS_IN_SET:
@@ -503,14 +538,17 @@ def _structure_gen_data(chart_type, raw_data, xlblsdic,
             xy_vals = series_dic[XY_KEY]
             vals_etc_lst = []
             for x_val, y_val in xy_vals:
-                x_val_lbl = xlblsdic.get(x_val, unicode(x_val))
+                xval = round(x_val, dp)
+                yval = round(y_val, dp)
+                x_val_lbl = xlblsdic.get(x_val, unicode(xval))  ## original value for label matching, rounded for display if no label
                 (x_val_split_lbl,
                  actual_lbl_width,
                  n_lines) = lib.OutputLib.get_lbls_in_lines(orig_txt=x_val_lbl, 
                     max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
-                y_lbl_width = len(str(round(y_val, dp)))
+                rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
+                y_lbl_width = len(str(round(yval, rounding2use)))
                 if y_lbl_width > max_y_lbl_len:
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
@@ -519,7 +557,7 @@ def _structure_gen_data(chart_type, raw_data, xlblsdic,
                     itemlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
                 else:
                     itemlbl = None
-                vals_etc_lst.append((x_val, round(y_val, dp), x_val_lbl, 
+                vals_etc_lst.append((xval, yval, x_val_lbl, 
                     x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
@@ -588,13 +626,15 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
         major_ticks=False, time_series=False):
     """
-    Note - variables must match values relevant to mg.CHART_CONFIG e.g. 
-        VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work 
-        (see usage of locals() below).
-    Returns some overall details for the chart plus series details (only the
-        one series in some cases).
-    Note - not all charts have x-axis labels and thus the option of rotating 
-        them.
+    Note - variables must match values relevant to mg.CHART_CONFIG e.g.
+    VAR_ROLE_CATEGORY i.e. var_role_cat, for checking to work (see usage of
+    locals() below).
+
+    Returns some overall details for the chart plus series details (only the one
+    series in some cases).
+
+    Note - not all charts have x-axis labels and thus the option of rotating
+    them.
     """
     debug = False
     is_agg = (var_role_agg is not None)
@@ -613,79 +653,44 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
     where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
     xlblsdic = var_role_cat_lbls
-    # Get data as per setup
-    SQL_raw_data = get_SQL_raw_data(dbe, tbl_quoted, where_tbl_filt, 
-        and_tbl_filt, var_role_agg, var_role_cat, var_role_series, 
-        var_role_charts, data_show)
+    ## Get data as per setup
+    ## overall data ready for restructuring and presentation
+    SQL_raw_data, SQL_chart_ns = get_gen_chart_SQL(dbe, tbl_quoted,
+        where_tbl_filt, and_tbl_filt, var_role_agg, var_role_cat,
+        var_role_series, var_role_charts, data_show)
     if debug: print(SQL_raw_data)
     try:
         cur.execute(SQL_raw_data)
     except Exception, e:
-        raise Exception(u"Unable to get raw data for chart. Orig error: %s" % 
-            b.ue(e))
+        raise Exception(u"Unable to get raw data for chart. Orig error: %s"
+            % b.ue(e))
     raw_data = cur.fetchall()
     if debug: print(raw_data)
     if not raw_data:
         raise my_exceptions.TooFewValsForDisplay
+    ## chart ns data
+    if debug: print(SQL_chart_ns)
+    try:
+        cur.execute(SQL_chart_ns)
+    except Exception, e:
+        raise Exception(u"Unable to get charts data for chart. Orig error: %s"
+            % b.ue(e))
+    chart_ns_data = cur.fetchall()
+    if debug: print(chart_ns_data)
+    if not chart_ns_data:
+        raise Exception(u"Unable to make chart if not chart values")
+    chart_ns = dict(x for x in chart_ns_data)
     # restructure and return data
-    dp = 2 if data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS else 0
-    chart_output_dets = _structure_gen_data(chart_type, raw_data, xlblsdic, 
-        var_role_agg, var_role_agg_name, var_role_agg_lbls,
+    dp = (mg.DEFAULT_REPORT_DP if data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS
+        else 0)
+    chart_output_dets = _structure_gen_data(chart_ns, chart_type, raw_data,
+        xlblsdic, var_role_agg, var_role_agg_name, var_role_agg_lbls,
         var_role_cat, var_role_cat_name, var_role_cat_lbls,
         var_role_series, var_role_series_name, var_role_series_lbls,
         var_role_charts, var_role_charts_name, var_role_charts_lbls,
         sort_opt, dp, rotate, data_show, major_ticks, time_series)
     if debug: print(chart_output_dets)
     return chart_output_dets
-
-def reshape_sql_crosstab_data(raw_data, dp=0):
-    """
-    Must be sorted by group by then measures
-    e.g. raw_data = [(1,1,56),
-                     (1,2,103),
-                     (1,3,72),
-                     (1,4,40),
-                     (2,1,13),
-                     (2,2,59),
-                     (2,3,200),
-                     (2,4,0),]
-    from that we want
-    1: [56,103,72,40] # separate data by series
-    2: [13,59,200,0]
-    and
-    1,2,3,4 # vals for axis labelling
-    """
-    debug = False
-    series_data = {}
-    prev_gp = None # init
-    current_series = None
-    oth_vals = None
-    collect_oth = True
-    for current_gp, oth, measure in raw_data:
-        if dp == 0:
-            measure = int(measure)
-        else:
-            measure = round(measure, dp)
-        if debug: print(current_gp, oth, measure)
-        if current_gp == prev_gp: # still in same gp
-            current_series.append(measure)
-            if collect_oth:
-                oth_vals.append(oth)
-        else: # transition
-            if current_series: # so not the first row
-                series_data[prev_gp] = current_series
-                collect_oth = False
-            prev_gp = current_gp
-            current_series = [measure,] # starting new collection of measures
-            if collect_oth:
-                oth_vals = [oth,] # starting collection of oths (only once)
-    # left last row
-    series_data[prev_gp] = current_series
-    if debug:
-        print(series_data)
-        print(oth_vals)
-    return series_data, oth_vals
-
 
 def setup_highlights(colour_mappings, single_colour, 
         override_first_highlight=False):
@@ -1519,10 +1524,10 @@ class BoxPlot(object):
                 n_chart += n_vals
                 has_vals = (n_vals > 0)
                 if has_vals:
-                    median = round(np.median(vals2desc),2)
+                    median = round(np.median(vals2desc), mg.DEFAULT_REPORT_DP)
                     lq, uq = core_stats.get_quartiles(vals2desc)
-                    lbox = round(lq, 2)
-                    ubox = round(uq, 2)
+                    lbox = round(lq, mg.DEFAULT_REPORT_DP)
+                    ubox = round(uq, mg.DEFAULT_REPORT_DP)
                     if debug: print("%s %s %s" % (lbox, median, ubox))
                 boxplot_display = has_vals
                 if not boxplot_display:
@@ -1555,8 +1560,8 @@ class BoxPlot(object):
                             vals2desc)
                     ## outliers
                     if boxplot_opt == mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE:
-                        outliers = [round(x, 2) for x in vals2desc 
-                            if x < lwhisker or x > uwhisker]
+                        outliers = [round(x, mg.DEFAULT_REPORT_DP)
+                            for x in vals2desc if x < lwhisker or x > uwhisker]
                     else:
                         outliers = []  ## hidden or inside whiskers
                     ## setting y-axis
@@ -1581,11 +1586,16 @@ class BoxPlot(object):
                     ## assemble
                     box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                         mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                        mg.CHART_BOXPLOT_LWHISKER: round(lwhisker, 2),
-                        mg.CHART_BOXPLOT_LBOX: round(lbox, 2),
-                        mg.CHART_BOXPLOT_MEDIAN: round(median, 2),
-                        mg.CHART_BOXPLOT_UBOX: round(ubox, 2),
-                        mg.CHART_BOXPLOT_UWHISKER: round(uwhisker, 2),
+                        mg.CHART_BOXPLOT_LWHISKER: round(lwhisker,
+                            mg.DEFAULT_REPORT_DP),
+                        mg.CHART_BOXPLOT_LBOX: round(lbox,
+                            mg.DEFAULT_REPORT_DP),
+                        mg.CHART_BOXPLOT_MEDIAN: round(median,
+                            mg.DEFAULT_REPORT_DP),
+                        mg.CHART_BOXPLOT_UBOX: round(ubox,
+                            mg.DEFAULT_REPORT_DP),
+                        mg.CHART_BOXPLOT_UWHISKER: round(uwhisker,
+                            mg.DEFAULT_REPORT_DP),
                         mg.CHART_BOXPLOT_OUTLIERS: outliers,
                         mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
                 boxdet_series.append(box_dic)
@@ -2284,6 +2294,23 @@ class Histo(object):
 class ScatterPlot(object):
 
     @staticmethod
+    def _get_chart_ns(cur, sql_dic):
+        SQL_get_chart_ns = (u"""SELECT
+        %(var_role_charts)s,
+            COUNT(%(var_role_charts)s)
+        AS chart_n
+        FROM %(tbl)s
+        WHERE %(var_role_charts)s IS NOT NULL
+            AND %(var_role_series)s IS NOT NULL
+            %(and_xy_filt)s
+            %(and_tbl_filt)s
+        GROUP BY %(var_role_charts)s
+        """ % sql_dic)
+        cur.execute(SQL_get_chart_ns)
+        chart_ns = dict(x for x in cur.fetchall())
+        return chart_ns
+
+    @staticmethod
     def _coords_lst2js_pairs(coords_lst):
         "Turn coordinates into a JavaScript-friendly version as a string"
         js_pairs_lst = ["{x: %s, y: %s}" % (x, y) for x, y in coords_lst]
@@ -2638,20 +2665,7 @@ class ScatterPlot(object):
             raise my_exceptions.TooFewValsForDisplay
         fldnames = [sql_dic[u"var_role_charts"], sql_dic[u"var_role_series"],
             sql_dic[u"fld_x_axis"], sql_dic[u"fld_y_axis"]]
-        SQL_get_chart_ns = (u"""SELECT
-        %(var_role_charts)s,
-            COUNT(%(var_role_charts)s)
-        AS chart_n
-        FROM %(tbl)s
-        WHERE %(var_role_charts)s IS NOT NULL
-            AND %(var_role_series)s IS NOT NULL
-            %(and_xy_filt)s
-            %(and_tbl_filt)s
-        GROUP BY %(var_role_charts)s
-        """ % sql_dic)
-        if debug: print(SQL_get_chart_ns)
-        cur.execute(SQL_get_chart_ns)
-        chart_ns = dict(x for x in cur.fetchall())
+        chart_ns = ScatterPlot._get_chart_ns(cur, sql_dic)
         prestructure = get_prestructured_grouped_data(raw_data, fldnames,
             chart_ns=chart_ns)
         chart_dets = []
@@ -3437,7 +3451,8 @@ class PieChart(object):
                     continue
                 colours_for_this_chart.append(cat_colours_by_lbl[val_lbl])
                 tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
-                slice_pct = round((100.0*y_val)/tot_y_vals, 1)
+                slice_pct = round((100.0*y_val)/tot_y_vals,
+                    mg.DEFAULT_REPORT_DP)
                 if inc_count or inc_pct:
                     raw_val2show = lib.OutputLib.get_count_pct_dets(inc_count,
                         inc_pct, lbl=tiplbl, count=y_val, pct=slice_pct)

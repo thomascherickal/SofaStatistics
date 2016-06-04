@@ -453,7 +453,16 @@ class ConfigUI(object):
         style_selector.Enable(not self.readonly)
         style_selector.SetToolTipString(_("Select an existing css style file"))
         return style_selector
-    
+
+    def get_dp_spinner(self, panel, dp_val):
+        dp_spinner = wx.SpinCtrl(panel, -1, value=str(dp_val), size=(60, -1))
+        dp_spinner.SetRange(0, 6)
+        dp_spinner.Bind(wx.EVT_SPINCTRL, self.on_dp_spin)
+        dp_spinner.SetFont(mg.GEN_FONT)
+        dp_spinner.SetToolTipString(_(u"Maximum number of decimal places to "
+            u"show"))
+        return dp_spinner
+
     def get_btn_var_config(self, panel):
         btn_var_config = wx.Button(panel, -1, _("Config Vars"))
         btn_var_config.SetFont(mg.BTN_FONT)
@@ -713,8 +722,8 @@ class ConfigUI(object):
         if self.too_long():
             return
         wx.BeginBusyCursor()
-        (bolran_report, 
-         str_content) = self.get_script_output(get_script_args, new_has_dojo)
+        bolran_report, str_content = self.get_script_output(get_script_args,
+            new_has_dojo)
         lib.OutputLib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.align_export_btns(bolran_report)

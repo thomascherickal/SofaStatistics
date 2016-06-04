@@ -16,8 +16,8 @@ def get_hdr_dets(titles, subtitles, col_labels, css_idx):
     """
     Set up titles, subtitles, and col labels into table header.
     """
-    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, 
-                                                  css_idx)
+    CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR,
+        css_idx)
     # col labels
     hdr_html = u"\n<tr>"
     for col_label in col_labels:
@@ -25,24 +25,24 @@ def get_hdr_dets(titles, subtitles, col_labels, css_idx):
     hdr_html += u"</tr>\n</thead>"
     return hdr_html
 
-def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl, 
-        flds, cur, first_col_as_label, val_dics, add_total_row, where_tbl_filt, 
+def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
+        flds, cur, first_col_as_label, val_dics, add_total_row, where_tbl_filt,
         css_idx, page_break_after=False, display_n=None):
     """
     Get HTML for table.
-    
+
     SELECT statement lists values in same order as col names.
-    
+
     When adding totals, will only do it if all values are numeric (Or None).
-    
-    Pulled out of object so can be used by both demo raw table (may need to 
-    update database settings (cursor, db etc) after the demo object was 
-    initiated e.g. user has changed data source after selecting raw tables) AND 
-    by live run (which always grabs the data it needs at the moment it is called 
+
+    Pulled out of object so can be used by both demo raw table (may need to
+    update database settings (cursor, db etc) after the demo object was
+    initiated e.g. user has changed data source after selecting raw tables) AND
+    by live run (which always grabs the data it needs at the moment it is called
     (current by definition) and instantiates and gets html in one go.
     """
     debug = False
-    verbose = True
+    verbose = False
     idx_and_data = namedtuple('idx_and_data', 'sort_idx, lbl_cols')  
     CSS_LBL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_LBL, css_idx)
     CSS_ALIGN_RIGHT = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_ALIGN_RIGHT, css_idx)
@@ -69,14 +69,14 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
         else:
             col_val_dics.append(None)
     # pre-store css class(es) for each column
-    col_class_lsts = [[] for x in col_names]
+    col_class_lsts = [[] for unused in col_names]
     if first_col_as_label:
         col_class_lsts[0] = [CSS_LBL]
     for i, col_name in enumerate(col_names):
         if flds[col_name][mg.FLD_BOLNUMERIC] and not col_val_dics[i]:
             col_class_lsts[i].append(CSS_ALIGN_RIGHT)
     if add_total_row:
-        row_tots = [0 for x in col_names] # init
+        row_tots = [0 for unused in col_names] # init
         row_tots_used = set() # some will never have anything added to them    
     # get data from SQL 
     objqtr = getdata.get_obj_quoter_func(dbe)
@@ -84,12 +84,12 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     """
     Get data from SQL and apply labels. Collect totals along the way as is 
     currently the case.
-    
+
     Sort by labels if appropriate. Then generate HTML row by row and cell by 
     cell.
     """
-    SQL_get_data = u"""SELECT %s 
-    FROM %s 
+    SQL_get_data = u"""SELECT %s
+    FROM %s
     %s""" % (colnames_clause, getdata.tblname_qtr(dbe, tbl), where_tbl_filt)
     if debug: print(SQL_get_data)
     cur.execute(SQL_get_data) # must be dd.cur
@@ -110,11 +110,12 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
             # process row data to display cell contents
             raw_val = row[idx_col]
             if col_val_dics[idx_col]: # has a label dict
-                row_val = col_val_dics[idx_col].get(row[idx_col], row[idx_col]) # use if possible
+                row_val = col_val_dics[idx_col].get(raw_val,
+                    u"-" if raw_val is None else raw_val) # use if possible
             else:
-                if row[idx_col] or row[idx_col] in (u"", 0):
-                    row_val = row[idx_col]
-                elif row[idx_col] is None:
+                if raw_val or raw_val in (u"", 0):
+                    row_val = raw_val
+                elif raw_val is None:
                     row_val = u"-"
             labelled_cols.append(row_val)
             # include row_val in lbl list which the data will be sorted by
@@ -175,8 +176,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     html.append(u"\n".join(body_html))
     html.append(u"\n</table>%s" % mg.REPORT_TABLE_END)
     if page_break_after:
-        html.append(u"<br><hr><br><div class='%s'></div>" %
-            CSS_PAGE_BREAK_BEFORE)
+        html.append(u"<br><hr><br><div class='%s'></div>"
+            % CSS_PAGE_BREAK_BEFORE)
     title = (titles[0] if titles else mg.TAB_TYPE2LBL[mg.DATA_LIST])
     output.append_divider(html, title, indiv_title=u"")
     return u"\n".join(html)
@@ -222,15 +223,17 @@ class RawTable(object):
     def get_html(self, css_idx, page_break_after=False, display_n=None):
         """
         Get HTML for table.
+
         SELECT statement lists values in same order as col names.
+
         When adding totals, will only do it if all values are numeric (Or None).
-        When running actual report, OK to use db settings as at time of 
-            instantiation (so can use self without self having to be kept 
-            up-to-date). Always up-to-date because only ever instantiated when 
-            immediately run.
+
+        When running actual report, OK to use db settings as at time of
+        instantiation (so can use self without self having to be kept up-to-
+        date). Always up-to-date because only ever instantiated when immediately
+        run.
         """
         return get_html(self.titles, self.subtitles, self.dbe, self.col_labels, 
-                        self.col_names, self.col_sorting, self.tbl, self.flds, 
-                        self.cur, self.first_col_as_label, self.val_dics,
-                        self.add_total_row, self.where_tbl_filt, css_idx, 
-                        page_break_after, display_n)
+            self.col_names, self.col_sorting, self.tbl, self.flds, self.cur,
+            self.first_col_as_label, self.val_dics, self.add_total_row,
+            self.where_tbl_filt, css_idx, page_break_after, display_n)

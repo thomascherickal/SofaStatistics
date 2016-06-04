@@ -455,7 +455,7 @@ class LiveTable(DimTable):
             raise Exception(u"Must run prep_table() before get_cell_n_ok().")
         return max_cells >= data_cell_n
     
-    def get_html(self, css_idx, page_break_after=False):
+    def get_html(self, css_idx, dp, page_break_after=False):
         """
         Get HTML for table.
         """
@@ -472,7 +472,7 @@ class LiveTable(DimTable):
             (self.tree_col_labels, 
              self.hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.get_body_html_rows(self.row_label_rows_lst,
-            self.tree_row_labels, self.tree_col_labels, css_idx)
+            self.tree_row_labels, self.tree_col_labels, css_idx, dp)
         body_html = u"\n\n<tbody>"
         for row in row_label_rows_lst:
             # flatten row list
@@ -522,7 +522,7 @@ class LiveTable(DimTable):
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
         
     def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
-                           tree_col_labels, css_idx):
+                           tree_col_labels, css_idx, dp):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -547,10 +547,9 @@ class LiveTable(DimTable):
             data_cells_n = len(row_term_nodes) * len(col_term_nodes)
             if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
             row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
-                                       row_filt_flds_lst, col_measures_lst, 
-                                       col_filters_lst, col_tots_lst, 
-                                       col_filt_flds_lst, row_label_rows_lst, 
-                                       data_cells_n, col_term_nodes, css_idx)
+                row_filt_flds_lst, col_measures_lst, col_filters_lst,
+                col_tots_lst, col_filt_flds_lst, row_label_rows_lst,
+                data_cells_n, col_term_nodes, css_idx, dp)
         except Exception, e:
             row_label_rows_lst = [u"<td>Problem getting table output: "
                 u"Orig error: %s</td>" % b.ue(e)]
@@ -933,21 +932,25 @@ class GenTable(LiveTable):
     
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
             col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
-            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx, dp):
         """
-        Get list of row data. Each row in the list is represented by a row of 
-            strings to concatenate, one per data point.
-        Build lists of data item HTML (data_item_presn_lst) and data item values 
-            (results) ready to combine.
-        data_item_presn_lst is a list of tuples with left and right HTML 
-            wrappers for data ("<td class='%s'>" % cellclass, "</td>").  
-            As each data point is processed, a tuple is added to the list.
-        results is built once per batch of data points for database efficiency 
-            reasons. Each call returns multiple values.
+        Get list of row data. Each row in the list is represented by a row of
+        strings to concatenate, one per data point.
+
+        Build lists of data item HTML (data_item_presn_lst) and data item values
+        (results) ready to combine.
+
+        data_item_presn_lst is a list of tuples with left and right HTML
+        wrappers for data ("<td class='%s'>" % cellclass, "</td>").
+
+        As each data point is processed, a tuple is added to the list.
+
+        results is built once per batch of data points for database efficiency
+        reasons. Each call returns multiple values.
         """
         debug = False
-        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
-                                                       css_idx)
+        CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL,
+            css_idx)
         CSS_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_DATACELL, css_idx)
         i=0
         data_item_presn_lst = []
@@ -961,10 +964,10 @@ class GenTable(LiveTable):
                 row_filter, row_filt_flds)
             first = True # styling
             col_zipped = zip(col_measures_lst, col_filters_lst, col_tots_lst, 
-                             col_filt_flds_lst)
+                col_filt_flds_lst)
             for (colmeasure, col_filter, coltot, col_filt_flds) in col_zipped:
                 col_filts_tot4row_lst = self.get_dim_filts_4_oth_dim_tot_lst(
-                                                      col_filter, col_filt_flds)    
+                    col_filter, col_filt_flds)    
                 # styling
                 if first:
                     cellclass = CSS_FIRST_DATACELL
@@ -989,7 +992,8 @@ class GenTable(LiveTable):
                         SQL_table_select_clauses_lst)
                     if debug: print(SQL_select_results)
                     self.cur.execute(SQL_select_results)
-                    results += self.cur.fetchone()
+                    is_freq = (colmeasure == mg.FREQ_KEY)
+                    results.extend(self.cur.fetchone())
                     SQL_table_select_clauses_lst = []
                 i=i+1
                 if debug:
@@ -1000,51 +1004,57 @@ class GenTable(LiveTable):
         for row in row_label_rows_lst:
             for unused in col_term_nodes:
                 output_type = mg.MEASURE_LBL2KEY[data_item_presn_lst[i][1]]
-                num2display = lib.OutputLib.get_num2display(num=results[i], 
+                dp_tpl = u"%.{}f".format(dp)
+                val = results[i]
+                is_freq = (output_type == mg.FREQ_KEY)
+                num2use = val if is_freq else dp_tpl % val  ## show integers for freqs (that's what the process in get_func_clause will have done by SUMming 1 and 0s. We don't alter that.
+                num2display = lib.OutputLib.get_num2display(num=num2use,
                     output_type=output_type, inc_perc=self.show_perc)
-                row.append(data_item_presn_lst[i][0] 
-                           + num2display + data_item_presn_lst[i][2])
+                row.append(data_item_presn_lst[i][0]
+                    + num2display + data_item_presn_lst[i][2])
                 i=i+1
         return row_label_rows_lst
     
     def get_func_clause(self, measure, row_filters_lst, col_filts_tot4row_lst,
-                        col_filters_lst, row_filts_tot4col_lst, is_coltot):
+            col_filters_lst, row_filts_tot4col_lst, is_coltot):
         """
-        Each terminal branch of a row or column tree has the filtering from all 
-            ancestors e.g. If Gender > AgeGp in row, the filtering to apply 
-            might be Gender=1 and AgeGp=3.  For the total for AgeGp we would 
-            have Gender=1 and AgeGp not missing.
+        Each terminal branch of a row or column tree has the filtering from all
+        ancestors e.g. If Gender > AgeGp in row, the filtering to apply might be
+        Gender=1 and AgeGp=3.  For the total for AgeGp we would have Gender=1
+        and AgeGp not missing.
+
         measure -- e.g. FREQ_KEY
-        row_filters_lst -- data in the original dataset will be counted if it 
+        row_filters_lst -- data in the original dataset will be counted if it
             meets the filter criteria.  ) if not meeting criteria, 1 if it does.
         col_filts_tot4row_lst -- as above but the final col is only required to
-            be non-missing.  Used to calculate total for row i.e. across the 
+            be non-missing.  Used to calculate total for row i.e. across the
             cols e.g. for gender=1 and AgeGp=3 but all non-missing Nations.
         col_filters_lst -- as for rows.
         row_filts_tot4col_lst -- as for rows.
         is_coltot -- boolean
+
         NB avoid perils of integer division (SQLite, MS SQL Server etc) 5/2 = 2!
         """
         debug = False
         # To get freq, evaluate matching values to 1 (otherwise 0) then sum
         # With most dbs, boolean returns 1 for True and 0 for False
         # FREQ - all row and col filters apply
-        sum4freq = self.get_summable(u" AND ".join(row_filters_lst +
-                                                   col_filters_lst))
+        sum4freq = self.get_summable(u" AND ".join(row_filters_lst
+            + col_filters_lst))
         freq = u"SUM(%s)" % sum4freq
         # TOTAL FOR ROW - i.e. total across final cols
         # all row filts and col filts for row tot apply
-        tot4row_summable = self.get_summable(u" AND ".join(row_filters_lst +
-                                                         col_filts_tot4row_lst))
+        tot4row_summable = self.get_summable(u" AND ".join(row_filters_lst
+             + col_filts_tot4row_lst))
         tot4row = u"SUM(%s)" % tot4row_summable
         # TOTAL FOR COL - i.e. total across final rows
         # all col filts and row tot filts apply
         tot4col_summable = self.get_summable(u" AND ".join(row_filts_tot4col_lst
-                                                           + col_filters_lst))
+            + col_filters_lst))
         tot4col = u"SUM(%s)" % tot4col_summable
         # TOTAL FOR ALL - i.e. total across final rows and cols
         sum4allsummable = self.get_summable(u" AND ".join(row_filts_tot4col_lst
-                                                       + col_filts_tot4row_lst))
+            + col_filts_tot4row_lst))
         tot4all = u"SUM(%s)" % sum4allsummable
         if debug:
             print("Freq: %s" % freq)
@@ -1096,7 +1106,7 @@ class SummTable(LiveTable):
     
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst, 
             col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst, 
-            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx, dp):
         """
         Get list of row data. Each row in the list is represented by a row of 
         strings to concatenate, one per data point.
@@ -1115,12 +1125,12 @@ class SummTable(LiveTable):
         debug = False
         if debug: print(col_measures_lst)
         data_item_lst = []
-        for row_filter, row_filt_flds in zip(row_filters_lst, 
+        for row_filter, unused in zip(row_filters_lst, 
                 row_filt_flds_lst):
             first = True # styling
             col_zipped = zip(col_measures_lst, col_filters_lst, 
                 col_filt_flds_lst)
-            for (colmeasure, col_filter, col_filt_flds) in col_zipped:
+            for (colmeasure, unused, col_filt_flds) in col_zipped:
                 col_fld = col_filt_flds[0]
                 # styling
                 if first:
@@ -1129,7 +1139,7 @@ class SummTable(LiveTable):
                 else:
                     cellclass = CSS_DATACELL
                 data_val, msg = self.get_data_val(colmeasure, col_fld, 
-                    row_filter)
+                    row_filter, dp)
                 if msg:
                     self.warnings.append(u"<p>%s</p>" % msg)
                 data_item_lst.append(u"<td class='%s'>%s</td>" %
@@ -1159,7 +1169,8 @@ class SummTable(LiveTable):
                 break
         return val
     
-    def get_data_val(self, measure, col_fld, row_filter_lst):
+    def get_data_val(self, measure, col_fld, row_filter_lst,
+            dp=mg.DEFAULT_REPORT_DP):
         """
         measure - e.g. MEAN
         col_fld - the numeric field we are calculating the summary of. NB if
@@ -1168,7 +1179,7 @@ class SummTable(LiveTable):
         """
         debug = False
         msg = None
-        dp2_tpl = u"%.2f"
+        dp2_tpl = u"%.{0}f".format(dp)  ## shows that many decimal places even if zeros at end and rounds if necessary to fit
         row_filt_clause = u" AND ".join(row_filter_lst)
         if row_filt_clause:
             overall_filter = u" WHERE " + row_filt_clause + self.and_tbl_filt
@@ -1218,7 +1229,7 @@ class SummTable(LiveTable):
                 + getdata.tblname_qtr(self.dbe, self.tbl) + overall_filter)
             try:
                 self.cur.execute(SQL_get_range)
-                data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
+                data_val = dp2_tpl % self.cur.fetchone()[0]
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.SUM_KEY:
@@ -1237,12 +1248,12 @@ class SummTable(LiveTable):
                 getdata.tblname_qtr(self.dbe, self.tbl), overall_filter)
             try:
                 self.cur.execute(SQL_get_mean)
-                data_val = dp2_tpl % round(self.cur.fetchone()[0],2)
+                data_val = dp2_tpl % self.cur.fetchone()[0]
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.MEDIAN_KEY:
             try:
-                data_val = dp2_tpl % round(numpy.median(data),2)
+                data_val = dp2_tpl % numpy.median(data)
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1270,7 +1281,7 @@ class SummTable(LiveTable):
         elif measure == mg.LOWER_QUARTILE_KEY:
             try:
                 lq, unused = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % round(lq, 2)
+                data_val = dp2_tpl % lq
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1282,7 +1293,7 @@ class SummTable(LiveTable):
         elif measure == mg.UPPER_QUARTILE_KEY:
             try:
                 unused, uq = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % round(uq, 2)
+                data_val = dp2_tpl % uq
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1294,7 +1305,7 @@ class SummTable(LiveTable):
         elif measure == mg.IQR_KEY:
             try:
                 lq, uq = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % round(uq-lq, 2)
+                data_val = dp2_tpl % (uq-lq, )
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
@@ -1314,7 +1325,7 @@ class SummTable(LiveTable):
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.STD_DEV_KEY:
             try:
-                data_val = dp2_tpl % round(numpy.std(data, ddof=1),2) # use ddof=1 for sample sd
+                data_val = dp2_tpl % numpy.std(data, ddof=1) # use ddof=1 for sample sd
             except Exception:
                 bad_val = self.get_non_num_val(SQL_get_vals)
                 if bad_val is not None:

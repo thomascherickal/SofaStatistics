@@ -29,10 +29,10 @@ class DemoTable(object):
 
     def get_html(self, css_idx):
         "Returns html"
-        assert 0, "get_html must be defined by subclass"
+        raise NotImplementedError("get_html must be defined by subclass")
 
     def get_body_html_rows(self, row_label_rows_lst, tree_row_labels,
-                           tree_col_labels, css_idx):
+                           tree_col_labels, css_idx, dp):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -52,11 +52,10 @@ class DemoTable(object):
             row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
             data_cells_n = len(row_term_nodes) * len(col_term_nodes)
             #print("%s data cells in table" % data_cells_n)
-            row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
-                                        row_filt_flds_lst, col_measures_lst, 
-                                        col_filters_lst, col_tots_lst, 
-                                        col_filt_flds_lst, row_label_rows_lst, 
-                                        data_cells_n, col_term_nodes, css_idx)
+            row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst,
+                row_filt_flds_lst, col_measures_lst, col_filters_lst,
+                col_tots_lst, col_filt_flds_lst, row_label_rows_lst,
+                data_cells_n, col_term_nodes, css_idx, dp)
         except Exception, e:
             row_label_rows_lst = [u"<td>Problem getting table output: "
                 u"Orig error: %s</td>" % b.ue(e)]
@@ -64,10 +63,10 @@ class DemoTable(object):
 
     def get_row_labels_row_lst(self, row_filters_lst, row_filt_flds_lst,
             col_measures_lst, col_filters_lst, col_tots_lst, col_filt_flds_lst,
-            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx):
+            row_label_rows_lst, data_cells_n, col_term_nodes, css_idx, dp):
         """
-        Get list of row data. Each row in the list is represented
-        by a row of strings to concatenate, one per data point.
+        Get list of row data. Each row in the list is represented by a row of
+        strings to concatenate, one per data point.
         """
         CSS_FIRST_DATACELL = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_DATACELL, 
             css_idx)
@@ -77,7 +76,7 @@ class DemoTable(object):
         for unused in row_filters_lst:
             first = True
             for (colmeasure, unused, 
-                unused, unused) in zip(col_measures_lst, col_filters_lst, 
+                unused, unused) in zip(col_measures_lst, col_filters_lst,
                     col_tots_lst, col_filt_flds_lst):
                 if first:
                     cellclass = CSS_FIRST_DATACELL
@@ -85,9 +84,11 @@ class DemoTable(object):
                 else:
                     cellclass = CSS_DATACELL
                 # build data row list
-                raw_val = lib.get_rand_val_of_type(mg.FLDTYPE_NUMERIC_KEY)
-                num2display = lib.OutputLib.get_num2display(num=raw_val, 
-                    output_type=mg.MEASURE_LBL2KEY[colmeasure], 
+                dp_tpl = u"%.{}f".format(dp)
+                raw_val = dp_tpl % lib.get_rand_val_of_type(
+                    mg.FLDTYPE_NUMERIC_KEY)
+                num2display = lib.OutputLib.get_num2display(num=raw_val,
+                    output_type=mg.MEASURE_LBL2KEY[colmeasure],
                     inc_perc=self.show_perc)
                 data_item_presn_lst.append(u"<td class='%s'>%s</td>" %
                     (cellclass, num2display))
@@ -175,10 +176,9 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
          col_sorting) = lib.GuiLib.get_col_dets(self.coltree, self.colroot,
                                                 self.var_labels)
         demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,
-                              col_labels, col_names, col_sorting, dd.tbl,
-                              dd.flds, dd.cur, self.first_col_as_label,
-                              self.val_dics, self.add_total_row, where_tbl_filt,
-                              css_idx, page_break_after=False, display_n=4)
+            col_labels, col_names, col_sorting, dd.tbl, dd.flds, dd.cur,
+            self.first_col_as_label, self.val_dics, self.add_total_row,
+            where_tbl_filt, css_idx, page_break_after=False, display_n=4)
         return demo_html
 
     
@@ -212,24 +212,21 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         # show_perc not set here when instantiated as must be checked from UI 
         #    each time get_demo_html_if_ok() is called.
         
-    def get_html(self, css_idx):
+    def get_html(self, css_idx, dp):
         "Returns demo_html"
         debug = False
         html = []
         title_dets_html = output.get_title_dets_html(self.titles,
-                                                     self.subtitles, css_idx,
-                                                     istable=True)
+            self.subtitles, css_idx, istable=True)
         html.append(title_dets_html)
         (row_label_rows_lst, tree_row_labels, 
-                    row_label_cols_n) = self.get_row_dets(css_idx)
-        
+            row_label_cols_n) = self.get_row_dets(css_idx)
         html.append(u"\n\n<table cellspacing='0'>\n") # IE6 - no support CSS borderspacing
         (tree_col_dets, hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         html.append(hdr_html)
         if debug: print(row_label_rows_lst)
         row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
-                                                     tree_row_labels,
-                                                     tree_col_dets, css_idx)
+            tree_row_labels, tree_col_dets, css_idx, dp)
         html.append(u"\n\n<tbody>")
         for row in row_label_rows_lst: # flatten row list
             html.append(u"\n" + u"".join(row) + u"</tr>")

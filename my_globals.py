@@ -46,6 +46,7 @@ MAX_HEIGHT = None
 DEFAULT_LEVEL = None
 HORIZ_OFFSET = 0
 DEFAULT_STATS_DP = 3
+DEFAULT_REPORT_DP = 1
 REASON_NO_DETAILS = u"Reason no details in stats output"
 WILCOXON_DIFF_DETS = u"Wilcoxon diff details"
 WILCOXON_RANKING_DETS = (u"Wilcoxon ranking details - diffs, abs diffs, "
@@ -656,7 +657,8 @@ STRICT_TMP_TBL = u"tmp_strict"
 SOFA_ID = u"sofa_id"
 WAS_SOFA_ID = u"was_%s" % SOFA_ID
 # demo data
-NUM_DATA_SEQ = (1.0, 1.5, 2.0, 2.5, 3.0, 3.5, 12.0, 35.0)
+NUM_DATA_SEQ = (1.514521, 1.235465, 2.0343, 2.588537, 3.006060, 3.502365,
+    12.1010101, 35.0990)
 # http://statistics.gmu.edu/pages/famous.html and 
 # http://www.bobabernethy.com/bios_stats.htm
 STR_DATA_SEQ = (u"William&nbsp;Sealey&nbsp;Gosset", u"Karl&nbsp;Pearson", 

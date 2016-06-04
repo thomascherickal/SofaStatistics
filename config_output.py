@@ -38,8 +38,8 @@ label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
 ADD2_RPT_LBL = _("Also add%sto report") % label_divider
 RUN_LBL = _("Show Results")
 NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
-    u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
-    {u"run": RUN_LBL, u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
+    u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.")
+    % {u"run": RUN_LBL, u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
 ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
     u"\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
     u"so your charts and themes can display properly.\n\nCopy the "
@@ -47,9 +47,9 @@ ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
 
 
 class DlgGetTest(wx.Dialog):
-    
+
     def __init__(self, title, label):
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET+200, 300))
         #, style=wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
         #                   wx.CLIP_CHILDREN)
@@ -59,7 +59,7 @@ class DlgGetTest(wx.Dialog):
         lbl_msg2 = wx.StaticText(self, -1, u"available for a limited time from "
             u"%s" % mg.CONTACT)
         subject = output.percent_encode("Please send free %s extension" % label)
-        link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension", 
+        link_home = hl.HyperLinkCtrl(self, -1, "Email Grant for test extension",
             URL=u"mailto:%s?subject=%s" % (mg.CONTACT, subject))
         lib.GuiLib.setup_link(link=link_home, link_colour="black",
             bg_colour=wx.NullColour)
@@ -80,7 +80,7 @@ def add_icon(frame):
     """
     ib = wx.IconBundle()
     for sz in [128, 64, 48, 32, 16]:
-        icon_path = os.path.join(mg.SCRIPT_PATH, u"images", 
+        icon_path = os.path.join(mg.SCRIPT_PATH, u"images",
             u"sofastats_%s.xpm" % sz)
         ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)
@@ -92,17 +92,17 @@ class GetSettings(settings_grid.DlgSettingsEntry):
             init_settings_data, settings_data, val_type):
         """
         var_desc - dic with keys "label", "notes", and "type".
-        
-        init_settings_data - list of tuples (must have at least one item, even 
+
+        init_settings_data - list of tuples (must have at least one item, even
         if only a "rename me").
-        
+
         col_dets - See under settings_grid.SettingsEntry
-        
+
         settings_data - add details to it in form of a list of tuples.
         """
         col_dets = [
-            {"col_label": _("Value"), "coltype": val_type, "colwidth": 50}, 
-            {"col_label": _("Label"), "coltype": settings_grid.COL_STR, 
+            {"col_label": _("Value"), "coltype": val_type, "colwidth": 50},
+            {"col_label": _("Label"), "coltype": settings_grid.COL_STR,
             "colwidth": 200},
         ]
         grid_size = (250, 250)
@@ -190,7 +190,7 @@ def set_var_props(choice_item, var_name, var_label, var_labels, var_notes,
     """
     For selected variable (name) gives user ability to set properties e.g.
     value labels. Then stores in appropriate labels file.
-    
+
     Returns True if user clicks OK to properties (presumably modified).
     """
     dd = mg.DATADETS_OBJ
@@ -300,7 +300,7 @@ class DlgListVars(wx.Dialog):
     def setup_vars(self):
         """
         Sets up list of variables ensuring using latest details.
-        
+
         Leaves list unselected.  That way we can select something more than 
         once.
         """

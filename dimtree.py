@@ -654,7 +654,6 @@ class DlgConfig(wx.Dialog):
         node_ids -- list, even if only one item selected.
         """
         wx.Dialog.__init__(self, parent, id=-1, title=title)
-        self.button2showall = True
         self.node_ids = node_ids
         first_node_id = node_ids[0]
         self.tree = tree
@@ -672,7 +671,7 @@ class DlgConfig(wx.Dialog):
         if self.allow_tot:
             box_misc = wx.StaticBox(self, -1, _("Misc"))
             szr_misc = wx.StaticBoxSizer(box_misc, wx.VERTICAL)
-            self.chk_total = wx.CheckBox(self, -1, mg.HAS_TOTAL, 
+            self.chk_total = wx.CheckBox(self, -1, mg.HAS_TOTAL,
                 size=chk_size)
             if item_conf.has_tot:
                 self.chk_total.SetValue(True)
@@ -693,11 +692,6 @@ class DlgConfig(wx.Dialog):
             bx_measures = wx.StaticBox(self, -1, _("Measures"))
             direction = wx.HORIZONTAL if horizontal else wx.VERTICAL
             szr_measures = wx.StaticBoxSizer(bx_measures, direction)
-            if show_select_toggle:
-                self.btn_select_toggle = wx.Button(self, -1, mg.SELECT_ALL_LBL)
-                self.btn_select_toggle.Bind(wx.EVT_BUTTON, 
-                    self.on_btn_select_toggle)
-                szr_measures.Add(self.btn_select_toggle, 0, wx.TOP, 5)
             for measure_lbl in self.measures:
                 label = mg.MEASURE_LBLS_SHORT2LONG[measure_lbl]
                 chk = wx.CheckBox(self, -1, label, size=chk_size)
@@ -705,6 +699,13 @@ class DlgConfig(wx.Dialog):
                     chk.SetValue(True)
                 self.measure_chks_dic[measure_lbl] = chk
                 szr_measures.Add(chk, 1, wx.ALL, 5)
+            if show_select_toggle:
+                self.btn_select_toggle = wx.Button(self, -1, mg.SELECT_ALL_LBL)
+                self.btn_select_toggle.Bind(wx.EVT_BUTTON,
+                    self.on_btn_select_toggle)
+                szr_measures.Insert(0, self.btn_select_toggle, 0, wx.TOP, 5)
+                self.button2showall = self._any_unticked()
+                self._set_btn_lbl()
             szr_main.Add(szr_measures, 1, wx.GROW|wx.ALL, 10)
         btn_cancel = wx.Button(self, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)            
@@ -727,20 +728,33 @@ class DlgConfig(wx.Dialog):
     
     def on_btn_select_toggle(self, event):
         enable = self.button2showall
-        # actually select/unselect everything
+        ## actually select/deselect everything
         for measure_chk in self.measure_chks_dic.values():
             measure_chk.SetValue(enable)
         # handle button and its state
-        btn_select_lbl = (mg.DESELECT_ALL_LBL if self.button2showall 
-            else mg.SELECT_ALL_LBL)
-        self.btn_select_toggle.SetLabel(btn_select_lbl)
         self.button2showall = not self.button2showall
-       
+        self._set_btn_lbl()
+
+    def _set_btn_lbl(self):
+        btn_select_lbl = (mg.DESELECT_ALL_LBL if not self.button2showall 
+            else u" {0} ".format(mg.SELECT_ALL_LBL))  ## select narrower in English at least
+        self.btn_select_toggle.SetLabel(btn_select_lbl)
+
+    def _any_unticked(self):
+        any_unticked = False
+        for measure_lbl in self.measures:
+            ticked = self.measure_chks_dic[measure_lbl].GetValue()
+            if not ticked:
+                any_unticked = True
+                break
+        return any_unticked
+
     def on_ok(self, event):
         """
         Store selection details into item conf dets object.
-        Note - can configure multiple items at once (can't if one has children 
-            and the others don't).
+
+        Note - can configure multiple items at once (can't if one has children
+        and the others don't).
         """
         debug = False
         # measures

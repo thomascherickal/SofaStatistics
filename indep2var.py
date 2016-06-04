@@ -318,7 +318,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             something manually later).
         """
         dd = mg.DATADETS_OBJ
-        unused, tbl_filt = lib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_filt, and_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
         var_gp, choice_item = self.get_group_by()
         no_selection = (not choice_item or choice_item == mg.DROP_SELECT)

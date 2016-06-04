@@ -22,9 +22,9 @@ import projects
 def replace_titles_subtitles(orig, titles, subtitles):
     """
     Have original html.
-    
+
     Have list of titles and subtitles (both or either could be empty).
-    
+
     Use specific tags to slice it up and reassemble it. Easiest to do with crude 
     slicing and inserting.  Best to leave the table-making processes code alone.
 
@@ -32,7 +32,7 @@ def replace_titles_subtitles(orig, titles, subtitles):
 
     Subtitles follows the same approach.
 
-    NB if either or both of the titles and subtitles are empty, the row should 
+    NB if either or both of the titles and subtitles are empty, the row should
     be of minimal height.
 
     pre_title = everything before the actual content of the title
@@ -41,7 +41,7 @@ def replace_titles_subtitles(orig, titles, subtitles):
 
     post_title = everything after the actual content of the title
 
-    between_title_and_sub = everything between the title content and the 
+    between_title_and_sub = everything between the title content and the
     subtitle content.
 
     post_subtitle = everything after the subtitle content e.g. 2010 data
@@ -149,7 +149,6 @@ class RptTypeOpts(object):
             self.rad_opts.SetFont(mg.GEN_FONT)
             self.rad_opts.Bind(wx.EVT_RADIOBOX, parent.on_tab_type_change)
 
-
     def GetSelection(self):
         debug = False
         try:
@@ -162,13 +161,13 @@ class RptTypeOpts(object):
                 if rad.GetValue():
                     return idx
             return None
-        
+
     def SetSelection(self, idx):
         try:
             return self.rad_opts.SetSelection(idx)
         except AttributeError:
             self.rad_opts.GetChildren()[idx].GetWindow().SetValue(True)
-            
+
     def Enable(self, enable=True):
         """
         If the object can be enabled/disabled do that. If not, assume it is a 
@@ -179,7 +178,7 @@ class RptTypeOpts(object):
         except AttributeError:
             for szr_item in self.rad_opts.GetChildren():
                 szr_item.GetWindow().Enable(enable)
-            
+
     def get_szr(self):
         """
         Use this when inserting into a sizer (expects a sizer or widget not this 
@@ -190,13 +189,13 @@ class RptTypeOpts(object):
 
 class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
     """
-    ConfigUI -- provides reusable interface for data selection, setting labels 
+    ConfigUI -- provides reusable interface for data selection, setting labels
     etc. Sets values for db, default_tbl etc and responds to selections etc.
-    
+
     self.col_no_vars_item -- the column item when there are no column variables,
     only columns related to the row variables e.g. total, row and col %s.
     """
-    
+
     def __init__(self, var_labels=None, var_notes=None, val_dics=None):
         debug = False
         self.exiting = False
@@ -212,9 +211,9 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
             "output", "getdata"]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
-        self.url_load = True # btn_expand    
+        self.url_load = True # btn_expand
         (self.var_labels, self.var_notes,
-         self.var_types, 
+         self.var_types,
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.col_no_vars_item = None #  needed if no variable in columns.  Must
             # reset to None if deleted all vars
@@ -284,6 +283,11 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         has_perc = not mg.RPT_CONFIG[self.tab_type][mg.VAR_SUMMARISED_KEY]
         self.enable_show_perc_symbol_opt(enable=has_perc)
         self.chk_show_perc_symbol.SetValue(True) # True is default
+        ## dp spinner
+        self.lbl_dp_spinner = wx.StaticText(self.panel, -1,
+            _(u"Max dec points"))
+        self.dp_spinner = self.get_dp_spinner(self.panel,
+            dp_val=mg.DEFAULT_REPORT_DP)
         #text labels
         lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
         lbl_rows.SetFont(mg.LABEL_FONT)
@@ -379,8 +383,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         szr_titles.Add(self.txt_subtitles, 1)
         szr_raw_display_opts.Add(self.chk_totals_row, 0)        
         szr_raw_display_opts.Add(self.chk_first_as_label, 0)
-        szr_opts.Add(szr_raw_display_opts, 0) 
-        szr_opts.Add(self.chk_show_perc_symbol, 0)
+        szr_opts.Add(szr_raw_display_opts, 0)
+        szr_opts.Add(self.chk_show_perc_symbol, 0, wx.RIGHT, 20)
+        szr_opts.Add(self.lbl_dp_spinner, 0, wx.RIGHT|wx.TOP, 5)
+        szr_opts.Add(self.dp_spinner, 0)
         szr_tab_type.Add(szr_opts, 0)
         szr_rows.Add(lbl_rows, 0)
         szr_row_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -553,10 +559,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         else:
             self.enable_raw_display_opts(enable=True)
             self.enable_show_perc_symbol_opt(enable=False)
-            self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles, 
-                txt_subtitles=self.txt_subtitles, colroot=self.colroot, 
-                coltree=self.coltree, var_labels=self.var_labels, 
-                val_dics=self.val_dics, 
+            self.demo_tab = demotables.DemoRawTable(txt_titles=self.txt_titles,
+                txt_subtitles=self.txt_subtitles, colroot=self.colroot,
+                coltree=self.coltree, var_labels=self.var_labels,
+                val_dics=self.val_dics,
                 add_total_row=self.chk_totals_row.IsChecked(),
                 first_col_as_label=self.chk_first_as_label.IsChecked())
         # in case they were disabled and then we changed tab type
@@ -570,11 +576,11 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         "Enable (or disable) raw display options"
         self.chk_totals_row.Enable(enable)
         self.chk_first_as_label.Enable(enable)
-        
+
     def enable_show_perc_symbol_opt(self, enable=True):
         "Enable (or disable) Show Percentage Symbol option"
         self.chk_show_perc_symbol.Enable(enable)
-        
+
     def on_chk_totals_row(self, event):
         "Update display as total rows checkbox changes"
         self.update_demo_display()
@@ -582,11 +588,15 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
     def on_chk_first_as_label(self, event):
         "Update display as first column as label checkbox changes"
         self.update_demo_display()
-    
+
     def on_chk_show_perc_symbol(self, event):
         "Update display as show percentage symbol checkbox changes"
         self.update_demo_display()
-    
+
+    def on_dp_spin(self, event):
+        "Set maximum decimal places to display"
+        mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
+
     # titles/subtitles
     def on_title_change(self, event):
         """
@@ -604,7 +614,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         """
         self.update_demo_display(titles_only=True)
         self.txt_subtitles.SetFocus()
-        
+
     # run
     def too_long(self):
         # check not a massive report table. Overrides default
@@ -618,7 +628,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                         style=wx.YES_NO) == wx.NO):
                     too_long = True
         return too_long
-    
+
     def on_btn_run(self, event):
         """
         Generate script to special location (INT_SCRIPT_PATH), 
@@ -627,19 +637,20 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         """
         run_ok, has_cols = self.table_config_ok()
         if run_ok:
-            config_ui.ConfigUI.on_btn_run(self, event, 
-                get_script_args={u"has_cols": has_cols, })
-    
+            config_ui.ConfigUI.on_btn_run(self, event,
+                get_script_args={u"has_cols": has_cols,
+                    u"dp": mg.DEFAULT_REPORT_DP})
+
     # export script
     def on_btn_script(self, event):
         """
         Export script for table to file currently displayed (if enough data).
-        
+
         If the file doesn't exist, make one and add the preliminary code.
-        
+
         If a file exists, but is empty, put the preliminary code in then
         the new exported script.
-        
+
         If the file exists and is not empty, append the script on the end.
         """
         export_ok, has_cols = self.table_config_ok()
@@ -647,19 +658,19 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             try:
                 css_fils, css_idx = output.get_css_dets()
             except my_exceptions.MissingCss, e:
-                lib.OutputLib.update_local_display(self.html, 
+                lib.OutputLib.update_local_display(self.html,
                     _(u"Please check the CSS file exists or set another."
                     u"\nCaused by error: %s") % b.ue(e), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
                 event.Skip()
                 return
-            script = self.get_script(css_idx, has_cols)
+            script = self.get_script(css_idx, has_cols, dp=mg.DEFAULT_REPORT_DP)
             output.export_script(script, css_fils)
-    
-    def get_script(self, css_idx, has_cols):
+
+    def get_script(self, css_idx, has_cols, dp):
         """
         Build script from inputs.
-        
+
         Unlike the stats test output, no need to link to images etc, so no need
         to know what this report will be called (so we can know where any images 
         are to link to).
@@ -671,14 +682,14 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
             script_lst.append(u"# Rows" + 60*u"*")
             script_lst.append(u"tree_rows = dimtables.DimNodeTree()")
-            for child in lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree, 
+            for child in lib.GuiLib.get_tree_ctrl_children(tree=self.rowtree,
                     item=self.rowroot):
                 # child -- NB GUI tree items, not my Dim Node obj
                 item_conf = self.rowtree.GetItemPyData(child)
                 child_fldname = item_conf.var_name
-                self.add_to_parent(script_lst=script_lst, tree=self.rowtree, 
+                self.add_to_parent(script_lst=script_lst, tree=self.rowtree,
                     parent=self.rowtree, parent_node_label=u"tree_rows",
-                    parent_name=u"row", child=child, 
+                    parent_name=u"row", child=child,
                     child_fldname=child_fldname)
             script_lst.append(u"# Columns" + 57*u"*")
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
@@ -689,7 +700,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                     child_fldname = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
                         parent=self.coltree, parent_node_label=u"tree_cols",
-                        parent_name=u"column", child=child, 
+                        parent_name=u"column", child=child,
                         child_fldname=child_fldname)
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.DATA_LIST:
@@ -701,8 +712,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             script_lst.append(u"col_labels = " + unicode(col_labels))
             script_lst.append(u"col_sorting = " + unicode(col_sorting))
             script_lst.append(u"flds = " + lib.UniLib.dic2unicode(dd.flds))
-            script_lst.append(u"var_labels = " +
-                lib.UniLib.dic2unicode(self.var_labels))
+            script_lst.append(u"var_labels = "
+                + lib.UniLib.dic2unicode(self.var_labels))
             script_lst.append(u"val_dics = "
                 + lib.UniLib.dic2unicode(self.val_dics))
         # process title dets
@@ -752,14 +763,15 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             script_lst.append(u"if tab_test.get_cell_n_ok("
                 u"max_cells=max_cells):")
             script_lst.append(u"    "
-                u"fil.write(tab_test.get_html(%s, " % css_idx 
+                u"fil.write(tab_test.get_html(%s, %s, " % (css_idx, dp)
                 + u"page_break_after=False))")
             script_lst.append(u"else:")
             script_lst.append(u"    "
                 u"raise my_exceptions.ExcessReportTableCells(max_cells)")
         else:
-            script_lst.append(u"fil.write(tab_test.get_html(%s, " % css_idx
-                + u"page_break_after=False))")
+            script_lst.append(
+                u"fil.write(tab_test.get_html(%s, page_break_after=False))"
+                % css_idx)
         return u"\n".join(script_lst)
 
     def get_next_node_name(self):
@@ -877,10 +889,9 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         if not run_ok:
             return False, u""
         new_has_dojo = False
-        get_script_args = {u"has_cols": has_cols, }
-        (bolran_report, 
-         str_content) = config_ui.ConfigUI.get_script_output(self, 
-            get_script_args, new_has_dojo, allow_add2rpt=False)
+        get_script_args = {u"has_cols": has_cols, u"dp": mg.DEFAULT_REPORT_DP}
+        bolran_report, str_content = config_ui.ConfigUI.get_script_output(
+            self, get_script_args, new_has_dojo, allow_add2rpt=False)
         return bolran_report, str_content
     
     def update_demo_display(self, titles_only=False):

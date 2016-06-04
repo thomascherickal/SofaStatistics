@@ -378,9 +378,9 @@ class OutputLib(object):
             num2display = unicode(num)
         else:
             if inc_perc:
-                num2display = u"%s%%" % round(num, 1)
+                num2display = u"%s%%" % num
             else:
-                num2display = u"%s" % round(num, 1)
+                num2display = u"%s" % num
         return num2display
 
     @staticmethod
