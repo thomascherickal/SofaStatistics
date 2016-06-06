@@ -183,11 +183,13 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        (grid_bg, item_colours, 
-            line_colour) = output.get_stats_chart_colours(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojo_dic['colour_mappings'])
         try:
             charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
-                grid_bg, item_colours[0], line_colour)
+                css_dojo_dic['inner_bg'], item_colours[0],
+                css_dojo_dic['major_gridline_colour'])
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
@@ -347,11 +349,13 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
             ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5)) # see dpi to get image size in pixels
-        (grid_bg, item_colours, 
-         line_colour) = output.get_stats_chart_colours(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojo_dic['colour_mappings'])
         try:
             charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
-                grid_bg, item_colours[0], line_colour)
+                css_dojo_dic['inner_bg'], item_colours[0],
+                css_dojo_dic['major_gridline_colour'])
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
@@ -376,27 +380,30 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
     """
     Returns HTML table ready to display.
-    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a, 
+    dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a,
         "min": min_a, "max": max_a}
     """
     html = []
     indep = False
     label_gp = None
-    title = ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, 
+    title = ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a,
         dic_b, df, label_avg, dp, indep, css_idx, html)
     output.append_divider(html, title, indiv_title=u"")
     # histogram
     histlbl = u"Differences between %s and %s" % (dic_a["label"], 
         dic_b["label"])
-    charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8, 
+    charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8,
         ytick_labelsize=8)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 3.5)) # see dpi to get image size in pixels
-    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
     try:
         charting_pylab.config_hist(fig, diffs, _("Differences"), histlbl, False,
-            grid_bg, item_colours[0], line_colour)
-        img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+            css_dojo_dic['inner_bg'], item_colours[0],
+            css_dojo_dic['major_gridline_colour'])
+        img_src = charting_pylab.save_report_img(add_to_report, report_name,
             save_func=pylab.savefig, dpi=100)
         html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     except Exception, e:
@@ -736,16 +743,20 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     output.append_divider(html, title, indiv_title=u"")
-    grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
     title_dets_html = u"" # already got an appropriate title for whole section
     show_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    n_chart=''
-    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, n_chart,
-        series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
-        report_name, html, dot_colour=dot_colours[0])
+    n_chart = "N = " + lib.formatnum(len(list_x))
+    charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+        css_dojo_dic['major_gridline_colour'],
+        css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
+        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
+        dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
     ## details
     if details:
@@ -785,16 +796,20 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
     html.append(u"<ul><li>Slope: %s</li>" % round(slope, dp))
     html.append(u"<li>Intercept: %s</li></ul>" % round(intercept, dp))
     output.append_divider(html, title, indiv_title=u"")
-    grid_bg, dot_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
     title_dets_html = u"" # already got an appropriate title for whole section
     show_borders = True
     series_dets = [{mg.CHARTS_SERIES_LBL_IN_LEGEND: None, # None if only one series
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
-    n_chart=''
-    charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, n_chart,
-        series_dets, label_x, label_y, x_vs_y, title_dets_html, add_to_report, 
-        report_name, html, dot_colour=dot_colours[0])
+    n_chart = "N = " + lib.formatnum(len(list_x))
+    charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+        css_dojo_dic['major_gridline_colour'],
+        css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
+        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
+        dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
     ## details
     if details:
@@ -1106,11 +1121,14 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
         u"not the same way of displaying data as a clustered bar chart although"
         u" the similarity can be confusing.</p>" % {"var_label_a": var_label_a,
         "var_label_b": var_label_b})
-    grid_bg, item_colours, line_colour = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
     output.append_divider(html, title, indiv_title=u"")
-    add_chi_square_clustered_barcharts(grid_bg, item_colours, line_colour,
-        lst_obs, var_label_a, var_label_b, val_labels_a, val_labels_b,
-        val_labels_b_n, add_to_report, report_name, html)
+    add_chi_square_clustered_barcharts(css_dojo_dic['grid_bg'], item_colours,
+        css_dojo_dic['major_gridline_colour'], lst_obs, var_label_a,
+        var_label_b, val_labels_a, val_labels_b, val_labels_b_n, add_to_report,
+        report_name, html)
     return u"".join(html)
 
 def get_xaxis_fontsize(val_labels):

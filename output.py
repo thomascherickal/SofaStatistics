@@ -145,19 +145,11 @@ def get_item_title(title, indiv_title=u"", item_type=u""):
 
 def colour_mappings_to_item_colours(colour_mappings):
     """
-    str() so no u"" in front of strings - needs to be ready for Javascript to 
-        read in Dojo.
+    str() so no u"" in front of strings - needs to be ready for Javascript to
+    read in Dojo.
     """
     item_colours = [str(x[0]) for x in colour_mappings] + mg.DOJO_COLOURS
     return item_colours
-
-def get_stats_chart_colours(css_fil):
-    (unused, grid_bg, unused, major_gridline_colour,
-     unused, unused, unused, colour_mappings,
-     unused) = lib.OutputLib.extract_dojo_style(css_fil)
-    item_colours = colour_mappings_to_item_colours(colour_mappings)
-    line_colour = major_gridline_colour
-    return grid_bg, item_colours, line_colour
 
 def get_fallback_css():
     """

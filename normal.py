@@ -114,13 +114,16 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     charting_pylab.gen_config()
     fig = pylab.figure()
     fig.set_size_inches((8.0, 4.5)) # see dpi to get image size in pixels
-    (grid_bg, item_colours, 
-     line_colour) = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
+    line_colour = css_dojo_dic['major_gridline_colour']
     histlbl = u"Histogram of differences" if paired else None
     try:
-        charting_pylab.config_hist(fig, vals, data_label, histlbl, 
-            thumbnail=False, grid_bg=grid_bg, bar_colour=item_colours[0], 
-            line_colour=line_colour, inc_attrib=True)
+        charting_pylab.config_hist(fig, vals, data_label, histlbl,
+            thumbnail=False, inner_bg=css_dojo_dic['inner_bg'],
+            bar_colour=item_colours[0], line_colour=line_colour,
+            inc_attrib=True)
     except Exception, e:
         raise my_exceptions.OutputException(u"Unable to produce histogram. "
             u"Reason: %s" % b.ue(e))

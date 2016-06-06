@@ -29,7 +29,7 @@ LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW
 LANGUAGE_BRETON, LANGUAGE_SPANISH, LANGUAGE_ENGLISH, LANGUAGE_SPANISH_ARGENTINA
 """
 TEST_LANGID = wx.LANGUAGE_FRENCH
-DOJO_DEBUG = True  ## so can use unminified javascript and tweak it
+DOJO_DEBUG = False  ## so can use unminified javascript and tweak it
 LOCALEDIR = './locale' # overridden in setup.py
 LANGDIR = None # overridden in start.py 
 CANON_NAME = None # overridden in start.py 

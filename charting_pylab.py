@@ -109,7 +109,7 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
     plot.setYLabel(y_label)
 
 def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False, 
-        grid_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
+        inner_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
         line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
     """
     Configure histogram with subplot of normal distribution curve.
@@ -118,7 +118,7 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     debug = False
     axes = fig.gca()
     rect = axes.patch
-    rect.set_facecolor(grid_bg)
+    rect.set_facecolor(inner_bg)
     #n_vals = len(vals)
     # use nicest bins practical
     n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
@@ -161,9 +161,10 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
         pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
             fontsize=7, rotation=270)
 
-def config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
-        series_dets, label_a, label_b, a_vs_b, xmin=None, xmax=None, ymin=None,
-        ymax=None, dot_colour=None, series_colours_by_lbl=None):
+def config_scatterplot(inner_bg, show_borders, line_colour, fig,
+        filled_font_colour, n_chart, series_dets, label_a, label_b, a_vs_b,
+        xmin=None, xmax=None, ymin=None, ymax=None, dot_colour=None,
+        series_colours_by_lbl=None):
     """
     Configure scatterplot with line of best fit.
     Size is set externally.
@@ -199,7 +200,7 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
     axes.set_xlabel(label_a)
     axes.set_ylabel(label_b)
     rect = axes.patch
-    rect.set_facecolor(grid_bg)
+    rect.set_facecolor(inner_bg)
     box = axes.get_position()
     axes.set_position([box.x0, box.y0 + box.height*0.1, box.width, 
         box.height*0.9])
@@ -208,12 +209,13 @@ def config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
         fontsize=7, rotation=270)
     pylab.annotate(n_chart, xy=(0.02, 0.96),
-        textcoords='axes fraction', fontsize=7)
+        textcoords='axes fraction', fontsize=7, color=filled_font_colour)
 
-def add_scatterplot(grid_bg, show_borders, line_colour, n_chart, series_dets,
-        label_x, label_y, x_vs_y, title_dets_html, add_to_report, report_name,
-        html, width_inches=7.5, height_inches=4.5, xmin=None, xmax=None,
-        ymin=None, ymax=None, dot_colour=None, series_colours_by_lbl=None):
+def add_scatterplot(inner_bg, show_borders, line_colour, filled_font_colour,
+        n_chart, series_dets, label_x, label_y, x_vs_y, title_dets_html,
+        add_to_report, report_name, html, width_inches=7.5, height_inches=4.5,
+        xmin=None, xmax=None, ymin=None, ymax=None, dot_colour=None,
+        series_colours_by_lbl=None):
     """
     Toggle prefix so every time this is run internally only, a different image 
     is referred to in the html <img src=...>.
@@ -224,9 +226,9 @@ def add_scatterplot(grid_bg, show_borders, line_colour, n_chart, series_dets,
     debug = False
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
-    config_scatterplot(grid_bg, show_borders, line_colour, fig, n_chart,
-        series_dets, label_x, label_y, x_vs_y, xmin, xmax, ymin, ymax,
-        dot_colour, series_colours_by_lbl)
+    config_scatterplot(inner_bg, show_borders, line_colour, fig,
+        filled_font_colour, n_chart, series_dets, label_x, label_y, x_vs_y,
+        xmin, xmax, ymin, ymax, dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)

@@ -538,9 +538,15 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
             xy_vals = series_dic[XY_KEY]
             vals_etc_lst = []
             for x_val, y_val in xy_vals:
-                xval = round(x_val, dp)
-                yval = round(y_val, dp)
-                x_val_lbl = xlblsdic.get(x_val, unicode(xval))  ## original value for label matching, rounded for display if no label
+                try:
+                    xval4lbl = round(x_val, dp)
+                except TypeError:
+                    xval4lbl = x_val
+                try:
+                    yval4lbl = round(y_val, dp)
+                except TypeError:
+                    yval4lbl = y_val
+                x_val_lbl = xlblsdic.get(x_val, unicode(xval4lbl))  ## original value for label matching, rounded for display if no label
                 (x_val_split_lbl,
                  actual_lbl_width,
                  n_lines) = lib.OutputLib.get_lbls_in_lines(orig_txt=x_val_lbl, 
@@ -548,7 +554,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
                 rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
-                y_lbl_width = len(str(round(yval, rounding2use)))
+                y_lbl_width = len(str(round(yval4lbl, rounding2use)))
                 if y_lbl_width > max_y_lbl_len:
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
@@ -557,7 +563,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                     itemlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
                 else:
                     itemlbl = None
-                vals_etc_lst.append((xval, yval, x_val_lbl, 
+                vals_etc_lst.append((xval4lbl, yval4lbl, x_val_lbl, 
                     x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
@@ -786,7 +792,9 @@ def get_indiv_title(multichart, chart_det):
     return indiv_title, indiv_title_html
 
 def get_series_colours_by_lbl(chart_output_dets, css_fil):
-    unused, item_colours, unused = output.get_stats_chart_colours(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    item_colours = output.colour_mappings_to_item_colours(
+        css_dojo_dic['colour_mappings'])
     # check every series in every chart to get full list
     series_colours_by_lbl = {}
     series_lbls = []
@@ -962,16 +970,68 @@ class BarChart(object):
         return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
     @staticmethod
-    def simple_barchart_output(titles, subtitles, x_title, y_title, 
-            chart_output_dets, rotate, show_n, show_borders, css_idx, css_fil, 
+    def _add_dojo_html_js(html, chart_settings_dic):
+        html.append(u"""
+        <script type="text/javascript">
+
+        var sofaHlRenumber{chart_idx} = function(colour){{
+            var hlColour;
+            switch (colour.toHex()){{
+                {colour_cases}
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }}
+            return new dojox.color.Color(hlColour);
+        }}
+
+        makechartRenumber{chart_idx} = function(){{
+            {series_js}
+            var conf = new Array();
+            conf["axis_lbl_drop"] = {axis_lbl_drop};
+            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["gridline_width"] = {gridline_width};
+            conf["highlight"] = sofaHlRenumber{chart_idx};
+            conf["inner_bg"] = "{inner_bg}";
+            conf["major_gridline_colour"] = "{major_gridline_colour}";
+            conf["margin_offset_l"] = {margin_offset_l};
+            conf["minor_ticks"] = {minor_ticks};
+            conf["n_chart"] = "{n_chart}";
+            conf["outer_bg"] = "{outer_bg}";
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            conf["xaxis_lbls"] = {xaxis_lbls};
+            conf["xfontsize"] = {xfontsize};
+            conf["xgap"] = {xgap};
+            conf["x_title"] = "{x_title}";
+            conf["ymax"] = {ymax};
+            conf["y_title_offset"] = {y_title_offset};
+            conf["y_title"] = "{y_title}";
+            makeBarChart("mychartRenumber{chart_idx}", series, conf);
+        }}
+        </script>
+
+        <div class="screen-float-only" style="margin-right: 10px; {pagebreak}">
+        {indiv_title_html}
+            <div id="mychartRenumber{chart_idx}" 
+                style="width: {width}px; height: {height}px;">
+            </div>
+        {legend}
+        </div>""".format(**chart_settings_dic))
+
+    @staticmethod
+    def simple_barchart_output(titles, subtitles, x_title, y_title,
+            chart_output_dets, rotate, show_n, show_borders, css_idx, css_fil,
             page_break_after):
         """
         titles -- list of title lines correct styles
         subtitles -- list of subtitle lines
         chart_output_dets -- see structure_gen_data()
         var_numeric -- needs to be quoted or not.
-        xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
-                       (5, "65+")]
+        xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"),
+            (4, "40-64"), (5, "65+")]
         css_idx -- css index so can apply appropriate css styles
         """
         debug = False
@@ -992,23 +1052,21 @@ class BarChart(object):
         height += axis_lbl_drop  # compensate for loss of bar display height
         """
         For each series, set colour details.
-        For the collection of series as a whole, set the highlight mapping from 
-            each series colour.
-        From dojox.charting.action2d.Highlight but with extraneous % removed
+
+        For the collection of series as a whole, set the highlight mapping from
+        each series colour.
+
+        From dojox.charting.action2d.Highlight but with extraneous % removed.
         """
-        (outer_bg, grid_bg, axis_lbl_font_colour,
-         major_gridline_colour, gridline_width, stroke_width,
-         tooltip_border_colour, colour_mappings,
-         connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
-        item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojo_dic['colour_mappings'])
         fill = item_colours[0]
-        outer_bg = (u"" if outer_bg == u""
-                    else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
         single_colour = True
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
             and single_colour)
-        colour_cases = setup_highlights(colour_mappings, single_colour, 
-            override_first_highlight)
+        colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
+            single_colour, override_first_highlight)
         n_bars_in_cluster = 1
         # always the same number, irrespective of order
         n_clusters = len(chart_output_dets[mg.CHARTS_CHART_DETS][0]\
@@ -1039,7 +1097,7 @@ class BarChart(object):
         if rotate:
             margin_offset_l += 15
         width += margin_offset_l
-        stroke_width = stroke_width if show_borders else 0
+        stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
         # loop through charts
         for chart_idx, chart_det in enumerate(chart_dets):
             indiv_title, indiv_title_html = get_indiv_title(multichart, chart_det)
@@ -1059,10 +1117,10 @@ class BarChart(object):
             series_js_list.append(u"var series0 = new Array();")
             series_js_list.append(u"series0[\"seriesLabel\"] = \"%s\";"
                 % series_det[mg.CHARTS_SERIES_LBL_IN_LEGEND])
-            series_js_list.append(u"series0[\"yVals\"] = %s;" % 
-                series_det[mg.CHARTS_SERIES_Y_VALS])
-            tooltips = (u"['" + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
-                + u"']")
+            series_js_list.append(u"series0[\"yVals\"] = %s;"
+                % series_det[mg.CHARTS_SERIES_Y_VALS])
+            tooltips = (u"['"
+                + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) + u"']")
             series_js_list.append(u"series0[\"options\"] = "
                 u"{stroke: {color: \"white\", width: \"%spx\"}, fill: \"%s\", "
                 u"yLbls: %s};" % (stroke_width, fill, tooltips))
@@ -1071,70 +1129,41 @@ class BarChart(object):
             series_js += (u"\n    var series = new Array(%s);"
                 % u", ".join(series_names_list))
             series_js = series_js.lstrip()
-            html.append(u"""
-        <script type="text/javascript">
-
-        var sofaHlRenumber%(chart_idx)s = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
+            chart_settings_dic = {
+                u"axis_colour": "null",
+                u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+                u"axis_lbl_font_colour": css_dojo_dic['axis_lbl_font_colour'],
+                u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_idx": u"%02d" % chart_idx,
+                u"colour_cases": colour_cases,
+                u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
+                u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+                u"height": height,
+                u"indiv_title_html": indiv_title_html,
+                u"inner_bg": css_dojo_dic['inner_bg'],
+                u"inner_chart_border_colour": "null",
+                u"legend": "",  ## clustered bar charts use this 
+                u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+                u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+                u"minor_ticks": lib.if_none(minor_ticks, "false"),
+                u"n_chart": lib.if_none(n_chart, "''"),
+                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
+                u"outer_chart_border_colour": "null",
+                u"pagebreak": pagebreak,
+                u"series_js": series_js,
+                u"tick_colour": "null",
+                u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+                u"width": width,
+                u"x_title": lib.if_none(x_title, "''"),
+                u"xaxis_lbls": xaxis_lbls,
+                u"xfontsize": xfontsize,
+                u"xgap": xgap,
+                u"y_title": y_title,
+                u"y_title_offset": lib.if_none(y_title_offset, 0),
+                u"ymax": ymax,
             }
-            return new dojox.color.Color(hlColour);
-        }
-
-        makechartRenumber%(chart_idx)s = function(){
-            %(series_js)s
-            var chartconf = new Array();
-            chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-            chartconf["xgap"] = %(xgap)s;
-            chartconf["xfontsize"] = %(xfontsize)s;
-            chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-            chartconf["gridlineWidth"] = %(gridline_width)s;
-            chartconf["gridBg"] = \"%(grid_bg)s\";
-            chartconf["minorTicks"] = %(minor_ticks)s;
-            chartconf["axisLabelFontColour"] = \"%(axis_lbl_font_colour)s\";
-            chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-            chartconf["xTitle"] = \"\";
-            chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-            chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-            chartconf["yTitleOffset"] = %(y_title_offset)s;
-            chartconf["marginOffsetL"] = %(margin_offset_l)s;
-            chartconf["xTitle"] = \"%(x_title)s\";
-            chartconf["yTitle"] = \"%(y_title)s\";
-            chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-            chartconf["connectorStyle"] = \"%(connector_style)s\";
-            chartconf["ymax"] = %(ymax)s;
-            chartconf["nChart"] = \"%(n_chart)s\";
-            %(outer_bg)s
-            makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
-        }
-        </script>
-
-        <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-        %(indiv_title_html)s
-            <div id="mychartRenumber%(chart_idx)s" 
-                style="width: %(width)spx; height: %(height)spx;">
-            </div>
-        </div>""" %
-            {u"colour_cases": colour_cases,
-             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-             u"width": width, u"height": height, u"ymax": ymax, u"xgap": xgap,
-             u"xfontsize": xfontsize, u"indiv_title_html": indiv_title_html,
-             u"axis_lbl_font_colour": axis_lbl_font_colour,
-             u"major_gridline_colour": major_gridline_colour,
-             u"gridline_width": gridline_width, u"axis_lbl_drop": axis_lbl_drop,
-             u"axis_lbl_rotate": axis_lbl_rotate,
-             u"y_title_offset": y_title_offset,
-             u"margin_offset_l": margin_offset_l,
-             u"x_title": x_title, u"y_title": y_title,
-             u"tooltip_border_colour": tooltip_border_colour,
-             u"connector_style": connector_style,
-             u"outer_bg": outer_bg,  u"pagebreak": pagebreak,
-             u"chart_idx": u"%02d" % chart_idx, u"n_chart": n_chart,
-             u"grid_bg": grid_bg, u"minor_ticks": minor_ticks})
+            BarChart._add_dojo_html_js(html, chart_settings_dic)
             overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
             charts_append_divider(html, titles, overall_title, indiv_title,
                 u"Bar Chart")
@@ -1162,15 +1191,15 @@ class BarChart(object):
         chart_output_dets -- see structure_gen_data()
         var_numeric -- needs to be quoted or not.
         xaxis_dets -- [(1, "Under 20"), (2, "20-29"), (3, "30-39"), (4, "40-64"),
-                       (5, "65+")]
+            (5, "65+")]
         css_idx -- css index so can apply appropriate css styles
         """
         debug = False
         axis_lbl_rotate = -90 if rotate else 0
         html = []
         multichart = len(chart_output_dets[mg.CHARTS_CHART_DETS]) > 1
-        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-            css_idx)
+        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
+            mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
         html.append(title_dets_html)
         max_x_lbl_len = chart_output_dets[mg.CHARTS_MAX_X_LBL_LEN]
@@ -1190,11 +1219,7 @@ class BarChart(object):
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour,
-         gridline_width, stroke_width, tooltip_border_colour, colour_mappings,
-         connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
-        outer_bg = (u"" if outer_bg == u""
-            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
         chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
         # following details are same across all charts so look at first
         chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -1225,7 +1250,7 @@ class BarChart(object):
         width += margin_offset_l
         series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets,
             css_fil)
-        stroke_width = stroke_width if show_borders else 0
+        stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
         # loop through charts
         for chart_idx, chart_det in enumerate(chart_dets):
             n_chart = ("N = " + lib.formatnum(chart_det[mg.CHARTS_CHART_N])
@@ -1244,8 +1269,8 @@ class BarChart(object):
             single_colour = False
             override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH
                 and single_colour)
-            colour_cases = setup_highlights(colour_mappings, single_colour,
-                override_first_highlight)
+            colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
+                single_colour, override_first_highlight)
             series_js_list = []
             series_names_list = []
             for series_idx, series_det in enumerate(series_dets):
@@ -1254,13 +1279,14 @@ class BarChart(object):
                 lbl_dets = get_lbl_dets(xaxis_dets)
                 xaxis_lbls = u"[" + u",\n            ".join(lbl_dets) + u"]"
                 series_names_list.append(u"series%s" % series_idx)
-                series_js_list.append(u"var series%s = new Array();" % series_idx)
+                series_js_list.append(u"var series%s = new Array();"
+                    % series_idx)
                 series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
                     % (series_idx, series_lbl))
-                series_js_list.append(u"series%s[\"yVals\"] = %s;" 
+                series_js_list.append(u"series%s[\"yVals\"] = %s;"
                     % (series_idx, series_det[mg.CHARTS_SERIES_Y_VALS]))
                 fill = series_colours_by_lbl[series_lbl]
-                tooltips = (u"['" 
+                tooltips = (u"['"
                     + "', '".join(series_det[mg.CHARTS_SERIES_TOOLTIPS]) 
                     + u"']")
                 series_js_list.append(u"series%s[\"options\"] = "
@@ -1271,72 +1297,41 @@ class BarChart(object):
                 new_array = u", ".join(series_names_list)
                 series_js += u"\n    var series = new Array(%s);" % new_array
                 series_js = series_js.lstrip()
-            html.append(u"""
-    <script type="text/javascript">
-
-    var sofaHlRenumber%(chart_idx)s = function(colour){
-        var hlColour;
-        switch (colour.toHex()){
-            %(colour_cases)s
-            default:
-                hlColour = hl(colour.toHex());
-                break;
-        }
-        return new dojox.color.Color(hlColour);
-    }
-
-    makechartRenumber%(chart_idx)s = function(){
-        %(series_js)s
-        var chartconf = new Array();
-        chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-        chartconf["xgap"] = %(xgap)s;
-        chartconf["xfontsize"] = %(xfontsize)s;
-        chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-        chartconf["gridlineWidth"] = %(gridline_width)s;
-        chartconf["gridBg"] = \"%(grid_bg)s\";
-        chartconf["minorTicks"] = %(minor_ticks)s;
-        chartconf["axisLabelFontColour"] = \"%(axis_lbl_font_colour)s\";
-        chartconf["majorGridlineColour"] = \"%(major_gridline_colour)s\";
-        chartconf["xTitle"] = \"%(x_title)s\";
-        chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-        chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-        chartconf["yTitleOffset"] = %(y_title_offset)s;
-        chartconf["marginOffsetL"] = %(margin_offset_l)s;
-        chartconf["yTitle"] = \"%(y_title)s\";
-        chartconf["tooltipBorderColour"] = \"%(tooltip_border_colour)s\";
-        chartconf["connectorStyle"] = \"%(connector_style)s\";
-        chartconf["ymax"] = %(ymax)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        %(outer_bg)s
-        makeBarChart("mychartRenumber%(chart_idx)s", series, chartconf);
-    }
-    </script>
-
-    <div class="screen-float-only" style="margin-right: 10px; ">
-    %(indiv_title_html)s
-    <div id="mychartRenumber%(chart_idx)s" 
-        style="width: %(width)spx; height: %(height)spx;">
-        </div>
-    %(legend)s
-    </div>""" % {u"colour_cases": colour_cases, u"legend": legend,
-                 u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-                 u"indiv_title_html": indiv_title_html,
-                 u"width": width, u"height": height,
-                 u"xgap": xgap, u"ymax": ymax,
-                 u"xfontsize": xfontsize,
-                 u"axis_lbl_font_colour": axis_lbl_font_colour,
-                 u"major_gridline_colour": major_gridline_colour,
-                 u"gridline_width": gridline_width,
-                 u"axis_lbl_drop": axis_lbl_drop,
-                 u"axis_lbl_rotate": axis_lbl_rotate,
-                 u"y_title_offset": y_title_offset,
-                 u"margin_offset_l": margin_offset_l,
-                 u"x_title": x_title, u"y_title": y_title,
-                 u"tooltip_border_colour": tooltip_border_colour,
-                 u"connector_style": connector_style,
-                 u"outer_bg": outer_bg,  u"n_chart": n_chart,
-                 u"grid_bg": grid_bg, u"minor_ticks": minor_ticks,
-                 u"chart_idx": u"%02d" % chart_idx,})
+            chart_settings_dic = {
+                u"axis_colour": "null",
+                u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+                u"axis_lbl_font_colour": css_dojo_dic['axis_lbl_font_colour'],
+                u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_idx": u"%02d" % chart_idx,
+                u"colour_cases": colour_cases,
+                u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
+                u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+                u"height": height,
+                u"indiv_title_html": indiv_title_html,
+                u"inner_bg": css_dojo_dic['inner_bg'],
+                u"inner_chart_border_colour": "null",
+                u"legend": legend,  ## clustered bar charts use this 
+                u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+                u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+                u"minor_ticks":lib.if_none( minor_ticks, "false"),
+                u"n_chart": lib.if_none(n_chart, "''"),
+                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
+                u"outer_chart_border_colour": "null",
+                u"pagebreak": u"",  ## not used with clustered bar charts
+                u"series_js": series_js,
+                u"tick_colour": "null",
+                u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+                u"width": width,
+                u"x_title": lib.if_none(x_title, "''"),
+                u"xaxis_lbls": xaxis_lbls,
+                u"xfontsize": xfontsize,
+                u"xgap": xgap,
+                u"y_title": y_title,
+                u"y_title_offset": lib.if_none(y_title_offset, 0),
+                u"ymax": ymax,
+            }
+            BarChart._add_dojo_html_js(html, chart_settings_dic)
             overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
             charts_append_divider(html, titles, overall_title, indiv_title,
                 u"Clust Bar")
@@ -1345,12 +1340,63 @@ class BarChart(object):
                 margin_offset_l))
         html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
         if page_break_after:
-            html.append(u"<br><hr><br><div class='%s'></div>" %
-                CSS_PAGE_BREAK_BEFORE)
+            html.append(u"<br><hr><br><div class='%s'></div>"
+                % CSS_PAGE_BREAK_BEFORE)
         return u"".join(html)
 
 
 class BoxPlot(object):
+
+    @staticmethod
+    def _add_dojo_html_js(html, chart_settings_dic):
+        html.append(u"""
+        <script type="text/javascript">
+
+        makechartRenumber00 = function(){{
+            {pre_series_str}
+            {series_js_str}
+            var conf = new Array();
+            conf["axis_lbl_drop"] = {axis_lbl_drop};
+            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["gridline_width"] = {gridline_width};
+            conf["highlight"] = {highlight};
+            conf["inner_bg"] = "{inner_bg}";
+            conf["major_gridline_colour"] = "{major_gridline_colour}";
+            conf["margin_offset_l"] = {margin_offset_l};
+            conf["minor_ticks"] = {minor_ticks};
+            conf["n_chart"] = "{n_chart}";
+            conf["outer_bg"] = "{outer_bg}";
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            conf["xaxis_lbls"] = {xaxis_lbls};
+            conf["xfontsize"] = {xfontsize};
+            conf["xmax"] = {xmax};
+            conf["xmin"] = {xmin};
+            conf["x_title"] = "{x_title}";
+            conf["yfontsize"] = {yfontsize};
+            conf["ymax"] = {ymax};
+            conf["ymin"] = {ymin};
+            conf["y_title_offset"] = {y_title_offset};
+            conf["y_title"] = "{y_title}";
+            makeBoxAndWhisker("mychartRenumber00", series, seriesconf, conf);
+        }}
+        </script>
+        {titles}
+
+        <div class="screen-float-only" style="margin-right: 10px; {pagebreak}">
+
+            <div id="mychartRenumber00" 
+                style="width: {width}px; height: {height}px;">
+            </div>
+            <div id="dummychartRenumber00" 
+                style="float: right; width: 100px; height: 100px; visibility: hidden;">
+                <!--needs width and height for IE 6 so must float to keep out of way-->
+            </div>
+            {legend}
+            <p>{display_dets}</p>
+        </div>""".format(**chart_settings_dic))
 
     @staticmethod
     def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds,
@@ -1476,7 +1522,7 @@ class BoxPlot(object):
         first_chart_by = True
         any_missing_boxes = False
         any_displayed_boxes = False
-        n_chart = 0
+        n_chart = 0  ## init. Note -- only ever one boxplot
         for series_val in series_vals: # e.g. "Boys" and "Girls"
             if series_val is not None:
                 legend_lbl = var_role_series_lbls.get(series_val,
@@ -1755,13 +1801,9 @@ class BoxPlot(object):
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour, 
-            gridline_width, unused, tooltip_border_colour, colour_mappings,
-            connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
-        # Can't have white for boxplots because always a white outer background
-        outer_bg = u"white"
-        axis_lbl_font_colour = (axis_lbl_font_colour
-            if axis_lbl_font_colour != u"white" else u"black")
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
+            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
         """
         Build js for every series. colour_mappings - take first of each pair to
         use as outline of box plots, and use getfainthex() to get lighter colour
@@ -1816,7 +1858,7 @@ class BoxPlot(object):
             """
             series_js.append(u"    // series%s" % series_idx)
             try:
-                stroke = colour_mappings[series_idx][0]
+                stroke = css_dojo_dic['colour_mappings'][series_idx][0]
             except IndexError:
                 stroke = mg.DOJO_COLOURS[series_idx]
             series_js.append(u"    var strokecol%s = \"%s\";" % (series_idx, 
@@ -1871,83 +1913,122 @@ class BoxPlot(object):
         series_js.append(u"    var series = seriesdummy.concat(%s);" 
             % ", ".join(series_lst))
         series_js_str = u"\n".join(series_js)
-        html.append(u"""
-    <script type="text/javascript">
-
-    makechartRenumber00 = function(){
-    %(pre_series_str)s
-    %(series_js_str)s
-        var chartconf = new Array();
-        chartconf["makefaint"] = makefaint;
-        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-        chartconf["connectorStyle"] = "%(connector_style)s";
-        chartconf["outerBg"] = "%(outer_bg)s";
-        chartconf["gridBg"] = "%(grid_bg)s";
-        chartconf["axisColour"] = "black";
-        chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-        chartconf["innerChartBorderColour"] = "white";
-        chartconf["outerChartBorderColour"] = "white";
-        chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-        chartconf["tickColour"] = "black";
-        chartconf["minorTicks"] = %(minor_ticks)s;
-        chartconf["gridlineWidth"] = %(gridline_width)s;
-        chartconf["xfontsize"] = %(xfontsize)s;
-        chartconf["yfontsize"] = %(yfontsize)s;
-        chartconf["xTitle"] = "%(x_title)s";
-        chartconf["yTitle"] = "%(y_title)s";
-        chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-        chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-        chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-        chartconf["yTitleOffset"] = %(y_title_offset)s;
-        chartconf["marginOffsetL"] = %(margin_offset_l)s;
-        chartconf["xmin"] = %(xmin)s;
-        chartconf["xmax"] = %(xmax)s;
-        chartconf["ymin"] = %(ymin)s;
-        chartconf["ymax"] = %(ymax)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        makeBoxAndWhisker("mychartRenumber00", series, seriesconf, chartconf);
-    }
-    </script>
-    %(titles)s
-
-    <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-
-        <div id="mychartRenumber00" style="width: %(width)spx; 
-                height: %(height)spx;">
-        </div>
-        <div id="dummychartRenumber00" 
-            style="float: right; width: 100px; height: 100px; visibility: hidden;">
-            <!--needs width and height for IE 6 so must float to keep out of way-->
-        </div>
-        %(legend)s
-        <p>%(display_dets)s</p>
-    </div>
-        """ % {u"titles": title_dets_html, u"legend": legend, 
-            u"pre_series_str": pre_series_str, u"series_js_str": series_js_str, 
-            u"xaxis_lbls": xaxis_lbls, u"width": width, u"height": height, 
-            u"xfontsize": xfontsize, u"yfontsize": yfontsize, u"xmin": xmin, 
-            u"xmax": xmax, u"ymin": ymin, u"ymax": ymax, u"x_title": x_title, 
-            u"y_title": y_title, u"axis_lbl_font_colour": axis_lbl_font_colour,
-            u"major_gridline_colour": major_gridline_colour,
-            u"gridline_width": gridline_width, u"pagebreak": pagebreak,
-            u"axis_lbl_drop": axis_lbl_drop, u"minor_ticks": minor_ticks,
-            u"y_title_offset": y_title_offset, u"margin_offset_l": margin_offset_l,
-            u"axis_lbl_rotate": axis_lbl_rotate, u"n_chart": n_chart,
-            u"tooltip_border_colour": tooltip_border_colour,
-            u"connector_style": connector_style, u"outer_bg": outer_bg, 
-            u"grid_bg": grid_bg, u"display_dets": display_dets})
-        charts_append_divider(html, titles, overall_title, indiv_title=u"", 
+        chart_settings_dic = {
+            u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+            u"axis_lbl_font_colour": axis_lbl_font_colour,
+            u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+            u"connector_style": lib.if_none(css_dojo_dic['connector_style'], u"defbrown"),
+            u"display_dets": display_dets,
+            u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], u"black"),
+            u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+            u"height": height,
+            u"highlight": u"makefaint",
+            u"inner_bg": css_dojo_dic['inner_bg'],
+            u"legend": legend,
+            u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+            u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+            u"minor_ticks": lib.if_none(minor_ticks, "false"),
+            u"n_chart": n_chart,
+            u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], u"null"),
+            u"pagebreak": pagebreak,
+            u"pre_series_str": pre_series_str,
+            u"series_js_str": series_js_str,
+            u"tick_colour": "null",
+            u"titles": title_dets_html,
+            u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], u"#ada9a5"),
+            u"width": width,
+            u"x_title": lib.if_none(x_title, u"''"),
+            u"xaxis_lbls": xaxis_lbls,
+            u"xfontsize": xfontsize,
+            u"xmax": xmax,
+            u"xmin": xmin,
+            u"y_title": lib.if_none(y_title, u"''"),
+            u"y_title_offset": lib.if_none(y_title_offset, 0),
+            u"yfontsize": yfontsize,
+            u"ymax": ymax,
+            u"ymin": ymin,
+        }
+        BoxPlot._add_dojo_html_js(html, chart_settings_dic)
+        charts_append_divider(html, titles, overall_title, indiv_title=u"",
             item_type=u"Boxplot")
         if debug: 
-            print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+            print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset,
                 margin_offset_l))
         if page_break_after:
-            html.append(u"<br><hr><br><div class='%s'></div>" % 
-                CSS_PAGE_BREAK_BEFORE)
+            html.append(u"<br><hr><br><div class='%s'></div>"
+                % CSS_PAGE_BREAK_BEFORE)
         return u"".join(html)
 
 
 class Histo(object):
+
+    @staticmethod
+    def _add_dojo_html_js(html, chart_settings_dic):
+        html.append(u"""
+        <script type="text/javascript">
+
+        var sofaHlRenumber{chart_idx} = function(colour){{
+            var hlColour;
+            switch (colour.toHex()){{
+                {colour_cases}
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }}
+            return new dojox.color.Color(hlColour);
+        }}
+
+        makechartRenumber{chart_idx} = function(){{
+            var datadets = new Array();
+            datadets["seriesLabel"] = "{var_lbl}";
+            datadets["yVals"] = {y_vals};
+            datadets["normYs"] = {norm_ys};
+            datadets["binLabels"] = [{bin_lbls}];
+            datadets["style"] = {{
+                stroke: {{
+                    color: "white", width: "{stroke_width}px"
+                }},
+                fill: "{fill}"
+            }};
+            datadets["normStyle"] = {{
+                plot: "normal", 
+                stroke: {{
+                    color: "{normal_curve_colour}", 
+                    width: "{normal_stroke_width}px"
+                }},
+                fill: "{fill}"
+            }};
+            var conf = new Array();
+            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["gridline_width"] = {gridline_width};
+            conf["highlight"] = sofaHlRenumber{chart_idx};
+            conf["inc_normal"] = {js_inc_normal};
+            conf["inner_bg"] = "{inner_bg}";
+            conf["major_gridline_colour"] = "{major_gridline_colour}";
+            conf["margin_offset_l"] = {margin_offset_l};
+            conf["maxval"] = {maxval};
+            conf["minval"] = {minval};
+            conf["minor_ticks"] = {minor_ticks};
+            conf["n_chart"] = "{n_chart}";
+            conf["normal_curve_colour"] = "{normal_curve_colour}";
+            conf["outer_bg"] = "{outer_bg}";
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            conf["xaxis_lbls"] = {xaxis_lbls};
+            conf["xfontsize"] = {xfontsize};
+            conf["y_title_offset"] = {y_title_offset};
+            conf["y_title"] = "{y_title}";
+            makeHistogram("mychartRenumber{chart_idx}", datadets, conf);
+        }}
+        </script>
+
+        <div class="screen-float-only" style="margin-right: 10px; {pagebreak}">
+        {indiv_title_html}
+            <div id="mychartRenumber{chart_idx}" 
+                style="width: {width}px; height: {height}px;">
+            </div>
+        </div>""".format(**chart_settings_dic))
 
     @staticmethod
     def _get_histo_dp(combined_start, bin_width):
@@ -2130,7 +2211,8 @@ class Histo(object):
             page_break_after=False):
         """
         See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this
-            then
+        then.
+
         titles -- list of title lines correct styles
         subtitles -- list of subtitle lines
         minval -- minimum values for x axis
@@ -2148,19 +2230,13 @@ class Histo(object):
         title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
         html.append(title_dets_html)
         height = 300 if multichart else 350
-        (outer_bg, grid_bg, axis_lbl_font_colour,
-         major_gridline_colour, gridline_width,
-         stroke_width, tooltip_border_colour,
-         colour_mappings, connector_style) = lib.OutputLib.extract_dojo_style(
-                                                        css_fil)
-        outer_bg = (u"" if outer_bg == u""
-            else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
         single_colour = True
         override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
             and single_colour)
-        colour_cases = setup_highlights(colour_mappings, single_colour,
-            override_first_highlight)
-        item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+        colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
+            single_colour, override_first_highlight)
+        item_colours = output.colour_mappings_to_item_colours(css_dojo_dic['colour_mappings'])
         fill = item_colours[0]
         js_inc_normal = u"true" if inc_normal else u"false"
         init_margin_offset_l = 25
@@ -2178,8 +2254,8 @@ class Histo(object):
             max_safe_x_lbl_len_pxls, rotate=False)    
         margin_offset_l = (init_margin_offset_l + y_title_offset 
             - DOJO_YTITLE_OFFSET_0)
-        normal_stroke_width = 2*stroke_width # normal stroke needed even if border strokes not
-        stroke_width = stroke_width if show_borders else 0
+        normal_stroke_width = 2*css_dojo_dic['stroke_width'] # normal stroke needed even if border strokes not
+        stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
         for chart_idx, chart_det in enumerate(chart_dets):
             n_chart = ("N = " + lib.formatnum(chart_det[mg.CHARTS_CHART_N])
                 if show_n else "")
@@ -2188,97 +2264,57 @@ class Histo(object):
             xaxis_dets = chart_det[mg.CHARTS_XAXIS_DETS]
             y_vals = chart_det[mg.CHARTS_SERIES_Y_VALS]
             norm_ys = chart_det[mg.CHART_NORMAL_Y_VALS]
-            bin_lbls = chart_det[mg.CHART_BIN_LBLS]
+            bin_labels = chart_det[mg.CHART_BIN_LBLS]
             pagebreak = (u"" if chart_idx % 2 == 0
                 else u"page-break-after: always;")
             indiv_title, indiv_title_html = get_indiv_title(multichart,
                 chart_det)
             idx_lbls = [u"{value: %s, text: \"%s\"}" % x for x in xaxis_dets]
             xaxis_lbls = (u"[" + u",\n            ".join(idx_lbls) + u"]")
-            bin_labs = u"\"" + u"\", \"".join(bin_lbls) + u"\""
+            bin_lbls = u"\"" + u"\", \"".join(bin_labels) + u"\""
             n_bins = len(xaxis_dets)
             width = Histo._get_histo_sizings(var_lbl, n_bins, minval, maxval)
             xfontsize = 10 if len(xaxis_dets) <= 20 else 8
             if multichart:
                 width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
                 xfontsize = xfontsize*0.8
-            html.append(u"""
-    <script type="text/javascript">
-    
-    var sofaHlRenumber%(chart_idx)s = function(colour){
-        var hlColour;
-        switch (colour.toHex()){
-            %(colour_cases)s
-            default:
-                hlColour = hl(colour.toHex());
-                break;
-        }
-        return new dojox.color.Color(hlColour);
-    }    
-    
-    makechartRenumber%(chart_idx)s = function(){
-        var datadets = new Array();
-        datadets["seriesLabel"] = "%(var_lbl)s";
-        datadets["yVals"] = %(y_vals)s;
-        datadets["normYs"] = %(norm_ys)s;
-        datadets["binLabels"] = [%(bin_lbls)s];
-        datadets["style"] = {stroke: {color: "white", 
-            width: "%(stroke_width)spx"}, fill: "%(fill)s"};
-        datadets["normStyle"] = {plot: "normal", 
-            stroke: {color: "%(major_gridline_colour)s", 
-            width: "%(normal_stroke_width)spx"}, fill: "%(fill)s"};
-        
-        var chartconf = new Array();
-        chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-        chartconf["xfontsize"] = %(xfontsize)s;
-        chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-        chartconf["tickColour"] = "%(tick_colour)s";
-        chartconf["gridlineWidth"] = %(gridline_width)s;
-        chartconf["gridBg"] = "%(grid_bg)s";
-        chartconf["minorTicks"] = %(minor_ticks)s;
-        chartconf["yTitleOffset"] = %(y_title_offset)s;
-        chartconf["marginOffsetL"] = %(margin_offset_l)s;
-        chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-        chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-        chartconf["yTitle"] = "%(y_title)s";
-        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-        chartconf["connectorStyle"] = "%(connector_style)s";
-        chartconf["minVal"] = %(minval)s;
-        chartconf["maxVal"] = %(maxval)s;
-        chartconf["incNormal"] = %(js_inc_normal)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        %(outer_bg)s
-        makeHistogram("mychartRenumber%(chart_idx)s", datadets, chartconf);
-    }
-    </script>
-    
-    <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-    %(indiv_title_html)s
-    <div id="mychartRenumber%(chart_idx)s" 
-            style="width: %(width)spx; height: %(height)spx;">
-        </div>
-    </div>
-            """ % {
-            u"indiv_title_html": indiv_title_html,
-            u"stroke_width": stroke_width,
-            u"normal_stroke_width": normal_stroke_width, u"fill": fill,
-            u"colour_cases": colour_cases,
-            u"xaxis_lbls": xaxis_lbls, u"y_vals": u"%s" % y_vals,
-            u"bin_lbls": bin_labs, u"minval": minval, u"maxval": maxval,
-            u"width": width, u"height": height, u"xfontsize": xfontsize,
-            u"var_lbl": var_lbl,
-            u"y_title_offset": y_title_offset,
-            u"margin_offset_l": margin_offset_l,
-            u"axis_lbl_font_colour": axis_lbl_font_colour,
-            u"major_gridline_colour": major_gridline_colour,
-            u"gridline_width": gridline_width,
-            u"y_title": mg.Y_AXIS_FREQ_LBL, u"pagebreak": pagebreak,
-            u"tooltip_border_colour": tooltip_border_colour,
-            u"connector_style": connector_style, u"outer_bg": outer_bg,
-            u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
-            u"minor_ticks": u"true", u"n_chart": n_chart,
-            u"tick_colour": major_gridline_colour,
-            u"norm_ys": norm_ys, u"js_inc_normal": js_inc_normal})
+            chart_settings_dic = {
+                u"axis_lbl_font_colour": lib.if_none(css_dojo_dic['axis_lbl_font_colour'], "null"),
+                u"bin_lbls": bin_lbls,
+                u"chart_idx": u"%02d" % chart_idx,
+                u"colour_cases": colour_cases,
+                u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+                u"fill": fill,
+                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "white"),
+                u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+                u"height": height,
+                u"indiv_title_html": indiv_title_html,
+                u"inner_bg": lib.if_none(css_dojo_dic['inner_bg'], "null"),
+                u"js_inc_normal": js_inc_normal,
+                u"major_gridline_colour": lib.if_none(css_dojo_dic['major_gridline_colour'], "null"),
+                u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+                u"maxval": maxval,
+                u"minor_ticks": u"true",
+                u"minval": minval,
+                u"n_chart": n_chart,
+                u"norm_ys": norm_ys,
+                u"normal_curve_colour": lib.if_none(css_dojo_dic['normal_curve_colour'], "null"),
+                u"normal_stroke_width": normal_stroke_width,
+                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
+                u"pagebreak": pagebreak,
+                u"stroke_width": stroke_width,
+                u"tick_colour": lib.if_none(css_dojo_dic['major_gridline_colour'], "null"),
+                u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+                u"var_lbl": var_lbl,
+                u"width": width,
+                u"xaxis_lbls": xaxis_lbls,
+                u"y_title_offset": 0,
+                u"y_vals": u"%s" % y_vals,
+                u"xfontsize": xfontsize,
+                u"y_title_offset": y_title_offset,
+                u"y_title": mg.Y_AXIS_FREQ_LBL,
+            }
+            Histo._add_dojo_html_js(html, chart_settings_dic)
             charts_append_divider(html, titles, overall_title, indiv_title,
                 u"Histogram")
         if debug:
@@ -2292,6 +2328,62 @@ class Histo(object):
 
 
 class ScatterPlot(object):
+
+    @staticmethod
+    def _add_dojo_html_js(html, chart_settings_dic):
+        html.append(u"""
+        <script type="text/javascript">
+
+        var sofaHlRenumber{chart_idx} = function(colour){{
+            var hlColour;
+            switch (colour.toHex()){{
+                {colour_cases}
+                default:
+                    hlColour = hl(colour.toHex());
+                    break;
+            }}
+            return new dojox.color.Color(hlColour);
+        }}
+
+        makechartRenumber{chart_idx} = function(){{
+            {series_js}
+            var conf = new Array();
+            conf["axis_lbl_drop"] = {axis_lbl_drop};
+            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["gridline_width"] = {gridline_width};
+            conf["highlight"] = sofaHlRenumber{chart_idx};
+            conf["inc_regression_js"] = {inc_regression_js};
+            conf["inner_bg"] = "{inner_bg}";
+            conf["major_gridline_colour"] = "{major_gridline_colour}";
+            conf["margin_offset_l"] = {margin_offset_l};
+            conf["minor_ticks"] = {minor_ticks};
+            conf["n_chart"] = "{n_chart}";
+            conf["outer_bg"] = "{outer_bg}";
+            conf["tick_colour"] = "{tick_colour}";
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            conf["xfontsize"] = {xfontsize};
+            conf["xmax"] = {xmax};
+            conf["xmin"] = {xmin};
+            conf["x_title"] = "{x_title}";
+            conf["ymax"] = {ymax};
+            conf["ymin"] = {ymin};
+            conf["y_title_offset"] = {y_title_offset};
+            conf["y_title"] = "{y_title}";
+            makeScatterplot("mychartRenumber{chart_idx}", series, conf);
+        }}
+        </script>
+
+        <div class="screen-float-only" style="margin-right: 10px; {pagebreak}">
+        {indiv_chart_title}
+        {regression_msg}
+        {indiv_chart_title}
+            <div id="mychartRenumber{chart_idx}" 
+                style="width: {width}px; height: {height}px;">
+            </div>
+        {legend}
+        </div>""".format(**chart_settings_dic))
 
     @staticmethod
     def _get_chart_ns(cur, sql_dic):
@@ -2379,29 +2471,25 @@ class ScatterPlot(object):
             data_tups = series_det[mg.DATA_TUPS]
             series_names_list.append(u"series%s" % series_idx)
             series_js_list.append(u"var series%s = new Array();" % series_idx)
-            series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";" %
-                (series_idx, series_lbl))
+            series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
+                % (series_idx, series_lbl))
             js_pairs_points = ScatterPlot._coords_lst2js_pairs(data_tups)
             series_js_list.append(u"series%s[\"xyPairs\"] = %s;" % (series_idx,
                 js_pairs_points))
             x_set = set([item[0] for item in data_tups])
             few_unique_x_vals = (len(x_set) < 4)
             minor_ticks = u"false" if few_unique_x_vals else u"true"
-            (outer_bg, grid_bg, axis_lbl_font_colour, major_gridline_colour,
-             gridline_width, stroke_width, tooltip_border_colour,
-             colour_mappings,
-             connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
+            css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
             # Can't have white for scatterplots because always a white outer background
-            axis_lbl_font_colour = (axis_lbl_font_colour
-                if axis_lbl_font_colour != u"white" else u"black")
-            stroke_width = stroke_width if show_borders else 0
-            outer_bg = (u"" if outer_bg == u""
-                else u"chartconf[\"outerBg\"] = \"%s\";" % outer_bg)
+            axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
+                if css_dojo_dic['axis_lbl_font_colour'] != u"white"
+                else u"black")
+            stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
             single_colour = True
             override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH
                 and single_colour)
-            colour_cases = setup_highlights(colour_mappings, single_colour,
-                override_first_highlight)
+            colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
+                single_colour, override_first_highlight)
             fill = series_colours_by_lbl[series_lbl]
             point_series_style = (u"series%(series_idx)s[\"style\"] = "
                 u"{stroke: {color: \"white\","
@@ -2424,10 +2512,10 @@ class ScatterPlot(object):
                     regression_lbl = (u"%s " % series_lbl if series_lbl
                         else u"Line") # must not be identical to label for points or Dojo ignores first series of same name ;-)
                     #regression_lbl = (u"%s Line" % series_lbl if series_lbl else u"Line")
-                    series_js_list.append(u"""series%s["lineLabel"] = "%s";""" %
-                        (series_idx, regression_lbl))
-                    series_js_list.append(u"series%s[\"xyLinePairs\"] = %s;" %
-                        (series_idx, js_pairs_line))
+                    series_js_list.append(u"""series%s["lineLabel"] = "%s";"""
+                        % (series_idx, regression_lbl))
+                    series_js_list.append(u"series%s[\"xyLinePairs\"] = %s;"
+                        % (series_idx, js_pairs_line))
                     line_series_style = (u"series%(series_idx)s[\"lineStyle\"] = "
                         u"{plot: \"regression\", stroke: {color: \"%(fill)s\","
                         u"width: \"5px\"}, fill: \"%(fill)s\"};" %
@@ -2444,80 +2532,44 @@ class ScatterPlot(object):
             + u"<br><br>")
         # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
         # ...newbie-need-svg-path-segment-string
-        html.append(u"""
-    <script type="text/javascript">
-
-    var sofaHlRenumber%(chart_idx)s = function(colour){
-        var hlColour;
-        switch (colour.toHex()){
-            %(colour_cases)s
-            default:
-                hlColour = hl(colour.toHex());
-                break;
+        chart_settings_dic = {
+            u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+            u"axis_lbl_font_colour": axis_lbl_font_colour,
+            u"chart_idx": u"%02d" % chart_idx,
+            u"colour_cases": colour_cases,
+            u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+            u"fill": fill,
+            u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "white"),
+            u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+            u"height": height,
+            u"inc_regression_js": inc_regression_js,
+            u"indiv_chart_title": indiv_chart_title,
+            u"inner_bg": lib.if_none(css_dojo_dic['inner_bg'], "null"),
+            u"legend": legend,
+            u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+            u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+            u"minor_ticks": lib.if_none(minor_ticks, "false"),
+            u"n_chart": lib.if_none(n_chart, "''"),
+            u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
+            u"pagebreak": pagebreak,
+            u"regression_msg": regression_msg,
+            u"series_js": series_js,
+            u"stroke_width": stroke_width,
+            u"tick_colour": css_dojo_dic['major_gridline_colour'],
+            u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+            u"width": width,
+            u"x_title": lib.if_none(x_title, "''"),
+            u"xfontsize": xfontsize,
+            u"xmax": xmax,
+            u"xmin": xmin,
+            u"y_title": y_title,
+            u"ymax": ymax,
+            u"ymin": ymin,
+            u"y_title_offset": lib.if_none(y_title_offset, 0),
         }
-        return new dojox.color.Color(hlColour);
-    }    
-
-    makechartRenumber%(chart_idx)s = function(){
-        %(series_js)s
-        var chartconf = new Array();
-        chartconf["xmin"] = %(xmin)s;
-        chartconf["ymin"] = %(ymin)s;
-        chartconf["xmax"] = %(xmax)s;
-        chartconf["ymax"] = %(ymax)s;
-        chartconf["xfontsize"] = %(xfontsize)s;
-        chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-        chartconf["tickColour"] = "%(tick_colour)s";
-        chartconf["gridlineWidth"] = %(gridline_width)s;
-        chartconf["gridBg"] = \"%(grid_bg)s\";
-        chartconf["minorTicks"] = %(minor_ticks)s;
-        chartconf["yTitleOffset"] = %(y_title_offset)s;
-        chartconf["marginOffsetL"] = %(margin_offset_l)s;
-        chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-        chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-        chartconf["xTitle"] = "%(x_title)s";
-        chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-        chartconf["yTitle"] = "%(y_title)s";
-        chartconf["ymax"] = %(ymax)s;
-        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-        chartconf["connectorStyle"] = "%(connector_style)s";
-        chartconf["incRegression"] = %(inc_regression)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        %(outer_bg)s
-        makeScatterplot("mychartRenumber%(chart_idx)s", series, chartconf);
-    }
-    </script>
-
-    <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-    %(indiv_chart_title)s
-    %(regression_msg)s
-    <div id="mychartRenumber%(chart_idx)s" 
-            style="width: %(width)spx; height: %(height)spx;">
-        </div>
-    %(legend)s
-    </div>      
-    """ % {u"legend": legend, u"series_js": series_js,
-           u"indiv_chart_title": indiv_chart_title,
-           u"xmin": xmin, u"ymin": ymin, u"xmax": xmax, u"ymax": ymax,
-           u"x_title": x_title, u"y_title": y_title,
-           u"stroke_width": stroke_width, u"fill": fill,
-           u"colour_cases": colour_cases,
-           u"width": width, u"height": height, u"xfontsize": xfontsize,
-           u"pagebreak": pagebreak,
-           u"inc_regression": inc_regression_js,
-           u"regression_msg": regression_msg,
-           u"axis_lbl_font_colour": axis_lbl_font_colour,
-           u"major_gridline_colour": major_gridline_colour,
-           u"y_title_offset": y_title_offset,
-           u"margin_offset_l": margin_offset_l,
-           u"gridline_width": gridline_width,
-           u"axis_lbl_drop": axis_lbl_drop, u"n_chart": n_chart,
-           u"tooltip_border_colour": tooltip_border_colour,
-           u"connector_style": connector_style, u"outer_bg": outer_bg,
-           u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
-           u"minor_ticks": minor_ticks, u"tick_colour": major_gridline_colour})
+        ScatterPlot._add_dojo_html_js(html, chart_settings_dic)
         if debug: 
-            print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset, 
+            print(u"y_title_offset: %s, margin_offset_l: %s" % (y_title_offset,
                 margin_offset_l))
 
     @staticmethod
@@ -2556,8 +2608,9 @@ class ScatterPlot(object):
         min and max values are supplied for the y-axis because we want consistency 
         on that between charts. For the x-axis, whatever is best per chart is OK. 
         """
-        (grid_bg, dot_colours, 
-         line_colour) = output.get_stats_chart_colours(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojo_dic['colour_mappings'])
         if multichart:
             width_inches, height_inches = (6.0, 3.4)
         else:
@@ -2586,11 +2639,12 @@ class ScatterPlot(object):
             + u"<br>")
         html.append(regression_msg)
         xmin, xmax = _get_optimal_min_max(min(all_x), max(all_x))
-        charting_pylab.add_scatterplot(grid_bg, show_borders, line_colour, 
-            n_chart, series_dets, label_x, label_y, x_vs_y, title_dets_html,
-            add_to_report, report_name, html, width_inches, height_inches,
-            xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
-            dot_colour=dot_colours[0],
+        charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+            css_dojo_dic['major_gridline_colour'], 
+            css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
+            label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
+            width_inches, height_inches, xmin=xmin, xmax=xmax, ymin=ymin,
+            ymax=ymax, dot_colour=item_colours[0],
             series_colours_by_lbl=series_colours_by_lbl)
         html.append(u"</div>")
 
@@ -2793,10 +2847,10 @@ class ScatterPlot(object):
                 chart_det)
             if use_mpl:
                 ScatterPlot._make_mpl_scatterplot(multichart, html,
-                    indiv_title_html, show_borders, legend,
-                    n_chart, series_dets, series_colours_by_lbl,
-                    label_x, label_y, ymin, ymax, x_vs_y, add_to_report,
-                    report_name, css_fil, pagebreak)
+                    indiv_title_html, show_borders, legend, n_chart,
+                    series_dets, series_colours_by_lbl, label_x, label_y, ymin,
+                    ymax, x_vs_y, add_to_report, report_name, css_fil,
+                    pagebreak)
             else:
                 ScatterPlot._make_dojo_scatterplot(chart_idx, multichart, html,
                     indiv_title_html, show_borders, legend, n_chart,
@@ -2811,6 +2865,47 @@ class ScatterPlot(object):
 
 
 class LineAreaChart(object):
+
+    @staticmethod
+    def _add_dojo_html_js(html, chart_settings_dic, area=False):
+        chart_settings_dic['chart_type'] = 'Area' if area else 'Line'
+        html.append(u"""
+        <script type="text/javascript">
+        makechartRenumber{chart_idx} = function(){{
+            {series_js}
+            var conf = new Array();
+            conf["axis_lbl_drop"] = {axis_lbl_drop};
+            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["gridline_width"] = {gridline_width};
+            conf["inner_bg"] = "{inner_bg}";
+            conf["major_gridline_colour"] = "{major_gridline_colour}";
+            conf["margin_offset_l"] = {margin_offset_l};
+            conf["micro_ticks"] = {micro_ticks};
+            conf["minor_ticks"] = {minor_ticks};
+            conf["n_chart"] = "{n_chart}";
+            conf["outer_bg"] = "{outer_bg}";
+            conf["time_series"] = {time_series};
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            conf["x_title"] = "{x_title}";
+            conf["xaxis_lbls"] = {xaxis_lbls};
+            conf["xfontsize"] = {xfontsize};
+            conf["y_title_offset"] = {y_title_offset};
+            conf["y_title"] = "{y_title}";
+            conf["ymax"] = {ymax};
+            make{chart_type}Chart("mychartRenumber{chart_idx}", series, conf);
+        }}
+        </script>
+
+        <div style="float: left; margin-right: 10px; {pagebreak}">
+        {indiv_title_html}
+        <div id="mychartRenumber{chart_idx}" 
+            style="width: {width}px; height: {height}px; {pagebreak}">
+            </div>
+        {legend}
+        </div>""".format(**chart_settings_dic))
 
     @staticmethod
     def _get_line_area_chart_sizings(time_series, major_ticks, x_title,
@@ -2988,17 +3083,15 @@ class LineAreaChart(object):
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        (unused, grid_bg, axis_lbl_font_colour, major_gridline_colour,
-         gridline_width, unused, tooltip_border_colour, colour_mappings,
-         connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
         # Can't have white for line charts because always a white outer background
-        axis_lbl_font_colour = (axis_lbl_font_colour
-            if axis_lbl_font_colour != u"white" else u"black")
+        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
+            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
         #unused = setup_highlights(colour_mappings, single_colour=False, 
         #                                override_first_highlight=True)
         try:
-            stroke = colour_mappings[0][0]
-            fill = colour_mappings[0][1]
+            stroke = css_dojo_dic['colour_mappings'][0][0]
+            fill = css_dojo_dic['colour_mappings'][0][1]
         except IndexError:
             stroke = mg.DOJO_COLOURS[0]
         # loop through charts
@@ -3033,59 +3126,40 @@ class LineAreaChart(object):
                 u"yLbls: %s %s};" % (stroke, fill, tooltips, plot_style))
             series_js_list.append(u"")
             series_js = u"\n    ".join(series_js_list)
-            series_js += (u"\n    var series = new Array(%s);" %
-                u", ".join(series_names_list))
+            series_js += (u"\n    var series = new Array(%s);"
+                % u", ".join(series_names_list))
             series_js = series_js.lstrip()
-            html.append(u"""
-    <script type="text/javascript">
-    makechartRenumber%(chart_idx)s = function(){
-        %(series_js)s
-        var chartconf = new Array();
-        chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-        chartconf["xfontsize"] = %(xfontsize)s;
-        chartconf["gridlineWidth"] = %(gridline_width)s;
-        chartconf["gridBg"] = "%(grid_bg)s";
-        chartconf["minorTicks"] = %(minor_ticks)s;
-        chartconf["microTicks"] = %(micro_ticks)s;
-        chartconf["yTitleOffset"] = %(y_title_offset)s;
-        chartconf["marginOffsetL"] = %(margin_offset_l)s;
-        chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-        chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-        chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-        chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-        chartconf["xTitle"] = "%(x_title)s";
-        chartconf["yTitle"] = "%(y_title)s";
-        chartconf["ymax"] = %(ymax)s;
-        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-        chartconf["connectorStyle"] = "%(connector_style)s";
-        chartconf["timeSeries"] = %(time_series)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        makeAreaChart("mychartRenumber%(chart_idx)s", series, chartconf);
-    }
-    </script>
-    
-    <div style="float: left; margin-right: 10px; %(pagebreak)s">
-    %(indiv_title_html)s
-    <div id="mychartRenumber%(chart_idx)s" 
-        style="width: %(width)spx; height: %(height)spx; %(pagebreak)s">
-        </div>
-    </div>""" % {
-             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-             u"indiv_title_html": indiv_title_html,
-             u"width": width, u"height": height, u"xfontsize": xfontsize,
-             u"axis_lbl_font_colour": axis_lbl_font_colour,
-             u"major_gridline_colour": major_gridline_colour,
-             u"y_title_offset": y_title_offset,
-             u"margin_offset_l": margin_offset_l,
-             u"axis_lbl_drop": axis_lbl_drop,
-             u"time_series": js_time_series,
-             u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
-             u"gridline_width": gridline_width, u"x_title": x_title,
-             u"y_title": y_title, u"pagebreak": pagebreak,
-             u"tooltip_border_colour": tooltip_border_colour,
-             u"connector_style": connector_style, u"n_chart": n_chart,
-             u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
-             u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks})
+            chart_settings_dic = {
+                u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+                u"axis_lbl_font_colour": axis_lbl_font_colour,
+                u"axis_lbl_rotate": axis_lbl_rotate,
+                u"chart_idx": u"%02d" % chart_idx,
+                u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
+                u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+                u"indiv_title_html": indiv_title_html,
+                u"inner_bg": css_dojo_dic['inner_bg'],
+                u"legend": u"",  ## not used in area charts - they can only show one series per chart
+                u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+                u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+                u"micro_ticks": micro_ticks,
+                u"minor_ticks": minor_ticks,
+                u"n_chart": n_chart,
+                u"outer_bg": css_dojo_dic['outer_bg'],
+                u"pagebreak": pagebreak,
+                u"series_js": series_js,
+                u"time_series": lib.if_none(js_time_series, "false"),
+                u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+                u"width": width, u"height": height,
+                u"x_title": x_title,
+                u"xaxis_lbls": xaxis_lbls,
+                u"xfontsize": xfontsize,
+                u"y_title": y_title,
+                u"y_title_offset": lib.if_none(y_title_offset, 0),
+                u"ymax": ymax,
+            }
+            LineAreaChart._add_dojo_html_js(html, chart_settings_dic,
+                area=True)
             overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
             charts_append_divider(html, titles, overall_title, indiv_title,
                 u"Area Chart")
@@ -3136,9 +3210,8 @@ class LineAreaChart(object):
         max_lbl_width = TXT_WIDTH_WHEN_ROTATED if rotate else max_x_lbl_len
         (width, xfontsize, 
          minor_ticks, micro_ticks) = LineAreaChart._get_line_area_chart_sizings(
-                                        time_series, major_ticks, x_title,
-                                        xaxis_dets, max_lbl_width,
-                                        chart0_series_dets)
+                time_series, major_ticks, x_title, xaxis_dets, max_lbl_width,
+                chart0_series_dets)
         init_margin_offset_l = 25 if width > 1200 else 15  ## gets squeezed
         if rotate:
             init_margin_offset_l += 4
@@ -3147,7 +3220,7 @@ class LineAreaChart(object):
         x_lbl_len = len(xaxis_dets[idx_1st_xdets][idx_xlbl])
         max_safe_x_lbl_len_pxls = 90
         ymax = get_ymax(chart_output_dets)
-        y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len, 
+        y_title_offset = get_ytitle_offset(max_y_lbl_len, x_lbl_len,
             max_safe_x_lbl_len_pxls, rotate)
         if multichart:
             width = width*0.9
@@ -3163,13 +3236,12 @@ class LineAreaChart(object):
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        (unused, unused, axis_lbl_font_colour, major_gridline_colour, 
-         gridline_width, unused, tooltip_border_colour, 
-         unused, connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
-        grid_bg, item_colours, unused = output.get_stats_chart_colours(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojo_dic['colour_mappings'])
         # Can't have white for line charts because always a white outer background
-        axis_lbl_font_colour = (axis_lbl_font_colour
-            if axis_lbl_font_colour != u"white" else u"black")
+        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
+            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
         series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets,
             css_fil)
         # loop through charts
@@ -3215,7 +3287,7 @@ class LineAreaChart(object):
                         trend_xaxis_dets = series0[mg.CHARTS_XAXIS_DETS]
                     ## repeat most of it
                     trend_series = {
-                        mg.CHARTS_SERIES_LBL_IN_LEGEND: TRENDLINE_LBL, 
+                        mg.CHARTS_SERIES_LBL_IN_LEGEND: TRENDLINE_LBL,
                         mg.CHARTS_XAXIS_DETS: trend_xaxis_dets,
                         mg.CHARTS_SERIES_Y_VALS: trend_y_vals,
                         mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
@@ -3224,7 +3296,7 @@ class LineAreaChart(object):
                 if inc_smooth:
                     smooth_y_vals = LineAreaChart._get_smooth_y_vals(raw_y_vals)
                     smooth_series = {
-                         mg.CHARTS_SERIES_LBL_IN_LEGEND: SMOOTHLINE_LBL, 
+                         mg.CHARTS_SERIES_LBL_IN_LEGEND: SMOOTHLINE_LBL,
                          mg.CHARTS_XAXIS_DETS: series0[mg.CHARTS_XAXIS_DETS],
                          mg.CHARTS_SERIES_Y_VALS: smooth_y_vals,
                          mg.CHARTS_SERIES_TOOLTIPS: dummy_tooltips}
@@ -3255,11 +3327,11 @@ class LineAreaChart(object):
                     % series_idx)
                 series_js_list.append(u"series%s[\"seriesLabel\"] = \"%s\";"
                     % (series_idx, series_lbl))
-                series_js_list.append(u"series%s[\"seriesVals\"] = %s;" %
-                    (series_idx, series_vals))
+                series_js_list.append(u"series%s[\"seriesVals\"] = %s;"
+                    % (series_idx, series_vals))
                 stroke = series_colours_by_lbl[series_lbl]
                 # To set markers explicitly:
-                # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
+                # http://dojotoolkiouter_bgt.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
                 # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
                 # Note - trend line comes first in case just two points - don't want it to set the x-axis labels - leave that to the other lines
                 ## arbitrary plot names added with addPlot in my js file - each has different settings re: tension and markers
@@ -3305,63 +3377,41 @@ class LineAreaChart(object):
                     % (series_idx, stroke, tooltips, plot_style))
                 series_js_list.append(u"")
             series_js = u"\n    ".join(series_js_list)
-            series_js += (u"\n    var series = new Array(%s);" %
-                          u", ".join(series_names_list))
+            series_js += (u"\n    var series = new Array(%s);"
+                % u", ".join(series_names_list))
             series_js = series_js.lstrip()
-            html.append(u"""
-            <script type="text/javascript">
-            
-            makechartRenumber%(chart_idx)s = function(){
-                %(series_js)s
-                var chartconf = new Array();
-                chartconf["xaxisLabels"] = %(xaxis_lbls)s;
-                chartconf["xfontsize"] = %(xfontsize)s;
-                chartconf["gridlineWidth"] = %(gridline_width)s;
-                chartconf["gridBg"] = "%(grid_bg)s";
-                chartconf["minorTicks"] = %(minor_ticks)s;
-                chartconf["microTicks"] = %(micro_ticks)s;
-                chartconf["axisLabelFontColour"] = "%(axis_lbl_font_colour)s";
-                chartconf["majorGridlineColour"] = "%(major_gridline_colour)s";
-                chartconf["xTitle"] = "%(x_title)s";
-                chartconf["axisLabelDrop"] = %(axis_lbl_drop)s;
-                chartconf["axisLabelRotate"] = %(axis_lbl_rotate)s;
-                chartconf["yTitleOffset"] = %(y_title_offset)s;
-                chartconf["marginOffsetL"] = %(margin_offset_l)s;
-                chartconf["yTitle"] = "%(y_title)s";
-                chartconf["ymax"] = %(ymax)s;
-                chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-                chartconf["connectorStyle"] = "%(connector_style)s";
-                chartconf["timeSeries"] = %(time_series)s;
-                chartconf["nChart"] = \"%(n_chart)s\";
-                makeLineChart("mychartRenumber%(chart_idx)s", series, chartconf);
+            chart_settings_dic = {
+                u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
+                u"axis_lbl_font_colour": axis_lbl_font_colour,
+                u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_idx": u"%02d" % chart_idx,
+                u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
+                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
+                u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
+                u"indiv_title_html": indiv_title_html,
+                u"inner_bg": css_dojo_dic['inner_bg'],
+                u"outer_bg": css_dojo_dic['outer_bg'],
+                u"legend": legend,
+                u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
+                u"margin_offset_l": lib.if_none(margin_offset_l, 0),
+                u"micro_ticks": lib.if_none(micro_ticks, "false"),
+                u"minor_ticks": lib.if_none(minor_ticks, "false"),
+                u"n_chart": n_chart,
+                u"pagebreak": pagebreak,
+                u"series_js": series_js,
+                u"time_series": lib.if_none(js_time_series, "false"),
+                u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
+                u"y_title_offset": lib.if_none(y_title_offset, 0),
+                u"x_title": x_title,
+                u"xaxis_lbls": xaxis_lbls,
+                u"xfontsize": xfontsize,
+                u"width": width,
+                u"height": height,
+                u"y_title": y_title,
+                u"ymax": ymax,
             }
-            </script>
-                
-            <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-            %(indiv_title_html)s
-            <div id="mychartRenumber%(chart_idx)s" style="width: %(width)spx; 
-                    height: %(height)spx;">
-                </div>
-            %(legend)s
-        </div>""" % {
-             u"legend": legend,
-             u"series_js": series_js, u"xaxis_lbls": xaxis_lbls,
-             u"indiv_title_html": indiv_title_html,
-             u"width": width, u"height": height,
-             u"xfontsize": xfontsize,
-             u"axis_lbl_font_colour": axis_lbl_font_colour,
-             u"major_gridline_colour": major_gridline_colour,
-             u"gridline_width": gridline_width, u"pagebreak": pagebreak,
-             u"axis_lbl_drop": axis_lbl_drop,
-             u"axis_lbl_rotate": axis_lbl_rotate, u"ymax": ymax,
-             u"y_title_offset": y_title_offset,
-             u"margin_offset_l": margin_offset_l,
-             u"x_title": x_title, u"y_title": y_title,
-             u"tooltip_border_colour": tooltip_border_colour,
-             u"connector_style": connector_style, u"n_chart": n_chart,
-             u"grid_bg": grid_bg, u"time_series": js_time_series,
-             u"minor_ticks": minor_ticks, u"micro_ticks": micro_ticks,
-             u"chart_idx": u"%02d" % chart_idx})
+            LineAreaChart._add_dojo_html_js(html, chart_settings_dic,
+                area=False)
             overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
             charts_append_divider(html, titles, overall_title, indiv_title,
                 u"Line Chart")
@@ -3375,6 +3425,45 @@ class LineAreaChart(object):
 
 
 class PieChart(object):
+
+    @staticmethod
+    def _add_dojo_html_js(html, chart_settings_dic):
+        html.append(u"""
+        <script type="text/javascript">
+        makechartRenumber{chart_idx} = function(){{
+            var sofaHlRenumber{chart_idx} = function(colour){{
+                var hlColour;
+                switch (colour.toHex()){{
+                    {colour_cases}
+                    default:
+                        hlColour = hl(colour.toHex());
+                        break;
+                }}
+                return new dojox.color.Color(hlColour);
+            }}
+            {slices_js}
+            var conf = new Array();
+            conf["connector_style"] = "{connector_style}";
+            conf["filled_font_colour"] = "{filled_font_colour}";
+            conf["filled_outer_bg"] = "{filled_outer_bg}";
+            conf["highlight"] = sofaHlRenumber{chart_idx};
+            conf["lbl_offset"] = {lbl_offset};
+            conf["n_chart"] = "{n_chart}";
+            conf["radius"] = {radius};
+            conf["slice_colours"] = {slice_colours};
+            conf["slice_fontsize"] = {slice_fontsize};
+            conf["tooltip_border_colour"] = "{tooltip_border_colour}";
+            makePieChart("mychartRenumber{chart_idx}", slices, conf);
+        }}
+        </script>
+
+        <div class="screen-float-only" style="margin-right: 10px; {pagebreak}">
+        {indiv_title_html}
+        <div id="mychartRenumber{chart_idx}" 
+            style="width: {width}px; height: {height}px;">
+            </div>
+        </div>
+        """.format(**chart_settings_dic))
 
     @staticmethod
     def _get_cat_colours_by_lbl(chart_output_dets, item_colours):
@@ -3414,19 +3503,16 @@ class PieChart(object):
         height = 350 if multichart else 400
         radius = 120 if multichart else 140
         lbl_offset = -20 if multichart else -30
-        (outer_bg, grid_bg, axis_lbl_font_colour, unused,
-         unused, unused, tooltip_border_colour, colour_mappings,
-         connector_style) = lib.OutputLib.extract_dojo_style(css_fil)
-        outer_bg = (u"" if outer_bg == u""
-                    else u"""chartconf["outerBg"] = "%s";""" % outer_bg)
-        colour_cases = setup_highlights(colour_mappings, single_colour=False, 
+        css_dojos_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        colour_cases = setup_highlights(
+            css_dojos_dic['colour_mappings'], single_colour=False, 
             override_first_highlight=False)
-        item_colours = output.colour_mappings_to_item_colours(colour_mappings)
+        item_colours = output.colour_mappings_to_item_colours(
+            css_dojos_dic['colour_mappings'])
         cat_colours_by_lbl = PieChart._get_cat_colours_by_lbl(chart_output_dets,
             item_colours)
         if debug: print(pprint.pformat(cat_colours_by_lbl))
         #slice_colours = item_colours[:30]
-        lbl_font_colour = axis_lbl_font_colour
         chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
         slice_fontsize = 14 if len(chart_dets) < 10 else 10
         if multichart:
@@ -3473,56 +3559,28 @@ class PieChart(object):
                 + u"\n];")
             indiv_title, indiv_title_html = get_indiv_title(multichart,
                 chart_det)
-            html.append(u"""
-    <script type="text/javascript">
-    makechartRenumber%(chart_idx)s = function(){
-        var sofaHlRenumber%(chart_idx)s = function(colour){
-            var hlColour;
-            switch (colour.toHex()){
-                %(colour_cases)s
-                default:
-                    hlColour = hl(colour.toHex());
-                    break;
+            chart_settings_dic = {
+                u"chart_idx": u"%02d" % chart_idx,
+                u"colour_cases": colour_cases,
+                u"connector_style": lib.if_none(css_dojos_dic['connector_style'], "defbrown"),
+                u"filled_font_colour": css_dojos_dic['filled_font_colour'],
+                u"filled_outer_bg": lib.if_none(css_dojos_dic['filled_outer_bg'], u""),
+                u"height": height,
+                u"indiv_title_html": indiv_title_html,
+                u"lbl_offset": lib.if_none(lbl_offset, -30),
+                u"n_chart": n_chart,
+                u"pagebreak": pagebreak,
+                u"radius": lib.if_none(radius, 140),
+                u"slice_colours": colours_for_this_chart,
+                u"slice_fontsize": slice_fontsize,
+                u"slices_js": slices_js,
+                u"tooltip_border_colour": lib.if_none(css_dojos_dic['tooltip_border_colour'], "#ada9a5"),
+                u"width": width,
             }
-            return new dojox.color.Color(hlColour);
-        }            
-        %(slices_js)s
-        var chartconf = new Array();
-        chartconf["sliceColours"] = %(slice_colours)s;
-        chartconf["sliceFontsize"] = %(slice_fontsize)s;
-        chartconf["sofaHl"] = sofaHlRenumber%(chart_idx)s;
-        chartconf["labelFontColour"] = "%(lbl_font_colour)s";
-        chartconf["tooltipBorderColour"] = "%(tooltip_border_colour)s";
-        chartconf["connectorStyle"] = "%(connector_style)s";
-        %(outer_bg)s
-        chartconf["gridBg"] = "%(grid_bg)s";
-        chartconf["radius"] = %(radius)s;
-        chartconf["labelOffset"] = %(lbl_offset)s;
-        chartconf["nChart"] = \"%(n_chart)s\";
-        makePieChart("mychartRenumber%(chart_idx)s", slices, chartconf);
-    }
-    </script>
-    
-    <div class="screen-float-only" style="margin-right: 10px; %(pagebreak)s">
-    %(indiv_title_html)s
-    <div id="mychartRenumber%(chart_idx)s" 
-        style="width: %(width)spx; height: %(height)spx;">
-        </div>
-    </div>""" %
-           {u"slice_colours": colours_for_this_chart,
-            u"colour_cases": colour_cases,
-            u"width": width, u"height": height, u"radius": radius,
-            u"lbl_offset": lbl_offset, u"pagebreak": pagebreak,
-            u"indiv_title_html": indiv_title_html,
-            u"slices_js": slices_js, u"slice_fontsize": slice_fontsize,
-            u"lbl_font_colour": lbl_font_colour, u"n_chart": n_chart,
-            u"tooltip_border_colour": tooltip_border_colour,
-            u"connector_style": connector_style, u"outer_bg": outer_bg,
-            u"grid_bg": grid_bg, u"chart_idx": u"%02d" % chart_idx,
-            })
+            PieChart._add_dojo_html_js(html, chart_settings_dic)
             overall_title = chart_output_dets[mg.CHARTS_OVERALL_TITLE]
             charts_append_divider(html, titles, overall_title, indiv_title,
-                                  u"Pie Chart")
+                u"Pie Chart")
         html.append(u"""<div style="clear: both;">&nbsp;&nbsp;</div>""")
         if page_break_after:
             html.append(u"<br><hr><br><div class='%s'></div>" %

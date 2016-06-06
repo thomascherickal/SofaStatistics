@@ -1,13 +1,17 @@
 /*
 dojo_style_start
-outer_bg = u"#e7eef6"
+outer_bg = u"white"
+filled_outer_bg = u"#d2dae2"
 inner_bg = u"#e7eef6" # u"#e0d9d5"
-axis_label_font_colour = u"#423126"
+axis_lbl_font_colour = u"#423126"
+filled_font_colour = u"#000033"
 major_gridline_colour = u"#b8a49e"
 gridline_width = 1
 stroke_width = 3
 tooltip_border_colour = u"#5a5a79"
-colour_mappings = [(u"#6098f0", u"#a8c4f0"),
+normal_curve_colour = u"#414141"
+colour_mappings = [
+    (u"#6098f0", u"#a8c4f0"),
     (u"#2d4770", u"#7f94b6"),
     (u"#a8c4f0", u"#6098f0"),
     (u"#7f94b6", u"#afb1b6"),
@@ -18,10 +22,10 @@ dojo_style_end
 */
     body{
         font-size: 12px;
-        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+        font-family: Ubuntu, Helvetica, sans-serif;
     }
     h1, h2{
-        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-weight: bold;
     }
     h1{
@@ -57,7 +61,7 @@ dojo_style_end
 
     .tbltitle, .tblsubtitle{
         margin: 0;
-        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-weight: bold;
         font-size: 14px;
     }
@@ -88,6 +92,9 @@ dojo_style_end
         border: solid 1px #c0c0c0;
         font-size: 13px;
     }
+    .subtable{
+        border-top: solid 3px #c0c0c0;
+    }
     .rowval{
         margin: 0;
     }
@@ -96,7 +103,7 @@ dojo_style_end
         margin: 0;
     }
     .firstcolvar, .firstrowvar, .spaceholder {
-        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-weight: bold;
         font-size: 14px;
         color: white;
@@ -121,7 +128,7 @@ dojo_style_end
         vertical-align: top;
     }
     .rowvar, .colvar{
-        font-family: Ubuntu, Helvetica, Arial, sans-serif;
+        font-family: Arial, Helvetica, sans-serif;
         font-weight: bold;
         font-size: 14px;
         color: #333435;

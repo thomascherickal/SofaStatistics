@@ -231,8 +231,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        (self.szr_data, 
-         self.szr_output_config) = self.get_gen_config_szrs(self.panel, 
+        (self.szr_data,
+         self.szr_output_config) = self.get_gen_config_szrs(self.panel,
             hide_db=hide_db) # mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
@@ -246,7 +246,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         szr_cols = wx.BoxSizer(wx.VERTICAL)
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_html = wx.BoxSizer(wx.VERTICAL)
-        self.szr_output_display = self.get_szr_output_display(self.panel, 
+        self.szr_output_display = self.get_szr_output_display(self.panel,
             idx_style=2) # mixin
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
@@ -254,7 +254,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
-        self.txt_titles = wx.TextCtrl(self.panel, -1, size=(250,title_height), 
+        self.txt_titles = wx.TextCtrl(self.panel, -1, size=(250,title_height),
             style=wx.TE_MULTILINE)
         self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
         lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
@@ -269,13 +269,13 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
         self.chk_totals_row.SetFont(mg.GEN_FONT)
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
-        self.chk_first_as_label = wx.CheckBox(self.panel, -1, 
+        self.chk_first_as_label = wx.CheckBox(self.panel, -1,
             _("First col as label?"))
         self.chk_first_as_label.SetFont(mg.GEN_FONT)
         self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, 
             self.on_chk_first_as_label)
         self.enable_raw_display_opts(enable=False)
-        self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1, 
+        self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1,
             _("Show percent symbol?"))
         self.chk_show_perc_symbol.SetFont(mg.GEN_FONT)
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
@@ -321,7 +321,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.btn_col_conf.SetFont(mg.BTN_FONT)
         self.btn_col_conf.Bind(wx.EVT_BUTTON, self.on_col_config)
         #trees
-        self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1, 
+        self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1,
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
             self.on_row_item_activated)
@@ -329,9 +329,9 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.rowtree.SetToolTipString(_("Right click variables to view/edit "
             "details"))
         self.rowroot = self.setup_dim_tree(self.rowtree)
-        self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1, 
+        self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1,
               style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
-        self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
+        self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED,
             self.on_col_item_activated)
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
         self.coltree.SetToolTipString(_("Right click variables to view/edit "
@@ -340,10 +340,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         # setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
-        self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
+        self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles,
             txt_subtitles=self.txt_subtitles, tab_type=mg.FREQS, # the default
-            colroot=self.colroot, rowroot=self.rowroot, rowtree=self.rowtree, 
-            coltree=self.coltree, col_no_vars_item=self.col_no_vars_item, 
+            colroot=self.colroot, rowroot=self.rowroot, rowtree=self.rowtree,
+            coltree=self.coltree, col_no_vars_item=self.col_no_vars_item,
             var_labels=self.var_labels, val_dics=self.val_dics)
         # freqs tbl is default
         self.setup_row_btns()
@@ -361,7 +361,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         else:
             myheight = min_height + ((mg.MAX_HEIGHT-grow_from)*0.2)
         myheight = 350 if myheight > 350 else myheight
-        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
+        self.html = full_html.FullHTML(panel=self.panel, parent=self,
             size=(200,myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
@@ -375,7 +375,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         try:
             szr_tab_type.Add(self.rad_opts, 0, wx.LEFT|wx.RIGHT, 10)
         except TypeError:
-            szr_tab_type.Add(self.rad_opts.get_szr(), 0, 
+            szr_tab_type.Add(self.rad_opts.get_szr(), 0,
                 wx.LEFT|wx.RIGHT, 10)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
@@ -548,11 +548,11 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             rpt_config = mg.RPT_CONFIG[self.tab_type]
             has_perc = not rpt_config[mg.VAR_SUMMARISED_KEY]
             self.enable_show_perc_symbol_opt(enable=has_perc)
-            self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles, 
+            self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles,
                 txt_subtitles=self.txt_subtitles, tab_type=self.tab_type,
-                colroot=self.colroot, rowroot=self.rowroot, 
-                rowtree=self.rowtree, coltree=self.coltree, 
-                col_no_vars_item=self.col_no_vars_item, 
+                colroot=self.colroot, rowroot=self.rowroot,
+                rowtree=self.rowtree, coltree=self.coltree,
+                col_no_vars_item=self.col_no_vars_item,
                 var_labels=self.var_labels, val_dics=self.val_dics)
             if self.tab_type == mg.FREQS:
                 self.add_default_column_config()
@@ -596,6 +596,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
     def on_dp_spin(self, event):
         "Set maximum decimal places to display"
         mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
+        self.update_demo_display()
 
     # titles/subtitles
     def on_title_change(self, event):

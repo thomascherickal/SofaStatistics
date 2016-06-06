@@ -1,65 +1,49 @@
-/*
-Details on ticks etc http://www.ibm.com/developerworks/web/library/wa-moredojocharts/
-*/
-makeBarChart = function(chartname, series, chartconf){
-    // allow charts made without newest config items to keep working
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
-    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
-    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-
-    /* chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals), shape, x, y, chart, plot, hAxis, eventMask, type, event
-
+//Details on ticks etc http://www.ibm.com/developerworks/web/library/wa-moredojocharts/
+makeBarChart = function(chartname, series, conf){
+    nChart = conf["n_chart"];
+    nChartFontColour = conf["filled_font_colour"]
+    /*chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals), shape, x, y, chart, plot, hAxis, eventMask, type, event
     val.run has chart, group, htmlElements, dirty, stroke, fill, plot, data, dyn, name
     val.run = val.run.chart.series[0]
-
     val.run.chart has margins, stroke, fill, delayInMs, theme, axes, stack, plots, series, runs, dirty,coords,node,surface,dim,offsets,plotArea AND any other variables I put in with the options - the third parameter of addSeries().
-
-    val.run.data has 0,1,2,3,4 etc such that val.run.data[0] is the y-val for the first item
-
-*/
+    val.run.data has 0,1,2,3,4 etc such that val.run.data[0] is the y-val for the first item  */
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
         return tip;
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
+    var mychart = new dc.Chart2D(
+        chartname,
+        {margins:
+            {l: conf["margin_offset_l"],
+             t: 10,
+             r: 10,
+             b: 10+conf["axis_lbl_drop"]},
+        yTitleOffset: conf["y_title_offset"]});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: outerChartBorderColour,
-        	fill: outerBg,
+	        stroke: conf["outer_chart_border_colour"],
+        	fill: null, //conf["outer_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill: chartconf["gridBg"]
+	        stroke: conf["inner_chart_border_colour"],
+	        fill: conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: conf["axis_colour"],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     conf["tick_colour"],
 	            position:  "center",
-	            fontColor: chartconf["axisLabelFontColour"]
+	            fontColor: conf["axis_lbl_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf["gridline_width"],
 	            length: 6, 
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  0.8,
@@ -71,72 +55,74 @@ makeBarChart = function(chartname, series, chartconf){
 	        }
 	    }
     });
+
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {title: xTitle,
-                    labels: chartconf["xaxisLabels"], minorTicks: minorTicks, 
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-                    rotation: axisLabelRotate
+    mychart.addAxis("x",
+        {title: conf["x_title"],
+         labels: conf["xaxis_lbls"],
+         minorTicks: conf["minor_ticks"], 
+         font: "normal normal normal " + conf["xfontsize"] + "pt Arial",
+         rotation: conf["axis_lbl_rotate"]
     });
-    mychart.addAxis("y", {title: yTitle,
-                    vertical: true, includeZero: true, 
-                    max: chartconf["ymax"],
-                    font: "normal normal normal 10pt Arial", fontWeight: 12
+    mychart.addAxis("y",
+       {title: conf["y_title"],
+        vertical: true,
+        includeZero: true, 
+        max: conf["ymax"],
+        font: "normal normal normal 10pt Arial",
+        fontWeight: 12
     });
     mychart.addPlot("grid", {type: "Grid",
                     hMajorLines: true,
                     hMinorLines: false,
                     vMajorLines: false,
                     vMinorLines: false });
-    mychart.addPlot("default", {type: "ClusteredColumns", gap: chartconf["xgap"], shadows: {dx: 12, dy: 12}});
+    mychart.addPlot("default",
+        {type: "ClusteredColumns",
+         gap: conf["xgap"],
+         shadows: {dx: 12, dy: 12}}
+    );
     var i
     for (i in series){
         mychart.addSeries(series[i]["seriesLabel"], series[i]["yVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
-        highlight: chartconf["sofaHl"],
+        highlight: conf["highlight"],
         duration: 450,
         easing:   dojo.fx.easing.sineOut
     });
     var anim_b = new dc.action2d.Shake(mychart, "default");
     var anim_c = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+        tooltipBorderColour: conf["tooltip_border_colour"],
+        connectorStyle: conf["connector_style"]});
     mychart.render();
     var legend = new dojox.charting.widget.Legend({chart: mychart, horizontal: 6}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
 }
 
-makePieChart = function(chartname, slices, chartconf){
-    // allow charts made without newest config items to keep working
-
+makePieChart = function(chartname, slices, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     var pieStroke = "#8b9b98";
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var radius = ("radius" in chartconf) ? chartconf["radius"] : 140;
-    var labelOffset = ("labelOffset" in chartconf) ? chartconf["labelOffset"] : -30;
-
     var dc = dojox.charting;
     var mychart = new dc.Chart2D(chartname);
-        
     var sofa_theme = new dc.Theme({
-		colors: chartconf["sliceColours"],
+		colors: conf["slice_colours"],
         chart: {
-	        stroke: outerChartBorderColour,
-        	fill: outerBg,
+	        stroke: null,
+        	fill: null,
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 		plotarea: {
-			fill: chartconf["gridBg"]
+			fill: conf["filled_outer_bg"]
 		}
 	});
     mychart.setTheme(sofa_theme);
     mychart.addPlot("default", {
             type: "Pie",
-            font: "normal normal " + chartconf["sliceFontsize"] + "px Tahoma",
-            fontColor: chartconf["labelFontColour"],
-            labelOffset: labelOffset,
-            radius: radius
+            font: "normal normal " + conf["slice_fontsize"] + "px Tahoma",
+            fontColor: conf["filled_font_colour"],
+            labelOffset: conf['lbl_offset'],
+            radius: conf['radius']
         });
 
     var pieSeries = Array();
@@ -153,12 +139,13 @@ makePieChart = function(chartname, slices, chartconf){
     mychart.addSeries("Series A", pieSeries);
     var anim_a = new dc.action2d.MoveSlice(mychart, "default");
     var anim_b = new dc.action2d.Highlight(mychart, "default", {
-        highlight: chartconf["sofaHl"],
+        highlight: conf["highlight"],
         duration: 450,
         easing:   dojo.fx.easing.sineOut
     });
     var anim_c = new dc.action2d.Tooltip(mychart, "default", 
-                                         {tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+        {tooltipBorderColour: conf['tooltip_border_colour'],
+         connectorStyle: conf['connector_style']});
     mychart.render();
 }
 
@@ -180,91 +167,78 @@ function labelfTime(o)
    return d;
 }
 
-makeLineChart = function(chartname, series, chartconf){
-    // allow charts made without newest config items to keep working
-
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
-    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
-    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
-    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-    var timeSeries = ("timeSeries" in chartconf) ? chartconf["timeSeries"] : false;
-
+makeLineChart = function(chartname, series, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
         return tip;
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop, yTitleOffset: yTitleOffset}});
+    var mychart = new dc.Chart2D(chartname,
+        {margins: {
+            l: conf['margin_offset_l'],
+            t: 10,
+            r: 10,
+            b: 10+conf['axis_lbl_drop'],
+            yTitleOffset: conf['y_title_offset']}});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: outerChartBorderColour,
-        	fill: null,
+	        stroke: null,
+        	fill: conf["outer_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill: chartconf["gridBg"]
+	        stroke: null,
+	        fill: conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: null,
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     null,
 	            position:  "center",
-	            fontColor: chartconf["axisLabelFontColour"]
+	            fontColor: conf["axis_lbl_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf['gridline_width'],
 	            length: 6, 
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  2,
 	            length: 4,
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        microTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  1.7,
 	            length: 3,
-                color: tickColour
+                color: null
 	        }
 	    }
     });
     mychart.setTheme(sofa_theme);
     // x-axis
     var xaxis_conf = {
-        title: xTitle,
-        font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-        rotation: axisLabelRotate,
-        minorTicks: minorTicks,
-        microTicks: microTicks,
-        minorLabels: minorTicks
+        title: conf['x_title'],
+        font: "normal normal normal " + conf["xfontsize"] + "pt Arial",
+        rotation: conf['axis_lbl_rotate'],
+        minorTicks: conf['minor_ticks'],
+        microTicks: conf['micro_ticks'],
+        minorLabels: conf['minor_ticks']
     };
-    if (timeSeries) {
+    if (conf['time_series']) {
         xaxis_conf.labelFunc = labelfTime;
     } else {
-        xaxis_conf.labels = chartconf["xaxisLabels"];
+        xaxis_conf.labels = conf["xaxis_lbls"];
     };
     mychart.addAxis("x", xaxis_conf);
     // y-axis
-    mychart.addAxis("y", {title: yTitle,
+    mychart.addAxis("y", {title: conf['y_title'],
                     vertical: true, includeZero: true, 
-                    max: chartconf["ymax"],
+                    max: conf["ymax"],
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}});
@@ -277,95 +251,85 @@ makeLineChart = function(chartname, series, chartconf){
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
     var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+        tooltipBorderColour: conf['tooltip_border_colour'], connectorStyle: conf['connector_style']});
     mychart.render();
-    var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
+    var legend = new dojox.charting.widget.Legend(
+        {chart: mychart},
+        ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
 }
 
-makeAreaChart = function(chartname, series, chartconf){
-    // allow charts made without newest config items to keep working
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : "black";
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var microTicks = ("microTicks" in chartconf) ? chartconf["microTicks"] : false;
-    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Category";
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
-    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var timeSeries = ("timeSeries" in chartconf) ? chartconf["timeSeries"] : false;
-
+makeAreaChart = function(chartname, series, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
         return tip;
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
+    var mychart = new dc.Chart2D(chartname,
+        {margins: {
+            l: conf['margin_offset_l'],
+            t: 10,
+            r: 10,
+            b: 10+conf['axis_lbl_drop']},
+        yTitleOffset: conf['y_title_offset']});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: outerChartBorderColour,
+	        stroke: null,
         	fill: null,
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill: chartconf["gridBg"]
+	        stroke: null,
+	        fill: conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: null,
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     "black",
 	            position:  "center",
-	            fontColor: chartconf["axisLabelFontColour"]
+	            fontColor: conf["axis_lbl_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf['gridline_width'],
 	            length: 6, 
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  2,
 	            length: 4,
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        microTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  1.7,
 	            length: 3,
-                color: tickColour
+                color: "black"
 	        }
 	    }
     });
     mychart.setTheme(sofa_theme);
     // x-axis
     var xaxis_conf = {
-        title: xTitle,
-        font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-        rotation: axisLabelRotate,
-        minorTicks: minorTicks,
-        microTicks: microTicks,
-        minorLabels: minorTicks
+        title: conf['x_title'],
+        font: "normal normal normal " + conf["xfontsize"] + "pt Arial",
+        rotation: conf['axis_lbl_rotate'],
+        minorTicks: conf['minor_ticks'],
+        microTicks: conf['micro_ticks'],
+        minorLabels: conf['minor_ticks']
     };
-    if (timeSeries) {
+    if (conf['time_series']) {
         xaxis_conf.labelFunc = labelfTime;
     } else {
-        xaxis_conf.labels = chartconf["xaxisLabels"];
+        xaxis_conf.labels = conf["xaxis_lbls"];
     };
     mychart.addAxis("x", xaxis_conf);
     // y-axis
-    mychart.addAxis("y", {title: yTitle,  // normal normal bold
+    mychart.addAxis("y", {title: conf['y_title'],  // normal normal bold
                     vertical: true, includeZero: true, 
-                    max: chartconf["ymax"], 
+                    max: conf["ymax"], 
                     font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("default", {type: "Areas", lines: true, areas: true, markers: true});
@@ -376,58 +340,53 @@ makeAreaChart = function(chartname, series, chartconf){
         mychart.addSeries(series[i]["seriesLabel"], series[i]["seriesVals"], series[i]["options"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
-    var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+    var anim_b = new dc.action2d.Tooltip(mychart, "default",
+        {text: getTooltip, 
+         tooltipBorderColour: conf['tooltip_border_colour'],
+         connectorStyle: conf['connector_style']});
     mychart.render();
 }
 
-makeHistogram = function(chartname, datadets, chartconf){
-    // allow charts made without newest config items to keep working
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "P";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var incNormal = ("incNormal" in chartconf)? chartconf["incNormal"] : false;
-
+makeHistogram = function(chartname, datadets, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
-        return "Values: " + datadets["binLabels"][val.index] + "<br>" + yTitle + ": " + val.y;
+        return "Values: " + datadets["binLabels"][val.index] + "<br>" + conf['y_title'] + ": " + val.y;
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10}, yTitleOffset: yTitleOffset});
+    var mychart = new dc.Chart2D(chartname,
+       {margins: {
+            l: conf['margin_offset_l'],
+            t: 10,
+            r: 10,
+            b: 10},
+        yTitleOffset: conf['y_title_offset']});
+
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: outerChartBorderColour,
-        	fill: outerBg,
+	        stroke: null,
+        	fill: conf["outer_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill: chartconf["gridBg"]
+	        stroke: conf['axis_lbl_font_colour'],
+	        fill: conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: conf['axis_lbl_font_colour'],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     null,
 	            position:  "center",
-	            fontColor: chartconf["axisLabelFontColour"]
+	            fontColor: conf["axis_lbl_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf['gridline_width'],
 	            length: 6, 
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  0.8,
@@ -441,14 +400,16 @@ makeHistogram = function(chartname, datadets, chartconf){
     });
     mychart.setTheme(sofa_theme);
     mychart.addAxis("x", {title: datadets["seriesLabel"],
-                    labels: chartconf["xaxisLabels"], minorTicks: false, microTicks: false,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+                    labels: conf["xaxis_lbls"], minorTicks: false, microTicks: false,
+                    font: "normal normal normal " + conf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("x2", {min: chartconf["minVal"], max: chartconf["maxVal"],
-                    minorTicks: minorTicks, 
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+    mychart.addAxis("x2", {
+        min: conf["minval"],
+        max: conf["maxval"],
+        minorTicks: conf['minor_ticks'], 
+        font: "normal normal normal " + conf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("y", {title: yTitle,  // normal normal bold
+    mychart.addAxis("y", {title: conf['y_title'],  // normal normal bold
                     vertical: true, includeZero: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     mychart.addPlot("normal", {type: "Lines", markers: true, shadows: {dx: 2, dy: 2, dw: 2}}); // must come first to be seen!
@@ -456,71 +417,65 @@ makeHistogram = function(chartname, datadets, chartconf){
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
     mychart.addPlot("othergrid", {type: "Areas", hAxis: "x2", vAxis: "y"});
     mychart.addSeries(datadets["seriesLabel"], datadets["yVals"], datadets["style"]);
-    if(incNormal == true){
+    if(conf['inc_normal'] == true){
         mychart.addPlot("normal", {type: "Lines", markers: false, shadows: {dx: 2, dy: 2, dw: 2}});
         mychart.addSeries("Normal Dist Curve", datadets["normYs"], datadets["normStyle"]); 
     }
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
-        highlight: chartconf["sofaHl"],
+        highlight: conf["highlight"],
         duration: 450,
         easing:   dojo.fx.easing.sineOut
     });
     var anim_b = new dc.action2d.Shake(mychart, "default");
-    var anim_c = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+    var anim_c = new dc.action2d.Tooltip(
+        mychart,
+        "default",
+        {text: getTooltip, 
+         tooltipBorderColour: conf['tooltip_border_colour'],
+         connectorStyle: conf['connector_style']});
     mychart.render();
 }
 
-makeScatterplot = function(chartname, series, chartconf){
-
-    // allow charts made without newest config items to keep working
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "Variable A";
-    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 0;
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Variable B";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var incRegression = ("incRegression" in chartconf)? chartconf["incRegression"] : false;
-
+makeScatterplot = function(chartname, series, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         return "(x: " + val.x + ", y: " + val.y + ")";
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
+    var mychart = new dc.Chart2D(
+        chartname,
+        {margins:
+            {l: conf['margin_offset_l'],
+             t: 10,
+             r: 10,
+             b: 10+conf['axis_lbl_drop']},
+         yTitleOffset: conf['y_title_offset']});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: outerChartBorderColour,
-        	fill: outerBg,
+	        stroke: null,
+        	fill: conf['outer_bg'],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill: chartconf["gridBg"]
+	        stroke: null,
+	        fill: conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: conf['axis_lbl_font_colour'],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     conf['tick_colour'],
 	            position:  "center",
-	            fontColor: chartconf["axisLabelFontColour"]
+	            fontColor: conf["axis_lbl_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf["gridline_width"],
 	            length: 6, 
-                color: chartconf["majorGridlineColour"]
+                color: conf["major_gridline_colour"]
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  0.8,
@@ -533,17 +488,17 @@ makeScatterplot = function(chartname, series, chartconf){
 	    }
     });
     mychart.setTheme(sofa_theme);
-    mychart.addAxis("x", {title: xTitle,
-                    min: chartconf["xmin"], max: chartconf["xmax"],
-                    minorTicks: minorTicks, microTicks: false,
-                    font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial"
+    mychart.addAxis("x", {title: conf['x_title'],
+                    min: conf["xmin"], max: conf["xmax"],
+                    minorTicks: conf['minor_ticks'], microTicks: false,
+                    font: "normal normal normal " + conf["xfontsize"] + "pt Arial"
     });
-    mychart.addAxis("y", {title: yTitle,
-                    min: chartconf["ymin"], max: chartconf["ymax"],
+    mychart.addAxis("y", {title: conf['y_title'],
+                    min: conf["ymin"], max: conf["ymax"],
                     vertical: true, font: "normal normal normal 10pt Arial", fontWeight: 12
     });
     // plot line first so on top
-    if(incRegression == true){
+    if(conf['inc_regression_js'] == true){
         mychart.addPlot("regression", {type: "Lines", markers: false, shadows: {dx: 2, dy: 2, dw: 2}});
         for (i in series){
             try {
@@ -560,73 +515,64 @@ makeScatterplot = function(chartname, series, chartconf){
         mychart.addSeries(series[i]["seriesLabel"], series[i]["xyPairs"], series[i]["style"]);
     }
     var anim_a = new dc.action2d.Magnify(mychart, "default");
-    var anim_b = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+    var anim_b = new dc.action2d.Tooltip(mychart, "default",
+       {text: getTooltip, 
+        tooltipBorderColour: conf['tooltip_border_colour'],
+        connectorStyle: conf['connector_style']});
     mychart.render();
     var legend = new dojox.charting.widget.Legend({chart: mychart}, ("legend" + chartname.substr(0,1).toUpperCase() + chartname.substr(1)));
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
-        highlight: chartconf["sofaHl"],
+        highlight: conf["highlight"],
         duration: 450,
         easing:   dojo.fx.easing.sineOut
     });
     var anim_b = new dc.action2d.Shake(mychart, "default");
     var anim_c = new dc.action2d.Tooltip(mychart, "default", {text: getTooltip, 
-        tooltipBorderColour: tooltipBorderColour, connectorStyle: connectorStyle});
+        tooltipBorderColour: conf['tooltip_border_colour'],
+        connectorStyle: conf['connector_style']});
     mychart.render();
 }
 
-makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
-    // allow charts made without newest config items to keep working
-    var gridlineWidth = ("gridlineWidth" in chartconf) ? chartconf["gridlineWidth"] : 3;
-    var tooltipBorderColour = ("tooltipBorderColour" in chartconf) ? chartconf["tooltipBorderColour"] : "#ada9a5";
-    var connectorStyle = ("connectorStyle" in chartconf) ? chartconf["connectorStyle"] : "defbrown";
-    var outerChartBorderColour = ("outerChartBorderColour" in chartconf) ? chartconf["outerChartBorderColour"] : null;
-    var innerChartBorderColour = ("innerChartBorderColour" in chartconf) ? chartconf["innerChartBorderColour"] : null;
-    var majorGridlineColour = ("majorGridlineColour" in chartconf) ? chartconf["majorGridlineColour"] : null;
-    var axisLabelFontColour = ("axisLabelFontColour" in chartconf) ? chartconf["axisLabelFontColour"] : null;
-    var outerBg = ("outerBg" in chartconf) ? chartconf["outerBg"] : null;
-    var axisColour = ("axisColour" in chartconf) ? chartconf["axisColour"] : null;
-    var tickColour = ("tickColour" in chartconf) ? chartconf["tickColour"] : null;
-    var minorTicks = ("minorTicks" in chartconf) ? chartconf["minorTicks"] : false;
-    var xTitle = ("xTitle" in chartconf) ? chartconf["xTitle"] : "";
-    var axisLabelDrop = ("axisLabelDrop" in chartconf) ? chartconf["axisLabelDrop"] : 30;
-    var axisLabelRotate = ("axisLabelRotate" in chartconf) ? chartconf["axisLabelRotate"] : 0;
-    var yTitleOffset = ("yTitleOffset" in chartconf) ? chartconf["yTitleOffset"] : 0;
-    var marginOffsetL = ("marginOffsetL" in chartconf) ? chartconf["marginOffsetL"] : 0;
-    var yTitle = ("yTitle" in chartconf) ? chartconf["yTitle"] : "Frequency";
-    
+makeBoxAndWhisker = function(chartname, series, seriesconf, conf){
+    nChartFontColour = conf["filled_font_colour"]
+    nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
         return val.y;
     };
-
     var dc = dojox.charting;
-    var mychart = new dc.Chart2D(chartname, {margins: {l: marginOffsetL, t: 10, r: 10, b: 10+axisLabelDrop}, yTitleOffset: yTitleOffset});
-
+    var mychart = new dc.Chart2D(
+        chartname,
+        {margins:
+            {l: conf['margin_offset_l'],
+             t: 10,
+             r: 10,
+             b: 10+conf['axis_lbl_drop']},
+         yTitleOffset: conf['y_title_offset']});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke:    outerChartBorderColour,
-        	fill:      outerBg,
+	        stroke:    null,
+        	fill:      conf['outer_bg'],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: innerChartBorderColour,
-	        fill:   chartconf["gridBg"]
+	        stroke: null,
+	        fill:   conf["inner_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: axisColour,
+	            color: conf['axis_lbl_font_colour'],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     tickColour,
+	            color:     conf['tick_colour'],
 	            position:  "center",
-	            fontColor: axisLabelFontColour
+	            fontColor: conf['axis_lbl_font_colour']
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
-	            width:  gridlineWidth,
+	            width:  conf['gridline_width'],
 	            length: 6, 
-                color:  tickColour // we have vMajorLines off so we don't need to match grid color e.g. null
+                color:  conf['tick_colour'] // we have vMajorLines off so we don't need to match grid color e.g. null
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  0.8,
@@ -641,26 +587,40 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, chartconf){
     mychart.setTheme(sofa_theme);
     mychart.addPlot("default", {type: "Boxplot", markers: true});
     mychart.addPlot("grid", {type: "Grid", vMajorLines: false});
-    mychart.addAxis("x", {title: xTitle, min: chartconf["xmin"], max: chartconf["xmax"], 
-                          majorTicks: true, minorTicks: minorTicks, 
-                          labels: chartconf["xaxisLabels"],
-                          font: "normal normal normal " + chartconf["xfontsize"] + "pt Arial",
-                          rotation: axisLabelRotate});
-    mychart.addAxis("y", {title: yTitle, vertical: true, min: chartconf["ymin"], max: chartconf["ymax"], 
-                          majorTicks: true, minorTicks: true,
-                          font: "normal normal normal " + chartconf["yfontsize"] + "pt Arial"});
+    mychart.addAxis(
+        "x",
+        {title: conf['x_title'],
+         min: conf["xmin"],
+         max: conf["xmax"], 
+         majorTicks: true,
+         minorTicks: conf['minor_ticks'],
+         labels: conf["xaxis_lbls"],
+         font: "normal normal normal " + conf["xfontsize"] + "pt Arial",
+         rotation: conf['axis_lbl_rotate']});
+    mychart.addAxis(
+        "y",
+        {title: conf['y_title'],
+         vertical: true,
+         min: conf["ymin"],
+         max: conf["ymax"], 
+         majorTicks: true,
+         minorTicks: true,
+         font: "normal normal normal " + conf["yfontsize"] + "pt Arial"});
     var i
     for (i in series){
         mychart.addSeries(series[i]["seriesLabel"], [], series[i]["boxDets"]);
     }
     var anim_a = new dc.action2d.Highlight(mychart, "default", {
-        highlight: chartconf["makefaint"],
+        highlight: conf["highlight"],
         duration: 450,
         easing:   dojo.fx.easing.sineOut
     });
-    var anim_b = new dc.action2d.Tooltip(mychart, "default", 
-                                         {text: getTooltip, tooltipBorderColour: tooltipBorderColour, 
-                                          connectorStyle: connectorStyle});
+    var anim_b = new dc.action2d.Tooltip(
+        mychart,
+        "default",
+        {text: getTooltip,
+         tooltipBorderColour: conf['tooltip_border_colour'], 
+         connectorStyle: conf['connector_style']});
     mychart.render();
 
     var dummychart = new dc.Chart2D("dum" + chartname);

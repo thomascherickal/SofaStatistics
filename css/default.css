@@ -1,13 +1,17 @@
 /*
 dojo_style_start
 outer_bg = u"white"
+filled_outer_bg = u"#f2f1f0"
 inner_bg = u"#f2f1f0" # u"#e0d9d5"
-axis_label_font_colour = u"#423126"
+axis_lbl_font_colour = u"#423126"
+filled_font_colour = u"#423126"
 major_gridline_colour = u"#b8a49e"
 gridline_width = 1
 stroke_width = 3
 tooltip_border_colour = u"#736354"
-colour_mappings = [(u"#e95f29", u"#ef7d44"),
+normal_curve_colour = u"#423126"
+colour_mappings = [
+    (u"#e95f29", u"#ef7d44"),
     (u"#f4cb3a", u"#f7d858"),
     (u"#4495c3", u"#62add2"),
     (u"#44953a", u"#62ad58"),
@@ -85,8 +89,11 @@ dojo_style_end
     }
     td{
         padding: 2px 6px;
-        border: solid 1px #c0c0c0;
+        border: double 1px #c0c0c0;
         font-size: 13px;
+    }
+    .subtable{
+        border-top: solid 3px #c0c0c0;
     }
     .rowval{
         margin: 0;

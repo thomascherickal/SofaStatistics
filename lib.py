@@ -290,16 +290,7 @@ class OutputLib(object):
             wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
                 u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": b.ue(e)})
             raise
-        return (css_dojo_dic[u"outer_bg"], 
-            css_dojo_dic[u"inner_bg"], # grid_bg
-            css_dojo_dic[u"axis_label_font_colour"], 
-            css_dojo_dic[u"major_gridline_colour"], 
-            css_dojo_dic[u"gridline_width"], 
-            css_dojo_dic[u"stroke_width"], 
-            css_dojo_dic[u"tooltip_border_colour"], 
-            css_dojo_dic[u"colour_mappings"],
-            css_dojo_dic[u"connector_style"],
-            )
+        return css_dojo_dic
 
     @staticmethod
     def update_local_display(html_ctrl, str_content, wrap_text=False):
