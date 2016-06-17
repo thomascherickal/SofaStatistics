@@ -15,7 +15,7 @@ show_early_steps = True
 force_error = False
 debug = False
 
-WXPYTHON_VERSION = '3.0'  # 2.8
+WXPYTHON_VERSION = '2.8'  # 2.8
 
 INIT_DEBUG_MSG = (u"Please note the messages above (e.g. with a screen-shot)"
     u" and press any key to close")

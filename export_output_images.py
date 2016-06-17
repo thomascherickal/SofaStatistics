@@ -199,6 +199,7 @@ def export2imgs(hdr, img_items, save2report_path, report_path,
         imgs_path = alternative_path
     if mg.OVERRIDE_FOLDER:
         imgs_path = mg.OVERRIDE_FOLDER
+    if debug: print(imgs_path)
     rpt_root = os.path.split(report_path)[0]
     html4pdf_path = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
     n_imgs = len(img_items)

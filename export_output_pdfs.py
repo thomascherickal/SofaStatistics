@@ -69,6 +69,11 @@ def get_raw_pdf(html_path, pdf_path, width=u"", height=u""):
         Re: && http://www.microsoft.com/resources/documentation/windows/...
             ...xp/all/proddocs/en-us/ntcmds_shelloverview.mspx?mfr=true
         """
+        ## clear decks first so we can tell if image made or not
+        try:
+            os.remove(pdf_path)
+        except Exception:
+            pass
         rel_url = os.path.split(url)[1]
         cd_path = os.path.split(html_path)[0]
         if mg.PLATFORM == mg.WINDOWS: # using Pyinstaller
