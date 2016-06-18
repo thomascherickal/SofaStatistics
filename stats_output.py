@@ -1125,7 +1125,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     output.append_divider(html, title, indiv_title=u"")
-    add_chi_square_clustered_barcharts(css_dojo_dic['grid_bg'], item_colours,
+    add_chi_square_clustered_barcharts(css_dojo_dic['inner_bg'], item_colours,
         css_dojo_dic['major_gridline_colour'], lst_obs, var_label_a,
         var_label_b, val_labels_a, val_labels_b, val_labels_b_n, add_to_report,
         report_name, html)

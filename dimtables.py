@@ -748,7 +748,7 @@ class LiveTable(DimTable):
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
         lib.sort_value_lbls(tree_dims_node.sort_order, val_freq_label_lst, 
-                            idx_measure=1, idx_lbl=2)
+            idx_measure=1, idx_lbl=2)
         # A total cell should be added, or not, after this stage.
         return val_freq_label_lst
 
@@ -1172,10 +1172,11 @@ class SummTable(LiveTable):
     def get_data_val(self, measure, col_fld, row_filter_lst,
             dp=mg.DEFAULT_REPORT_DP):
         """
-        measure - e.g. MEAN
-        col_fld - the numeric field we are calculating the summary of. NB if
+        measure -- e.g. MEAN
+        col_fld -- the numeric field we are calculating the summary of. NB if
             SQLite, may be a numeric field with some non-numeric values in it.
-        row_filter - so we only look at values in the row.
+        row_filter_lst - so we only look at values in the row.
+        dp -- values rounded to required decimal points.
         """
         debug = False
         msg = None

@@ -294,7 +294,9 @@ def _get_sorted_y_dets(data_show, major_ticks, time_series, sort_opt,
         vals_etc_lst, dp, multiseries):
     """
     Sort in place then iterate and build new lists with guaranteed 
-        synchronisation.
+    synchronisation.
+
+    Tooltips can use rounded y-vals but actual y_vals must keep full precision.
     """
     if multiseries and sort_opt not in mg.SORT_VAL_AND_LABEL_OPT_KEYS:
         raise Exception("Sorting by anything other than val or lbl fails if "
@@ -302,23 +304,24 @@ def _get_sorted_y_dets(data_show, major_ticks, time_series, sort_opt,
             " based on data for the category _across_ series e.g. total for the"
             " male gender category across all age group series whereas this "
             "function sorts within a series only.")
-    idx_measure = 1
-    idx_lbl = 2
-    lib.sort_value_lbls(sort_opt, vals_etc_lst, idx_measure, idx_lbl)
+    idx_raw_measure = 1
+    idx_lbl = 3
+    lib.sort_value_lbls(sort_opt, vals_etc_lst, idx_raw_measure, idx_lbl)  ## sort by raw rather than rounded measure
     sorted_xaxis_dets = []
     sorted_y_vals = []
     sorted_tooltips = []
-    measures = [x[idx_measure] for x in vals_etc_lst]
+    measures = [x[idx_raw_measure] for x in vals_etc_lst]
     tot_measures = sum(measures)
-    for val, measure, lbl, lbl_split, itemlbl in vals_etc_lst:
+    for (val, raw_measure, rounded_measure, lbl, 
+            lbl_split, itemlbl) in vals_etc_lst:
         sorted_xaxis_dets.append((val, lbl, lbl_split))
         if tot_measures == 0:
             perc = 0
         else:
-            perc = 100*(measure/float(tot_measures))
-        y_val = perc if data_show == mg.SHOW_PERC_KEY else measure
+            perc = 100*(raw_measure/float(tot_measures))
+        y_val = perc if data_show == mg.SHOW_PERC_KEY else raw_measure
         sorted_y_vals.append(y_val)
-        measure2show = int(measure) if dp == 0 else measure # so 12 is 12 not 12.0
+        measure2show = int(rounded_measure) if dp == 0 else rounded_measure # so 12 is 12 not 12.0
         tooltip_dets = [itemlbl,] if itemlbl else []
         if major_ticks or time_series:
             tooltip_dets.append(u"x-val: %s" % val)
@@ -540,12 +543,11 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
             for x_val, y_val in xy_vals:
                 try:
                     xval4lbl = round(x_val, dp)
+                    if dp == 0:
+                        xval4lbl = int(xval4lbl)  ## so 1 not 1.0
                 except TypeError:
                     xval4lbl = x_val
-                try:
-                    yval4lbl = round(y_val, dp)
-                except TypeError:
-                    yval4lbl = y_val
+                y_val_rounded = round(y_val, dp)
                 x_val_lbl = xlblsdic.get(x_val, unicode(xval4lbl))  ## original value for label matching, rounded for display if no label
                 (x_val_split_lbl,
                  actual_lbl_width,
@@ -554,7 +556,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
                 rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
-                y_lbl_width = len(str(round(yval4lbl, rounding2use)))
+                y_lbl_width = len(str(round(y_val, rounding2use)))
                 if y_lbl_width > max_y_lbl_len:
                     max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
@@ -563,7 +565,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                     itemlbl = u"%s, %s" % (x_val_lbl, legend_lbl)
                 else:
                     itemlbl = None
-                vals_etc_lst.append((xval4lbl, yval4lbl, x_val_lbl, 
+                vals_etc_lst.append((x_val, y_val, y_val_rounded, x_val_lbl, 
                     x_val_split_lbl, itemlbl))
             n_cats = len(vals_etc_lst)
             if chart_type == mg.CLUSTERED_BARCHART:
@@ -1581,6 +1583,7 @@ class BoxPlot(object):
                     box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                         mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
                         mg.CHART_BOXPLOT_LWHISKER: None,
+                        mg.CHART_BOXPLOT_LWHISKER_ROUNDED: None,
                         mg.CHART_BOXPLOT_LBOX: None,
                         mg.CHART_BOXPLOT_MEDIAN: None,
                         mg.CHART_BOXPLOT_UBOX: None,
@@ -1606,10 +1609,13 @@ class BoxPlot(object):
                             vals2desc)
                     ## outliers
                     if boxplot_opt == mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE:
-                        outliers = [round(x, mg.DEFAULT_REPORT_DP)
+                        outliers = [x
+                            for x in vals2desc if x < lwhisker or x > uwhisker]
+                        outliers_rounded = [round(x, mg.DEFAULT_REPORT_DP)
                             for x in vals2desc if x < lwhisker or x > uwhisker]
                     else:
                         outliers = []  ## hidden or inside whiskers
+                        outliers_rounded = []
                     ## setting y-axis
                     if boxplot_opt == mg.CHART_BOXPLOT_HIDE_OUTLIERS:
                         min2display = lwhisker
@@ -1632,17 +1638,23 @@ class BoxPlot(object):
                     ## assemble
                     box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
                         mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                        mg.CHART_BOXPLOT_LWHISKER: round(lwhisker,
+                        mg.CHART_BOXPLOT_LWHISKER: lwhisker,
+                        mg.CHART_BOXPLOT_LWHISKER_ROUNDED: round(lwhisker,
                             mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_LBOX: round(lbox,
+                        mg.CHART_BOXPLOT_LBOX: lbox,
+                        mg.CHART_BOXPLOT_LBOX_ROUNDED: round(lbox,
                             mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_MEDIAN: round(median,
+                        mg.CHART_BOXPLOT_MEDIAN: median,
+                        mg.CHART_BOXPLOT_MEDIAN_ROUNDED: round(median,
                             mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_UBOX: round(ubox,
+                        mg.CHART_BOXPLOT_UBOX: ubox,
+                        mg.CHART_BOXPLOT_UBOX_ROUNDED: round(ubox,
                             mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_UWHISKER: round(uwhisker,
+                        mg.CHART_BOXPLOT_UWHISKER: uwhisker,
+                        mg.CHART_BOXPLOT_UWHISKER_ROUNDED: round(uwhisker,
                             mg.DEFAULT_REPORT_DP),
                         mg.CHART_BOXPLOT_OUTLIERS: outliers,
+                        mg.CHART_BOXPLOT_OUTLIERS_ROUNDED: outliers_rounded,
                         mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
                 boxdet_series.append(box_dic)
             title_bits = []
@@ -1879,34 +1891,38 @@ class BoxPlot(object):
                 if not boxdet[mg.CHART_BOXPLOT_DISPLAY]:
                     continue
                 unique_name = u"%s%s" % (series_idx, boxdet_idx)
-                box_js.append(u"""        {seriesLabel: "dummylabel%(unique_name)s", 
-            boxDets: {stroke: strokecol%(series_idx)s, fill: fillcol%(series_idx)s, 
-                      center: %(boxdets_idx)s + 1 + %(offset)s, width: width,
-                      summary_data: {%(lwhisker)s: %(lwhisker_val)s, 
-                                     %(lbox)s: %(lbox_val)s,  
-                                     %(median)s: %(median_val)s, 
-                                     %(ubox)s: %(ubox_val)s, 
-                                     %(uwhisker)s: %(uwhisker_val)s, 
-                                     %(outliers)s: %(outliers_val)s},
-                      indiv_boxlbl: "%(indiv_boxlbl)s"
-                     }
-                  }""" % {
-                    u"unique_name": unique_name, u"series_idx": series_idx,
-                    u"boxdets_idx": boxdet_idx, u"offset": offset,
-                    u"lwhisker": mg.CHART_BOXPLOT_LWHISKER, 
-                    u"lwhisker_val": boxdet[mg.CHART_BOXPLOT_LWHISKER],
-                    u"lbox": mg.CHART_BOXPLOT_LBOX, 
-                    u"lbox_val": boxdet[mg.CHART_BOXPLOT_LBOX],
-                    u"median": mg.CHART_BOXPLOT_MEDIAN, 
-                    u"median_val": boxdet[mg.CHART_BOXPLOT_MEDIAN],
-                    u"ubox": mg.CHART_BOXPLOT_UBOX, 
-                    u"ubox_val": boxdet[mg.CHART_BOXPLOT_UBOX],
-                    u"uwhisker": mg.CHART_BOXPLOT_UWHISKER, 
-                    u"uwhisker_val": boxdet[mg.CHART_BOXPLOT_UWHISKER],
-                    u"outliers": mg.CHART_BOXPLOT_OUTLIERS, 
-                    u"outliers_val": boxdet[mg.CHART_BOXPLOT_OUTLIERS],
-                    u"indiv_boxlbl": boxdet[mg.CHART_BOXPLOT_INDIV_LBL]
-                    })
+                box_js.append(u"""        {{seriesLabel: "dummylabel{unique_name}",
+            boxDets: {{stroke: strokecol{series_idx}, fill: fillcol{series_idx},
+                      center: {boxdets_idx} + 1 + {offset}, width: width,
+                      summary_data: {{
+                          {lwhisker}: {lwhisker_val}, {lwhisker_rounded}: {lwhisker_val_rounded},
+                          {lbox}: {lbox_val}, {lbox_rounded}: {lbox_val_rounded},
+                          {median}: {median_val}, {median_rounded}: {median_val_rounded},
+                          {ubox}: {ubox_val}, {ubox_rounded}: {ubox_val_rounded},
+                          {uwhisker}: {uwhisker_val}, {uwhisker_rounded}: {uwhisker_val_rounded},
+                          {outliers}: {outliers_val}, {outliers_rounded}: {outliers_val_rounded}
+                          }},
+                      indiv_boxlbl: "{indiv_boxlbl}"
+                    }}
+                }}""".format(
+                unique_name=unique_name,
+                series_idx=series_idx,
+                boxdets_idx=boxdet_idx,
+                offset=offset,
+                lwhisker=mg.CHART_BOXPLOT_LWHISKER, lwhisker_val=boxdet[mg.CHART_BOXPLOT_LWHISKER],
+                lwhisker_rounded=mg.CHART_BOXPLOT_LWHISKER_ROUNDED, lwhisker_val_rounded=boxdet[mg.CHART_BOXPLOT_LWHISKER_ROUNDED],
+                lbox=mg.CHART_BOXPLOT_LBOX, lbox_val=boxdet[mg.CHART_BOXPLOT_LBOX],
+                lbox_rounded=mg.CHART_BOXPLOT_LBOX_ROUNDED, lbox_val_rounded=boxdet[mg.CHART_BOXPLOT_LBOX_ROUNDED],
+                median=mg.CHART_BOXPLOT_MEDIAN, median_val=boxdet[mg.CHART_BOXPLOT_MEDIAN],
+                median_rounded=mg.CHART_BOXPLOT_MEDIAN_ROUNDED, median_val_rounded=boxdet[mg.CHART_BOXPLOT_MEDIAN_ROUNDED],
+                ubox=mg.CHART_BOXPLOT_UBOX, ubox_val=boxdet[mg.CHART_BOXPLOT_UBOX],
+                ubox_rounded=mg.CHART_BOXPLOT_UBOX_ROUNDED, ubox_val_rounded=boxdet[mg.CHART_BOXPLOT_UBOX_ROUNDED],
+                uwhisker=mg.CHART_BOXPLOT_UWHISKER, uwhisker_val=boxdet[mg.CHART_BOXPLOT_UWHISKER],
+                uwhisker_rounded=mg.CHART_BOXPLOT_UWHISKER_ROUNDED, uwhisker_val_rounded=boxdet[mg.CHART_BOXPLOT_UWHISKER_ROUNDED],
+                outliers=mg.CHART_BOXPLOT_OUTLIERS, outliers_val=boxdet[mg.CHART_BOXPLOT_OUTLIERS],
+                outliers_rounded=mg.CHART_BOXPLOT_OUTLIERS_ROUNDED, outliers_val_rounded=boxdet[mg.CHART_BOXPLOT_OUTLIERS_ROUNDED],
+                indiv_boxlbl=boxdet[mg.CHART_BOXPLOT_INDIV_LBL]
+                ))
             series_js.append(u",\n".join(box_js))            
             series_js.append(u"        ];") # close series list
         series_lst = ["series%s" % x for x in range(len(chart_dets))]

@@ -1644,13 +1644,18 @@ def mustreverse():
 def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     """
     In-place sort value labels list according to sort option selected.
+
+    User term measure instead of freq because might be sum or mean etc.
+
+    e.g. [(..., 564, 'Under 20', ...), (..., 230, '20-29;, ...), ...]
+
     http://www.python.org/dev/peps/pep-0265/
     """
-    if sort_order == mg.SORT_INCREASING_KEY:
+    if sort_order == mg.SORT_INCREASING_KEY:  ## by y val ASC
         vals_etc_lst.sort(key=itemgetter(idx_measure))
-    elif sort_order == mg.SORT_DECREASING_KEY:
+    elif sort_order == mg.SORT_DECREASING_KEY:  ## y val DESC
         vals_etc_lst.sort(key=itemgetter(idx_measure), reverse=True)
-    elif sort_order == mg.SORT_LBL_KEY:
+    elif sort_order == mg.SORT_LBL_KEY:  ## e.g. by label for x vals
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
 def get_bins(min_val, max_val):
