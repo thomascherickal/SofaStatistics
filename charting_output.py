@@ -1572,10 +1572,10 @@ class BoxPlot(object):
                 n_chart += n_vals
                 has_vals = (n_vals > 0)
                 if has_vals:
-                    median = round(np.median(vals2desc), mg.DEFAULT_REPORT_DP)
+                    median = np.median(vals2desc)
                     lq, uq = core_stats.get_quartiles(vals2desc)
-                    lbox = round(lq, mg.DEFAULT_REPORT_DP)
-                    ubox = round(uq, mg.DEFAULT_REPORT_DP)
+                    lbox = lq
+                    ubox = uq
                     if debug: print("%s %s %s" % (lbox, median, ubox))
                 boxplot_display = has_vals
                 if not boxplot_display:
@@ -3555,6 +3555,8 @@ class PieChart(object):
                 tiplbl = val_lbl.replace(u"\n", u" ") # line breaks mean no display
                 slice_pct = round((100.0*y_val)/tot_y_vals,
                     mg.DEFAULT_REPORT_DP)
+                if mg.DEFAULT_REPORT_DP == 0:
+                    slice_pct = int(slice_pct)
                 if inc_count or inc_pct:
                     raw_val2show = lib.OutputLib.get_count_pct_dets(inc_count,
                         inc_pct, lbl=tiplbl, count=y_val, pct=slice_pct)
