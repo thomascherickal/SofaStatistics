@@ -162,7 +162,7 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
             fontsize=7, rotation=270)
 
 def config_scatterplot(inner_bg, show_borders, line_colour, fig,
-        filled_font_colour, n_chart, series_dets, label_a, label_b, a_vs_b,
+        plot_font_colour_filled, n_chart, series_dets, label_a, label_b, a_vs_b,
         xmin=None, xmax=None, ymin=None, ymax=None, dot_colour=None,
         series_colours_by_lbl=None):
     """
@@ -209,13 +209,13 @@ def config_scatterplot(inner_bg, show_borders, line_colour, fig,
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
         fontsize=7, rotation=270)
     pylab.annotate(n_chart, xy=(0.02, 0.96),
-        textcoords='axes fraction', fontsize=7, color=filled_font_colour)
+        textcoords='axes fraction', fontsize=7, color=plot_font_colour_filled)
 
-def add_scatterplot(inner_bg, show_borders, line_colour, filled_font_colour,
-        n_chart, series_dets, label_x, label_y, x_vs_y, title_dets_html,
-        add_to_report, report_name, html, width_inches=7.5, height_inches=4.5,
-        xmin=None, xmax=None, ymin=None, ymax=None, dot_colour=None,
-        series_colours_by_lbl=None):
+def add_scatterplot(inner_bg, show_borders, line_colour,
+        plot_font_colour_filled, n_chart, series_dets, label_x, label_y, x_vs_y,
+        title_dets_html, add_to_report, report_name, html, width_inches=7.5,
+        height_inches=4.5, xmin=None, xmax=None, ymin=None, ymax=None,
+        dot_colour=None, series_colours_by_lbl=None):
     """
     Toggle prefix so every time this is run internally only, a different image 
     is referred to in the html <img src=...>.
@@ -227,7 +227,7 @@ def add_scatterplot(inner_bg, show_borders, line_colour, filled_font_colour,
     fig = pylab.figure()
     fig.set_size_inches((width_inches, height_inches))
     config_scatterplot(inner_bg, show_borders, line_colour, fig,
-        filled_font_colour, n_chart, series_dets, label_x, label_y, x_vs_y,
+        plot_font_colour_filled, n_chart, series_dets, label_x, label_y, x_vs_y,
         xmin, xmax, ymin, ymax, dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)

@@ -1,10 +1,13 @@
 /*
 dojo_style_start
-outer_bg = u"white"
-filled_outer_bg = u"#313131"
-inner_bg = u"white"
-axis_lbl_font_colour = u"black"
-filled_font_colour = u"white"
+
+chart_bg = u"white"
+chart_font_colour = u"black"
+plot_bg = u"#e1e1e1"
+plot_font_colour = u"black"
+plot_bg_filled = u"#313131"
+plot_font_colour_filled = u"white"
+axis_font_colour = u"black"
 major_gridline_colour = u"#313131"
 gridline_width = 1
 stroke_width = 3
@@ -14,7 +17,7 @@ colour_mappings = [
     (u"#505050", u"#b4b4b4"),
     (u"#313131", u"#000000"),
     (u"#000000", u"#313131"),
-    (u"#e2e2e2", u"#f0f0f0"),
+    (u"#fff", u"#e2e2e2"),
     (u"#505050", u"#b4b4b4"),
     (u"#313131", u"#000000"),
     (u"#000000", u"#313131"),

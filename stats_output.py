@@ -188,7 +188,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             css_dojo_dic['colour_mappings'])
         try:
             charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
-                css_dojo_dic['inner_bg'], item_colours[0],
+                css_dojo_dic['plot_bg'], item_colours[0],
                 css_dojo_dic['major_gridline_colour'])
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
@@ -354,7 +354,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
             css_dojo_dic['colour_mappings'])
         try:
             charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
-                css_dojo_dic['inner_bg'], item_colours[0],
+                css_dojo_dic['plot_bg'], item_colours[0],
                 css_dojo_dic['major_gridline_colour'])
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
@@ -401,7 +401,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         css_dojo_dic['colour_mappings'])
     try:
         charting_pylab.config_hist(fig, diffs, _("Differences"), histlbl, False,
-            css_dojo_dic['inner_bg'], item_colours[0],
+            css_dojo_dic['plot_bg'], item_colours[0],
             css_dojo_dic['major_gridline_colour'])
         img_src = charting_pylab.save_report_img(add_to_report, report_name,
             save_func=pylab.savefig, dpi=100)
@@ -752,9 +752,9 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     n_chart = "N = " + lib.formatnum(len(list_x))
-    charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+    charting_pylab.add_scatterplot(css_dojo_dic['plot_bg'], show_borders,
         css_dojo_dic['major_gridline_colour'],
-        css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
+        css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets, label_x,
         label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
         dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
@@ -805,9 +805,9 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         mg.LIST_X: list_x, mg.LIST_Y: list_y, mg.INC_REGRESSION: True, 
         mg.LINE_LST: line_lst, mg.DATA_TUPS: None}] # only Dojo needs data_tups
     n_chart = "N = " + lib.formatnum(len(list_x))
-    charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+    charting_pylab.add_scatterplot(css_dojo_dic['plot_bg'], show_borders,
         css_dojo_dic['major_gridline_colour'],
-        css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
+        css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets, label_x,
         label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
         dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
@@ -1125,7 +1125,7 @@ def chisquare_output(chi, p, var_label_a, var_label_b, add_to_report,
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     output.append_divider(html, title, indiv_title=u"")
-    add_chi_square_clustered_barcharts(css_dojo_dic['inner_bg'], item_colours,
+    add_chi_square_clustered_barcharts(css_dojo_dic['plot_bg'], item_colours,
         css_dojo_dic['major_gridline_colour'], lst_obs, var_label_a,
         var_label_b, val_labels_a, val_labels_b, val_labels_b_n, add_to_report,
         report_name, html)

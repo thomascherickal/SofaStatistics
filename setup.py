@@ -322,7 +322,7 @@ def populate_css_path(prog_path, local_path):
     """
     styles = [mg.DEFAULT_STYLE, u"grey spirals.css", u"lucid spirals.css", 
         u"monochrome.css", u"pebbles.css", u"prestige (print).css",
-        u"prestige (screen).css", ]
+        u"prestige (screen).css", u"sky.css", ]
     for style in styles:
         try:
             src_style = os.path.join(prog_path, mg.CSS_FOLDER, style)

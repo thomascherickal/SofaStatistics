@@ -121,7 +121,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
     histlbl = u"Histogram of differences" if paired else None
     try:
         charting_pylab.config_hist(fig, vals, data_label, histlbl,
-            thumbnail=False, inner_bg=css_dojo_dic['inner_bg'],
+            thumbnail=False, inner_bg=css_dojo_dic['plot_bg'],
             bar_colour=item_colours[0], line_colour=line_colour,
             inc_attrib=True)
     except Exception, e:

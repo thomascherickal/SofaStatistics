@@ -1,7 +1,7 @@
 //Details on ticks etc http://www.ibm.com/developerworks/web/library/wa-moredojocharts/
 makeBarChart = function(chartname, series, conf){
     nChart = conf["n_chart"];
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour"]
     /*chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals), shape, x, y, chart, plot, hAxis, eventMask, type, event
     val.run has chart, group, htmlElements, dirty, stroke, fill, plot, data, dyn, name
     val.run = val.run.chart.series[0]
@@ -22,23 +22,23 @@ makeBarChart = function(chartname, series, conf){
         yTitleOffset: conf["y_title_offset"]});
     var sofa_theme = new dc.Theme({
         chart:{
-	        stroke: conf["outer_chart_border_colour"],
-        	fill: null, //conf["outer_bg"],
+	        stroke: null,
+        	fill: conf["chart_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: conf["inner_chart_border_colour"],
-	        fill: conf["inner_bg"]
+	        stroke: null,
+	        fill: conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: conf["axis_colour"],
+	            color: null,
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     conf["tick_colour"],
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf["axis_lbl_font_colour"]
+	            fontColor: conf["axis_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf["gridline_width"],
@@ -72,11 +72,13 @@ makeBarChart = function(chartname, series, conf){
         font: "normal normal normal 10pt Arial",
         fontWeight: 12
     });
-    mychart.addPlot("grid", {type: "Grid",
-                    hMajorLines: true,
-                    hMinorLines: false,
-                    vMajorLines: false,
-                    vMinorLines: false });
+    mychart.addPlot("grid",
+        {type: "Grid",
+         hMajorLines: true,
+         hMinorLines: false,
+         vMajorLines: false,
+         vMinorLines: false }
+    );
     mychart.addPlot("default",
         {type: "ClusteredColumns",
          gap: conf["xgap"],
@@ -100,7 +102,7 @@ makeBarChart = function(chartname, series, conf){
 }
 
 makePieChart = function(chartname, slices, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour_filled"]
     nChart = conf["n_chart"];
     var pieStroke = "#8b9b98";
     var dc = dojox.charting;
@@ -113,14 +115,14 @@ makePieChart = function(chartname, slices, conf){
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 		plotarea: {
-			fill: conf["filled_outer_bg"]
+			fill: conf["plot_bg_filled"]
 		}
 	});
     mychart.setTheme(sofa_theme);
     mychart.addPlot("default", {
             type: "Pie",
             font: "normal normal " + conf["slice_fontsize"] + "px Tahoma",
-            fontColor: conf["filled_font_colour"],
+            fontColor: conf["plot_font_colour_filled"],
             labelOffset: conf['lbl_offset'],
             radius: conf['radius']
         });
@@ -168,7 +170,7 @@ function labelfTime(o)
 }
 
 makeLineChart = function(chartname, series, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour"]
     nChart = conf["n_chart"];
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
@@ -185,12 +187,12 @@ makeLineChart = function(chartname, series, conf){
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: null,
-        	fill: conf["outer_bg"],
+        	fill: conf["chart_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
 	        stroke: null,
-	        fill: conf["inner_bg"]
+	        fill: conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
@@ -198,9 +200,9 @@ makeLineChart = function(chartname, series, conf){
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     null,
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf["axis_lbl_font_colour"]
+	            fontColor: conf["axis_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf['gridline_width'],
@@ -259,7 +261,7 @@ makeLineChart = function(chartname, series, conf){
 }
 
 makeAreaChart = function(chartname, series, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour"]
     nChart = conf["n_chart"];
     var getTooltip = function(val){
         var tip = val.run.yLbls[val.index];
@@ -281,7 +283,7 @@ makeAreaChart = function(chartname, series, conf){
 	    },
 	    plotarea:{
 	        stroke: null,
-	        fill: conf["inner_bg"]
+	        fill: conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
@@ -289,9 +291,9 @@ makeAreaChart = function(chartname, series, conf){
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     "black",
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf["axis_lbl_font_colour"]
+	            fontColor: conf["axis_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf['gridline_width'],
@@ -348,7 +350,7 @@ makeAreaChart = function(chartname, series, conf){
 }
 
 makeHistogram = function(chartname, datadets, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour"]
     nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -366,22 +368,22 @@ makeHistogram = function(chartname, datadets, conf){
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: null,
-        	fill: conf["outer_bg"],
+        	fill: null, //conf["chart_bg"],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
-	        stroke: conf['axis_lbl_font_colour'],
-	        fill: conf["inner_bg"]
+	        stroke: null,
+	        fill: conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: conf['axis_lbl_font_colour'],
+	            color: null,
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     null,
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf["axis_lbl_font_colour"]
+	            fontColor: conf["axis_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf['gridline_width'],
@@ -437,7 +439,7 @@ makeHistogram = function(chartname, datadets, conf){
 }
 
 makeScatterplot = function(chartname, series, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour_filled"]
     nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -455,22 +457,22 @@ makeScatterplot = function(chartname, series, conf){
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: null,
-        	fill: conf['outer_bg'],
+        	fill: conf['chart_bg'],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
 	        stroke: null,
-	        fill: conf["inner_bg"]
+	        fill: conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: conf['axis_lbl_font_colour'],
+	            color: null,
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     conf['tick_colour'],
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf["axis_lbl_font_colour"]
+	            fontColor: conf["axis_font_colour"]
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf["gridline_width"],
@@ -534,7 +536,7 @@ makeScatterplot = function(chartname, series, conf){
 }
 
 makeBoxAndWhisker = function(chartname, series, seriesconf, conf){
-    nChartFontColour = conf["filled_font_colour"]
+    nChartFontColour = conf["plot_font_colour_filled"]
     nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
@@ -552,27 +554,27 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, conf){
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke:    null,
-        	fill:      conf['outer_bg'],
+        	fill:      conf['chart_bg'],
 	        pageStyle: null // suggested page style as an object suitable for dojo.style()
 	    },
 	    plotarea:{
 	        stroke: null,
-	        fill:   conf["inner_bg"]
+	        fill:   conf["plot_bg"]
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: conf['axis_lbl_font_colour'],
+	            color: conf['plot_font_colour'],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
-	            color:     conf['tick_colour'],
+	            color:     conf["axis_font_colour"],
 	            position:  "center",
-	            fontColor: conf['axis_lbl_font_colour']
+	            fontColor: conf['axis_font_colour']
 	        },
 	        majorTick:	{ // major ticks on axis, and used for major gridlines
 	            width:  conf['gridline_width'],
 	            length: 6, 
-                color:  conf['tick_colour'] // we have vMajorLines off so we don't need to match grid color e.g. null
+                color:  conf['axis_font_colour'] // we have vMajorLines off so we don't need to match grid color e.g. null
 	        },
 	        minorTick:	{ // minor ticks on axis, and used for minor gridlines
 	            width:  0.8,

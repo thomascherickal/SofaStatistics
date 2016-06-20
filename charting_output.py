@@ -990,19 +990,20 @@ class BarChart(object):
         makechartRenumber{chart_idx} = function(){{
             {series_js}
             var conf = new Array();
+            conf["axis_font_colour"] = "{axis_font_colour}";
             conf["axis_lbl_drop"] = {axis_lbl_drop};
-            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
             conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
             conf["gridline_width"] = {gridline_width};
             conf["highlight"] = sofaHlRenumber{chart_idx};
-            conf["inner_bg"] = "{inner_bg}";
             conf["major_gridline_colour"] = "{major_gridline_colour}";
             conf["margin_offset_l"] = {margin_offset_l};
             conf["minor_ticks"] = {minor_ticks};
             conf["n_chart"] = "{n_chart}";
-            conf["outer_bg"] = "{outer_bg}";
+            conf["plot_bg"] = "{plot_bg}";
+            conf["plot_font_colour"] = "{plot_font_colour}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["tooltip_border_colour"] = "{tooltip_border_colour}";
             conf["xaxis_lbls"] = {xaxis_lbls};
             conf["xfontsize"] = {xfontsize};
@@ -1132,29 +1133,26 @@ class BarChart(object):
                 % u", ".join(series_names_list))
             series_js = series_js.lstrip()
             chart_settings_dic = {
-                u"axis_colour": "null",
+                u"axis_font_colour": css_dojo_dic['axis_font_colour'],
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-                u"axis_lbl_font_colour": css_dojo_dic['axis_lbl_font_colour'],
                 u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
                 u"chart_idx": u"%02d" % chart_idx,
                 u"colour_cases": colour_cases,
                 u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
-                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
                 u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
                 u"height": height,
                 u"indiv_title_html": indiv_title_html,
-                u"inner_bg": css_dojo_dic['inner_bg'],
-                u"inner_chart_border_colour": "null",
                 u"legend": "",  ## clustered bar charts use this 
                 u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
                 u"margin_offset_l": lib.if_none(margin_offset_l, 0),
                 u"minor_ticks": lib.if_none(minor_ticks, "false"),
                 u"n_chart": lib.if_none(n_chart, "''"),
-                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
-                u"outer_chart_border_colour": "null",
                 u"pagebreak": pagebreak,
+                u"plot_bg": css_dojo_dic['plot_bg'],
+                u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+                u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "black"),
                 u"series_js": series_js,
-                u"tick_colour": "null",
                 u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
                 u"width": width,
                 u"x_title": lib.if_none(x_title, "''"),
@@ -1300,29 +1298,26 @@ class BarChart(object):
                 series_js += u"\n    var series = new Array(%s);" % new_array
                 series_js = series_js.lstrip()
             chart_settings_dic = {
-                u"axis_colour": "null",
+                u"axis_font_colour": css_dojo_dic['axis_font_colour'],
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-                u"axis_lbl_font_colour": css_dojo_dic['axis_lbl_font_colour'],
                 u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
                 u"chart_idx": u"%02d" % chart_idx,
                 u"colour_cases": colour_cases,
                 u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
-                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
                 u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
                 u"height": height,
                 u"indiv_title_html": indiv_title_html,
-                u"inner_bg": css_dojo_dic['inner_bg'],
-                u"inner_chart_border_colour": "null",
                 u"legend": legend,  ## clustered bar charts use this 
                 u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
                 u"margin_offset_l": lib.if_none(margin_offset_l, 0),
                 u"minor_ticks":lib.if_none( minor_ticks, "false"),
                 u"n_chart": lib.if_none(n_chart, "''"),
-                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
-                u"outer_chart_border_colour": "null",
                 u"pagebreak": u"",  ## not used with clustered bar charts
+                u"plot_bg": css_dojo_dic['plot_bg'],
+                u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+                u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "black"),
                 u"series_js": series_js,
-                u"tick_colour": "null",
                 u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
                 u"width": width,
                 u"x_title": lib.if_none(x_title, "''"),
@@ -1359,18 +1354,18 @@ class BoxPlot(object):
             {series_js_str}
             var conf = new Array();
             conf["axis_lbl_drop"] = {axis_lbl_drop};
-            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
             conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
             conf["gridline_width"] = {gridline_width};
             conf["highlight"] = {highlight};
-            conf["inner_bg"] = "{inner_bg}";
             conf["major_gridline_colour"] = "{major_gridline_colour}";
             conf["margin_offset_l"] = {margin_offset_l};
             conf["minor_ticks"] = {minor_ticks};
             conf["n_chart"] = "{n_chart}";
-            conf["outer_bg"] = "{outer_bg}";
+            conf["plot_bg"] = "{plot_bg}";
+            conf["plot_font_colour"] = "{plot_font_colour}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["tooltip_border_colour"] = "{tooltip_border_colour}";
             conf["xaxis_lbls"] = {xaxis_lbls};
             conf["xfontsize"] = {xfontsize};
@@ -1814,8 +1809,6 @@ class BoxPlot(object):
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
         css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
-        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
-            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
         """
         Build js for every series. colour_mappings - take first of each pair to
         use as outline of box plots, and use getfainthex() to get lighter colour
@@ -1931,25 +1924,24 @@ class BoxPlot(object):
         series_js_str = u"\n".join(series_js)
         chart_settings_dic = {
             u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-            u"axis_lbl_font_colour": axis_lbl_font_colour,
             u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+            u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], u"null"),
             u"connector_style": lib.if_none(css_dojo_dic['connector_style'], u"defbrown"),
             u"display_dets": display_dets,
-            u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], u"black"),
             u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
             u"height": height,
             u"highlight": u"makefaint",
-            u"inner_bg": css_dojo_dic['inner_bg'],
             u"legend": legend,
             u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
             u"margin_offset_l": lib.if_none(margin_offset_l, 0),
             u"minor_ticks": lib.if_none(minor_ticks, "false"),
             u"n_chart": n_chart,
-            u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], u"null"),
             u"pagebreak": pagebreak,
+            u"plot_bg": css_dojo_dic['plot_bg'],
+            u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+            u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], u"black"),
             u"pre_series_str": pre_series_str,
             u"series_js_str": series_js_str,
-            u"tick_colour": "null",
             u"titles": title_dets_html,
             u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], u"#ada9a5"),
             u"width": width,
@@ -2015,13 +2007,11 @@ class Histo(object):
                 fill: "{fill}"
             }};
             var conf = new Array();
-            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
             conf["gridline_width"] = {gridline_width};
             conf["highlight"] = sofaHlRenumber{chart_idx};
             conf["inc_normal"] = {js_inc_normal};
-            conf["inner_bg"] = "{inner_bg}";
             conf["major_gridline_colour"] = "{major_gridline_colour}";
             conf["margin_offset_l"] = {margin_offset_l};
             conf["maxval"] = {maxval};
@@ -2029,7 +2019,9 @@ class Histo(object):
             conf["minor_ticks"] = {minor_ticks};
             conf["n_chart"] = "{n_chart}";
             conf["normal_curve_colour"] = "{normal_curve_colour}";
-            conf["outer_bg"] = "{outer_bg}";
+            conf["plot_bg"] = "{plot_bg}";
+            conf["plot_font_colour"] = "{plot_font_colour}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["tooltip_border_colour"] = "{tooltip_border_colour}";
             conf["xaxis_lbls"] = {xaxis_lbls};
             conf["xfontsize"] = {xfontsize};
@@ -2295,17 +2287,15 @@ class Histo(object):
                 width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
                 xfontsize = xfontsize*0.8
             chart_settings_dic = {
-                u"axis_lbl_font_colour": lib.if_none(css_dojo_dic['axis_lbl_font_colour'], "null"),
                 u"bin_lbls": bin_lbls,
+                u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
                 u"chart_idx": u"%02d" % chart_idx,
                 u"colour_cases": colour_cases,
                 u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
                 u"fill": fill,
-                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "white"),
                 u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
                 u"height": height,
                 u"indiv_title_html": indiv_title_html,
-                u"inner_bg": lib.if_none(css_dojo_dic['inner_bg'], "null"),
                 u"js_inc_normal": js_inc_normal,
                 u"major_gridline_colour": lib.if_none(css_dojo_dic['major_gridline_colour'], "null"),
                 u"margin_offset_l": lib.if_none(margin_offset_l, 0),
@@ -2316,10 +2306,11 @@ class Histo(object):
                 u"norm_ys": norm_ys,
                 u"normal_curve_colour": lib.if_none(css_dojo_dic['normal_curve_colour'], "null"),
                 u"normal_stroke_width": normal_stroke_width,
-                u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
                 u"pagebreak": pagebreak,
+                u"plot_bg": lib.if_none(css_dojo_dic['plot_bg'], "null"),
+                u"plot_font_colour": lib.if_none(css_dojo_dic['plot_font_colour'], "null"),
+                u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "white"),
                 u"stroke_width": stroke_width,
-                u"tick_colour": lib.if_none(css_dojo_dic['major_gridline_colour'], "null"),
                 u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
                 u"var_lbl": var_lbl,
                 u"width": width,
@@ -2365,19 +2356,18 @@ class ScatterPlot(object):
             {series_js}
             var conf = new Array();
             conf["axis_lbl_drop"] = {axis_lbl_drop};
-            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
+            conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
             conf["gridline_width"] = {gridline_width};
             conf["highlight"] = sofaHlRenumber{chart_idx};
             conf["inc_regression_js"] = {inc_regression_js};
-            conf["inner_bg"] = "{inner_bg}";
             conf["major_gridline_colour"] = "{major_gridline_colour}";
             conf["margin_offset_l"] = {margin_offset_l};
             conf["minor_ticks"] = {minor_ticks};
             conf["n_chart"] = "{n_chart}";
-            conf["outer_bg"] = "{outer_bg}";
-            conf["tick_colour"] = "{tick_colour}";
+            conf["plot_bg"] = "{plot_bg}";
+            conf["plot_font_colour"] = "{plot_font_colour}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["tooltip_border_colour"] = "{tooltip_border_colour}";
             conf["xfontsize"] = {xfontsize};
             conf["xmax"] = {xmax};
@@ -2496,10 +2486,6 @@ class ScatterPlot(object):
             few_unique_x_vals = (len(x_set) < 4)
             minor_ticks = u"false" if few_unique_x_vals else u"true"
             css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
-            # Can't have white for scatterplots because always a white outer background
-            axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
-                if css_dojo_dic['axis_lbl_font_colour'] != u"white"
-                else u"black")
             stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
             single_colour = True
             override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH
@@ -2550,28 +2536,27 @@ class ScatterPlot(object):
         # ...newbie-need-svg-path-segment-string
         chart_settings_dic = {
             u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-            u"axis_lbl_font_colour": axis_lbl_font_colour,
+            u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
             u"chart_idx": u"%02d" % chart_idx,
             u"colour_cases": colour_cases,
             u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
             u"fill": fill,
-            u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "white"),
             u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
             u"height": height,
             u"inc_regression_js": inc_regression_js,
             u"indiv_chart_title": indiv_chart_title,
-            u"inner_bg": lib.if_none(css_dojo_dic['inner_bg'], "null"),
             u"legend": legend,
             u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
             u"margin_offset_l": lib.if_none(margin_offset_l, 0),
             u"minor_ticks": lib.if_none(minor_ticks, "false"),
             u"n_chart": lib.if_none(n_chart, "''"),
-            u"outer_bg": lib.if_none(css_dojo_dic['outer_bg'], "null"),
             u"pagebreak": pagebreak,
+            u"plot_bg": lib.if_none(css_dojo_dic['plot_bg'], "null"),
+            u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+            u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "white"),
             u"regression_msg": regression_msg,
             u"series_js": series_js,
             u"stroke_width": stroke_width,
-            u"tick_colour": css_dojo_dic['major_gridline_colour'],
             u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
             u"width": width,
             u"x_title": lib.if_none(x_title, "''"),
@@ -2655,12 +2640,12 @@ class ScatterPlot(object):
             + u"<br>")
         html.append(regression_msg)
         xmin, xmax = _get_optimal_min_max(min(all_x), max(all_x))
-        charting_pylab.add_scatterplot(css_dojo_dic['inner_bg'], show_borders,
+        charting_pylab.add_scatterplot(css_dojo_dic['plot_bg'], show_borders,
             css_dojo_dic['major_gridline_colour'], 
-            css_dojo_dic['filled_font_colour'], n_chart, series_dets, label_x,
-            label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
-            width_inches, height_inches, xmin=xmin, xmax=xmax, ymin=ymin,
-            ymax=ymax, dot_colour=item_colours[0],
+            css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets,
+            label_x, label_y, x_vs_y, title_dets_html, add_to_report,
+            report_name, html, width_inches, height_inches, xmin=xmin,
+            xmax=xmax, ymin=ymin, ymax=ymax, dot_colour=item_colours[0],
             series_colours_by_lbl=series_colours_by_lbl)
         html.append(u"</div>")
 
@@ -2891,18 +2876,18 @@ class LineAreaChart(object):
             {series_js}
             var conf = new Array();
             conf["axis_lbl_drop"] = {axis_lbl_drop};
-            conf["axis_lbl_font_colour"] = "{axis_lbl_font_colour}";
             conf["axis_lbl_rotate"] = {axis_lbl_rotate};
+            conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
             conf["gridline_width"] = {gridline_width};
-            conf["inner_bg"] = "{inner_bg}";
             conf["major_gridline_colour"] = "{major_gridline_colour}";
             conf["margin_offset_l"] = {margin_offset_l};
             conf["micro_ticks"] = {micro_ticks};
             conf["minor_ticks"] = {minor_ticks};
             conf["n_chart"] = "{n_chart}";
-            conf["outer_bg"] = "{outer_bg}";
+            conf["plot_bg"] = "{plot_bg}";
+            conf["plot_font_colour"] = "{plot_font_colour}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["time_series"] = {time_series};
             conf["tooltip_border_colour"] = "{tooltip_border_colour}";
             conf["x_title"] = "{x_title}";
@@ -3100,11 +3085,6 @@ class LineAreaChart(object):
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
         css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
-        # Can't have white for line charts because always a white outer background
-        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
-            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
-        #unused = setup_highlights(colour_mappings, single_colour=False, 
-        #                                override_first_highlight=True)
         try:
             stroke = css_dojo_dic['colour_mappings'][0][0]
             fill = css_dojo_dic['colour_mappings'][0][1]
@@ -3147,22 +3127,22 @@ class LineAreaChart(object):
             series_js = series_js.lstrip()
             chart_settings_dic = {
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-                u"axis_lbl_font_colour": axis_lbl_font_colour,
                 u"axis_lbl_rotate": axis_lbl_rotate,
+                u"chart_bg": css_dojo_dic['chart_bg'],
                 u"chart_idx": u"%02d" % chart_idx,
                 u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
-                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
                 u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
                 u"indiv_title_html": indiv_title_html,
-                u"inner_bg": css_dojo_dic['inner_bg'],
                 u"legend": u"",  ## not used in area charts - they can only show one series per chart
                 u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
                 u"margin_offset_l": lib.if_none(margin_offset_l, 0),
                 u"micro_ticks": micro_ticks,
                 u"minor_ticks": minor_ticks,
                 u"n_chart": n_chart,
-                u"outer_bg": css_dojo_dic['outer_bg'],
                 u"pagebreak": pagebreak,
+                u"plot_bg": css_dojo_dic['plot_bg'],
+                u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+                u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "black"),
                 u"series_js": series_js,
                 u"time_series": lib.if_none(js_time_series, "false"),
                 u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
@@ -3255,9 +3235,6 @@ class LineAreaChart(object):
         css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
-        # Can't have white for line charts because always a white outer background
-        axis_lbl_font_colour = (css_dojo_dic['axis_lbl_font_colour']
-            if css_dojo_dic['axis_lbl_font_colour'] != u"white" else u"black")
         series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets,
             css_fil)
         # loop through charts
@@ -3347,7 +3324,7 @@ class LineAreaChart(object):
                     % (series_idx, series_vals))
                 stroke = series_colours_by_lbl[series_lbl]
                 # To set markers explicitly:
-                # http://dojotoolkiouter_bgt.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
+                # http://dojotoolkit.org/api/1.5/dojox/charting/Theme/Markers/CIRCLE
                 # e.g. marker: dojox.charting.Theme.defaultMarkers.CIRCLE"
                 # Note - trend line comes first in case just two points - don't want it to set the x-axis labels - leave that to the other lines
                 ## arbitrary plot names added with addPlot in my js file - each has different settings re: tension and markers
@@ -3398,15 +3375,12 @@ class LineAreaChart(object):
             series_js = series_js.lstrip()
             chart_settings_dic = {
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
-                u"axis_lbl_font_colour": axis_lbl_font_colour,
                 u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
+                u"chart_bg": css_dojo_dic['chart_bg'],
                 u"chart_idx": u"%02d" % chart_idx,
                 u"connector_style": lib.if_none(css_dojo_dic['connector_style'], "defbrown"),
-                u"filled_font_colour": lib.if_none(css_dojo_dic['filled_font_colour'], "black"),
                 u"gridline_width": lib.if_none(css_dojo_dic['gridline_width'], 3),
                 u"indiv_title_html": indiv_title_html,
-                u"inner_bg": css_dojo_dic['inner_bg'],
-                u"outer_bg": css_dojo_dic['outer_bg'],
                 u"legend": legend,
                 u"major_gridline_colour": css_dojo_dic['major_gridline_colour'],
                 u"margin_offset_l": lib.if_none(margin_offset_l, 0),
@@ -3414,6 +3388,9 @@ class LineAreaChart(object):
                 u"minor_ticks": lib.if_none(minor_ticks, "false"),
                 u"n_chart": n_chart,
                 u"pagebreak": pagebreak,
+                u"plot_bg": css_dojo_dic['plot_bg'],
+                u"plot_font_colour": css_dojo_dic['plot_font_colour'],
+                u"plot_font_colour_filled": lib.if_none(css_dojo_dic['plot_font_colour_filled'], "black"),
                 u"series_js": series_js,
                 u"time_series": lib.if_none(js_time_series, "false"),
                 u"tooltip_border_colour": lib.if_none(css_dojo_dic['tooltip_border_colour'], "#ada9a5"),
@@ -3460,11 +3437,11 @@ class PieChart(object):
             {slices_js}
             var conf = new Array();
             conf["connector_style"] = "{connector_style}";
-            conf["filled_font_colour"] = "{filled_font_colour}";
-            conf["filled_outer_bg"] = "{filled_outer_bg}";
             conf["highlight"] = sofaHlRenumber{chart_idx};
             conf["lbl_offset"] = {lbl_offset};
             conf["n_chart"] = "{n_chart}";
+            conf["plot_bg_filled"] = "{plot_bg_filled}";
+            conf["plot_font_colour_filled"] = "{plot_font_colour_filled}";
             conf["radius"] = {radius};
             conf["slice_colours"] = {slice_colours};
             conf["slice_fontsize"] = {slice_fontsize};
@@ -3581,13 +3558,13 @@ class PieChart(object):
                 u"chart_idx": u"%02d" % chart_idx,
                 u"colour_cases": colour_cases,
                 u"connector_style": lib.if_none(css_dojos_dic['connector_style'], "defbrown"),
-                u"filled_font_colour": css_dojos_dic['filled_font_colour'],
-                u"filled_outer_bg": lib.if_none(css_dojos_dic['filled_outer_bg'], u""),
                 u"height": height,
                 u"indiv_title_html": indiv_title_html,
                 u"lbl_offset": lib.if_none(lbl_offset, -30),
                 u"n_chart": n_chart,
                 u"pagebreak": pagebreak,
+                u"plot_bg_filled": lib.if_none(css_dojos_dic['plot_bg_filled'], u""),
+                u"plot_font_colour_filled": css_dojos_dic['plot_font_colour_filled'],
                 u"radius": lib.if_none(radius, 140),
                 u"slice_colours": colours_for_this_chart,
                 u"slice_fontsize": slice_fontsize,

@@ -394,11 +394,12 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                 fil_css, fil_report, fil_script, default_dbe, default_dbs, 
                 default_tbls, con_dets)
             # write the data
-            if (os.path.exists(fil_name)
+            if (self.new
+                and (os.path.exists(fil_name)
                 and wx.MessageBox(_(u"A project file of this name already "
                     u"exists. Do you wish to override it?"),
                     caption=_("PROJECT ALREADY EXISTS"),
-                    style=wx.YES_NO) == wx.NO):
+                    style=wx.YES_NO) == wx.NO)):
                 return
             # In Windows, MySQL.proj and mysql.proj are the same in the file 
             # system - if already a file with same name, delete it first

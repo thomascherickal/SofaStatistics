@@ -1,10 +1,12 @@
 /*
 dojo_style_start
-outer_bg = u"white"
-filled_outer_bg = u"#f2f1f0"
-inner_bg = u"#f2f1f0" # u"#e0d9d5"
-axis_lbl_font_colour = u"#423126"
-filled_font_colour = u"#423126"
+chart_bg = u"white"
+chart_font_colour = u"#423126"
+plot_bg = u"#f2f1f0"
+plot_font_colour = u"#423126"
+plot_bg_filled = u"#f2f1f0"
+plot_font_colour_filled = u"#423126"
+axis_font_colour = u"#423126"
 major_gridline_colour = u"#b8a49e"
 gridline_width = 1
 stroke_width = 3

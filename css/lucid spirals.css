@@ -1,20 +1,23 @@
 /*
 dojo_style_start
-outer_bg = u"white"
-filled_outer_bg = u"#3f1931"
-inner_bg = u"#3f1931"
-axis_lbl_font_colour = u"#3f1931"
-filled_font_colour = u"white"
+
+chart_bg = u"white"
+chart_font_colour = u"#423126"
+plot_bg = u"#3f1931"
+plot_font_colour = u"white"
+plot_bg_filled = u"#3f1931"
+plot_font_colour_filled = u"white"
+axis_font_colour = u"#423126"
 major_gridline_colour = u"#eadfe6"
 gridline_width = 1
 stroke_width = 3
 tooltip_border_colour = u"#fec79a"
 normal_curve_colour = u"#414141"
 colour_mappings = [
-    (u"#f6ecec", u"#803363"),
     (u"#e29ec9", u"#ffe8f7"),
-    (u"#803363", u"#3f1931"),
     (u"#614e5f", u"#867484"),
+    (u"#f6ecec", u"#803363"),
+    (u"#803363", u"#3f1931"),
     (u"#2a1020", u"#4d2840"),
     (u"#f87500", u"#f8e8ac"),
     (u"#faba85", u"#fae0cb"),

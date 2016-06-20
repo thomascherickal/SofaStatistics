@@ -255,12 +255,12 @@ def process_fldnames(raw_names, headless=False, force_quickcheck=False):
     Turn spaces into underscores, fills blank field names with a safe and 
     uniquely numbered name, and appends a unique number to duplicate field 
     names.
-    
+
     Checks all field names OK for sqlite and none are empty strings.
-    
+
     Expects a list of field name strings. Returns the same number of field 
     names.
-    
+
     The client code should not rely on the row data it extracts having the same 
     field names exactly as they may be modified e.g. spaces turned to 
     underscores.

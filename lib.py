@@ -1917,13 +1917,16 @@ def get_unique_fldnames(existing_fldnames):
             newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
         else:
             if existing_fldnames.count(name) > 1:
-                if name not in prev_fldnames_and_counters:
-                    prev_fldnames_and_counters[name] = 1
-                else:
-                    prev_fldnames_and_counters[name] += 1
-                # make unique using next number
-                newname = mg.NEXT_VARIANT_FLDNAME_TEMPLATE % (name, 
-                    prev_fldnames_and_counters[name])
+                while True:
+                    if name not in prev_fldnames_and_counters:
+                        prev_fldnames_and_counters[name] = 1
+                    else:
+                        prev_fldnames_and_counters[name] += 1
+                    # make unique using next number
+                    newname = mg.NEXT_VARIANT_FLDNAME_TEMPLATE % (name, 
+                        prev_fldnames_and_counters[name])
+                    if newname not in existing_fldnames:
+                        break
             else:
                 newname = name
         fldnames.append(newname)
