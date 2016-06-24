@@ -3,6 +3,6 @@
 tests/
 .project
 .pydevproject
-.settings/org.eclipse.core.resources.prefs
+sofastats/.settings
 test_start.py
 

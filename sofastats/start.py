@@ -20,7 +20,7 @@ from __future__ import absolute_import
 import traceback
 
 import home
-import setup
+import setup_sofastats
 
 show_early_steps = True # same in setup and start
 
@@ -35,6 +35,6 @@ try:
     app.MainLoop()
 except Exception, e:
     print(traceback.format_exc())
-    app = setup.ErrMsgApp(e)
+    app = setup_sofastats.ErrMsgApp(e)
     app.MainLoop()
     del app

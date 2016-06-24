@@ -55,8 +55,8 @@ if platform.system() == u"Windows":
             def write(self, data):
                 pass
         sys.stdout = NullWriter()
-import setup # if any modules are going to fail, it will be when this imported
-LOCAL_PATH_SETUP_NEEDED = setup.setup_folders()
+import setup_sofastats # if any modules are going to fail, it will be when this imported
+LOCAL_PATH_SETUP_NEEDED = setup_sofastats.setup_folders()
 if show_early_steps: print(u"Completed setup_folders successfully.")
 import codecs
 import datetime
@@ -78,7 +78,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
                u"package. %s" % traceback.format_exc())
         if show_early_steps:
             print(msg)
-            raw_input(setup.INIT_DEBUG_MSG)
+            raw_input(setup_sofastats.INIT_DEBUG_MSG)
         raise Exception(msg)
 if show_early_steps: print(u"Imported hl successfully.")
 import basic_lib as b
@@ -872,7 +872,7 @@ class StartFrame(wx.Frame):
         return new_version
             
     def on_show(self, event):
-        setup.init_com_types(self, self.panel) # fortunately, not needed on Mac
+        setup_sofastats.init_com_types(self, self.panel) # fortunately, not needed on Mac
     
     def on_paint_err_msg(self, e):
         wx.MessageBox(u"Problem displaying start form. Please email the lead "
