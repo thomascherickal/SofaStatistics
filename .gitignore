@@ -5,4 +5,7 @@ tests/
 .pydevproject
 sofastats/.settings
 test_start.py
+build/
+dist/
+sofastats.egg-info
 
