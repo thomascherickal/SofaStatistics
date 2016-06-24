@@ -1,0 +1,8 @@
+include css/*.css
+include images/
+include _internal/sofa_db
+include locale/
+include projs/default.proj
+include reports/sofastats_report_extras/
+include vdts/general_var_dets.vdt
+
