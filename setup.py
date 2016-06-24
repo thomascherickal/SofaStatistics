@@ -23,7 +23,7 @@ setup(
         "Development Status :: 5 - Production/Stable",
         "Topic :: Scientific/Engineering :: Mathematics",
         "License :: OSI Approved :: GNU Affero General Public License v3 or later (AGPLv3+)",
-    include_package_data=True,
     ],
+    include_package_data=True,
 )
 
