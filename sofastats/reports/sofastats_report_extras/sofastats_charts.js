@@ -536,7 +536,7 @@ makeScatterplot = function(chartname, series, conf){
 }
 
 makeBoxAndWhisker = function(chartname, series, seriesconf, conf){
-    nChartFontColour = conf["plot_font_colour_filled"]
+    nChartFontColour = conf["plot_font_colour"]
     nChart = conf["n_chart"];
     // chartwide function setting - have access to val.element (Column), val.index (0), val.run.data (y_vals)
     var getTooltip = function(val){
