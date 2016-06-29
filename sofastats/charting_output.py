@@ -2997,29 +2997,19 @@ class LineAreaChart(object):
 
     @staticmethod
     def _get_smooth_y_vals(y_vals):
-        "Returns values to plot a smoothed line which fits the y_vals provided"
+        """
+        Returns values to plot a smoothed line which fits the y_vals provided.
+        """
         smooth_y_vals = []
-        weight = 0.8
-        val1 = None
-        val2 = None
-        val3 = None
-        val4 = None
-        for i, y_val in enumerate(y_vals, 1):
-            if i > 3:
-                val1 = val2 # slips down a notch
-            if i > 2:
-                val2 = val3
-            if i > 1:
-                val3 = val4
-            val4 = y_val # pops in at the top
-            vals = [val4, val3, val2, val1]
-            numer = 0
-            denom = 0
-            for i, val in enumerate(vals,1):
-                if val is not None:
-                    numer += val*(weight**i)
-                    denom += weight**i
-            smooth_y_vals.append(numer/(1.0*denom))
+        for i, y_val in enumerate(y_vals):
+            if 1 < i < len(y_vals) - 2:
+                smooth_y_vals.append(np.median(y_vals[i - 2 : i + 3]))
+            elif i in (1, len(y_vals) - 2):
+                smooth_y_vals.append(np.median(y_vals[i - 1: i + 2]))
+            elif i == 0:
+                smooth_y_vals.append((2 * y_val + y_vals[i + 1]) / 3)
+            elif i == len(y_vals) - 1:
+                smooth_y_vals.append((2 * y_val + y_vals[i - 1]) / 3)
         return smooth_y_vals
 
     @staticmethod
@@ -3493,7 +3483,7 @@ class PieChart(object):
         width = 500 if mg.PLATFORM == mg.WINDOWS else 450
         if multichart:
             width = width*0.8
-        height = 350 if multichart else 400
+        height = 370 if multichart else 420
         radius = 120 if multichart else 140
         lbl_offset = -20 if multichart else -30
         css_dojos_dic = lib.OutputLib.extract_dojo_style(css_fil)
