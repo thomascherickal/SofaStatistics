@@ -2,31 +2,31 @@
 # -*- coding: utf-8 -*-
 
 """
-SOFA Statistics is released under the AGPL3 and the copyright is held by 
+SOFA Statistics is released under the AGPL3 and the copyright is held by
 Paton-Simpson & Associates Ltd.
 
-Launches the SOFA main form. Along the way it tries to detect errors and report 
-on them to the user so that they can seek help. E.g. faulty version of Python 
+Launches the SOFA main form. Along the way it tries to detect errors and report
+on them to the user so that they can seek help. E.g. faulty version of Python
 being used to launch SOFA; or missing images needed by the form.
 
 Can also run test code to diagnose early problems.
 
-Also checks to see if the current user of SOFA has their local SOFA folder in 
-place ready to use. If not, SOFA constructs one. First, it creates the required 
-folder and subfolders. Then it populates them by copying across css, sofa_db, 
+Also checks to see if the current user of SOFA has their local SOFA folder in
+place ready to use. If not, SOFA constructs one. First, it creates the required
+folder and subfolders. Then it populates them by copying across css, sofa_db,
 default proj, vdts, and report extras.
 
-In the local folder the default project file is modified to point to the user's 
+In the local folder the default project file is modified to point to the user's
 file paths. A version file is made for future reference.
 
-SOFA may also look to see if the local folder was created by an older version of 
+SOFA may also look to see if the local folder was created by an older version of
 SOFA. There may be some special tasks to conduct e.g. updating css files.
 
-If missing, a SOFA recovery folder is also made. If there is already a recovery 
-folder, but the existing local copy of SOFA was older than the installing copy, 
+If missing, a SOFA recovery folder is also made. If there is already a recovery
+folder, but the existing local copy of SOFA was older than the installing copy,
 the recovery folder will be wiped and overwritten with the latest files.
 
-When the form is shown for the first time on Windows versions, a warning is 
+When the form is shown for the first time on Windows versions, a warning is
 given and com types are initialised.
 """
 
@@ -47,7 +47,7 @@ if platform.system() == u"Windows":
     try: # http://bugs.python.org/issue1415#msg57459
         print(" "*10000) # large enough to force flush to file
     except IOError, e: # fails in pyw (i.e. running pythonw.exe)
-        # IOError: [Errno 9] Bad file descriptor error when eventually tries to 
+        # IOError: [Errno 9] Bad file descriptor error when eventually tries to
         # flush content of all the writes to file.
         class NullWriter:
             def __init__(self):
@@ -55,7 +55,7 @@ if platform.system() == u"Windows":
             def write(self, data):
                 pass
         sys.stdout = NullWriter()
-import setup_sofastats # if any modules are going to fail, it will be when this imported
+from sofastats import setup_sofastats # if any modules are going to fail, it will be when this imported
 LOCAL_PATH_SETUP_NEEDED = setup_sofastats.setup_folders()
 if show_early_steps: print(u"Completed setup_folders successfully.")
 import codecs
@@ -113,9 +113,9 @@ reverse_bmp = lib.GuiLib.reverse_bmp
 
 def setup_lang_and_fonts():
     """
-    Must be done after redirection has occurred in __init__ so printing output 
+    Must be done after redirection has occurred in __init__ so printing output
     to redirected file can cope with unicode on Win and Mac!
-    
+
     Must be done AFTER redirection has occurred or has no effect!
     """
     sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
@@ -138,7 +138,7 @@ def lang_etc(fn):
 class SofaApp(wx.App):
 
     def __init__(self):
-        # if wanting to initialise the parent class it must be run in 
+        # if wanting to initialise the parent class it must be run in
         # child __init__ and nowhere else (not in OnInit for example).
         if dev_debug:
             redirect = False
@@ -147,14 +147,14 @@ class SofaApp(wx.App):
             redirect = True
             filename = os.path.join(mg.INT_PATH, u'output.txt')
         wx.App.__init__(self, redirect=redirect, filename=filename)
-    
+
     @lang_etc
     def OnInit(self):
         """
-        Application needs a frame to open so do that after setting some global 
+        Application needs a frame to open so do that after setting some global
         values for screen dimensions.
-        
-        Also responsible for setting translations etc so application 
+
+        Also responsible for setting translations etc so application
         internationalised.
         """
         import db_grid
@@ -195,10 +195,10 @@ def setup_i18n():
         canon_name = get_canon_name(mg.LANGDIR)
         mg.CANON_NAME = canon_name
     except Exception, e:
-        raise Exception(u"Unable to get canon name. Original error: %s" 
+        raise Exception(u"Unable to get canon name. Original error: %s"
             % b.ue(e))
     try:
-        mytrans = gettext.translation(u"sofastats", mg.LANGDIR, 
+        mytrans = gettext.translation(u"sofastats", mg.LANGDIR,
             languages=[canon_name,], fallback=True)
         mytrans.install(unicode=True) # must set explicitly here for Mac
     except Exception, e:
@@ -218,20 +218,20 @@ def was_translation_supplied(langdir, langid):
         langids_supplied = get_langids_supported_by_sofa(langdir)
         supplied = (langid in langids_supplied)
     except Exception, e:
-        supplied = False  
+        supplied = False
     return supplied
 
 def get_canon_name(langdir):
     """
     Try to get a canon_name that will work on this system.
-    
-    First try the language default. Will only work if SOFA has support for 
+
+    First try the language default. Will only work if SOFA has support for
     that language (and if language actually installed on system).
-    
-    If not possible, fall back to closest language supplied. And failing 
-    that, fall back to English. 
-    
-    If fails in spite of translation being supplied, suggest options and 
+
+    If not possible, fall back to closest language supplied. And failing
+    that, fall back to English.
+
+    If fails in spite of translation being supplied, suggest options and
     message to pass for support.
     """
     debug = False
@@ -257,18 +257,18 @@ def get_canon_name(langdir):
 def get_langid_and_name(langdir):
     """
     Get the best langid possible.
-    
-    If some variant of English e.g. English (Australia) just use the main 
-    English version. There will probably never be lots of English 
+
+    If some variant of English e.g. English (Australia) just use the main
+    English version. There will probably never be lots of English
     translations.
 
-    Otherwise, try the language default. Will only work if SOFA has support for 
+    Otherwise, try the language default. Will only work if SOFA has support for
     that language (and if language actually installed on system).
 
-    If not possible, fall back to closest language supplied. And failing that, 
+    If not possible, fall back to closest language supplied. And failing that,
     fall back to English.
 
-    If a failure because SOFA translation not provided, let user know they can 
+    If a failure because SOFA translation not provided, let user know they can
     ask for a translation or even help contribute to a translation.
     """
     orig_langid = (mg.TEST_LANGID if test_lang else wx.LANGUAGE_DEFAULT)
@@ -287,7 +287,7 @@ def get_langid_and_name(langdir):
         if translation_supplied:
             langid = orig_langid # try it - still might fail
         else:
-            closest_langid_supplied = get_closest_langid_supplied(langdir, 
+            closest_langid_supplied = get_closest_langid_supplied(langdir,
                 orig_langinfo)
             if closest_langid_supplied:
                 langid = closest_langid_supplied
@@ -300,8 +300,8 @@ def get_langid_and_name(langdir):
                 u"%(orig_langname)s yet. SOFA will operate in "
                 u"%(langname_used)s instead. If you are able to help "
                 u"translate English into %(orig_langname)s please "
-                u"contact %(contact)s." % 
-                {"orig_langname": orig_langname, 
+                u"contact %(contact)s." %
+                {"orig_langname": orig_langname,
                 "langname_used": langname_used,
                 "contact": mg.CONTACT})
             print(msg)
@@ -309,8 +309,8 @@ def get_langid_and_name(langdir):
 
 def warn_about_canon_probs(mylocale, langid, orig_langname):
     """
-    If a language isn't installed on the OS then it won't even look for 
-    the locale subfolder. GetLanguage() will return 1 instead of the langid. 
+    If a language isn't installed on the OS then it won't even look for
+    the locale subfolder. GetLanguage() will return 1 instead of the langid.
     See also http://code.google.com/p/bpbible/source/browse/trunk/gui/i18n.py?r=977#36
     """
     if mg.PLATFORM == mg.LINUX:
@@ -324,13 +324,13 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
         u" operating perfectly apart from the attempt to set the "
         u"translation.\n\nDoes your system have %(orig_langname)s "
         u"installed?%(cli)s\n\nThe developer may be able to supply extra "
-        u"help: %(contact)s" % {"orig_langname": orig_langname, 
+        u"help: %(contact)s" % {"orig_langname": orig_langname,
         "cli": cli, "contact": mg.CONTACT})
     try:
         lang = mylocale.GetLanguage()
     except Exception, e:
-        lang = u"Unable to get language."  
-    try:    
+        lang = u"Unable to get language."
+    try:
         canon_name = mylocale.GetCanonicalName()
     except Exception, e:
         canon_name = u"Unable to get canonical name."
@@ -349,12 +349,12 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
     extra_diagnostics = (u"\n\nExtra details for developer:"
     u"\nGetLanguageName: %(GetLanguageName)s"
     u"\nlangid: %(langid)s"
-    u"\nGetlanguage: %(Getlanguage)s" 
-    u"\nGetCanonicalName: %(GetCanonicalName)s" 
-    u"\nGetSysName: %(GetSysName)s" 
-    u"\nGetLocale: %(GetLocale)s" 
+    u"\nGetlanguage: %(Getlanguage)s"
+    u"\nGetCanonicalName: %(GetCanonicalName)s"
+    u"\nGetSysName: %(GetSysName)s"
+    u"\nGetLocale: %(GetLocale)s"
     u"\nGetName: %(GetName)s" % {u"GetLanguageName": orig_langname,
-    u"langid": langid, u"Getlanguage": lang, 
+    u"langid": langid, u"Getlanguage": lang,
     u"GetCanonicalName": canon_name, u"GetSysName": sysname,
     u"GetLocale": getlocale, u"GetName": localename})
     msg += extra_diagnostics
@@ -362,7 +362,7 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
     f = codecs.open(prob, "w", "utf8")
     f.write(msg)
     f.close()
-    #mg.DEFERRED_WARNING_MSGS.append(msg)     
+    #mg.DEFERRED_WARNING_MSGS.append(msg)
 
 def get_langids_supported_by_sofa(langdir):
     locale_pths = os.listdir(langdir)
@@ -420,8 +420,8 @@ class StartFrame(wx.Frame):
             raise Exception(deferred_error_msg)
         self.set_layout_constants()
         self.text_brown = (90, 74, 61) # on_paint needs this etc
-        wx.Frame.__init__(self, None, title=_("SOFA Start"), 
-            size=(self.form_width, self.form_height), 
+        wx.Frame.__init__(self, None, title=_("SOFA Start"),
+            size=(self.form_width, self.form_height),
             pos=(self.form_pos_left,-1), style=wx.CAPTION|wx.MINIMIZE_BOX
             |wx.CLOSE_BOX|wx.SYSTEM_MENU)
         self.SetClientSize(self.GetSize())
@@ -474,7 +474,7 @@ class StartFrame(wx.Frame):
             raise # for debug
         # text
         # NB cannot have transparent background properly in Windows if using
-        # a static ctrl 
+        # a static ctrl
         # http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3045245
         if mg.PLATFORM == mg.MAC:
             self.help_font = wx.Font(12, wx.DEFAULT, wx.NORMAL, wx.NORMAL)
@@ -513,7 +513,7 @@ class StartFrame(wx.Frame):
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_(u"Please click on \"Enter/Edit Data\" and delete"
                 u" either of these tables if present - \"%(tbl1)s\" and "
-                u"\"%(tbl2)s\"") % {u"tbl1": mg.TMP_TBLNAME, 
+                u"\"%(tbl2)s\"") % {u"tbl1": mg.TMP_TBLNAME,
                 u"tbl2": mg.TMP_TBLNAME2})
         if show_more_steps: print(u"Passed check for having to delete database")
         #try:
@@ -528,7 +528,7 @@ class StartFrame(wx.Frame):
             if show_more_steps: print(u"Has deferred warning message")
             wx.CallAfter(self.on_deferred_warning_msg, deferred_warning_msg)
             if show_more_steps: print(u"Set warning message to CallAfter")
-    
+
     def get_new_version(self):
         """
         Return empty string if no new version or checking prevented.
@@ -541,11 +541,11 @@ class StartFrame(wx.Frame):
             pass
         if debug: print(new_version)
         return new_version
-    
+
     def set_upgrade_availability(self, new_version):
         """
         new_version will be empty string or a version number e.g. 1.2.3
-        Upgrade unavailable if nothing newer or if checking prevented or a 
+        Upgrade unavailable if nothing newer or if checking prevented or a
             connection not made.
         """
         try:
@@ -553,7 +553,7 @@ class StartFrame(wx.Frame):
                 version_a=new_version, version_b=mg.VERSION)
         except Exception, e:
             self.upgrade_available = False
-    
+
     def set_layout_constants(self):
         # layout "constants"
         self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
@@ -607,8 +607,8 @@ class StartFrame(wx.Frame):
             self.prefs_img_offset = 55
             self.backup_img_offset = 55
             self.data_img_offset = 45
-            self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10) 
-    
+            self.form_pos_left = mg.MAX_WIDTH-(self.form_width+10)
+
     def make_sized_imgs(self):
         """
         Set images according to size constraints (tight_layout).
@@ -625,7 +625,7 @@ class StartFrame(wx.Frame):
             data_img = u"data_tight.gif"
         sofabg = os.path.join(mg.SCRIPT_PATH, u"images", sofabg_img)
         self.top_sofa = os.path.join(mg.SCRIPT_PATH, u"images", u"top_sofa.gif")
-        self.demo_chart_sized = os.path.join(mg.SCRIPT_PATH, u"images", 
+        self.demo_chart_sized = os.path.join(mg.SCRIPT_PATH, u"images",
                                              demo_chart_img)
         self.proj_sized = os.path.join(mg.SCRIPT_PATH, u"images", proj_img)
         self.data_sized = os.path.join(mg.SCRIPT_PATH, u"images", data_img)
@@ -726,7 +726,7 @@ class StartFrame(wx.Frame):
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
-        bmp_btn_charts = t2b(lib.GuiLib.get_blank_btn_bmp(), 
+        bmp_btn_charts = t2b(lib.GuiLib.get_blank_btn_bmp(),
             _("Charts"), btn_font_sz, "white")
         if REVERSE: bmp_btn_charts = reverse_bmp(bmp_btn_charts)
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts,
@@ -799,33 +799,33 @@ class StartFrame(wx.Frame):
             self.btn_prefs.SetCursor(hand)
             self.btn_backup.SetCursor(hand)
             self.btn_exit.SetCursor(hand)
-    
+
     def setup_links(self, new_version):
         """
-        new_version -- might be an empty string but, if so, there should be no 
+        new_version -- might be an empty string but, if so, there should be no
         upgrade available so no link displayed anyway.
         """
         # home link
         home_link_hpos = self.version_right if REVERSE else self.main_left
         link_home = hl.HyperLinkCtrl(self.panel, -1, "www.sofastatistics.com",
-            pos=(home_link_hpos, self.top_top), 
+            pos=(home_link_hpos, self.top_top),
             URL="http://www.sofastatistics.com")
         lib.GuiLib.setup_link(link=link_home,
             link_colour=wx.Colour(255,255,255), bg_colour=wx.Colour(0, 0, 0))
         # help link
-        link_help = hl.HyperLinkCtrl(self.panel, -1, 
-            _("Get help from community"), 
-            pos=(self.main_left, self.top_top + 200), 
+        link_help = hl.HyperLinkCtrl(self.panel, -1,
+            _("Get help from community"),
+            pos=(self.main_left, self.top_top + 200),
             URL="http://groups.google.com/group/sofastatistics")
-        lib.GuiLib.setup_link(link=link_help, link_colour=self.text_brown, 
+        lib.GuiLib.setup_link(link=link_help, link_colour=self.text_brown,
             bg_colour=wx.Colour(205, 217, 215))
         # upgrade link
         if self.upgrade_available:
             upgrade_link_hpos = (self.main_left if REVERSE
                 else self.version_right+125)
-            link_upgrade = hl.HyperLinkCtrl(self.panel, -1, 
-                _(u"Upgrade to %s here") % new_version, 
-                pos=(upgrade_link_hpos, self.top_top), 
+            link_upgrade = hl.HyperLinkCtrl(self.panel, -1,
+                _(u"Upgrade to %s here") % new_version,
+                pos=(upgrade_link_hpos, self.top_top),
                 URL="http://www.sofastatistics.com/downloads.php")
             lib.GuiLib.setup_link(link=link_upgrade,
                 link_colour=wx.Colour(255,255,255),
@@ -833,24 +833,24 @@ class StartFrame(wx.Frame):
         # feedback link
         feedback_link_hpos = (self.main_left if REVERSE
             else self.main_sofa_logo_right)
-        link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK, 
-            pos=(feedback_link_hpos, self.form_height-53), 
+        link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK,
+            pos=(feedback_link_hpos, self.form_height-53),
             URL="http://www.sofastatistics.com/feedback.htm")
         lib.GuiLib.setup_link(link=link_feedback,
             link_colour=wx.Colour(255,255,255),
             bg_colour=wx.Colour(116, 99, 84))
-    
+
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
-    
-    def update_sofastats_connect_date(self, sofastats_connect_fil, 
+
+    def update_sofastats_connect_date(self, sofastats_connect_fil,
             days2wait=30):
         f = codecs.open(sofastats_connect_fil, "w", encoding="utf-8")
         next_check_date = (datetime.datetime.today() +
             datetime.timedelta(days=days2wait)).strftime('%Y-%m-%d')
         f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
         f.close()
-    
+
     def get_latest_version(self):
         """
         Is there a new version?
@@ -870,27 +870,27 @@ class StartFrame(wx.Frame):
             if debug: print(msg)
             raise Exception(msg)
         return new_version
-            
+
     def on_show(self, event):
         setup_sofastats.init_com_types(self, self.panel) # fortunately, not needed on Mac
-    
+
     def on_paint_err_msg(self, e):
         wx.MessageBox(u"Problem displaying start form. Please email the lead "
-            u"developer for help - %s\n\nCaused by error: %s" % (mg.CONTACT, 
+            u"developer for help - %s\n\nCaused by error: %s" % (mg.CONTACT,
             b.ue(e)))
-    
+
     def on_paint(self, event):
         """
-        Cannot use static bitmaps and static text to replace. In windows doesn't 
+        Cannot use static bitmaps and static text to replace. In windows doesn't
         show background wallpaper.
-        
+
         NB painting like this sets things behind the controls.
         """
         try:
             panel_dc = wx.ClientDC(self.panel)
             panel_dc.DrawBitmap(self.bmp_sofabg, 0, 0, True)
             if self.upgrade_available:
-                panel_dc.DrawBitmap(self.bmp_upgrade, self.version_right+95, 4, 
+                panel_dc.DrawBitmap(self.bmp_upgrade, self.version_right+95, 4,
                     True)
             orig_left_pos = 136
             orig_right_pos = 445
@@ -898,17 +898,17 @@ class StartFrame(wx.Frame):
             right_pos = orig_left_pos if REVERSE else orig_right_pos
             panel_dc.DrawBitmap(self.bmp_quote_left, left_pos, 95, True)
             panel_dc.DrawBitmap(self.bmp_quote_right, right_pos, 163, True)
-            panel_dc.DrawBitmap(self.bmp_top_sofa, self.main_sofa_logo_right, 
+            panel_dc.DrawBitmap(self.bmp_top_sofa, self.main_sofa_logo_right,
                 65, True)
-            panel_dc.DrawBitmap(self.bmp_chart, 
-                self.help_img_left+self.chart_img_offset, self.help_img_top-20, 
+            panel_dc.DrawBitmap(self.bmp_chart,
+                self.help_img_left+self.chart_img_offset, self.help_img_top-20,
                 True)
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
             version_link_hpos = (self.main_left if REVERSE
                 else self.version_right)
-            panel_dc.DrawLabel(_("Version %s") % mg.VERSION, 
+            panel_dc.DrawLabel(_("Version %s") % mg.VERSION,
                 wx.Rect(version_link_hpos, self.top_top, 100, 20))
             font_sz = 28 if mg.PLATFORM == mg.MAC else 20
             main_text = _("Statistics Open For All")
@@ -931,7 +931,7 @@ class StartFrame(wx.Frame):
                 u"over the buttons lets you see what you can do.")
             txt2 = _(u"Note - SOFA is great at working with raw data. For data "
                 u"that is already summarised you need to use other tools.")
-            txt2draw = (t2d(txt1, self.max_help_text_width) + 
+            txt2draw = (t2d(txt1, self.max_help_text_width) +
                 u"\n\n" + t2d(txt2, self.max_help_text_width))
             panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left,
                 self.help_text_top, self.help_text_width, 260))
@@ -965,7 +965,7 @@ class StartFrame(wx.Frame):
     def draw_blank_wallpaper(self, panel_dc):
         panel_dc.DrawBitmap(self.blank_wallpaper, self.main_left,
             self.help_text_top, False)
-        
+
     def set_proj_lbl(self, proj_text=""):
         if proj_text.endswith(mg.PROJ_EXT):
             raise Exception(u"proj_text must NOT have %s on the end" %
@@ -985,7 +985,7 @@ class StartFrame(wx.Frame):
     def on_get_started_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_get_started, 
+        panel_dc.DrawBitmap(self.bmp_get_started,
             self.help_img_left+self.get_started_img_offset,
             self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
@@ -1008,7 +1008,7 @@ class StartFrame(wx.Frame):
     def on_data_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_data, 
+        panel_dc.DrawBitmap(self.bmp_data,
             self.help_img_left+self.data_img_offset, self.help_img_top-25, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1038,7 +1038,7 @@ class StartFrame(wx.Frame):
         dlg = importer_gui.DlgImportFileSelect(self)
         dlg.ShowModal()
         event.Skip()
-        
+
     def on_import_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
@@ -1072,30 +1072,30 @@ class StartFrame(wx.Frame):
         finally:
             lib.GuiLib.safe_end_cursor()
             event.Skip()
-        
+
     def on_tables_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_tabs, 
+        panel_dc.DrawBitmap(self.bmp_tabs,
             self.help_img_left+self.report_img_offset, self.help_img_top-10,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt1 = _(u"Make report tables e.g. Age vs Gender") 
+        txt1 = _(u"Make report tables e.g. Age vs Gender")
         txt2 = _(u"Can make simple Frequency Tables, Crosstabs, Row Stats "
             u"Tables (mean, median, standard deviation etc), and simple lists "
             u"of data.")
         txt2draw = (t2d(txt1, self.max_help_text_width) + u"\n\n"
             + t2d(txt2, self.max_help_text_width))
         panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top,
-            self.help_text_width, 260))      
+            self.help_text_width, 260))
         event.Skip()
-    
+
     def get_script(self, cont, script):
         cont.append(mg.JS_WRAPPER_L)
         cont.append(script)
         cont.append(mg.JS_WRAPPER_R)
-    
+
     def on_charts_click(self, event):
         import charting_dlg
         wx.BeginBusyCursor()
@@ -1112,12 +1112,12 @@ class StartFrame(wx.Frame):
         finally:
             lib.GuiLib.safe_end_cursor()
             event.Skip()
-        
+
     def on_charts_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_chart, 
-            self.help_img_left+self.chart_img_offset, self.help_img_top-20, 
+        panel_dc.DrawBitmap(self.bmp_chart,
+            self.help_img_left+self.chart_img_offset, self.help_img_top-20,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1127,7 +1127,7 @@ class StartFrame(wx.Frame):
             wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
                 260))
         event.Skip()
-    
+
     def on_stats_click(self, event):
         # open statistics selection dialog
         wx.BeginBusyCursor()
@@ -1145,11 +1145,11 @@ class StartFrame(wx.Frame):
         finally:
             lib.GuiLib.safe_end_cursor()
             event.Skip()
-        
+
     def on_stats_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_stats, 
+        panel_dc.DrawBitmap(self.bmp_stats,
             self.help_img_left+self.stats_img_offset, self.help_img_top-25,
             True)
         panel_dc.SetTextForeground(self.text_brown)
@@ -1160,9 +1160,9 @@ class StartFrame(wx.Frame):
             u"of the time.")
         txt3 = u"QUOTE: %s (%s)" % quotes.get_quote()
         txt2draw = (
-            t2d(txt1, self.max_help_text_width) + 
+            t2d(txt1, self.max_help_text_width) +
             u"\n\n" +
-            t2d(txt2, self.max_help_text_width) + 
+            t2d(txt2, self.max_help_text_width) +
             u"\n\n" +
             t2d(txt3, self.max_help_text_width)
             )
@@ -1197,7 +1197,7 @@ class StartFrame(wx.Frame):
         dlgProj = projselect.DlgProjSelect(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()
         if not projects.valid_proj(mg.PROJS_FOLDER, self.active_proj):
-            wx.MessageBox(u"Unable to use '%s' project. Using default instead." 
+            wx.MessageBox(u"Unable to use '%s' project. Using default instead."
                 % projects.filname2projname(self.active_proj))
             self.set_proj_lbl(projects.filname2projname(mg.DEFAULT_PROJ))
         event.Skip()
@@ -1205,7 +1205,7 @@ class StartFrame(wx.Frame):
     def on_proj_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_proj, 
+        panel_dc.DrawBitmap(self.bmp_proj,
             self.help_img_left+self.proj_img_offset, self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1216,7 +1216,7 @@ class StartFrame(wx.Frame):
             wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
                 260))
         event.Skip()
-    
+
     def on_prefs_click(self, event):
         import prefs
         debug = False
@@ -1229,12 +1229,12 @@ class StartFrame(wx.Frame):
         dlg = prefs.DlgPrefs(parent=self, prefs_dic_in=prefs_dic)
         dlg.ShowModal()
         event.Skip()
-    
+
     def on_prefs_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_prefs, 
-            self.help_img_left+self.prefs_img_offset, self.help_img_top-10, 
+        panel_dc.DrawBitmap(self.bmp_prefs,
+            self.help_img_left+self.prefs_img_offset, self.help_img_top-10,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1243,7 +1243,7 @@ class StartFrame(wx.Frame):
             wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
                 260))
         event.Skip()
-    
+
     def on_backup_click(self, event):
         wx.BeginBusyCursor()
         try:
@@ -1253,12 +1253,12 @@ class StartFrame(wx.Frame):
         lib.GuiLib.safe_end_cursor()
         wx.MessageBox(msg)
         event.Skip()
-    
+
     def on_backup_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_backup, 
-            self.help_img_left+self.backup_img_offset, self.help_img_top-10, 
+        panel_dc.DrawBitmap(self.bmp_backup,
+            self.help_img_left+self.backup_img_offset, self.help_img_top-10,
             True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
@@ -1268,7 +1268,7 @@ class StartFrame(wx.Frame):
             wx.Rect(self.main_left, self.help_text_top, self.help_text_width,
                 260))
         event.Skip()
-            
+
     def on_exit_click(self, event):
         debug = False
         wx.BeginBusyCursor()
@@ -1280,11 +1280,11 @@ class StartFrame(wx.Frame):
             os.remove(delme)
         lib.GuiLib.safe_end_cursor()
         self.Destroy()
-        
+
     def on_exit_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
-        panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left, 
+        panel_dc.DrawBitmap(self.bmp_exit, self.help_img_left,
             self.help_img_top-12, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)

@@ -19,22 +19,28 @@ start.py.
 from __future__ import absolute_import
 import traceback
 
-import home
-import setup_sofastats
+from sofastats import home
+from sofastats import setup_sofastats
+
 
 show_early_steps = True # same in setup and start
 
-try:
-    if show_early_steps:
-        print(u"About to load app")
-    app = home.SofaApp()
-    #inspect = True
-    #if inspect:
-    #    import wx.lib.inspection
-    #    wx.lib.inspection.InspectionTool().Show()
-    app.MainLoop()
-except Exception, e:
-    print(traceback.format_exc())
-    app = setup_sofastats.ErrMsgApp(e)
-    app.MainLoop()
-    del app
+def main():
+    try:
+        if show_early_steps:
+            print(u"About to load app")
+        app = home.SofaApp()
+        #inspect = True
+        #if inspect:
+        #    import wx.lib.inspection
+        #    wx.lib.inspection.InspectionTool().Show()
+        app.MainLoop()
+    except Exception, e:
+        print(traceback.format_exc())
+        app = setup_sofastats.ErrMsgApp(e)
+        app.MainLoop()
+        del app
+
+
+if __name__ == '__main__':
+    main()
