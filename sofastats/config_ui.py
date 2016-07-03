@@ -5,19 +5,18 @@ import locale
 import os
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
-import lib
-import export_output_gui
-import export_output_images
-import db_grid
-import getdata
-import output
-import showhtml
-#import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import lib
+from sofastats import export_output_gui
+from sofastats import export_output_images
+from sofastats import db_grid
+from sofastats import getdata
+from sofastats import output
+from sofastats import showhtml
+
 import traceback
-#import filtselect # prevent circular import (inherits from Dlg not loaded yet)
 import webbrowser
 
 "Import hyperlink"
@@ -570,7 +569,7 @@ class ConfigUI(object):
         self.rows_n = self.get_rows_n()
 
     def filters(self):
-        import filtselect # by now, DLG will be available to inherit from
+        from sofastats import filtselect # by now, DLG will be available to inherit from
         parent = self
         dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
             self.var_types, self.val_dics)

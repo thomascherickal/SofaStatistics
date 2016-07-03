@@ -2,11 +2,11 @@ from __future__ import print_function
 import os
 import wx
 
-import my_globals as mg
-import lib
-import ods_reader
-import getdata
-import importer
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import ods_reader
+from sofastats import getdata
+from sofastats import importer
 
 debug = False
 if debug:

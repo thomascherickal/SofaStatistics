@@ -2,9 +2,9 @@ import codecs
 import wx
 import os
 
-import my_globals as mg
-import lib
-import full_html
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import full_html
 
 def display_report(parent, str_content, url_load=False):
     # display results

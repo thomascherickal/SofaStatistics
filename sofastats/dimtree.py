@@ -5,10 +5,10 @@ import copy
         
 import wx
 
-import my_globals as mg
-import lib
-import config_output
-import projects
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import config_output
+from sofastats import projects
 
 MEASURES = u"measures"
 HAS_TOT = u"has_tot"

@@ -10,12 +10,11 @@ import os
 import pprint
 import wx
 
-import my_globals as mg
-import lib
-import output
-import projects
-import settings_grid
-#import projects
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import output
+from sofastats import projects
+from sofastats import settings_grid
 import traceback
 
 "Import hyperlink"

@@ -8,12 +8,13 @@ import pprint
 import sys
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
-import config_globals
-import lib
-import dbe_plugins.dbe_sqlite as dbe_sqlite
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import config_globals
+from sofastats import lib
+from dbe_plugins import dbe_sqlite
+
 debug = False
 
 ReadonlyDets = namedtuple('ReadonlyDets', 'readonly, enabled')

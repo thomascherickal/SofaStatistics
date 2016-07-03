@@ -3,14 +3,14 @@
 
 import wx
 
-import my_globals as mg
-import lib
-import config_output
-import config_ui
-import full_html
-import getdata
-import output
-import projects
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import config_output
+from sofastats import config_ui
+from sofastats import full_html
+from sofastats import getdata
+from sofastats import output
+from sofastats import projects
 
 
 class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):

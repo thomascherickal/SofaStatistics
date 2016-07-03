@@ -16,10 +16,10 @@ import os
 import wx
 import pprint
 
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
-import lib
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import lib
 import CUBRIDdb as cubrid
 
 # http://www.cubrid.org/manual/841/en/Data%20Types

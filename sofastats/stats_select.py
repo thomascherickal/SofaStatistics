@@ -1,13 +1,13 @@
 import os
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import config_output
-import normal
-import output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import config_output
+from sofastats import normal
+from sofastats import output
 
 TEST_ANOVA = _("ANOVA")
 TEST_CHI_SQUARE = _("Chi Square")
@@ -467,7 +467,7 @@ class DlgStatsSelect(wx.Dialog):
 
     def on_groups_btn(self, event):
         wx.BeginBusyCursor()
-        import report_table
+        from sofastats import report_table
         try:
             dlg = report_table.DlgMakeTable()
             lib.GuiLib.safe_end_cursor()
@@ -836,44 +836,44 @@ class DlgStatsSelect(wx.Dialog):
             return
         try:
             if sel_test == TEST_TTEST_INDEP:
-                import ttest_indep
+                from sofastats import ttest_indep
                 dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"))
                 dlg.ShowModal()        
             elif sel_test == TEST_TTEST_PAIRED:
-                import ttest_paired
+                from sofastats import ttest_paired
                 dlg = ttest_paired.DlgConfig(
                                         _("Configure Paired Samples t-test"))
                 dlg.ShowModal()
             elif sel_test == TEST_ANOVA:
-                import anova
+                from sofastats import anova
                 dlg = anova.DlgConfig(_("Configure ANOVA test"), 
                                       takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_WILCOXON:
-                import wilcoxon
+                from sofastats import wilcoxon
                 dlg = wilcoxon.DlgConfig(
                                     _("Configure Wilcoxon Signed Ranks test"))
                 dlg.ShowModal()
             elif sel_test == TEST_MANN_WHITNEY:
-                import mann_whitney
+                from sofastats import mann_whitney
                 dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"))
                 dlg.ShowModal()
             elif sel_test == TEST_KRUSKAL_WALLIS:
-                import kruskal_wallis
+                from sofastats import kruskal_wallis
                 dlg = kruskal_wallis.DlgConfig(
                                         _("Configure Kruskal Wallis H test"), 
                                         takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_CHI_SQUARE:
-                import chisquare
+                from sofastats import chisquare
                 dlg = chisquare.DlgConfig(_("Configure Chi Square test"))
                 dlg.ShowModal()
             elif sel_test == TEST_PEARSONS_R:
-                import pearsonsr
+                from sofastats import pearsonsr
                 dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"))
                 dlg.ShowModal()
             elif sel_test == TEST_SPEARMANS_R:
-                import spearmansr
+                from sofastats import spearmansr
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"))
                 dlg.ShowModal()
             else:

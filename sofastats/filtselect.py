@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import config_output
-import getdata
-import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import config_output
+from sofastats import getdata
+from sofastats import projects
 
 def get_val(raw_val, flds, fldname):
     """

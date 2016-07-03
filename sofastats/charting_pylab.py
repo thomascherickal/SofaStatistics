@@ -7,10 +7,10 @@ import boomslang
 import pylab
 import wx #@UnusedImport
 
-import my_globals as mg
-import lib
-import output
-import core_stats
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import output
+from sofastats import core_stats
 
 int_imgs_n = 0 # for internal images so always unique
 

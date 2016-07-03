@@ -3,10 +3,10 @@ import wx
 import xml.etree.ElementTree as etree
 import zipfile
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import importer
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import importer
 
 """
 NB need to handle ods from OpenOffice Calc, and Gnumeric at least. Some 

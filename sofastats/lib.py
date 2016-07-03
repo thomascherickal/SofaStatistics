@@ -21,9 +21,9 @@ import urllib
 import wx
 
 # only import my_globals from local modules
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
 
 DatetimeSplit = namedtuple('DatetimeSplit', 'date_part, time_part, '
     'boldate_then_time')

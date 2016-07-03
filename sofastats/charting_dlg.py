@@ -4,15 +4,15 @@
 import os
 import wx
 
-import my_globals as mg
-import lib
-import config_output
-import config_ui
-import full_html
-import getdata
-import indep2var
-import output
-import projects
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import config_output
+from sofastats import config_ui
+from sofastats import full_html
+from sofastats import getdata
+from sofastats import indep2var
+from sofastats import output
+from sofastats import projects
 
 CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
 CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL

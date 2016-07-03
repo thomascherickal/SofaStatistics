@@ -2,17 +2,16 @@ from __future__ import print_function
 import pprint
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import config_globals
-import lib
-import config_output
-import db_grid
-import dbe_plugins.dbe_sqlite as dbe_sqlite
-import getdata
-import output
-import projects
-import table_config
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import config_globals
+from sofastats import lib
+from sofastats import db_grid
+from dbe_plugins import dbe_sqlite
+from sofastats import getdata
+from sofastats import output
+from sofastats import projects
+from sofastats import table_config
 
 
 class DlgDataSelect(wx.Dialog):

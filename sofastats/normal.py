@@ -4,18 +4,18 @@
 import pylab
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import charting_pylab
-import config_output
-import config_ui
-import core_stats
-import getdata
-import full_html
-import output
-import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import charting_pylab
+from sofastats import config_output
+from sofastats import config_ui
+from sofastats import core_stats
+from sofastats import getdata
+from sofastats import full_html
+from sofastats import output
+from sofastats import projects
 
 def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
     """

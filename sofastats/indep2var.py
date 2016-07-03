@@ -4,15 +4,15 @@ import locale
 
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import getdata
-import config_output
-import config_ui
-import full_html
-import output
-import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import getdata
+from sofastats import config_output
+from sofastats import config_ui
+from sofastats import full_html
+from sofastats import output
+from sofastats import projects
 
 def get_range_idxs(vals, val_a, val_b):
     """

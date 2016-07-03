@@ -69,13 +69,13 @@ import subprocess
 
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import export_output
-import export_output_pdfs
-import output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import export_output
+from sofastats import export_output_pdfs
+from sofastats import output
 
 HTML4PDF_FILE = u"html4pdf.html"
 PDF2IMG_FILE = u"pdf2img.pdf"

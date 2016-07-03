@@ -8,7 +8,7 @@ import os
 import wx
 import zipfile
 
-import my_globals as mg
+from sofastats import my_globals as mg
 
 """
 If not available, make backup subfolder.

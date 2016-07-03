@@ -6,9 +6,9 @@ import pprint
 import wx #@UnusedImport
 import wx.grid
 
-import my_globals as mg
-import lib
-import getdata
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import getdata
 
 debug = False
 

@@ -17,16 +17,16 @@ import string
 import wx #@UnusedImport
 import wx.grid
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import config_output
-import getdata # must be anything referring to plugin modules
-import dbe_plugins.dbe_sqlite as dbe_sqlite
-import full_html
-import output
-import recode
-import settings_grid
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import config_output
+from sofastats import getdata # must be anything referring to plugin modules
+from dbe_plugins import dbe_sqlite
+from sofastats import full_html
+from sofastats import output
+from sofastats import recode
+from sofastats import settings_grid
 
 objqtr = dbe_sqlite.quote_obj
 

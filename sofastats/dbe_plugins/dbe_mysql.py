@@ -6,8 +6,8 @@ from __future__ import division # so 5/2 = 2.5 not 2 !
 import wx
 import pprint
 
-import basic_lib as b
-import my_globals as mg
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
 if mg.PLATFORM == mg.MAC:
     try:
         import pymysql as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
@@ -17,8 +17,8 @@ if mg.PLATFORM == mg.MAC:
                         u"Mac." % mg.CONTACT)
 else:
     import MySQLdb as mysql #@Import redefinition
-import my_exceptions
-import lib
+from sofastats import my_exceptions
+from sofastats import lib
 
 BIGINT = "bigint"
 DECIMAL = "decimal"

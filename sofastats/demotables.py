@@ -1,12 +1,13 @@
 from __future__ import print_function
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import dimtables
-import output
-import rawtables
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import dimtables
+from sofastats import output
+from sofastats import rawtables
+
 import wx
 
 

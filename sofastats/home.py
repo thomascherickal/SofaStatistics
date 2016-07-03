@@ -32,7 +32,7 @@ given and com types are initialised.
 
 from __future__ import absolute_import
 
-dev_debug = False # relates to errors etc once GUI application running.
+dev_debug = True # relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
 show_more_steps = True
@@ -81,27 +81,27 @@ except ImportError: # if it's not there locally, try the wxPython lib.
             raw_input(setup_sofastats.INIT_DEBUG_MSG)
         raise Exception(msg)
 if show_early_steps: print(u"Imported hl successfully.")
-import basic_lib as b
+from sofastats import basic_lib as b
 if show_early_steps: print(u"Imported basic_lib successfully.")
-import my_globals as mg
+from sofastats import my_globals as mg
 if show_early_steps: print(u"Imported my_globals successfully.")
-import lib
+from sofastats import lib
 if show_early_steps: print(u"Imported lib successfully.")
-import my_exceptions #@UnusedImport
+from sofastats import my_exceptions #@UnusedImport
 if show_early_steps: print(u"Imported my_exceptions successfully.")
-import config_globals
+from sofastats import config_globals
 if show_early_steps: print(u"Imported config_globals successfully.")
-import config_output
+from sofastats import config_output
 if show_early_steps: print(u"Imported config_output successfully.")
-import backup_sofa
+from sofastats import backup_sofa
 if show_early_steps: print(u"Imported backup_sofa successfully.")
-import getdata
+from sofastats import getdata
 if show_early_steps: print(u"Imported getdata successfully.")
-import projects
+from sofastats import projects
 if show_early_steps: print(u"Imported projects successfully.")
-import projselect
+from sofastats import projselect
 if show_early_steps: print(u"Imported projselect successfully.")
-import quotes
+from sofastats import quotes
 if show_early_steps: print(u"Imported quotes successfully.")
 
 REVERSE = False
@@ -157,7 +157,7 @@ class SofaApp(wx.App):
         Also responsible for setting translations etc so application
         internationalised.
         """
-        import db_grid
+        from sofastats import db_grid
         ## the data form assumes the parent will want its var_labels etc updated. We won't use the results so OK to feed in empty dicts.
         proj_dic = config_globals.get_settings_dic(
             subfolder=mg.PROJS_FOLDER, fil_name=mg.DEFAULT_PROJ)
@@ -999,7 +999,7 @@ class StartFrame(wx.Frame):
         event.Skip()
 
     def on_data_click(self, event):
-        import dataselect
+        from sofastats import dataselect
         proj_name = self.active_proj
         dlgData = dataselect.DlgDataSelect(self, proj_name)
         dlgData.ShowModal()
@@ -1034,7 +1034,7 @@ class StartFrame(wx.Frame):
         event.Skip()
 
     def on_import_click(self, event):
-        import importer_gui
+        from sofastats import importer_gui
         dlg = importer_gui.DlgImportFileSelect(self)
         dlg.ShowModal()
         event.Skip()
@@ -1059,7 +1059,7 @@ class StartFrame(wx.Frame):
     def on_tables_click(self, event):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
-        import report_table
+        from sofastats import report_table
         try:
             dlg = report_table.DlgMakeTable()
             lib.GuiLib.safe_end_cursor()
@@ -1097,7 +1097,7 @@ class StartFrame(wx.Frame):
         cont.append(mg.JS_WRAPPER_R)
 
     def on_charts_click(self, event):
-        import charting_dlg
+        from sofastats import charting_dlg
         wx.BeginBusyCursor()
         try:
             dlg = charting_dlg.DlgCharting(_("Make Chart"))
@@ -1131,7 +1131,7 @@ class StartFrame(wx.Frame):
     def on_stats_click(self, event):
         # open statistics selection dialog
         wx.BeginBusyCursor()
-        import stats_select
+        from sofastats import stats_select
         try:
             dlg = stats_select.DlgStatsSelect(self.active_proj)
             lib.GuiLib.safe_end_cursor()
@@ -1218,7 +1218,7 @@ class StartFrame(wx.Frame):
         event.Skip()
 
     def on_prefs_click(self, event):
-        import prefs
+        from sofastats import prefs
         debug = False
         try:
             prefs_dic = config_globals.get_settings_dic(

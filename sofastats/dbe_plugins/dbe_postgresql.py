@@ -6,11 +6,11 @@ from __future__ import print_function
 import wx
 import pprint
 
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
-import lib
-import getdata
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import lib
+from sofastats import getdata
 try:
     import psycopg2 as pg
 except ImportError, e:

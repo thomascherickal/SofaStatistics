@@ -1,4 +1,4 @@
-import my_globals as mg
+from sofastats import my_globals as mg
 
 class Mismatch(Exception):
     def __init__(self, fldname, expected_fldtype, details):

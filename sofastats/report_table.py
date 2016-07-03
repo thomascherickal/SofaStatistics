@@ -6,18 +6,18 @@ import locale
 import wx #@UnusedImport
 import wx.gizmos
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import getdata
-import config_output
-import config_ui
-import demotables
-import dimtree
-import full_html
-import output
-import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import getdata
+from sofastats import config_output
+from sofastats import config_ui
+from sofastats import demotables
+from sofastats import dimtree
+from sofastats import full_html
+from sofastats import output
+from sofastats import projects
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """

@@ -9,14 +9,14 @@ import os
 
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import export_output
-import export_output_images
-import export_output_pdfs
-import export_output_spreadsheets
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import export_output
+from sofastats import export_output_images
+from sofastats import export_output_pdfs
+from sofastats import export_output_spreadsheets
 
 PDF_ITEM_TAKES = 4
 TBL_ITEM_TAKES = 1

@@ -4,13 +4,13 @@ import codecs
 import os
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import getdata
-import config_ui
-import output
-import projects
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import getdata
+from sofastats import config_ui
+from sofastats import output
+from sofastats import projects
 
 
 class DlgProject(wx.Dialog, config_ui.ConfigUI):

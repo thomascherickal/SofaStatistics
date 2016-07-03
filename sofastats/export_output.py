@@ -1,14 +1,13 @@
 #! /usr/bin/env python
 # -*- coding: utf-8 -*-
-import codecs
 from collections import namedtuple
 import subprocess
 import sys
 
 import wx
 
-import basic_lib as b
-import my_globals as mg
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
 
 try:
     EXE_TMP = sys._MEIPASS #@UndefinedVariable

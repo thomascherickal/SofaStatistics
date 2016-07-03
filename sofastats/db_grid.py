@@ -5,14 +5,14 @@ import pprint
 import wx #@UnusedImport
 import wx.grid
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import export_data
-import getdata
-import db_tbl
-import output
-import config_output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import export_data
+from sofastats import getdata
+from sofastats import db_tbl
+from sofastats import output
+from sofastats import config_output
 
 """
 DbTbl is the link between the grid and the underlying data.

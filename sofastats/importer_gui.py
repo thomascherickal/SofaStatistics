@@ -5,15 +5,14 @@ from __future__ import print_function
 import os
 import wx #@UnusedImport
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import config_output
-import getdata # must be before anything referring to plugin modules
-import importer
-import dbe_plugins.dbe_sqlite as dbe_sqlite
-# import csv_importer etc below to avoid circular import
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import config_output
+from sofastats import getdata # must be before anything referring to plugin modules
+from sofastats import importer
+from dbe_plugins import dbe_sqlite
 
 FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
@@ -397,16 +396,16 @@ def run_import(self, headless=False, file_path=None, tblname=None,
             return
     # import file
     if self.file_type == FILE_CSV:
-        import csv_importer
+        from sofastats import csv_importer
         file_importer = csv_importer.CsvImporter(self, file_path, 
             final_tblname, headless, headless_has_header, supplied_encoding,
             force_quickcheck)
     elif self.file_type == FILE_EXCEL:
-        import excel_importer
+        from sofastats import excel_importer
         file_importer = excel_importer.ExcelImporter(self, file_path,
             final_tblname, headless, headless_has_header, force_quickcheck)
     elif self.file_type == FILE_ODS:
-        import ods_importer
+        from sofastats import ods_importer
         file_importer = ods_importer.OdsImporter(self, file_path,
             final_tblname, headless, headless_has_header, force_quickcheck)
     proceed = False

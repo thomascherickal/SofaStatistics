@@ -12,11 +12,11 @@ import win32com.client #@UnresolvedImport
 import wx
 import pprint
 
-import basic_lib as b
-import my_globals as mg
-import dbe_plugins.dbe_globals as dbe_globals
-import my_exceptions
-import lib
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from dbe_plugins import dbe_globals
+from sofastats import my_exceptions
+from sofastats import lib
 
 AD_OPEN_KEYSET = 1
 AD_LOCK_OPTIMISTIC = 3

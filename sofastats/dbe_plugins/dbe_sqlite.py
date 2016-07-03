@@ -5,11 +5,11 @@ import re
 import wx #@UnusedImport
 import wx.grid
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import settings_grid
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import settings_grid
 
 Row = sqlite.Row # @UndefinedVariable - needed for making cursor return dicts
 

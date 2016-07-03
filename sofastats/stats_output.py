@@ -4,12 +4,12 @@ import numpy as np
 import boomslang
 import pylab
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import charting_pylab
-import core_stats
-import output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import charting_pylab
+from sofastats import core_stats
+from sofastats import output
 
 """
 Output doesn't include the calculation of any values. These are in discrete

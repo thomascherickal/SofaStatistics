@@ -1,5 +1,5 @@
 
-import my_exceptions
+from sofastats import my_exceptions
 
 
 class Nodes(object):

@@ -1,16 +1,15 @@
 from __future__ import print_function
-import codecs
 import os
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import config_globals
-import lib
-import config_output
-import output
-import projects
-import projects_gui
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import config_globals
+from sofastats import lib
+from sofastats import config_output
+from sofastats import output
+from sofastats import projects
+from sofastats import projects_gui
 
 
 class DlgProjSelect(wx.Dialog):

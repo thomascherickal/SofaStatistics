@@ -9,11 +9,11 @@ import math
 from types import IntType, FloatType, ListType, TupleType
 import numpy as np
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import getdata
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import getdata
 
 D = decimal.Decimal
 decimal.getcontext().prec = 200

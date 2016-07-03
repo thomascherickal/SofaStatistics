@@ -73,11 +73,11 @@ import traceback
 import urllib
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import config_globals
-import lib
-import my_exceptions
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import config_globals
+from sofastats import lib
+from sofastats import my_exceptions
 
 # do not use os.linesep for anything going to be read and exec'd
 # in Windows the \r\n makes it fail.

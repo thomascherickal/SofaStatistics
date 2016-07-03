@@ -2,10 +2,9 @@ from __future__ import print_function
 import wx
 import wx.grid
 
-import my_globals as mg
-import my_exceptions
-import lib
-import controls
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import controls
 
 COL_STR = u"col_string"
 COL_INT = u"col_integer"

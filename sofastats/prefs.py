@@ -6,9 +6,9 @@ import os
 import pprint
 import wx
 
-import my_globals as mg
-import config_ui
-import config_globals
+from sofastats import my_globals as mg
+from sofastats import config_ui
+from sofastats import config_globals
 
 
 class DlgPrefs(wx.Dialog):

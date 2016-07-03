@@ -2,7 +2,6 @@
 # -*- coding: utf-8 -*-
 
 from __future__ import absolute_import
-import codecs
 import os
 import subprocess
 import sys
@@ -18,8 +17,8 @@ assumed to be safe to start. Other modules need to be able to rely on the
 correctness of what is in my_globals at the time they are called.
 """
 
-import basic_lib as b
-import my_globals as mg
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
 
 def set_SCRIPT_PATH():
     """
@@ -44,22 +43,22 @@ def import_dbe_plugin(dbe_plugin):
     """
     try:
         if dbe_plugin == mg.DBE_SQLITE:
-            import dbe_plugins.dbe_sqlite as dbe_sqlite
+            from dbe_plugins import dbe_sqlite
             mod = dbe_sqlite
         elif dbe_plugin == mg.DBE_MYSQL:
-            import dbe_plugins.dbe_mysql as dbe_mysql
+            from dbe_plugins import dbe_mysql
             mod = dbe_mysql
         elif dbe_plugin == mg.DBE_CUBRID:
-            import dbe_plugins.dbe_cubrid as dbe_cubrid
+            from dbe_plugins import dbe_cubrid
             mod = dbe_cubrid
         elif dbe_plugin == mg.DBE_MS_ACCESS:
-            import dbe_plugins.dbe_ms_access as dbe_ms_access
+            from dbe_plugins import dbe_ms_access
             mod = dbe_ms_access
         elif dbe_plugin == mg.DBE_MS_SQL:
-            import dbe_plugins.dbe_ms_sql as dbe_ms_sql
+            from dbe_plugins import dbe_ms_sql
             mod = dbe_ms_sql
         elif dbe_plugin == mg.DBE_PGSQL:
-            import dbe_plugins.dbe_postgresql as dbe_postgresql
+            from dbe_plugins import dbe_postgresql
             mod = dbe_postgresql
         else:
             raise Exception(u"Unknown database engine plug-in type")

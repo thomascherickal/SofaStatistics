@@ -2,14 +2,14 @@ from __future__ import print_function
 import math
 import numpy
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import core_stats
-import getdata
-import output
-import tree
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import core_stats
+from sofastats import getdata
+from sofastats import output
+from sofastats import tree
 
 """
 Don't use dd - this and any other modules we wish to run as a standalone script 

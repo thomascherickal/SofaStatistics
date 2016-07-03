@@ -4,10 +4,10 @@ import codecs
 import os
 import wx
 
-import my_globals as mg
-import lib
-import output
-import settings_grid
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import output
+from sofastats import settings_grid
 
 BROKEN_VDT_MSG = _(u"This field is numeric, so any non-numeric keys in the "
     u"source vdt file e.g. '1', '1a', 'apple' will be ignored. Did you manually"

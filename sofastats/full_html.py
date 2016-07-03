@@ -6,10 +6,10 @@ import os
 import traceback
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import my_exceptions
-import output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import output
 use_renderer = True # False if renderer not available and other testing required
 
 # url_load only needed for Windows

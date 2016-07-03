@@ -7,9 +7,9 @@ calling.
 import codecs
 import os
 
-import my_globals as mg
-import export_output
-import output
+from sofastats import my_globals as mg
+from sofastats import export_output
+from sofastats import output
     
 def export2spreadsheet(hdr, tbl_items, save2report_path, report_path, 
         alternative_path, gauge_start_tbls=0, headless=False, 

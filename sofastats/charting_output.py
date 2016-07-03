@@ -30,14 +30,14 @@ from operator import itemgetter
 import pprint
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import my_exceptions
-import charting_pylab
-import core_stats
-import getdata
-import output
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import charting_pylab
+from sofastats import core_stats
+from sofastats import getdata
+from sofastats import output
 
 AVG_CHAR_WIDTH_PXLS = 6.5
 AVG_LINE_HEIGHT_PXLS = 12

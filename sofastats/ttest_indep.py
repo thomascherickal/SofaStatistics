@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 import wx
 
-import basic_lib as b
-import my_globals as mg
-import lib
-import indep2var
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import indep2var
 
 
 class DlgConfig(indep2var.DlgIndep2VarConfig):
