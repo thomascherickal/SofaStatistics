@@ -8,7 +8,7 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import config_output
-from dbe_plugins import dbe_sqlite
+from sofastats.dbe_plugins import dbe_sqlite
 from sofastats import getdata
 from sofastats import output
 from sofastats import projects

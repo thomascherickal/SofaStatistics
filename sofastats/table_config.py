@@ -22,7 +22,7 @@ from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import config_output
 from sofastats import getdata # must be anything referring to plugin modules
-from dbe_plugins import dbe_sqlite
+from sofastats.dbe_plugins import dbe_sqlite
 from sofastats import full_html
 from sofastats import output
 from sofastats import recode

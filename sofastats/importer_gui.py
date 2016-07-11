@@ -12,7 +12,7 @@ from sofastats import my_exceptions
 from sofastats import config_output
 from sofastats import getdata # must be before anything referring to plugin modules
 from sofastats import importer
-from dbe_plugins import dbe_sqlite
+from sofastats.dbe_plugins import dbe_sqlite
 
 FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"

@@ -43,22 +43,22 @@ def import_dbe_plugin(dbe_plugin):
     """
     try:
         if dbe_plugin == mg.DBE_SQLITE:
-            from dbe_plugins import dbe_sqlite
+            from sofastats.dbe_plugins import dbe_sqlite
             mod = dbe_sqlite
         elif dbe_plugin == mg.DBE_MYSQL:
-            from dbe_plugins import dbe_mysql
+            from sofastats.dbe_plugins import dbe_mysql
             mod = dbe_mysql
         elif dbe_plugin == mg.DBE_CUBRID:
-            from dbe_plugins import dbe_cubrid
+            from sofastats.dbe_plugins import dbe_cubrid
             mod = dbe_cubrid
         elif dbe_plugin == mg.DBE_MS_ACCESS:
-            from dbe_plugins import dbe_ms_access
+            from sofastats.dbe_plugins import dbe_ms_access
             mod = dbe_ms_access
         elif dbe_plugin == mg.DBE_MS_SQL:
-            from dbe_plugins import dbe_ms_sql
+            from sofastats.dbe_plugins import dbe_ms_sql
             mod = dbe_ms_sql
         elif dbe_plugin == mg.DBE_PGSQL:
-            from dbe_plugins import dbe_postgresql
+            from sofastats.dbe_plugins import dbe_postgresql
             mod = dbe_postgresql
         else:
             raise Exception(u"Unknown database engine plug-in type")

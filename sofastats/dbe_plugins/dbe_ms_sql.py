@@ -14,7 +14,7 @@ import pprint
 
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
-from dbe_plugins import dbe_globals
+from sofastats.dbe_plugins import dbe_globals
 from sofastats import my_exceptions
 from sofastats import lib
 

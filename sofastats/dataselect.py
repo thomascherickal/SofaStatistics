@@ -7,7 +7,7 @@ from sofastats import my_globals as mg
 from sofastats import config_globals
 from sofastats import lib
 from sofastats import db_grid
-from dbe_plugins import dbe_sqlite
+from sofastats.dbe_plugins import dbe_sqlite
 from sofastats import getdata
 from sofastats import output
 from sofastats import projects
