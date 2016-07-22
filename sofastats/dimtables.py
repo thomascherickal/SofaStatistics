@@ -1151,7 +1151,7 @@ class SummTable(LiveTable):
                 i=i+1
         return row_label_rows_lst
     
-    def get_non_num_val(self, SQL_get_vals):
+    def _get_non_num_val(self, SQL_get_vals):
         """
         Returns first non-numeric value found (ignoring None).
         Otherwise, returns None.
@@ -1168,7 +1168,80 @@ class SummTable(LiveTable):
             if val is not None and not lib.TypeLib.is_basic_num(val):
                 break
         return val
-    
+
+    ## Only separated those out where handling NaN
+    def _lq(self, data, SQL_get_vals, col_fld, dp2_tpl):
+        msg = None
+        try:
+            lq, unused = core_stats.get_quartiles(data)
+            if math.isnan(lq):
+                data_val = mg.NO_CALC_LBL
+            else:
+                data_val = dp2_tpl % lq
+        except Exception:
+            bad_val = self._get_non_num_val(SQL_get_vals)
+            if bad_val is not None:
+                msg = (u"Unable to calculate lower quartile "
+                    u"for %s. " % col_fld +
+                    u"The field contains at least one non-numeric " +
+                    u"value: \"%s\"" % bad_val)
+            data_val = mg.NO_CALC_LBL
+        return data_val, msg
+
+    def _uq(self, data, SQL_get_vals, col_fld, dp2_tpl):
+        msg = None
+        try:
+            unused, uq = core_stats.get_quartiles(data)
+            if math.isnan(uq):
+                data_val = mg.NO_CALC_LBL
+            else:
+                data_val = dp2_tpl % uq
+        except Exception:
+            bad_val = self._get_non_num_val(SQL_get_vals)
+            if bad_val is not None:
+                msg = (u"Unable to calculate upper quartile "
+                    u"for %s. " % col_fld +
+                    u"The field contains at least one non-numeric " +
+                    u"value: \"%s\"" % bad_val)
+            data_val = mg.NO_CALC_LBL
+        return data_val, msg
+
+    def _iq_range(self, data, SQL_get_vals, col_fld, dp2_tpl):
+        msg = None
+        try:
+            lq, uq = core_stats.get_quartiles(data)
+            if math.isnan(lq) or math.isnan(uq):
+                data_val = mg.NO_CALC_LBL
+            else:
+                data_val = dp2_tpl % (uq-lq, )
+        except Exception:
+            bad_val = self._get_non_num_val(SQL_get_vals)
+            if bad_val is not None:
+                msg = (u"Unable to calculate Inter-Quartile Range "
+                    u"for %s. " % col_fld +
+                    u"The field contains at least one non-numeric " +
+                    u"value: \"%s\"" % bad_val)
+            data_val = mg.NO_CALC_LBL
+        return data_val, msg
+
+    def _std_dev(self, data, SQL_get_vals, col_fld, dp2_tpl):
+        msg = None
+        try:
+            raw = numpy.std(data, ddof=1)  ## use ddof=1 for sample sd
+            if math.isnan(raw):
+                data_val = mg.NO_CALC_LBL
+            else:
+                data_val = dp2_tpl % raw
+        except Exception:
+            bad_val = self._get_non_num_val(SQL_get_vals)
+            if bad_val is not None:
+                msg = (u"Unable to calculate standard deviation for "
+                    + u" %s. " % col_fld
+                    + u"The field contains at least one non-numeric "
+                    + u"value: \"%s\"" % bad_val)
+            data_val = mg.NO_CALC_LBL
+        return data_val, msg
+
     def get_data_val(self, measure, col_fld, row_filter_lst,
             dp=mg.DEFAULT_REPORT_DP):
         """
@@ -1256,7 +1329,7 @@ class SummTable(LiveTable):
             try:
                 data_val = dp2_tpl % numpy.median(data)
             except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
+                bad_val = self._get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     msg = (u"Unable to calculate median for %s. " % col_fld
                         + u"The field contains at least one non-numeric "
@@ -1273,48 +1346,18 @@ class SummTable(LiveTable):
                     data_val = u"%s (N=%s)" % (mode2show,
                         lib.formatnum(maxfreq))
             except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
+                bad_val = self._get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
                     msg = (u"Unable to calculate mode for %s. " % col_fld
                         + u"The field contains at least one non-numeric "
                         + u"value: \"%s\"" % bad_val)
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.LOWER_QUARTILE_KEY:
-            try:
-                lq, unused = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % lq
-            except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
-                if bad_val is not None:
-                    msg = (u"Unable to calculate lower quartile "
-                        u"for %s. " % col_fld +
-                        u"The field contains at least one non-numeric " +
-                        u"value: \"%s\"" % bad_val)
-                data_val = mg.NO_CALC_LBL
+            data_val, msg = self._lq(data, SQL_get_vals, col_fld, dp2_tpl)
         elif measure == mg.UPPER_QUARTILE_KEY:
-            try:
-                unused, uq = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % uq
-            except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
-                if bad_val is not None:
-                    msg = (u"Unable to calculate upper quartile "
-                        u"for %s. " % col_fld +
-                        u"The field contains at least one non-numeric " +
-                        u"value: \"%s\"" % bad_val)
-                data_val = mg.NO_CALC_LBL
+            data_val, msg = self._uq(data, SQL_get_vals, col_fld, dp2_tpl)
         elif measure == mg.IQR_KEY:
-            try:
-                lq, uq = core_stats.get_quartiles(data)
-                data_val = dp2_tpl % (uq-lq, )
-            except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
-                if bad_val is not None:
-                    msg = (u"Unable to calculate Inter-Quartile Range "
-                        u"for %s. " % col_fld +
-                        u"The field contains at least one non-numeric " +
-                        u"value: \"%s\"" % bad_val)
-                data_val = mg.NO_CALC_LBL
+            data_val, msg = self._iq_range(data, SQL_get_vals, col_fld, dp2_tpl)
         elif measure == mg.SUMM_N_KEY:
             SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
                 u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
@@ -1325,22 +1368,9 @@ class SummTable(LiveTable):
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.STD_DEV_KEY:
-            try:
-                data_val = dp2_tpl % numpy.std(data, ddof=1) # use ddof=1 for sample sd
-            except Exception:
-                bad_val = self.get_non_num_val(SQL_get_vals)
-                if bad_val is not None:
-                    msg = (u"Unable to calculate standard deviation for "
-                        + u" %s. " % col_fld
-                        + u"The field contains at least one non-numeric "
-                        + u"value: \"%s\"" % bad_val)
-                data_val = mg.NO_CALC_LBL
+            data_val, msg = self._std_dev(data, SQL_get_vals, col_fld,
+                dp2_tpl)
         else:
             raise Exception(u"Measure not available")
-        try:
-            if math.isnan(data_val):
-                data_val = mg.NO_CALC_LBL
-        except TypeError:
-            pass
         return data_val, msg
     

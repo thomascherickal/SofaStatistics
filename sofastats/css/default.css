@@ -91,7 +91,7 @@ dojo_style_end
     }
     td{
         padding: 2px 6px;
-        border: double 1px #c0c0c0;
+        border: solid 1px #c0c0c0;
         font-size: 13px;
     }
     .subtable{

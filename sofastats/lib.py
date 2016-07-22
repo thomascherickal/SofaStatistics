@@ -1661,6 +1661,9 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
     elif sort_order == mg.SORT_LBL_KEY:  ## e.g. by label for x vals
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
+def pluralise_with_s(singular, n):
+    return singular if n == 1 else u"{}s".format(singular)
+
 def get_bins(min_val, max_val):
     """
     Goal - set nice bin widths so "nice" value e.g. 0.2, 0.5, 1 (or

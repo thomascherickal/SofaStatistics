@@ -1353,6 +1353,7 @@ class BoxPlot(object):
             {pre_series_str}
             {series_js_str}
             var conf = new Array();
+            conf["axis_font_colour"] = "{axis_font_colour}";
             conf["axis_lbl_drop"] = {axis_lbl_drop};
             conf["axis_lbl_rotate"] = {axis_lbl_rotate};
             conf["chart_bg"] = "{chart_bg}";
@@ -1923,6 +1924,7 @@ class BoxPlot(object):
             % ", ".join(series_lst))
         series_js_str = u"\n".join(series_js)
         chart_settings_dic = {
+            u"axis_font_colour": css_dojo_dic['axis_font_colour'],
             u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
             u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
             u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], u"null"),
@@ -2007,6 +2009,7 @@ class Histo(object):
                 fill: "{fill}"
             }};
             var conf = new Array();
+            conf["axis_font_colour"] = "{axis_font_colour}";
             conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
             conf["gridline_width"] = {gridline_width};
@@ -2287,6 +2290,7 @@ class Histo(object):
                 width = width*0.9 # vulnerable to x axis labels vanishing on minor ticks
                 xfontsize = xfontsize*0.8
             chart_settings_dic = {
+                u"axis_font_colour": css_dojo_dic['axis_font_colour'],
                 u"bin_lbls": bin_lbls,
                 u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
                 u"chart_idx": u"%02d" % chart_idx,
@@ -2355,6 +2359,7 @@ class ScatterPlot(object):
         makechartRenumber{chart_idx} = function(){{
             {series_js}
             var conf = new Array();
+            conf["axis_font_colour"] = "{axis_font_colour}";
             conf["axis_lbl_drop"] = {axis_lbl_drop};
             conf["chart_bg"] = "{chart_bg}";
             conf["connector_style"] = "{connector_style}";
@@ -2535,6 +2540,7 @@ class ScatterPlot(object):
         # marker - http://o.dojotoolkit.org/forum/dojox-dojox/dojox-support/...
         # ...newbie-need-svg-path-segment-string
         chart_settings_dic = {
+            u"axis_font_colour": css_dojo_dic['axis_font_colour'],
             u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
             u"chart_bg": lib.if_none(css_dojo_dic['chart_bg'], "null"),
             u"chart_idx": u"%02d" % chart_idx,
@@ -2875,6 +2881,7 @@ class LineAreaChart(object):
         makechartRenumber{chart_idx} = function(){{
             {series_js}
             var conf = new Array();
+            conf["axis_font_colour"] = "{axis_font_colour}";
             conf["axis_lbl_drop"] = {axis_lbl_drop};
             conf["axis_lbl_rotate"] = {axis_lbl_rotate};
             conf["chart_bg"] = "{chart_bg}";
@@ -3116,6 +3123,7 @@ class LineAreaChart(object):
                 % u", ".join(series_names_list))
             series_js = series_js.lstrip()
             chart_settings_dic = {
+                u"axis_font_colour": css_dojo_dic['axis_font_colour'],
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
                 u"axis_lbl_rotate": axis_lbl_rotate,
                 u"chart_bg": css_dojo_dic['chart_bg'],
@@ -3364,6 +3372,7 @@ class LineAreaChart(object):
                 % u", ".join(series_names_list))
             series_js = series_js.lstrip()
             chart_settings_dic = {
+                u"axis_font_colour": css_dojo_dic['axis_font_colour'],
                 u"axis_lbl_drop": lib.if_none(axis_lbl_drop, 30),
                 u"axis_lbl_rotate": lib.if_none(axis_lbl_rotate, 0),
                 u"chart_bg": css_dojo_dic['chart_bg'],

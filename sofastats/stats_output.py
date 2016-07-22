@@ -1,5 +1,7 @@
 #! -*- coding: utf-8 -*-
 import cgi
+from functools import partial
+
 import numpy as np
 import boomslang
 import pylab
@@ -16,6 +18,8 @@ Output doesn't include the calculation of any values. These are in discrete
     functions in core_stats, amenable to unit testing.
 No html header or footer added here. Just some body content.    
 """
+
+row_str = partial(lib.pluralise_with_s, 'row')
 
 def add_footnote(footnotes, content):
     footnotes.append("\n<p><a id='ft%%(ftnum)s'></a><sup>%%(ftnum)s</sup> %s"
@@ -522,7 +526,8 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked, css_fil,
         diff = len(val_dets) - MAX_DISPLAY_ROWS
         if diff > 0: 
             html.append(u"""
-            <tr><td colspan="4">%s rows not displayed</td></tr>""" % diff)
+            <tr><td colspan="4">{} {} not displayed</td></tr>"""
+            .format(lib.formatnum(diff), row_str(diff)))
         html.append(u"""
         </tbody>
         </table>""")
@@ -634,8 +639,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
         diff_diffs = len(diff_dets) - MAX_DISPLAY_ROWS
         if diff_diffs > 0: 
             html.append(u"""
-            <tr><td colspan="3">%s rows not displayed</td></tr>""" %
-                lib.formatnum(diff_diffs))
+            <tr><td colspan="3">{} {} not displayed</td></tr>"""
+            .format(lib.formatnum(diff_diffs), row_str(diff_diffs)))
         html.append(u"""
         </tbody>
         </table>""")
@@ -665,8 +670,8 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_fil, css_idx=0,
         diff_ranks = len(ranks_dets) - MAX_DISPLAY_ROWS
         if diff_ranks > 0: 
             html.append(u"""
-            <tr><td colspan="4">%s rows not displayed</td></tr>""" %
-                lib.formatnum(diff_ranks))
+            <tr><td colspan="4">{} {} not displayed</td></tr>"""
+            .format(lib.formatnum(diff_ranks), row_str(diff_ranks)))
         html.append(u"""
         </tbody>
         </table>""")
@@ -828,8 +833,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
         diff_init = len(init_tbl) - MAX_DISPLAY_ROWS
         if diff_init > 0: 
             html.append(u"""
-            <tr><td colspan="2">%s rows not displayed</td></tr>""" %
-                lib.formatnum(diff_init))
+            <tr><td colspan="2">{} {} not displayed</td></tr>"""
+            .format(lib.formatnum(diff_init), row_str(diff_init)))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 2 - Work out ranks for the x and y values</h3>
@@ -846,8 +851,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
                 x_rank))
         diff_x_ranked = len(x_ranked) - MAX_DISPLAY_ROWS
         if diff_x_ranked > 0: 
-            html.append(u"<tr><td colspan='2'>%s rows not displayed</td></tr>" %
-                lib.formatnum(diff_x_ranked))
+            html.append(u"<tr><td colspan='2'>{} {} not displayed</td></tr>"
+                .format(lib.formatnum(diff_x_ranked), row_str(diff_x_ranked)))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <p>Do the same for %(label_y)s values</p>
@@ -862,8 +867,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
                 y_rank))
         diff_y_ranked = len(y_ranked) - MAX_DISPLAY_ROWS
         if diff_y_ranked > 0: 
-            html.append(u"<tr><td colspan='2'>%s rows not displayed</td></tr>" %
-                lib.formatnum(diff_y_ranked))
+            html.append(u"<tr><td colspan='2'>{} {} not displayed</td></tr>"
+                .format(lib.formatnum(diff_y_ranked), row_str(diff_y_ranked)))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 3 - Add ranks to original table or pairs</h3>
@@ -882,8 +887,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
                 <td>%s</td><td>%s</td><td>%s</td><td>%s</td>
             </tr>""" % row[:4])
         if diff_init > 0: 
-            html.append(u"<tr><td colspan='4'>%s rows not displayed</td></tr>" %
-                lib.formatnum(diff_init))
+            html.append(u"<tr><td colspan='4'>{} {} not displayed</td></tr>"
+                .format(lib.formatnum(diff_init), row_str(diff_init)))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 4 - Add difference in ranks and get square of diff</h3>
@@ -909,8 +914,8 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
                 <td>%s</td>
             </tr>""" % row)
         if diff_init > 0: 
-            html.append(u"<tr><td colspan='6'>%s rows not displayed</td></tr>" %
-                lib.formatnum(diff_init))
+            html.append(u"<tr><td colspan='6'>{} {} not displayed</td></tr>"
+                .format(lib.formatnum(diff_init), row_str(diff_init)))
         html.append(u"""</tbody></table>""")
         html.append(u"""
         <h3>Step 5 - Count N pairs, cube it, and subtract N</h3>
@@ -1181,7 +1186,6 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
         print(bs_in_as)
         print(as_in_bs_lst)
         print(bs_in_as_lst)
-        print(propns_as_in_bs_lst)
     title_tmp = _("%(laba)s and %(labb)s - %(y)s")
     title_overrides = {"fontsize": 14}
     # chart 1 - proportions ****************************************************
@@ -1196,7 +1200,16 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
     val_labels_a_with_ref = val_labels_a[:]
-    val_labels_a_with_ref.insert(0, "All\ncombined")
+    val_labels_a_with_ref.insert(0, u"All\ncombined")
+    if debug:
+        print(grid_bg)
+        print(bar_colours)
+        print(line_colour)
+        print(var_label_a)
+        print(y_label)
+        print(val_labels_a_with_ref)
+        print(val_labels_b)
+        print(propns_as_in_bs_lst)
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
         plot, var_label_a, y_label, val_labels_a_with_ref, val_labels_b,
         propns_as_in_bs_lst)

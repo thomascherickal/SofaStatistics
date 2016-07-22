@@ -1,8 +1,8 @@
 import pylab
 from matplotlib import pyplot
 import sys
-from PlotInfo import PlotInfo
-from PlotLayout import *
+from sofastats.boomslang.PlotInfo import PlotInfo
+from sofastats.boomslang.PlotLayout import *
 import copy
 
 try:
@@ -103,17 +103,17 @@ class Plot:
         self.legendLabelSize = size
     
     def split(self, pieces):
-       splitPlots = [copy.deepcopy(self) for i in xrange(pieces)]
+        splitPlots = [copy.deepcopy(self) for i in xrange(pieces)]
        
-       for plot in splitPlots:
-           plot.plots = []
+        for plot in splitPlots:
+            plot.plots = []
        
-       for plot in self.plots:
-           elements = plot.split(pieces)
-           for i in xrange(pieces):
-               splitPlots[i].add(elements[i])
-               splitPlots[i].setXLimits(min(elements[i].xValues), max(elements[i].xValues))
-       return splitPlots
+        for plot in self.plots:
+            elements = plot.split(pieces)
+            for i in xrange(pieces):
+                splitPlots[i].add(elements[i])
+                splitPlots[i].setXLimits(min(elements[i].xValues), max(elements[i].xValues))
+        return splitPlots
        
     def getDimensions(self):
         if self.width is None:
@@ -135,7 +135,6 @@ class Plot:
         Add a plottable object (a Line, Bar, etc.) to this plot, causing it to
         be drawn when the plot is drawn.
         """
-
         if not issubclass(plottableObject.__class__, PlotInfo):
             print >>sys.stderr, "All objects added to a Plot must be a subclass of PlotInfo"
             sys.exit(1)
