@@ -29,20 +29,6 @@ except ImportError: # if it's not there locally, try the wxPython lib.
         raise Exception(msg)
 
 debug = False
-PRETEND_IS_MAC = debug
-IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
-    else (mg.PLATFORM == mg.MAC))
-
-label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-ADD2_RPT_LBL = _("Also add%sto report") % label_divider
-RUN_LBL = _("Show Results")
-NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
-    u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.")
-    % {u"run": RUN_LBL, u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
-ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
-    u"\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
-    u"so your charts and themes can display properly.\n\nCopy the "
-    u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
 
 
 class DlgGetTest(wx.Dialog):

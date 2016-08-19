@@ -19,11 +19,11 @@ start.py.
 from __future__ import absolute_import
 import traceback
 
-## to avoid using dist-package version if installed as well
+## to avoid using dist-package version if installed as well - /usr/local/lib/python2.7/dist-packages/sofastats-1.5.0-py2.7.egg - and to enable sofastats namespacing
 import os
 import sys
+sys.path.insert(0, os.path.split(os.getcwd())[0])
 print(sys.path)
-sys.path.insert(0, '/'.join(os.getcwd().split('/')[:-1]))
 
 from sofastats import home
 from sofastats import setup_sofastats

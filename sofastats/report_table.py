@@ -119,7 +119,7 @@ class RptTypeOpts(object):
         group_lbl = _("Table Type")
         tab_type_choices = [mg.FREQS_LBL, mg.CROSSTAB_LBL, mg.ROW_STATS_LBL,
             mg.DATA_LIST_LBL]
-        if config_output.IS_MAC:
+        if config_ui.IS_MAC:
             bx_rpt_type = wx.StaticBox(panel, -1, group_lbl)
             szr_rad_rpt_type = wx.StaticBoxSizer(bx_rpt_type, wx.HORIZONTAL)
             self.rad_freq = wx.RadioButton(panel, -1, mg.FREQS_LBL,
@@ -956,7 +956,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                     demo_only_msg = (_(u"<p class='gui-msg-medium'>"
                         u"Example data only because of size of table - click "
                         u"'%s' for actual results<br>&nbsp;&nbsp;or keep "
-                        u"configuring</p>") % config_output.RUN_LBL)
+                        u"configuring</p>") % config_ui.RUN_LBL)
                     try:
                         idx_body_start = (demo_html.index(mg.BODY_START) + 
                             len(mg.BODY_START))
@@ -1018,7 +1018,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         """
         ready2run, unused = self.table_config_ok(silent=True)
         if live_demo:
-            runlbl2use = config_output.ADD2_RPT_LBL
+            runlbl2use = config_ui.ADD2_RPT_LBL
             mg.ADD2RPT = True
             self.chk_add_to_report.Show(False) # The button itself can handle this
         else:

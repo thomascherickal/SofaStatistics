@@ -174,7 +174,7 @@ class SettingsEntry(object):
         self.cell_response_func = cell_response_func \
             if cell_response_func else cell_response
         # store any fixed min colwidths
-        self.colwidths = [None for x in range(len(self.col_dets))] # init
+        self.colwidths = [None for unused in range(len(self.col_dets))] # init
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("colwidth"):
                 self.colwidths[col_idx] = col_det["colwidth"]
@@ -264,6 +264,7 @@ class SettingsEntry(object):
             self.grid.SetGridCursor(self.rows_n - 1, 0) # triggers OnSelect
             self.grid.MakeCellVisible(self.rows_n - 1, 0)
         self.control = None
+        self.grid.SetColLabelSize(40)
     
     def SetFocus(self):
         self.grid.SetFocus()

@@ -38,6 +38,7 @@ class DlgDataSelect(wx.Dialog):
         self.btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
         self.btn_design = wx.Button(self.panel, -1, _("Design"))
         self.btn_design.Bind(wx.EVT_BUTTON, self.on_design)
+        self.btn_design.SetToolTipString(_(u"Add fields, recode fields etc"))
         btn_open = wx.Button(self.panel, wx.ID_OPEN)
         btn_open.Bind(wx.EVT_BUTTON, self.on_open)
         self.szr_data = wx.FlexGridSizer(rows=2, cols=2, hgap=5, vgap=5)

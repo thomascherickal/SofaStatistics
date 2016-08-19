@@ -187,7 +187,7 @@ def recode_cell_invalidation(recode_dlg, val, row, col, grid, col_dets):
 def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
     """
     If a non-empty value, check to see if this variable has value labels 
-        already. If it does, let the user know.
+    already. If it does, let the user know.
     """
     debug = False
     if recode_dlg.new_fldname in recode_dlg.warned: # once is enough
@@ -225,15 +225,18 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         """
         cc = output.get_cc()
         self.tblname = tblname
-        self.warned = [] # For cell_response_func.  Lists vars warned about.
+        self.warned = []  ## For cell_response_func. Lists vars warned about.
         col_dets = [
-            {"col_label": _("FROM original value(s)"), 
-             "coltype": settings_grid.COL_STR, 
+            {"col_label": (_(u"FROM original value(s)") + mg.LABEL_DIVIDER
+                + u"e.g. 13 TO 19"),
+             "coltype": settings_grid.COL_STR,
              "colwidth": 200},
-            {"col_label": _("TO new value"), 
-             "coltype": settings_grid.COL_STR, 
+            {"col_label": (_("INTO new value") + mg.LABEL_DIVIDER
+                + u"e.g. 2"),
+             "coltype": settings_grid.COL_STR,
              "colwidth": 200},
-            {"col_label": _("With LABEL"), 
+            {"col_label": (_("With LABEL") + mg.LABEL_DIVIDER
+                + _(u"e.g. Teenager")),
              "coltype": settings_grid.COL_STR, 
              "colwidth": 200, "empty_ok": True},
         ]
@@ -245,7 +248,8 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.panel = wx.Panel(self)
         # New controls
-        lbl_from = wx.StaticText(self.panel, -1, _("Recode:"))
+        RECODE_VAR_LBL = _(u"Recode") + mg.LABEL_DIVIDER + _(u"variable") + u":"
+        lbl_from = wx.StaticText(self.panel, -1, RECODE_VAR_LBL)
         lbl_from.SetFont(mg.LABEL_FONT)
         self.settings_data = fld_settings
         # [('string', 'fname', 'fname (string)'), ...]
@@ -270,6 +274,9 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         lbl_to.SetFont(mg.LABEL_FONT)
         self.txt_to = wx.TextCtrl(self.panel, -1, size=(250, -1))
         self.txt_to.Bind(wx.EVT_CHAR, self.on_txt_to_char)
+        lbl_recode_vals = wx.StaticText(self.panel, -1,
+            _(u"Recode values") + u":")
+        lbl_recode_vals.SetFont(mg.LABEL_FONT)
         init_recode_clauses_data = []
         self.recode_clauses_data = []
         self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
@@ -301,6 +308,7 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.szr_btns.Add(btn_cancel)
         self.szr_btns.Add(btn_help)
         self.szr_btns.Add(btn_recode)
+        self.szr_main.Add(lbl_recode_vals, 0, wx.LEFT, 10)
         self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)

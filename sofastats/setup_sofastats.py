@@ -15,7 +15,7 @@ show_early_steps = True
 force_error = False
 debug = False
 
-WXPYTHON_VERSION = '2.8'  # 2.8
+WXPYTHON_VERSION = '2.8' #3.0
 
 INIT_DEBUG_MSG = (u"Please note the messages above (e.g. with a screen-shot)"
     u" and press any key to close")
@@ -45,6 +45,8 @@ import traceback
 if show_early_steps: print(u"Just imported traceback")
 # yes - an action in a module - but only called once and really about letting 
 # other modules even be found and called
+if platform.system().lower() == 'windows':
+    WXPYTHON_VERSION = '3.0'
 if not(hasattr(sys, 'frozen') and sys.frozen):
     try:
         import wxversion

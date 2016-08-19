@@ -35,8 +35,7 @@ PRETEND_IS_MAC = debug
 IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
     else (mg.PLATFORM == mg.MAC))
 
-label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
-ADD2_RPT_LBL = _("Also add%sto report") % label_divider
+ADD2_RPT_LBL = _("Also add%sto report") % mg.LABEL_DIVIDER
 RUN_LBL = _("Show Results")
 NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
     u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
