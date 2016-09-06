@@ -478,6 +478,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
     max_x_lbl_len = 0
     max_y_lbl_len = 0
     max_lbl_lines = 0
+    rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
     fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
         var_role_agg_name]
     prestructure = get_prestructured_grouped_data(raw_data, fldnames,
@@ -540,6 +541,10 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
             # process xy vals
             xy_vals = series_dic[XY_KEY]
             vals_etc_lst = []
+            max_y_val = max(y_val for unused, y_val in xy_vals)
+            y_lbl_width = len(str(round(max_y_val, rounding2use)))
+            if y_lbl_width > max_y_lbl_len:
+                max_y_lbl_len = y_lbl_width
             for x_val, y_val in xy_vals:
                 try:
                     xval4lbl = round(x_val, dp)
@@ -555,10 +560,6 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                     max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
-                rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
-                y_lbl_width = len(str(round(y_val, rounding2use)))
-                if y_lbl_width > max_y_lbl_len:
-                    max_y_lbl_len = y_lbl_width
                 if n_lines > max_lbl_lines:
                     max_lbl_lines = n_lines
                 if multiseries: #chart_type == mg.CLUSTERED_BARCHART:
@@ -743,7 +744,7 @@ def get_ytitle_offset(max_y_lbl_len, x_lbl_len, max_safe_x_lbl_len_pxls,
     Need to shift y-axis title left if wide y-axis label or first x-axis label
     is wide.
     """
-    debug = False
+    debug = True
     # 45 is a good total offset with label width of 20
     ytitle_offset = DOJO_YTITLE_OFFSET_0 - 20
     # x-axis adjustment

@@ -182,8 +182,8 @@ makeLineChart = function(chartname, series, conf){
             l: conf['margin_offset_l'],
             t: 10,
             r: 10,
-            b: 10+conf['axis_lbl_drop'],
-            yTitleOffset: conf['y_title_offset']}});
+            b: 10+conf['axis_lbl_drop']},
+            yTitleOffset: conf['y_title_offset']});
     var sofa_theme = new dc.Theme({
         chart:{
 	        stroke: null,
@@ -563,7 +563,7 @@ makeBoxAndWhisker = function(chartname, series, seriesconf, conf){
 	    },
 	    axis:{
 	        stroke:	{ // the axis itself
-	            color: conf['plot_font_colour'],
+	            color: conf['axis_font_colour'],
 	            width: null
 	        },
             tick: {	// used as a foundation for all ticks
