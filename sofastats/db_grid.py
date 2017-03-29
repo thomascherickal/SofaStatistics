@@ -12,6 +12,7 @@ from sofastats import export_data
 from sofastats import getdata
 from sofastats import db_tbl
 from sofastats import output
+from sofastats import config_ui
 from sofastats import config_output
 
 """
@@ -118,7 +119,11 @@ def open_database(parent, event):
     event.Skip()
     
     
-class TblEditor(wx.Dialog):
+class TblEditor(wx.Dialog, config_ui.ConfigUI):
+    """
+    It's right to left with mixin inheritance. Override with innermost (last) -
+    see https://www.ianlewis.org/en/mixins-and-python
+    """
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics,
                  readonly=True, set_colwidths=True):
         self.debug = False
@@ -128,9 +133,9 @@ class TblEditor(wx.Dialog):
         if self.readonly:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|\
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX\
+            |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
+        config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.parent = parent
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.var_labels = var_labels
@@ -190,8 +195,8 @@ class TblEditor(wx.Dialog):
         self.any_editor_shown = False
         if set_colwidths:
             self.set_colwidths()
-        self.grid.GetGridColLabelWindow().SetToolTipString(_("Right click "
-                                            "variable to view/edit details"))
+        self.grid.GetGridColLabelWindow().SetToolTipString(
+            _("Right click variable to view/edit details"))
         self.respond_to_select_cell = True
         self.control = None
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
@@ -204,22 +209,33 @@ class TblEditor(wx.Dialog):
         self.prev_row_col = (None, None)
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
-                       self.on_label_rclick)
-        szr_bottom = wx.FlexGridSizer(rows=1, cols=3, hgap=5, vgap=5)
-        szr_bottom.AddGrowableCol(1,2) # idx, propn
+            self.on_label_rclick)
+        szr_top = wx.FlexGridSizer(rows=1, cols=3, hgap=5, vgap=5)
+        szr_top.AddGrowableCol(1,2) # idx, propn
+        szr_bottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
+        szr_bottom.AddGrowableCol(0,2) # idx, propn
+
+        btn_filter = self.get_btn_filter(self.panel)
+        btn_var_config = self.get_btn_var_config(self.panel)
         btn_size_cols = wx.Button(self.panel, -1, _("Resize column widths"))
         btn_size_cols.Bind(wx.EVT_BUTTON, self.on_size_cols)
         btn_export = wx.Button(self.panel, -1, _(u"Export as spreadsheet"))
         btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
-        szr_bottom.Add(btn_size_cols, 0)
+
+        szr_top.Add(btn_size_cols, 0, wx.LEFT)
+        szr_top.Add(btn_filter, 0, wx.ALIGN_RIGHT)
+        szr_top.Add(btn_var_config, 0, wx.ALIGN_RIGHT)
+
         szr_bottom.Add(btn_export, 0, wx.LEFT, 10)
         szr_bottom.Add(btn_close, 0, wx.ALIGN_RIGHT)
+
+        self.szr_main.Add(szr_top, 0, wx.GROW|wx.ALL, 5)
         self.szr_main.Add(self.grid, 1, wx.GROW)
         self.szr_main.Add(szr_bottom, 0, wx.GROW|wx.ALL, 5)
         self.panel.SetSizer(self.szr_main)
-        szr_lst = [self.grid, szr_bottom]
+        szr_lst = [szr_top, self.grid, szr_bottom]
         iswindows = (mg.PLATFORM == mg.WINDOWS)
         mywidth, myheight = get_display_dims(maxheight=mg.MAX_HEIGHT,
             iswindows=iswindows)
@@ -964,12 +980,12 @@ class TblEditor(wx.Dialog):
         prev_row = row - 1
         self.grid.SetRowLabelValue(prev_row, unicode(prev_row))
         self.grid.SetRowLabelValue(row, mg.NEW_IS_READY)
-    
+
     def init_new_row_buffer(self):
         "Initialise new row buffer"
         self.dbtbl.new_is_dirty = False
         self.dbtbl.new_buffer = {}
-    
+
     def focus_on_new_row(self, new_row_idx, col2select):
         "Focus on cell in new row"
         self.grid.SetGridCursor(new_row_idx, col2select)
@@ -983,6 +999,16 @@ class TblEditor(wx.Dialog):
 
     # MISC //////////////////////////////////////////////////////////////////
 
+    def on_btn_filter(self, event):
+        from sofastats import filtselect # by now, DLG will be available to inherit from
+        parent = self
+        dlg = filtselect.DlgFiltSelect(parent, self.var_labels, self.var_notes, 
+            self.var_types, self.val_dics)
+        retval = dlg.ShowModal()
+        if retval != wx.ID_CANCEL:
+            print("Get filtering!")
+        lib.GuiLib.safe_end_cursor()
+
     def on_grid_editor_created(self, event):
         """
         Need to identify control just opened. Might need to return to it and
@@ -992,7 +1018,7 @@ class TblEditor(wx.Dialog):
         self.control = event.GetControl()
         if debug: print("Created editor: %s" % self.control)
         event.Skip()    
-    
+
     def on_label_rclick(self, event):
         debug = False
         col = event.GetCol()
@@ -1003,7 +1029,7 @@ class TblEditor(wx.Dialog):
             choice_item = lib.GuiLib.get_choice_item(self.var_labels, var_name)
             config_output.set_var_props(choice_item, var_name, var_label,
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
-    
+
     def get_cell_tooltip(self, col, raw_val):
         """
         Get tooltip for cell based on value dict if possible.

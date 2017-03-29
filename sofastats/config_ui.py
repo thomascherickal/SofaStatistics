@@ -11,7 +11,6 @@ from sofastats import my_exceptions
 from sofastats import lib
 from sofastats import export_output_gui
 from sofastats import export_output_images
-from sofastats import db_grid
 from sofastats import getdata
 from sofastats import output
 from sofastats import showhtml
@@ -217,7 +216,7 @@ class ConfigUI(object):
         In the latter case, we only want changes to become global when a project
         is selected, not while configuring a project. We might modify a project
         but not select it e.g. cancel on projselect stage. Use self.autoupdate
-        as determinant.
+        to decide - True to change settings based on selection.
         """
         debug = False
         if debug: print("autoupdate got set")
@@ -240,7 +239,7 @@ class ConfigUI(object):
         self.szr_data = self.get_szr_data(panel, readonly, hide_db)
         self.szr_output_config = self.get_szr_output_config(panel, readonly)
         return self.szr_data, self.szr_output_config
-        
+
     def get_szr_data(self, panel, readonly=False, hide_db=True):
         """
         Returns self.szr_data complete with widgets. dd is updated.
@@ -282,10 +281,10 @@ class ConfigUI(object):
         self.btn_open.SetFont(mg.BTN_FONT)
         self.btn_open.Bind(wx.EVT_BUTTON, self.on_open)
         # 5) Filtering
-        btn_filter = wx.Button(panel, -1, _("Filter"), size=btn_size)
-        btn_filter.SetFont(mg.BTN_FONT)
-        btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
-        btn_var_config = self.get_btn_var_config(panel) # also needed by projects but not as part of bundle
+        btn_filter = self.get_btn_filter(panel) # also needed by data table but not as part of bundle
+        # 6) Var config
+        btn_var_config = self.get_btn_var_config(panel) # also needed by projects and data table but not as part of bundle
+        # 7) assemble
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
         if not hide_db:
             self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
@@ -470,7 +469,13 @@ class ConfigUI(object):
         btn_var_config.SetToolTipString(_(u"Configure variable details e.g. "
             u"labels"))
         return btn_var_config
-    
+
+    def get_btn_filter(self, panel):
+        btn_filter = wx.Button(panel, -1, _("Filter"))
+        btn_filter.SetFont(mg.BTN_FONT)
+        btn_filter.Bind(wx.EVT_BUTTON, self.on_btn_filter)
+        return btn_filter
+
     def set_extra_dets(self, vdt_file, script_file):          
         self.vdt_file = vdt_file
         self.script_file = script_file
@@ -589,6 +594,7 @@ class ConfigUI(object):
         self.filters()
         
     def on_open(self, event):
+        from sofastats import db_grid
         db_grid.open_database(self, event)
     
     def has_expected_subfolder(self, rpt_root):

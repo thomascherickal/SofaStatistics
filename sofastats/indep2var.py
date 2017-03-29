@@ -38,12 +38,12 @@ def get_range_idxs(vals, val_a, val_b):
 
 class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     """
-    ConfigUI - provides reusable interface for data selection, setting labels, 
-        exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
-        responds to selections etc.
+    ConfigUI - provides reusable interface for data selection, setting labels,
+    exporting scripts buttons etc.  Sets values for db, default_tbl etc and
+    responds to selections etc.
     """
     inc_gp_by_select = False
-    
+
     def __init__(self, title, takes_range=False):
         self.exiting = False
         cc = output.get_cc()
