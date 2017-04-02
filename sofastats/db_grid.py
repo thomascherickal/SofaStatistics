@@ -127,9 +127,9 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
                     caption=_("LONG REPORT"), style=wx.YES_NO) == wx.NO:
                 return
         wx.BeginBusyCursor()
-        set_colwidths = (rows_n < 1000)
+        need_colwidths_set = (rows_n < 1000)
         dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
-            readonly, set_colwidths=set_colwidths)
+            readonly, need_colwidths_set=need_colwidths_set)
         lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
 
@@ -146,8 +146,9 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     see https://www.ianlewis.org/en/mixins-and-python
     """
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics,
-                 readonly=True, set_colwidths=True):
+                 readonly=True, need_colwidths_set=True):
         self.debug = False
+        self.need_colwidths_set = need_colwidths_set
         self.dd = mg.DATADETS_OBJ
         self.readonly = readonly
         title = _("Data from ") + "%s.%s" % (self.dd.db, self.dd.tbl)
@@ -170,9 +171,6 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not self.readonly)
         self.init_tbl()
-        self.any_editor_shown = False
-        if set_colwidths:
-            self.set_colwidths()
         self.grid.GetGridColLabelWindow().SetToolTipString(
             _("Right click variable to view/edit details"))
         self.respond_to_select_cell = True
@@ -277,6 +275,9 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.set_new_row_ed(new_row_idx)
         self.col2select = col2select # used to determine where cursor should 
             # land when moving from end of new row.
+        self.any_editor_shown = False
+        if self.need_colwidths_set:
+            self.set_colwidths()
 
     # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
 
