@@ -535,7 +535,7 @@ class SettingsEntry(object):
             for window in self.grid.GetChildren():
                 window.SetFocus()
         event.Skip()
-    
+
     def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
                           direction):
         """
@@ -551,20 +551,20 @@ class SettingsEntry(object):
                 u"source row %s source col %s " % (src_row, src_col) +
                 u"dest row %s dest col %s " % (dest_row, dest_col) +
                 u"direction: %s" % direction)
-        move_type, dest_row, dest_col = self.get_move_dets(src_row, src_col, 
+        move_type, dest_row, dest_col = self.get_move_dets(src_row, src_col,
                                                 dest_row, dest_col, direction)
         if move_type in [mg.MOVING_IN_EXISTING, mg.LEAVING_EXISTING]:
-            move_to_dest = self.leaving_existing_cell()
+            move_to_dest = self.leaving_cell_in_existing_row()
         elif move_type == mg.MOVING_IN_NEW:
             move_to_dest = self.moving_in_new_row()
         elif move_type == mg.LEAVING_NEW:
-            move_to_dest, saved_new_row = self.leaving_new_row(dest_row, 
-                                                            dest_col, direction)
+            move_to_dest, saved_new_row = self.leaving_new_row(dest_row,
+                dest_col, direction)
         else:
             raise Exception(u"process_cell_move - Unknown move_type")
         if self.debug or debug:
-            print(u"move_type: %s move_to_dest: %s " % (move_type, 
-                                                        move_to_dest) +
+            print(u"move_type: %s move_to_dest: %s " % (move_type,
+                    move_to_dest) +
                   u"dest_row: %s dest_col: %s" % (dest_row, dest_col))
             
         if move_to_dest:
@@ -587,7 +587,7 @@ class SettingsEntry(object):
                 except Exception:
                     pass # OK if source control has no ability to set insertion point.
         return stayed_still, saved_new_row
-    
+
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):
         """
         Gets move details.
@@ -704,10 +704,11 @@ class SettingsEntry(object):
         """
         return self.rows_to_fill
     
-    def leaving_existing_cell(self):
+    def leaving_cell_in_existing_row(self):
         """
         Process the attempt to leave an existing cell (whether or not leaving
-            existing row).
+        existing row).
+
         Will not move if cell data not OK to save.
         Return move_to_dest.
         """
@@ -735,34 +736,38 @@ class SettingsEntry(object):
     
     def leaving_new_row(self, dest_row, dest_col, direction):
         """
-        Process the attempt to leave a cell in the new row.
+        Process attempt to leave new row.
+
         Always OK to leave new row in an upwards direction if it has not been 
-            altered (i.e. not dirty).
+        altered (i.e. not dirty).
+
         Otherwise, must see if row is OK to Save.  If not, e.g. faulty data, 
-            keep selection where it was.  If OK, add new row.
+        keep selection where it was.  If OK, add new row.
+
         NB actual direction could be down_left instead of down if in final col.
+
         Return move_to_dest, saved_new_row (used by table config when processing 
-            cell move).
+        cell move).
         """
         debug = False
         saved_new_row = False
         is_dirty = self.is_dirty(self.current_row_idx)
         if self.debug or debug: 
             print(u"leaving_new_row - dest row %s dest col %s " %
-                  (dest_row, dest_col) +
-                  u"original direction %s dirty %s" % (direction, is_dirty))
+                (dest_row, dest_col) +
+                u"original direction %s dirty %s" % (direction, is_dirty))
         if direction in [mg.MOVE_UP, mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT] \
                 and not is_dirty:
             move_to_dest = True # always OK
             self.new_is_dirty = False
         else: # must check OK to move
-            ok_to_save, msg = self.cell_ok_to_save(self.current_row_idx, 
-                                                   self.current_col_idx)
+            ok_to_save, msg = self.cell_ok_to_save(self.current_row_idx,
+                self.current_col_idx)
             if not ok_to_save:
                 wx.MessageBox(msg)
                 move_to_dest = False
             elif not self.row_ok_to_save(row=self.current_row_idx,
-                                   col2skip=self.current_col_idx): # just passed
+                    col2skip=self.current_col_idx): # just passed
                 move_to_dest = False
             else:
                 move_to_dest = True
@@ -829,10 +834,11 @@ class SettingsEntry(object):
     def row_ok_to_save(self, row, col2skip=None):
         """
         Each cell must be OK to save. NB validation may be stricter than what 
-            the database will accept into its fields e.g. must be one of three 
-            strings ("Numeric", "Text", or "Date").
+        the database will accept into its fields e.g. must be one of three 
+        strings ("Numeric", "Text", or "Date").
+
         col2skip -- so we can skip validating a cell that has just passed e.g. 
-            in leaving_new_row 
+        in leaving_new_row 
         """
         if self.debug: print(u"row_ok_to_save - row %s" % row)
         for col_idx, col_det in enumerate(self.col_dets):
@@ -841,8 +847,8 @@ class SettingsEntry(object):
             ok_to_save, msg = self.cell_ok_to_save(row=row, col=col_idx)
             if not ok_to_save:
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
-                                "in the \"%(col_label)s\" column. %(msg)s") % \
-                                {"col_label": col_det["col_label"], "msg": msg})
+                    "in the \"%(col_label)s\" column. %(msg)s") % \
+                    {"col_label": col_det["col_label"], "msg": msg})
                 return False
         return True
     

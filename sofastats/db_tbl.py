@@ -55,10 +55,13 @@ class DbTbl(wx.grid.PyGridTableBase):
 
         Zero-based.
         """
-        SQL_get_id_vals = (u"SELECT %s FROM %s ORDER BY %s" %
+        dd = mg.DATADETS_OBJ
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
+        SQL_get_id_vals = (u"SELECT %s FROM %s %s ORDER BY %s" %
             (self.objqtr(self.id_col_name), getdata.tblname_qtr(self.dd.dbe,
                 self.dd.tbl),
-            self.objqtr(self.id_col_name)))
+            where_filt, self.objqtr(self.id_col_name)))
         if debug: print(SQL_get_id_vals)
         self.dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
@@ -114,8 +117,11 @@ class DbTbl(wx.grid.PyGridTableBase):
         idx_final_data_row -- index of final data row.
         """
         debug = False
-        SQL_rows_n = u"SELECT COUNT(*) FROM %s" % getdata.tblname_qtr(
-            self.dd.dbe, self.dd.tbl)
+        dd = mg.DATADETS_OBJ
+        unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+        where_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
+        SQL_rows_n = u"SELECT COUNT(*) FROM %s %s" % (getdata.tblname_qtr(
+            self.dd.dbe, self.dd.tbl), where_filt)
         self.dd.cur.execute(SQL_rows_n)
         self.rows_n = self.dd.cur.fetchone()[0]
         self.idx_final_data_row = self.rows_n - 1
@@ -201,15 +207,18 @@ class DbTbl(wx.grid.PyGridTableBase):
             extra = 10
             """
             If new row, just return value from new_buffer (or missing value).
-            
+
             Otherwise, fill cache (up to extra (e.g. 10) rows above and below) 
             and then grab this col value.
-            
+
             More expensive for first cell but heaps less expensive for rest.
-            
+
             Set cell editor while at it. Very expensive for large table so do it 
             as needed.
             """
+            dd = mg.DATADETS_OBJ
+            unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
+            unused, and_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
             if self.is_new_row(row):
                 return self.new_buffer.get((row, col), mg.MISSING_VAL_INDICATOR)
             # identify row range            
@@ -226,7 +235,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                         print("row_idx: %s\n\n%s" % (row_idx, self.row_ids_lst))
                 if self.must_quote:
                     fld_dic = self.get_fld_dic(col)
-                    value = self.quote_val(raw_val, 
+                    value = self.quote_val(raw_val,
                         charset2try=fld_dic[mg.FLD_CHARSET])
                 else:
                     value = u"%s" % raw_val
@@ -234,8 +243,10 @@ class DbTbl(wx.grid.PyGridTableBase):
             IN_clause = u", ".join(IN_clause_lst)
             SQL_get_values = (u"SELECT * "
                 + u" FROM %s " % getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
-                + u" WHERE %s IN(%s)" % (self.objqtr(self.id_col_name), 
-                IN_clause) + u" ORDER BY %s" % self.objqtr(self.id_col_name))
+                + u" WHERE %s " % self.objqtr(self.id_col_name)
+                + u"IN(%s)" % IN_clause
+                + and_filt
+                + u" ORDER BY %s" % self.objqtr(self.id_col_name))
             if debug or self.debug: print(SQL_get_values)
             #dd.con.commit() # extra commits keep postgresql problems
                 # away when a cell change is rejected by SOFA Stats validation
@@ -250,7 +261,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 data_tup = tuple([lib.UniLib.handle_ms_data(x)
                     for x in data_tup])
                 if debug or self.debug: print(data_tup)
-                self.add_data_to_row_vals_dic(self.row_vals_dic, row_idx, 
+                self.add_data_to_row_vals_dic(self.row_vals_dic, row_idx,
                     data_tup)
                 row_idx += 1
             val = self.row_vals_dic[row][col] # the bit we're interested in now
@@ -276,14 +287,14 @@ class DbTbl(wx.grid.PyGridTableBase):
         # wxPython
         """
         Only called if data entered.        
-        
+
         Fires first if use mouse to move from a cell you have edited.
-        
+
         Fires after keypress and SelectCell if you use TAB to move.
-        
+
         If a new row, stores value in new row buffer ready to be saved if OK to 
         save row.
-        
+
         If an existing, ordinary row, stores sql_cell_to_update if OK to update
         cell. Cache will be updated if, and only if, the cell is actually
         updated.
@@ -323,10 +334,10 @@ class DbTbl(wx.grid.PyGridTableBase):
     def display_new_row(self):
         """
         http://wiki.wxpython.org/wxGrid
-        
+
         The example uses getGrid() instead of wxPyGridTableBase::GetGrid() can 
         be issues depending on version of wxPython.
-        
+
         Safest to pass in the grid.
         """
         self.grid.BeginBatch()
@@ -338,8 +349,9 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.grid.ProcessTableMessage(msg)
         self.grid.EndBatch()
         self.grid.ForceRefresh()
-        
+
     def force_refresh(self):
+        self.row_vals_dic = {}  ## flush cache
         msg = wx.grid.GridTableMessage(self, 
             wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)
