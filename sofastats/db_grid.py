@@ -528,7 +528,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             validation.
         """
         if debug_events: print("on_cell_move")
-        debug = True
+        debug = False
         src_ctrl = self.control
         src_row=self.current_row_idx # row being moved from
         src_col=self.current_col_idx # col being moved from
@@ -550,7 +550,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         dest row and col still unknown if from a return or TAB keystroke.
         So is the direction (could be down or down_left if end of line).
         """
-        debug = True
+        debug = False
         self.dbtbl.force_refresh()
         if self.debug or debug:
             print("process_cell_move - " +
@@ -1069,7 +1069,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         from sofastats import filtselect # by now, DLG will be available to inherit from
         if debug_events: print("on_btn_filter")
-        debug = True
+        debug = False
         if self.any_editor_shown or self.dbtbl.new_is_dirty:
             wx.MessageBox(_(u"Unable to apply or remove filters while unsaved "
                 u"edits or data additions"))

@@ -42,7 +42,7 @@ def shellit(cmd, shell=True):
     but possibly stuffs up reading stdout for message? And pdftk the same?
     """
     debug = False
-    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
+    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = False
     verbose = False
     if debug: 
         if verbose:

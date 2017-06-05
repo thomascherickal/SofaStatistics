@@ -685,26 +685,26 @@ class ConfigUI(object):
         dlg = export_output_gui.DlgExportOutput(title=u"Export Output", 
             report_path=mg.INT_REPORT_PATH, save2report_path=False)
         dlg.ShowModal()
-    
+
     def on_sel_copy_output(self, event):
         wx.BeginBusyCursor()
         try:
             export_output_images.copy_output()
             lib.GuiLib.safe_end_cursor()
             """
-            Copying to the clipboard does not actually copy anything, it just 
-            posts a promise to provide the data later when when it is asked for. 
+            Copying to the clipboard does not actually copy anything, it just
+            posts a promise to provide the data later when when it is asked for.
             http://wxpython-users.1045709.n5.nabble.com/...
             ...Going-crazy-with-copy-paste-problem-td2365276.html
             """
             wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
-                u"pasting the output or it won't work." % self.title), 
+                u"pasting the output or it won't work." % self.title),
                 caption=u"COPIED OUTPUT")
         except Exception, e:
             lib.GuiLib.safe_end_cursor()
-            wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s" 
+            wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s"
                 % b.ue(e))
-    
+
     def get_script_output(self, get_script_args, new_has_dojo, 
             allow_add2rpt=True):
         debug = False

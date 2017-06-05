@@ -1197,11 +1197,13 @@ def linregress(x,y):
 
 def pearsonr(x,y):
     """
-    From stats.py.  No changes apart from added error trapping.  
+    From stats.py.  No changes apart from added error trapping, commenting out
+    unused variable calculation, and trapping zero division error.
     -------------------------------------
-    Calculates a Pearson correlation coefficient and the associated
-    probability value.  Taken from Heiman's Basic Statistics for the Behav.
-    Sci (2nd), p.195.
+
+    Calculates a Pearson correlation coefficient and the associated probability
+    value.  Taken from Heiman's Basic Statistics for the Behav. Sci (2nd),
+    p.195.
 
     Usage:   pearsonr(x,y)      where x and y are equal-length lists
     Returns: Pearson's r value, two-tailed p-value
@@ -1215,8 +1217,8 @@ def pearsonr(x,y):
         y = map(float,y)
     except ValueError, e:
         raise Exception(u"Unable to calculate Pearson's R.  %s" % b.ue(e))
-    xmean = mean(x)
-    ymean = mean(y)
+    #xmean = mean(x)
+    #ymean = mean(y)
     r_num = n*(summult(x,y)) - sum(x)*sum(y)
     r_den = math.sqrt((n*sum_squares(x) - square_of_sums(x)) * 
                       (n*sum_squares(y)-square_of_sums(y)))
@@ -1225,7 +1227,13 @@ def pearsonr(x,y):
     r = (r_num / r_den)  # denominator already a float
     df = n-2
     t = r*math.sqrt(df/((1.0-r+TINY)*(1.0+r+TINY)))
-    prob = betai(0.5*df,0.5,df/float(df+t*t))
+    try:
+        prob = betai(0.5*df,0.5,df/float(df+t*t))
+    except ZeroDivisionError:
+        raise Exception(u"Unable to calculate Pearson's R. The df value and t "
+            u"are all 0 so trying to divide by df + t*t meant trying to "
+            u"divide by zero which is an error. But still worth looking at a "
+            u"scatterplot chart to assess the relationship.")
     return r, prob, df
 
 def spearmanr(x, y, headless=False):

@@ -184,13 +184,13 @@ class DlgExportOutput(wx.Dialog):
         n_pdfs = 1 if do_pdf else 0
         (gauge_start_pdf, steps_per_pdf, 
         gauge_start_imgs, steps_per_img, 
-        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(n_pdfs, n_imgs, 
+        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(n_pdfs, n_imgs,
             self.output_dpi, n_tbls)
         if do_pdf:
             try:
-                export_output_pdfs.pdf_tasks(self.save2report_path, self.report_path, 
-                    temp_desktop_path, headless, gauge_start_pdf, steps_per_pdf, 
-                    msgs, self.progbar)
+                export_output_pdfs.pdf_tasks(self.save2report_path,
+                    self.report_path, temp_desktop_path, headless,
+                    gauge_start_pdf, steps_per_pdf, msgs, self.progbar)
             except Exception, e:
                 self.progbar.SetValue(0)
                 lib.GuiLib.safe_end_cursor()
@@ -200,17 +200,17 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_imgs:
             try:
-                export_output_images.export2imgs(hdr, img_items, self.save2report_path, 
-                    self.report_path, temp_desktop_path, self.output_dpi, 
-                    gauge_start_imgs, headless, self.export_status, 
-                    steps_per_img, msgs, self.progbar)
+                export_output_images.ExportImage.export2imgs(hdr, img_items,
+                    self.save2report_path, self.report_path, temp_desktop_path,
+                    self.output_dpi, gauge_start_imgs, headless,
+                    self.export_status, steps_per_img, msgs, self.progbar)
             except Exception, e:
                 try:
                     raise
                 except my_exceptions.ExportCancel:
                     wx.MessageBox(u"Export Cancelled")
                 except Exception, e:
-                    msg = (u"Problem exporting output. Orig error: %s" % 
+                    msg = (u"Problem exporting output. Orig error: %s" %
                         b.ue(e))
                     if debug: print(msg)
                     wx.MessageBox(msg)
