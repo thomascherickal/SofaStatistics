@@ -1664,25 +1664,25 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
 def pluralise_with_s(singular, n):
     return singular if n == 1 else u"{}s".format(singular)
 
-def get_bins(min_val, max_val):
+def get_bins(min_val, max_val, n_distinct):
     """
     Goal - set nice bin widths so "nice" value e.g. 0.2, 0.5, 1 (or
     200, 500, 1000 or 0.002, 0.005, 0.01) and not too many or too few bins.
-    
+
     Start with a bin width which splits the data into the optimal number of 
     bins. Normalise it, adjust upwards to nice size, and denormalise. Check 
     number of bins resulting.
-    
+
     OK? If room to double number of bins, halve size of normalised bin width, 
     and try to adjust upwards to a nice size. This time, however, there is the 
     option of 2 as an interval size (so we have 2, 5, or 10. Denormalise and 
     recalculate the number of bins.
-    
+
     Now reset lower and upper limits if appropriate. Make lower limit a multiple 
     of the bin_width and make upper limit n_bins*bin_width higher.
-    
+
     Add another bin if not covering max value.
-    
+
     n_bins -- need an integer ready for core_stats.histogram
     """
     debug = False
@@ -1695,7 +1695,16 @@ def get_bins(min_val, max_val):
     if data_range == 0:
         data_range = 1
     target_n_bins = 20
-    min_n_bins = 10
+    """
+    If lots of values then 10, otherwise n_distinct unless too low in which case
+    4 at lowest.
+    """
+    if n_distinct >= 10:
+        min_n_bins = 10
+    elif n_distinct <= 4:
+        min_n_bins = 4
+    else:
+        min_n_bins = n_distinct
     init_bin_width = data_range/(target_n_bins*1.0)
     # normalise init_bin_width to val between 1 and 10
     norm_bin_width = init_bin_width

@@ -2114,10 +2114,10 @@ class Histo(object):
         else:
             fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
         """
-        Set bins for all data at once. If only one histogram, then the perfect 
-            result for that. If multiple histograms, then ensures consistent 
-            bins to enable comparison.
-        If multiple charts, we only handle saw-toothing for the overall data.
+        Set bins for all data at once. If only one histogram, then the perfect
+        result for that. If multiple histograms, then ensures consistent bins to
+        enable comparison. If multiple charts, we only handle saw-toothing for
+        the overall data.
         """
         SQL_get_combined_vals = u"""SELECT %(var_role_bin)s 
         FROM %(tbl)s
@@ -2130,12 +2130,14 @@ class Histo(object):
         if not combined_vals:
             raise Exception(u"No data to make histogram with.")
         # use nicest bins practical
+        ## start by getting bins as per default code
         n_bins, lower_limit, upper_limit = lib.get_bins(min(combined_vals), 
-            max(combined_vals))
+            max(combined_vals), n_distinct=len(set(combined_vals)))
         (combined_y_vals, combined_start, 
          bin_width, unused) = core_stats.histogram(combined_vals, n_bins, 
             defaultreallimits=[lower_limit, upper_limit])
-        (unused, combined_start, 
+        ## make any saw-toothing corrections necessary
+        (fixed_combined_y_vals, combined_start, 
          bin_width) = core_stats.fix_sawtoothing(combined_vals, n_bins, 
              combined_y_vals, combined_start, bin_width)
         # put any temporary hack overrides for combined_start, bin_width below here**************
@@ -2169,7 +2171,7 @@ class Histo(object):
                 chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
                     fld_chart_by_val_lbl)
             else: # only one chart - combined values are the values we need
-                y_vals = combined_y_vals
+                y_vals = fixed_combined_y_vals
                 vals4norm = combined_vals
                 chart_by_lbl = None
             # not fixing saw-toothing 

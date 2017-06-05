@@ -121,7 +121,8 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     rect.set_facecolor(inner_bg)
     #n_vals = len(vals)
     # use nicest bins practical
-    n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals))
+    n_bins, lower_limit, upper_limit = lib.get_bins(min(vals), max(vals),
+        n_distinct=len(set(vals)))
     (y_vals, start, 
      bin_width, unused) = core_stats.histogram(vals, n_bins, 
         defaultreallimits=[lower_limit, upper_limit])
