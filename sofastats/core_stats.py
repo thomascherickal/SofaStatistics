@@ -1247,7 +1247,6 @@ def spearmanr(x, y, headless=False):
     Usage:   spearmanr(x,y)      where x and y are equal-length lists
     Returns: Spearman's r, two-tailed p-value
     """
-    TINY = 1e-30
     if len(x) <> len(y):
         raise ValueError(u"Input values not paired in spearmanr.  Aborting.")
     n = len(x)
@@ -1271,7 +1270,9 @@ def spearmanr(x, y, headless=False):
 def spearmanr_details(sample_x, sample_y, label_x, label_y, headless=False):
     initial_tbl = []
     n_x = len(sample_x)
-    assert n_x == len(sample_y)
+    if n_x != len(sample_y):
+        raise Exception("Different sample sizes (%s vs %s)"
+            % (n_x, len(sample_y)))
     rankx = rankdata(sample_x, headless)
     x_and_rank = zip(sample_x, rankx)
     x_and_rank.sort()
@@ -1293,7 +1294,9 @@ def spearmanr_details(sample_x, sample_y, label_x, label_y, headless=False):
     tot_d_squared = sum(diff_squareds)
     pre_rho = (tot_d_squared * 6) / float(n_cubed_minus_n)
     rho = 1 - pre_rho
-    assert -1 <= pre_rho <= 1
+    if not (-1 <= pre_rho <= 1):
+        raise Exception("Bad value for pre_rho of %s (shouldn't have absolute "
+            "value > 1)" % pre_rho)
     details = {
         mg.SPEARMANS_INIT_TBL: initial_tbl,
         mg.SPEARMANS_X_RANKED: x_and_rank,
