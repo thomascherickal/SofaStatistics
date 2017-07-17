@@ -214,8 +214,8 @@ class DimTable(object):
             css_idx=css_idx)
         return (row_label_rows_lst, tree_row_labels, row_label_cols_n)       
 
-    def row_label_row_bldr(self, node, row_label_rows_lst, row_label_cols_n, 
-                           row_offset_dic, col_offset, css_idx):
+    def row_label_row_bldr(self, node, row_label_rows_lst, row_label_cols_n,
+            row_offset_dic, col_offset, css_idx):
         """
         Adds cells to the row label rows list as it goes through all nodes.
         NB nodes are not processed level by level but from from parent to child.
@@ -545,7 +545,8 @@ class LiveTable(DimTable):
                 print(col_term_nodes)
             row_filt_flds_lst = [x.filt_flds for x in row_term_nodes]
             data_cells_n = len(row_term_nodes) * len(col_term_nodes)
-            if self.debug or debug: print(u"%s data cells in table" % data_cells_n)
+            if self.debug or debug:
+                print(u"%s data cells in table" % data_cells_n)
             row_label_rows_lst = self.get_row_labels_row_lst(row_filters_lst, 
                 row_filt_flds_lst, col_measures_lst, col_filters_lst,
                 col_tots_lst, col_filt_flds_lst, row_label_rows_lst,
@@ -565,13 +566,12 @@ class LiveTable(DimTable):
         """
         tree_row_labels = LabelNodeTree()
         for child in self.tree_rows.root_node.children:
-            self.add_subtree_to_label_tree(tree_dims_node=child, 
-                                    tree_labels_node=tree_row_labels.root_node,
-                                    dim=mg.ROWDIM_KEY, 
-                                    oth_dim_root=self.tree_cols.root_node)
+            self.add_subtree_to_label_tree(tree_dims_node=child,
+                tree_labels_node=tree_row_labels.root_node,
+                dim=mg.ROWDIM_KEY, oth_dim_root=self.tree_cols.root_node)
         if tree_row_labels.get_depth() == 1 and self.row_var_optional:
             tree_row_labels.add_child(LabelNode(label=mg.EMPTY_ROW_LBL))
-        return self.process_row_tree(tree_row_labels, css_idx)        
+        return self.process_row_tree(tree_row_labels, css_idx)
     
     def add_subtrees_to_col_label_tree(self, tree_col_labels):
         """
@@ -738,12 +738,32 @@ class LiveTable(DimTable):
         """
         Get vals, their freq (across all the other dimension), and their label.
         [(val, freq, val_label), ...] sorted appropriately.
+
+        Need to handle lists of strings, integers, floats etc. If all the floats
+        are integers then don't round them even if to 0dp - converts to floats.
         """
         debug = False
         val_freq_label_lst = []
+        xs_maybe_used_as_lbls = set([val for val, val_freq in all_vals])
+        dp = lib.OutputLib.get_best_dp(xs_maybe_used_as_lbls)
+        val_type = type(all_vals[0][0])
         for (val, val_freq) in all_vals:
-            def_val_label = lib.UniLib.any2unicode(val)
-            val_label = tree_dims_node.labels.get(val, def_val_label)
+            """
+            If float and dp is 0 then round to 0 and convert to int.
+            If float, and dp > 0 then round to dp.
+            Otherwise, including integers, just pass in as is.
+            """
+            if val_type == float:
+                if dp == 0:
+                    val2use = int(round(val, dp))  ## so 3.5 -> 4.0 -> 4
+                else:
+                    val2use = round(val, dp)
+            elif val_type == float and dp == 0:
+                val2use = int(round(val, dp))
+            else:
+                val2use = val
+            default_val_label = lib.UniLib.any2unicode(val2use)
+            val_label = tree_dims_node.labels.get(val, default_val_label)
             val_tup = (val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)

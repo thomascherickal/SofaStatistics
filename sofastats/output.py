@@ -932,7 +932,8 @@ def get_cc():
     if not mg.CURRENT_CONFIG:
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
             fil_name=mg.DEFAULT_PROJ)
-        mg.CURRENT_CONFIG = {mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
+        mg.CURRENT_CONFIG = {
+            mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
             mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
             mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
             mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}

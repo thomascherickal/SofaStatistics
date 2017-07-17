@@ -454,7 +454,7 @@ class ConfigUI(object):
 
     def get_dp_spinner(self, panel, dp_val):
         dp_spinner = wx.SpinCtrl(panel, -1, value=str(dp_val), size=(60, -1))
-        dp_spinner.SetRange(0, 6)
+        dp_spinner.SetRange(0, mg.MAX_DISPLAY_DP)
         dp_spinner.Bind(wx.EVT_SPINCTRL, self.on_dp_spin)
         dp_spinner.SetFont(mg.GEN_FONT)
         dp_spinner.SetToolTipString(_(u"Maximum number of decimal places to "

@@ -65,7 +65,7 @@ class NodeTree(Nodes):
     and tree depth.
     Nodes can only have one parent. All nodes come from root.
     """
-    
+
     def __init__(self):
         self.root_node = Node(label="Root")
         self.root_node.level = 0
@@ -78,7 +78,7 @@ class NodeTree(Nodes):
             if children_str: #otherwise an empty string will get own line
                 l.append(unicode(self.print_children(child_node)))
         return "\n".join(l)
-    
+
     def __str__(self):
         l = []
         l.append(unicode(self.root_node))
@@ -94,7 +94,7 @@ class Node(Nodes):
     Parent is set when added to a node (or left as None if added
     to a tree). Children is updated as children are added.
     """
-    
+
     def __init__(self, dets_dic=None, label=""):
         if dets_dic:
             self.dets_dic = dets_dic

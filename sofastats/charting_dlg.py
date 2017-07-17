@@ -36,6 +36,7 @@ when a non-system font is chosen. Much, much quicker to build a fresh one each
 time with the new list as the initial value.
 """
 
+
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     inc_gp_by_select = True
@@ -51,7 +52,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             myheight = 800
         # can't use indep2var.DlgIndep2VarConfig - too many differences
         # so must init everything manually here
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
@@ -899,7 +900,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var_dropdowns() # e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
 
-    def on_show(self, event):
+    def on_show(self, unused_event):
         if self.exiting:
             return
         try:
@@ -918,7 +919,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         webbrowser.open_new_tab(url)
         event.Skip()
 
-    def on_dp_spin(self, event):
+    def on_dp_spin(self, unused_event):
         "Set maximum decimal places to display"
         mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
 
@@ -1256,11 +1257,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
                 new_has_dojo=True)
 
-    def on_btn_script(self, event):
+    def on_btn_script(self, unused_event):
         # TODO NB will have new_has_dojo=True
         wx.MessageBox(u"This version does not support exporting chart code yet")
 
-    def on_var1_sel(self, event):
+    def on_var1_sel(self, unused_event):
         self.update_defaults()
 
     def setup_line_extras(self):
@@ -1279,31 +1280,31 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_line_smooth.Enable(show_line_extras)
         self.panel_line_chart.Refresh()
 
-    def on_var2_sel(self, event):
+    def on_var2_sel(self, unused_event):
         self.setup_line_extras()
         self.update_defaults()
 
-    def on_var3_sel(self, event):
+    def on_var3_sel(self, unused_event):
         self.setup_line_extras()
         self.update_defaults()
 
-    def on_var4_sel(self, event):
+    def on_var4_sel(self, unused_event):
         self.setup_line_extras()
         self.update_defaults()
 
     def add_other_var_opts(self, szr=None):
         pass
 
-    def on_rclick_var1(self, event):
+    def on_rclick_var1(self, unused_event):
         self.on_rclick_var(self.drop_var1, self.sorted_var_names1)
 
-    def on_rclick_var2(self, event):
+    def on_rclick_var2(self, unused_event):
         self.on_rclick_var(self.drop_var2, self.sorted_var_names2)
 
-    def on_rclick_var3(self, event):
+    def on_rclick_var3(self, unused_event):
         self.on_rclick_var(self.drop_var3, self.sorted_var_names3)
 
-    def on_rclick_var4(self, event):
+    def on_rclick_var4(self, unused_event):
         self.on_rclick_var(self.drop_var4, self.sorted_var_names4)
 
     def on_rclick_var(self, drop_var, sorted_var_names):
@@ -1512,20 +1513,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
         var_roles_used = set()
+        script_lst.append(u"var_role_dic = {}")
         for var_val, var_dets in zip(myvars, chart_config):
             var_role = var_dets[mg.VAR_ROLE_KEY]
             role_not_sel = (var_val == mg.DROP_SELECT)
             var_roles_used.add(var_role)
             if role_not_sel:
-                script_lst.append(u"%s = None" % var_role)
-                script_lst.append(u"%s_name = None" % var_role)
-                script_lst.append(u"%s_lbls = None" % var_role)
+                script_lst.append(u"var_role_dic['%s'] = None" % var_role)
+                script_lst.append(u"var_role_dic['%s_name'] = None" % var_role)
+                script_lst.append(u"var_role_dic['%s_lbls'] = None" % var_role)
             else:
-                script_lst.append(u"%s = u\"%s\"" % (var_role, var_val)) # e.g. var_role_agg = "age"
+                script_lst.append(u"var_role_dic['%s'] = u\"%s\"" % (var_role,
+                    var_val)) # e.g. var_role_agg = "age"
                 var_name = lib.GuiLib.get_item_label(self.var_labels, var_val)
-                script_lst.append(u"%s_name = u\"%s\"" % (var_role, var_name)) # e.g. var_role_agg_name = "Age"
+                script_lst.append(u"var_role_dic['%s_name'] = u\"%s\""
+                    % (var_role, var_name)) # e.g. var_role_agg_name = "Age"
                 val_lbls = self.val_dics.get(var_val, {})
-                script_lst.append(u"%s_lbls = %s" % (var_role, val_lbls)) # e.g. var_role_agg_lbls = {}
+                script_lst.append(u"var_role_dic['%s_lbls'] = %s"
+                    % (var_role, val_lbls)) # e.g. var_role_agg_lbls = {}
             if var_role == mg.VAR_ROLE_AGG:
                 agg_fldlbl = var_name
             if var_role == mg.VAR_ROLE_CATEGORY:
@@ -1534,9 +1539,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             if expected_var_role not in var_roles_used:
                 # Needed even if not supplied by dropdown so we can have a
                 # single api for get_gen_chart_dets()
-                script_lst.append(u"%s = None" % expected_var_role)
-                script_lst.append(u"%s_name = None" % expected_var_role)
-                script_lst.append(u"%s_lbls = None" % expected_var_role)
+                script_lst.append(u"var_role_dic['%s'] = None"
+                    % expected_var_role)
+                script_lst.append(u"var_role_dic['%s_name'] = None"
+                    % expected_var_role)
+                script_lst.append(u"var_role_dic['%s_lbls'] = None"
+                    % expected_var_role)
         if self.chart_type in mg.GEN_CHARTS:
             if category_fldname is None:
                 raise Exception(u"Cannot generate %s script if category field "
@@ -1601,20 +1609,13 @@ def get_simple_barchart_script(ytitle2use, rotate, show_n, show_borders,
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
-    mg.SIMPLE_BARCHART, 
-    dbe, cur, tbl, tbl_filt, 
-    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
-    data_show=mg.%(data_show)s)
-x_title = var_role_cat_name
+    mg.SIMPLE_BARCHART, dbe, cur, tbl, tbl_filt, var_role_dic,
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, data_show=mg.%(data_show)s)
+x_title = var_role_dic['cat_name']
 y_title = %(ytitle2use)s
-chart_output = charting_output.BarChart.simple_barchart_output(
-    titles, subtitles, x_title, y_title,
-    chart_output_dets, rotate=%(rotate)s, show_n=%(show_n)s,
-    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
+chart_output = charting_output.BarChart.simple_barchart_output(titles,
+    subtitles, x_title, y_title, chart_output_dets, rotate=%(rotate)s,
+    show_n=%(show_n)s, show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, page_break_after=False)""" % 
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
@@ -1628,15 +1629,9 @@ def get_clustered_barchart_script(ytitle2use, rotate, show_n, show_borders,
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(
-    mg.CLUSTERED_BARCHART,
-    dbe, cur, tbl, tbl_filt,
-    var_role_agg, var_role_agg_name, var_role_agg_lbls,
-    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls,
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
-    data_show=mg.%(data_show)s)
-x_title = var_role_cat_name
+    mg.CLUSTERED_BARCHART, dbe, cur, tbl, tbl_filt, var_role_dic,
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, data_show=mg.%(data_show)s)
+x_title = var_role_dic['cat_name']
 y_title = %(ytitle2use)s
 chart_output = charting_output.BarChart.clustered_barchart_output(
     titles, subtitles,
@@ -1654,11 +1649,7 @@ def get_pie_chart_script(css_fil, css_idx, inc_count, inc_pct, show_n):
     esc_css_fil = lib.escape_pre_write(css_fil)
     script = (u"""
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
-    dbe, cur, tbl, tbl_filt,
-    var_role_agg, var_role_agg_name, var_role_agg_lbls,
-    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls,
+    dbe, cur, tbl, tbl_filt, var_role_dic,
     sort_opt=mg.%(sort_opt)s)
 chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
     chart_output_dets, inc_count=%(inc_count)s, inc_pct=%(inc_pct)s,
@@ -1673,21 +1664,17 @@ def get_line_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
         inc_trend, inc_smooth, hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
     xy_titles = (u"""
-x_title = var_role_cat_name
+x_title = var_role_dic['cat_name']
 y_title = %(ytitle2use)s""" % {u"ytitle2use": ytitle2use})
     script = (u"""
-chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART, 
-    dbe, cur, tbl, tbl_filt, 
-    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
-    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s, 
+chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
+    dbe, cur, tbl, tbl_filt, var_role_dic,
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
+    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s,
     time_series=%(time_series)s)
 %(xy_titles)s
-chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles, 
-    x_title, y_title, chart_output_dets, time_series=%(time_series)s, 
+chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
+    x_title, y_title, chart_output_dets, time_series=%(time_series)s,
     rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
     inc_trend=%(inc_trend)s, inc_smooth=%(inc_smooth)s,
     hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
@@ -1695,7 +1682,7 @@ chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
     {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
     u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
-    u"major_ticks": major_ticks, u"xy_titles": xy_titles, 
+    u"major_ticks": major_ticks, u"xy_titles": xy_titles,
     u"inc_trend": inc_trend, u"inc_smooth": inc_smooth,
     u"hide_markers": hide_markers, u"css_fil": esc_css_fil,
     u"css_idx": css_idx})
@@ -1706,23 +1693,19 @@ def get_area_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
     esc_css_fil = lib.escape_pre_write(css_fil)
     dd = mg.DATADETS_OBJ
     script = (u"""
-chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART, 
-    dbe, cur, tbl, tbl_filt, 
-    var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-    var_role_cat, var_role_cat_name, var_role_cat_lbls,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, 
+chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
+    dbe, cur, tbl, tbl_filt, var_role_dic,
+    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
     data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s,
     time_series=%(time_series)s)
-x_title = var_role_cat_name
+x_title = var_role_dic['cat_name']
 y_title = %(ytitle2use)s
-chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles, 
+chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles,
     x_title, y_title, chart_output_dets, time_series=%(time_series)s,
     rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
-    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
-    u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
+    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s",
+    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe,
+    u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL],
     u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
     u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
     u"major_ticks": major_ticks,
@@ -1735,15 +1718,13 @@ def get_histogram_script(inc_normal, show_n, show_borders, css_fil, css_idx):
     dd = mg.DATADETS_OBJ
     script = (u"""
 (overall_title, 
-chart_dets) = charting_output.Histo.get_histo_dets(
-    dbe, cur, tbl, tbl_filt, flds,
-    var_role_bin, var_role_bin_name, var_role_charts, var_role_charts_name, 
-    var_role_charts_lbls, inc_normal=%(inc_normal)s)
-chart_output = charting_output.Histo.histogram_output(titles, subtitles, 
-    var_role_bin_name, overall_title, chart_dets, inc_normal=%(inc_normal)s, 
-    show_n=%(show_n)s, show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe, 
-        u"inc_normal": inc_normal, u"show_borders": show_borders, 
+chart_dets) = charting_output.Histo.get_histo_dets(dbe, cur, tbl, tbl_filt,
+    flds, var_role_dic, inc_normal=%(inc_normal)s)
+chart_output = charting_output.Histo.histogram_output(titles, subtitles,
+    var_role_dic['bin_name'], overall_title, chart_dets,
+    inc_normal=%(inc_normal)s, show_n=%(show_n)s, show_borders=%(show_borders)s,
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)"""
+    % {u"dbe": dd.dbe, u"inc_normal": inc_normal, u"show_borders": show_borders, 
         u"css_fil": esc_css_fil, u"css_idx": css_idx, u"show_n": show_n})
     return script
 
@@ -1755,17 +1736,13 @@ def get_scatterplot_script(css_fil, css_idx, show_n, show_borders,
     script = (u"""
 (overall_title,
  scatterplot_dets) = charting_output.ScatterPlot.get_scatterplot_dets(
-    dbe, cur, tbl, tbl_filt, flds,
-    var_role_x_axis, var_role_x_axis_name,
-    var_role_y_axis, var_role_y_axis_name,
-    var_role_series, var_role_series_name, var_role_series_lbls,
-    var_role_charts, var_role_charts_name, var_role_charts_lbls,
-    unique=True, inc_regression=%(regression)s)
+    dbe, cur, tbl, tbl_filt, var_role_dic, unique=True,
+    inc_regression=%(regression)s)
 chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
-    overall_title, scatterplot_dets, var_role_x_axis_name, var_role_y_axis_name,
-    add_to_report, report_name, show_n=%(show_n)s,
-    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
-    page_break_after=False)
+    overall_title, scatterplot_dets, var_role_dic['x_axis_name'],
+    var_role_dic['y_axis_name'], add_to_report, report_name,
+    show_n=%(show_n)s, show_borders=%(show_borders)s,
+    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx,
         u"show_borders": show_borders, u"regression": regression,
         u"show_n": show_n})
@@ -1779,19 +1756,18 @@ def get_boxplot_script(rotate, boxplot_opt, css_fil, css_idx, show_n):
  max_label_len, max_lbl_lines, 
  overall_title, chart_dets, 
  any_missing_boxes) = charting_output.BoxPlot.get_boxplot_dets(dbe, cur, tbl,
-                tbl_filt, flds, var_role_desc, var_role_desc_name,
-                var_role_cat, var_role_cat_name, var_role_cat_lbls,
-                var_role_series, var_role_series_name, var_role_series_lbls,
-                sort_opt="%(sort_opt)s", rotate=%(rotate)s,
-                boxplot_opt="%(boxplot_opt)s")
-x_title = var_role_cat_name if var_role_cat_name else u""
-y_title = var_role_desc_name 
+    tbl_filt, flds, var_role_dic,
+    sort_opt="%(sort_opt)s", rotate=%(rotate)s,
+    boxplot_opt="%(boxplot_opt)s")
+x_title = (var_role_dic['cat_name']
+    if var_role_dic['cat_name'] else u"")
+y_title = var_role_dic['desc_name'] 
 chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
-            any_missing_boxes, x_title, y_title, var_role_series_name, n_chart,
-            xaxis_dets, max_label_len, max_lbl_lines, overall_title, chart_dets,
-            xmin, xmax, ymin, ymax, rotate=%(rotate)s, show_n=%(show_n)s,
-            boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s",
-            css_idx=%(css_idx)s, page_break_after=False)
+    any_missing_boxes, x_title, y_title, var_role_dic['series_name'],
+    n_chart, xaxis_dets, max_label_len, max_lbl_lines, overall_title,
+    chart_dets, xmin, xmax, ymin, ymax, rotate=%(rotate)s, show_n=%(show_n)s,
+    boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s",
+    css_idx=%(css_idx)s, page_break_after=False)
     """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"show_n": show_n,
         u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"rotate": rotate,
         u"boxplot_opt": boxplot_opt, u"css_idx": css_idx})

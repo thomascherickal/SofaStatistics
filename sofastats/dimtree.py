@@ -646,8 +646,8 @@ class DimTree(object):
 
 class DlgConfig(wx.Dialog):
     
-    def __init__(self, parent, var_labels, node_ids, tree, title, allow_tot, 
-            measures, sort_opt_allowed, rets_dic, horizontal=True, 
+    def __init__(self, parent, var_labels, node_ids, tree, title, allow_tot,
+            measures, sort_opt_allowed, rets_dic, horizontal=True,
             show_select_toggle=False):
         """
         Collects configuration details for rows and cols.

@@ -426,12 +426,8 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     title = overall_title if not titles else titles[0]
     output.append_divider(html, title, indiv_title, item_type)
 
-def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic, 
-        var_role_agg, var_role_agg_name, var_role_agg_lbls,
-        var_role_cat, var_role_cat_name, var_role_cat_lbls,
-        var_role_series, var_role_series_name, var_role_series_lbls,
-        var_role_charts, var_role_charts_name, var_role_charts_lbls,
-        sort_opt, dp, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
+def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic, var_role_dic,
+        sort_opt, dp_x, dp_y, rotate=False, data_show=mg.SHOW_FREQ_KEY,
         major_ticks=False, time_series=False):
     """
     Structure data for general charts (use different processes preparing data 
@@ -474,12 +470,15 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                    mg.CHARTS_SERIES_Y_VALS: [46, 32, 28, 94], 
                    mg.CHARTS_SERIES_TOOLTIPS: [u"46<br>23%", u"32<br>16%", 
                                                u"28<br>14%", u"94<br>47%"]}
+
+    dp -- is the maximum dp for both x and y values displayed.
     """
     max_x_lbl_len = 0
     max_y_lbl_len = 0
     max_lbl_lines = 0
-    fldnames = [var_role_charts_name, var_role_series_name, var_role_cat_name, 
-        var_role_agg_name]
+    fldnames = [var_role_dic['charts_name'], var_role_dic['series_name'],
+        var_role_dic['cat_name'], var_role_dic['agg_name']]
+    dp_y = 0 if data_show == mg.SHOW_FREQ_KEY else mg.DEFAULT_REPORT_DP  ## freq is always an integer so avoid showing decimals 
     prestructure = get_prestructured_grouped_data(raw_data, fldnames,
         chart_ns=chart_ns)
     chart_dets = []
@@ -488,17 +487,24 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
         if wx.MessageBox(_(u"This output will have %s charts and may not "
                 u"display properly. Do you wish to make it anyway?") % n_charts, 
                 caption=_("HIGH NUMBER OF CHARTS"), style=wx.YES_NO) == wx.NO:
-            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name, 
+            raise my_exceptions.TooManyChartsInSeries(
+                var_role_dic['charts_name'],
                 max_items=mg.MAX_CHARTS_IN_SET)
     multichart = n_charts > 1
     if multichart:
-        chart_fldname = var_role_charts_name
-        chart_fldlbls = var_role_charts_lbls
+        chart_fldname = var_role_dic['charts_name']
+        chart_fldlbls = var_role_dic['charts_lbls']
     else: # clustered, line - can have multiple series without being multi-chart
         chart_fldname = None
         chart_fldlbls = {}
     allow_exceed_max_clusters = False
     allow_exceed_max_series = False
+    xs_maybe_used_as_lbls = set()  ## because we will have repeated values when multiple charts etc and supplying repeat values will break our test of distinctiveness under rounding when setting dp
+    for chart_dic in prestructure:
+        for series_dic in chart_dic[CHART_SERIES_KEY]:
+            for x_val, unused in series_dic[XY_KEY]:
+                xs_maybe_used_as_lbls.add(x_val)
+    dp_x = lib.OutputLib.get_best_dp(xs_maybe_used_as_lbls)
     for chart_dic in prestructure:
         series = chart_dic[CHART_SERIES_KEY]
         n_series = len(series)
@@ -533,8 +539,8 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
         for series_dic in series:
             series_val = series_dic[SERIES_KEY]
             if multiseries:
-                legend_lbl = var_role_series_lbls.get(series_val, 
-                    unicode(series_val))
+                legend_lbl = var_role_dic['series_lbls'].get(
+                    series_val, unicode(series_val))
             else:
                 legend_lbl = None
             # process xy vals
@@ -542,12 +548,12 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
             vals_etc_lst = []
             for x_val, y_val in xy_vals:
                 try:
-                    xval4lbl = round(x_val, dp)
-                    if dp == 0:
+                    xval4lbl = round(x_val, dp_x)
+                    if dp_x == 0:
                         xval4lbl = int(xval4lbl)  ## so 1 not 1.0
                 except TypeError:
                     xval4lbl = x_val
-                y_val_rounded = round(y_val, dp)
+                y_val_rounded = round(y_val, dp_y)
                 x_val_lbl = xlblsdic.get(x_val, unicode(xval4lbl))  ## original value for label matching, rounded for display if no label
                 (x_val_split_lbl,
                  actual_lbl_width,
@@ -555,7 +561,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                     max_width=17, dojo=True, rotate=rotate)
                 if actual_lbl_width > max_x_lbl_len:
                     max_x_lbl_len = actual_lbl_width
-                rounding2use = dp if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
+                rounding2use = dp_y if chart_type == mg.BOXPLOT else 0  ## only interested in width as potentially displayed on y-axis - which is always integers unless boxplot
                 y_lbl_width = len(str(round(y_val, rounding2use)))
                 if y_lbl_width > max_y_lbl_len:
                     max_y_lbl_len = y_lbl_width
@@ -573,11 +579,12 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                     if wx.MessageBox(_(u"This chart will have %(n_cats)s "
                             u"clusters by %(var_role_cat)s and may not display "
                             u"properly. Do you wish to make it anyway?") % 
-                            {"n_cats": n_cats, "var_role_cat": var_role_cat}, 
+                            {"n_cats": n_cats,
+                             "var_role_cat": var_role_dic['cat']}, 
                             caption=_("HIGH NUMBER OF CLUSTERS"), 
                             style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
-                            var_role_cat, mg.MAX_CLUSTERS)
+                            var_role_dic['cat'], mg.MAX_CLUSTERS)
                     else:
                         allow_exceed_max_clusters = True
             elif chart_type == mg.PIE_CHART:
@@ -591,22 +598,23 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                             u"%(var_role_series_name)s \"%(series_lbl)s\" "
                             u"and may not display properly. Do you wish to make"
                             u" it anyway?") % {"n_cats": n_cats,
-                            "var_role_cat": var_role_cat,
-                            "var_role_series_name": var_role_series_name,
+                            "var_role_cat": var_role_dic['cat'],
+                            "var_role_series_name": var_role_dic['series_name'],
                             "series_lbl": legend_lbl})
                     else:
                         msg = (_(u"This chart will have %(n_cats)s "
                             u"%(var_role_cat)s categories and may not display "
                             u"properly. Do you wish to make it anyway?") % 
-                            {"n_cats": n_cats, "var_role_cat": var_role_cat})
+                            {"n_cats": n_cats,
+                             "var_role_cat": var_role_dic['cat']})
                     if wx.MessageBox(msg,
                         caption=_("HIGH NUMBER OF CATEGORIES"), 
                             style=wx.YES_NO) == wx.NO:
                         raise my_exceptions.TooManyValsInChartSeries(
-                            var_role_cat, mg.MAX_CATS_GEN)
+                            var_role_dic['cat'], mg.MAX_CATS_GEN)
             (sorted_xaxis_dets, sorted_y_vals, 
                 sorted_tooltips) = _get_sorted_y_dets(data_show, major_ticks, 
-                           time_series, sort_opt, vals_etc_lst, dp, multiseries)
+                    time_series, sort_opt, vals_etc_lst, dp_y, multiseries)
             series_det = {mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                           mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets, 
                           mg.CHARTS_SERIES_Y_VALS: sorted_y_vals, 
@@ -616,22 +624,19 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic,
                      mg.CHARTS_CHART_N: chart_dic[CHART_N_KEY],
                      mg.CHARTS_SERIES_DETS: series_dets}
         chart_dets.append(chart_det)
-    overall_title = get_overall_title(var_role_agg_name, var_role_cat_name, 
-        var_role_series_name, var_role_charts_name)
+    overall_title = get_overall_title(var_role_dic['agg_name'],
+        var_role_dic['cat_name'], var_role_dic['series_name'],
+        var_role_dic['charts_name'])
     chart_output_dets = {mg.CHARTS_OVERALL_TITLE: overall_title,
         mg.CHARTS_MAX_X_LBL_LEN: max_x_lbl_len, 
         mg.CHARTS_MAX_Y_LBL_LEN: max_y_lbl_len, 
         mg.CHARTS_MAX_LBL_LINES: max_lbl_lines,
-        mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
+        mg.CHARTS_OVERALL_LEGEND_LBL: var_role_dic['series_name'],
         mg.CHARTS_CHART_DETS: chart_dets}
     return chart_output_dets
 
-def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt, 
-        var_role_agg, var_role_agg_name, var_role_agg_lbls, 
-        var_role_cat, var_role_cat_name, var_role_cat_lbls, 
-        var_role_series, var_role_series_name, var_role_series_lbls, 
-        var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-        sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY, 
+def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
+        var_role_dic, sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY,
         major_ticks=False, time_series=False):
     """
     Note - variables must match values relevant to mg.CHART_CONFIG e.g.
@@ -645,14 +650,14 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     them.
     """
     debug = False
-    is_agg = (var_role_agg is not None)
+    is_agg = (var_role_dic['agg'] is not None)
     # validate fields supplied (or not)
     chart_subtype_key = mg.AGGREGATE_KEY if is_agg else mg.INDIV_VAL_KEY
     chart_config = mg.CHART_CONFIG[chart_type][chart_subtype_key]
     for var_dets in chart_config: # looping through available dropdowns for chart
         var_role = var_dets[mg.VAR_ROLE_KEY]
         allows_missing = var_dets[mg.EMPTY_VAL_OK]
-        matching_input_var = locals()[var_role]
+        matching_input_var = locals()['var_role_dic'][var_role]
         role_missing = matching_input_var is None
         if role_missing and not allows_missing:
             raise Exception(u"The required field %s is missing for the %s "
@@ -660,12 +665,12 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     # misc
     tbl_quoted = getdata.tblname_qtr(dbe, tbl)
     where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
-    xlblsdic = var_role_cat_lbls
+    xlblsdic = var_role_dic['cat_lbls']
     ## Get data as per setup
     ## overall data ready for restructuring and presentation
     SQL_raw_data, SQL_chart_ns = get_gen_chart_SQL(dbe, tbl_quoted,
-        where_tbl_filt, and_tbl_filt, var_role_agg, var_role_cat,
-        var_role_series, var_role_charts, data_show)
+        where_tbl_filt, and_tbl_filt, var_role_dic['agg'], var_role_dic['cat'],
+        var_role_dic['series'], var_role_dic['charts'], data_show)
     if debug: print(SQL_raw_data)
     try:
         cur.execute(SQL_raw_data)
@@ -689,14 +694,9 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
         raise Exception(u"Unable to make chart if not chart values")
     chart_ns = dict(x for x in chart_ns_data)
     # restructure and return data
-    dp = (mg.DEFAULT_REPORT_DP if data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS
-        else 0)
     chart_output_dets = _structure_gen_data(chart_ns, chart_type, raw_data,
-        xlblsdic, var_role_agg, var_role_agg_name, var_role_agg_lbls,
-        var_role_cat, var_role_cat_name, var_role_cat_lbls,
-        var_role_series, var_role_series_name, var_role_series_lbls,
-        var_role_charts, var_role_charts_name, var_role_charts_lbls,
-        sort_opt, dp, rotate, data_show, major_ticks, time_series)
+        xlblsdic, var_role_dic, sort_opt, rotate, data_show, major_ticks,
+        time_series)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
@@ -928,11 +928,20 @@ class BarChart(object):
     @staticmethod
     def _get_barchart_sizings(x_title, n_clusters, n_bars_in_cluster,
             max_x_lbl_width):
+        """
+        minor_ticks -- generally we don't want them as they result in lots of
+        ticks between the groups in clustered bar charts each with a distracting
+        and meaningless value e.g. if we have two groups 1 and 2 we don't want a
+        tick for 0.8 and 0.9 etc. But if we don't have minor ticks when we have
+        a massive number of clusters we get no ticks at all. Probably a dojo bug
+        I am trying to work around.
+        """
         debug = False
         MIN_PXLS_PER_BAR = 30
         MIN_CLUSTER_WIDTH = 60
         MIN_CHART_WIDTH = 450
         PADDING_PXLS = 35
+        DOJO_MINOR_TICKS_NEEDED_FROM_N = 10  ## whatever works. Tested on cluster of Age vs Cars
         min_width_per_cluster = (MIN_PXLS_PER_BAR*n_bars_in_cluster)
         width_per_cluster = (max([min_width_per_cluster, MIN_CLUSTER_WIDTH,
             max_x_lbl_width*AVG_CHAR_WIDTH_PXLS]) + PADDING_PXLS)
@@ -959,7 +968,8 @@ class BarChart(object):
         else:
             xfontsize = 9
         init_margin_offset_l = 35 if width > 1200 else 25 # else gets squeezed out e.g. in percent
-        minor_ticks = u"true" if n_clusters > 8 else u"false"
+        minor_ticks = (u"true" if n_clusters >= DOJO_MINOR_TICKS_NEEDED_FROM_N
+            else u"false")
         if debug: print(width, xgap, xfontsize, minor_ticks,
             init_margin_offset_l)
         """
@@ -1397,12 +1407,8 @@ class BoxPlot(object):
         </div>""".format(**chart_settings_dic))
 
     @staticmethod
-    def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds,
-            var_role_desc, var_role_desc_name,
-            var_role_cat, var_role_cat_name, var_role_cat_lbls,
-            var_role_series, var_role_series_name, var_role_series_lbls,
-            sort_opt, rotate=False,
-            boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
+    def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_dic, sort_opt,
+            rotate=False, boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
         """
         Desc, Category, Series correspond to dropdown 1-3 respectively. E.g. if
         the averaged variable is age, the split within the series is gender, and
@@ -1441,9 +1447,9 @@ class BoxPlot(object):
         max_x_lbl_len = 0
         max_lbl_lines = 0
         sql_dic = {
-            u"var_role_cat": objqtr(var_role_cat),
-            u"var_role_series": objqtr(var_role_series),
-            u"var_role_desc": objqtr(var_role_desc),
+            u"var_role_cat": objqtr(var_role_dic['cat']),
+            u"var_role_series": objqtr(var_role_dic['series']),
+            u"var_role_desc": objqtr(var_role_dic['desc']),
             u"where_tbl_filt": where_tbl_filt,
             u"and_tbl_filt": and_tbl_filt,
             u"tbl": getdata.tblname_qtr(dbe, tbl)}
@@ -1454,7 +1460,7 @@ class BoxPlot(object):
         # value, we show the series and a box plot for every category that has a
         # value to be averaged, even if only one value (resulting in a single
         # line rather than a box as such).
-        if var_role_series:
+        if var_role_dic['series']:
             SQL_series_vals = u"""SELECT %(var_role_series)s
                 FROM %(tbl)s
                 WHERE %(var_role_series)s IS NOT NULL
@@ -1472,7 +1478,7 @@ class BoxPlot(object):
                         u"%(var_role_cat)s series and may not display properly."
                         u" Do you wish to make it anyway?") %
                         {"n_boxplot_series": n_boxplot_series,
-                         "var_role_cat": var_role_cat},
+                         "var_role_cat": var_role_dic['cat']},
                         caption=_("HIGH NUMBER OF SERIES"),
                         style=wx.YES_NO) == wx.NO:
                     raise my_exceptions.TooManySeriesInChart(
@@ -1481,9 +1487,10 @@ class BoxPlot(object):
             series_vals = [None,] # Got to have something to loop through ;-)
         # 2) Get all cat vals needed for x-axis i.e. all those appearing in any
         # rows where all fields are non-missing.
-        if var_role_cat: # might just be a single box e.g. a box for age overall
-            and_series_filt = (u"" if not var_role_series
-                else " AND %(var_role_series)s IS NOT NULL " % sql_dic)
+        if var_role_dic['cat']: # might just be a single box e.g. a box for age overall
+            and_series_filt = (u"" if not var_role_dic['series']
+                else " AND var_role_dic['%(var_role_series)s'] IS NOT NULL "
+                % sql_dic)
             sql_dic[u"and_series_filt"] = and_series_filt
             SQL_cat_vals = """SELECT %(var_role_cat)s
                 FROM %(tbl)s
@@ -1496,7 +1503,7 @@ class BoxPlot(object):
             cur.execute(SQL_cat_vals)
             cat_vals = [x[0] for x in cur.fetchall()]
             # sort appropriately
-            cat_vals_and_lbls = [(x, var_role_cat_lbls.get(x, x))
+            cat_vals_and_lbls = [(x, var_role_dic['cat_lbls'].get(x, x))
                 for x in cat_vals]
             if sort_opt == mg.SORT_LBL_KEY:
                 cat_vals_and_lbls.sort(key=itemgetter(1))
@@ -1508,11 +1515,12 @@ class BoxPlot(object):
                         u" by %(var_role_cat)s and may not display properly. Do"
                         u" you wish to make it anyway?")
                         % {"n_boxplots": n_boxplots,
-                           "var_role_cat": var_role_cat},
+                           "var_role_cat": var_role_dic['cat']},
                         caption=_("HIGH NUMBER OF SERIES"),
                         style=wx.YES_NO) == wx.NO:
                     raise my_exceptions.TooManyBoxplotsInSeries(
-                        var_role_cat_name, max_items=mg.MAX_BOXPLOTS_IN_SERIES)   
+                        var_role_dic['cat_name'],
+                        max_items=mg.MAX_BOXPLOTS_IN_SERIES)
         else:
             sorted_cat_vals = [1,] # the first boxplot is always 1 on the x-axis
         y_display_min = None # init
@@ -1523,10 +1531,10 @@ class BoxPlot(object):
         n_chart = 0  ## init. Note -- only ever one boxplot
         for series_val in series_vals: # e.g. "Boys" and "Girls"
             if series_val is not None:
-                legend_lbl = var_role_series_lbls.get(series_val,
+                legend_lbl = var_role_dic['series_lbls'].get(series_val,
                     unicode(series_val))
                 series_val_filt = getdata.make_fld_val_clause(dbe, flds,
-                    fldname=var_role_series, val=series_val)
+                    fldname=var_role_dic['series'], val=series_val)
                 and_series_val_filt = u" AND %s" % series_val_filt
             else:
                 legend_lbl = None
@@ -1536,8 +1544,9 @@ class BoxPlot(object):
             boxdet_series = []
             for i, cat_val in enumerate(sorted_cat_vals, 1): # e.g. "Mt Albert Grammar", 
                     # "Epsom Girls Grammar", "Hebron Christian College", ...
-                if var_role_cat:
-                    x_val_lbl = var_role_cat_lbls.get(cat_val, unicode(cat_val))
+                if var_role_dic['cat']:
+                    x_val_lbl = var_role_dic['cat_lbls'].get(
+                        cat_val, unicode(cat_val))
                     if first_chart_by: # build xaxis_dets once
                         (x_val_split_lbl,
                          actual_lbl_width,
@@ -1551,7 +1560,8 @@ class BoxPlot(object):
                         xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
                     # Now see if any desc values for particular series_val and cat_val
                     and_cat_val_filt = u" AND %s" % getdata.make_fld_val_clause(
-                        dbe, flds, fldname=var_role_cat, val=cat_val)
+                        dbe, flds, fldname=var_role_dic['cat'],
+                        val=cat_val)
                 else:
                     xaxis_dets.append((i, u"''", "''"))
                     and_cat_val_filt = u""
@@ -1627,7 +1637,7 @@ class BoxPlot(object):
                         y_display_max = max2display
                     ## labels
                     lblbits = []
-                    if var_role_cat:
+                    if var_role_dic['cat']:
                         lblbits.append(x_val_lbl)
                     if legend_lbl:
                         lblbits.append(legend_lbl)
@@ -1654,10 +1664,10 @@ class BoxPlot(object):
                         mg.CHART_BOXPLOT_INDIV_LBL: u", ".join(lblbits)}
                 boxdet_series.append(box_dic)
             title_bits = []
-            title_bits.append(var_role_desc_name)
-            title_bits.append(u"By %s" % var_role_cat_name)
-            if var_role_series_name:
-                title_bits.append(u"By %s" % var_role_series_name)
+            title_bits.append(var_role_dic['desc_name'])
+            title_bits.append(u"By %s" % var_role_dic['cat_name'])
+            if var_role_dic['series_name']:
+                title_bits.append(u"By %s" % var_role_dic['series_name'])
             overall_title = u" ".join(title_bits)
             series_dic = {
                 mg.CHART_SERIES_LBL: legend_lbl,
@@ -2080,9 +2090,7 @@ class Histo(object):
         return width
 
     @staticmethod
-    def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_bin, 
-            var_role_bin_name, var_role_charts, var_role_charts_name, 
-            var_role_charts_lbls, inc_normal):
+    def get_histo_dets(dbe, cur, tbl, tbl_filt, flds, var_role_dic, inc_normal):
         """
         Make separate db call each histogram. Getting all values anyway and
         don't want to store in memory.
@@ -2097,11 +2105,11 @@ class Histo(object):
         debug = False
         objqtr = getdata.get_obj_quoter_func(dbe)
         unused, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
-        sql_dic = {u"var_role_charts": objqtr(var_role_charts),
-           u"var_role_bin": objqtr(var_role_bin),
+        sql_dic = {u"var_role_charts": objqtr(var_role_dic['charts']),
+           u"var_role_bin": objqtr(var_role_dic['bin']),
            u"and_tbl_filt": and_tbl_filt,
            u"tbl": getdata.tblname_qtr(dbe, tbl)}
-        if var_role_charts:
+        if var_role_dic['charts']:
             SQL_fld_chart_by_vals = u"""SELECT %(var_role_charts)s
                 FROM %(tbl)s
                 WHERE %(var_role_bin)s IS NOT NULL %(and_tbl_filt)s
@@ -2109,7 +2117,8 @@ class Histo(object):
             cur.execute(SQL_fld_chart_by_vals)
             fld_chart_by_vals = [x[0] for x in cur.fetchall()]
             if len(fld_chart_by_vals) > mg.MAX_CHARTS_IN_SET:
-                raise my_exceptions.TooManyChartsInSeries(var_role_charts_name,
+                raise my_exceptions.TooManyChartsInSeries(
+                    var_role_dic['charts_name'],
                     max_items=mg.MAX_CHARTS_IN_SET)
         else:
             fld_chart_by_vals = [None,] # Got to have something to loop through ;-)
@@ -2145,11 +2154,12 @@ class Histo(object):
         #bin_width = 10 # or whatever the width of the bins should be
         histo_dets = []
         for fld_chart_by_val in fld_chart_by_vals:
-            if var_role_charts:
+            if var_role_dic['charts']:
                 filt = getdata.make_fld_val_clause(dbe, flds, 
-                    fldname=var_role_charts, val=fld_chart_by_val)
+                    fldname=var_role_dic['charts'],
+                    val=fld_chart_by_val)
                 and_fld_chart_by_filt = u" and %s" % filt
-                fld_chart_by_val_lbl = var_role_charts_lbls.get(
+                fld_chart_by_val_lbl = var_role_dic['charts_lbls'].get(
                     fld_chart_by_val, fld_chart_by_val)
                 # must get y-vals for each chart individually
                 sql_dic[u"and_fld_chart_by_filt"] = and_fld_chart_by_filt
@@ -2168,7 +2178,7 @@ class Histo(object):
                 (y_vals, unused, unused, 
                  unused) = core_stats.histogram(vals, n_bins, defaultreallimits)
                 vals4norm = vals
-                chart_by_lbl = u"%s: %s" % (var_role_charts_name, 
+                chart_by_lbl = u"%s: %s" % (var_role_dic['charts_name'],
                     fld_chart_by_val_lbl)
             else: # only one chart - combined values are the values we need
                 y_vals = fixed_combined_y_vals
@@ -2202,9 +2212,10 @@ class Histo(object):
                 norm_ys = []
             if debug: print(minval, maxval, xaxis_dets, y_vals, bin_lbls)
             title_bits = []
-            title_bits.append(var_role_bin_name)
-            if var_role_charts_name:
-                title_bits.append(u"By %s" % var_role_charts_name)
+            title_bits.append(var_role_dic['bin_name'])
+            if var_role_dic['charts_name']:
+                title_bits.append(u"By %s"
+                    % var_role_dic['charts_name'])
             overall_title = u" ".join(title_bits)    
             histo_dic = {
                 mg.CHARTS_CHART_LBL: chart_by_lbl,
@@ -2423,15 +2434,14 @@ class ScatterPlot(object):
         return js_pairs
 
     @staticmethod
-    def _get_overall_title_scatterplot(var_role_x_axis_name,
-            var_role_y_axis_name, var_role_series_name, var_role_charts_name):
+    def _get_overall_title_scatterplot(var_role_dic):
         title_bits = []
-        title_bits.append(u"%s vs %s"
-            % (var_role_x_axis_name, var_role_y_axis_name))
-        if var_role_series_name:
-            title_bits.append(u"By %s" % var_role_series_name)
-        if var_role_charts_name:
-            title_bits.append(u"By %s" % var_role_charts_name)
+        title_bits.append(u"%s vs %s" % (var_role_dic['x_axis_name'],
+            var_role_dic['y_axis_name']))
+        if var_role_dic['series_name']:
+            title_bits.append(u"By %s" % var_role_dic['series_name'])
+        if var_role_dic['charts_name']:
+            title_bits.append(u"By %s" % var_role_dic['charts_name'])
         return u" ".join(title_bits)
 
     @staticmethod
@@ -2610,7 +2620,7 @@ class ScatterPlot(object):
 
     @staticmethod      
     def _make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders, 
-            legend, n_chart, series_dets, series_colours_by_lbl, label_x,
+            n_chart, series_dets, series_colours_by_lbl, label_x,
             label_y, ymin, ymax, x_vs_y, add_to_report, report_name, css_fil,
             pagebreak):
         """
@@ -2658,12 +2668,8 @@ class ScatterPlot(object):
         html.append(u"</div>")
 
     @staticmethod
-    def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, flds, 
-            var_role_x_axis, var_role_x_axis_name, 
-            var_role_y_axis, var_role_y_axis_name, 
-            var_role_series, var_role_series_name, var_role_series_lbls,
-            var_role_charts, var_role_charts_name, var_role_charts_lbls, 
-            unique=True, inc_regression=False):
+    def get_scatterplot_dets(dbe, cur, tbl, tbl_filt, var_role_dic, unique=True,
+            inc_regression=False):
         """
         unique -- unique x-y pairs only (irrespective of how many records had
         same combination.
@@ -2671,15 +2677,15 @@ class ScatterPlot(object):
         debug = False
         objqtr = getdata.get_obj_quoter_func(dbe)
         where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
-        fld_x_axis = objqtr(var_role_x_axis)
-        fld_y_axis = objqtr(var_role_y_axis)
+        fld_x_axis = objqtr(var_role_dic['x_axis'])
+        fld_y_axis = objqtr(var_role_dic['y_axis'])
         xy_filt = u"%s IS NOT NULL AND %s IS NOT NULL " % (fld_x_axis,
             fld_y_axis)
         where_xy_filt = u" WHERE " + xy_filt
         and_xy_filt = u" AND" + xy_filt
         sql_dic = {u"tbl": getdata.tblname_qtr(dbe, tbl),
-            u"fld_x_axis": objqtr(var_role_x_axis),
-            u"fld_y_axis": objqtr(var_role_y_axis),
+            u"fld_x_axis": objqtr(var_role_dic['x_axis']),
+            u"fld_y_axis": objqtr(var_role_dic['y_axis']),
             u"where_tbl_filt": where_tbl_filt,
             u"and_tbl_filt": and_tbl_filt,
             u"where_xy_filt": where_xy_filt,
@@ -2691,12 +2697,12 @@ class ScatterPlot(object):
         }
         # Series and charts are optional so we need to autofill them with
         # something which will keep them in the same group.
-        if var_role_charts:
-            sql_dic[u"var_role_charts"] = objqtr(var_role_charts)
+        if var_role_dic['charts']:
+            sql_dic[u"var_role_charts"] = objqtr(var_role_dic['charts'])
         else:
             sql_dic[u"var_role_charts"] = mg.GROUPING_PLACEHOLDER
-        if var_role_series:
-            sql_dic[u"var_role_series"] = objqtr(var_role_series)
+        if var_role_dic['series']:
+            sql_dic[u"var_role_series"] = objqtr(var_role_dic['series'])
         else:
             sql_dic[u"var_role_series"] = mg.GROUPING_PLACEHOLDER
         # only want rows where all variables are not null (and don't name field x or y or series or bad confusion happens in SQLite!
@@ -2716,8 +2722,10 @@ class ScatterPlot(object):
         """ % sql_dic)
         if unique:
             groupby_vars = []
-            if var_role_charts: groupby_vars.append(objqtr(var_role_charts))
-            if var_role_series: groupby_vars.append(objqtr(var_role_series))
+            if var_role_dic['charts']:
+                groupby_vars.append(objqtr(var_role_dic['charts']))
+            if var_role_dic['series']:
+                groupby_vars.append(objqtr(var_role_dic['series']))
             groupby_vars.append(sql_dic[u"fld_x_axis"])
             groupby_vars.append(sql_dic[u"fld_y_axis"])
             SQL_get_xy_pairs += (u" GROUP BY " + u", ".join(groupby_vars))
@@ -2734,12 +2742,13 @@ class ScatterPlot(object):
         chart_dets = []
         n_charts = len(prestructure)
         if n_charts > mg.MAX_CHARTS_IN_SET:
-            raise my_exceptions.TooManyChartsInSeries(var_role_charts_name,
+            raise my_exceptions.TooManyChartsInSeries(
+                var_role_dic['charts_name'],
                 max_items=mg.MAX_CHARTS_IN_SET)
         multichart = n_charts > 1
         if multichart:
-            chart_fldname = var_role_charts_name
-            chart_fldlbls = var_role_charts_lbls
+            chart_fldname = var_role_dic['charts_name']
+            chart_fldlbls = var_role_dic['charts_lbls']
         else: # can have multiple series but only one chart
             chart_fldname = None
             chart_fldlbls = {}
@@ -2759,8 +2768,8 @@ class ScatterPlot(object):
             for series_dic in series:
                 series_val = series_dic[SERIES_KEY]
                 if multiseries:
-                    legend_lbl = var_role_series_lbls.get(series_val, 
-                        unicode(series_val))
+                    legend_lbl = var_role_dic['series_lbls'].get(
+                        series_val, unicode(series_val))
                 else:
                     legend_lbl = None
                 # process xy vals
@@ -2790,11 +2799,9 @@ class ScatterPlot(object):
                 mg.CHARTS_CHART_LBL: chart_lbl,
                 mg.CHARTS_SERIES_DETS: series_dets}
             chart_dets.append(chart_det)
-        overall_title = ScatterPlot._get_overall_title_scatterplot(
-            var_role_x_axis_name, var_role_y_axis_name, var_role_series_name,
-            var_role_charts_name)
+        overall_title = ScatterPlot._get_overall_title_scatterplot(var_role_dic)
         scatterplot_dets = {
-            mg.CHARTS_OVERALL_LEGEND_LBL: var_role_series_name,
+            mg.CHARTS_OVERALL_LEGEND_LBL: var_role_dic['series_name'],
             mg.CHARTS_CHART_DETS: chart_dets}
         return overall_title, scatterplot_dets
 
@@ -2856,10 +2863,9 @@ class ScatterPlot(object):
                 chart_det)
             if use_mpl:
                 ScatterPlot._make_mpl_scatterplot(multichart, html,
-                    indiv_title_html, show_borders, legend, n_chart,
-                    series_dets, series_colours_by_lbl, label_x, label_y, ymin,
-                    ymax, x_vs_y, add_to_report, report_name, css_fil,
-                    pagebreak)
+                    indiv_title_html, show_borders, n_chart, series_dets,
+                    series_colours_by_lbl, label_x, label_y, ymin, ymax, x_vs_y,
+                    add_to_report, report_name, css_fil, pagebreak)
             else:
                 ScatterPlot._make_dojo_scatterplot(chart_idx, multichart, html,
                     indiv_title_html, show_borders, legend, n_chart,

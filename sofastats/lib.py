@@ -175,6 +175,36 @@ class DbLib(object):
 class OutputLib(object):
 
     @staticmethod
+    def get_sig_dp(val):
+        strval = unicode(val)
+        if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
+            num_string = unicode(repr(val)) # 1000000000000.4 rather than 1e+12
+        else:
+            num_string = unicode(val)
+        if '.' in num_string:
+            return len(num_string.partition('.')[2])
+        else:
+            sig_dp = 0
+        return sig_dp
+
+    @staticmethod
+    def get_best_dp(xs_maybe_used_as_lbls):
+        """
+        The best dp is the least necessary to show every value's significant
+        digits. Also honour the MAX_DISPLAY_DP setting (set in the GUI). If set
+        low then so be it. Has to be a MAX_DISPLAY_DP constraint otherwise could
+        theoretically have to display thousands of decimal points.
+        """
+        test_val = list(xs_maybe_used_as_lbls)[0]
+        if not TypeLib.is_basic_num(test_val):
+            best_dp = 0
+        else:
+            max_dp = max([OutputLib.get_sig_dp(val)
+                for val in xs_maybe_used_as_lbls])
+            best_dp = min(mg.DEFAULT_REPORT_DP, max_dp)
+        return best_dp
+
+    @staticmethod
     def get_count_pct_dets(inc_count, inc_pct, lbl, count, pct):
         bits = [lbl, ]
         if (inc_count or inc_pct):
@@ -506,7 +536,7 @@ class UniLib(object):
 
         Also handles smart quotes etc (which are multibyte) and commonly used ;-).
         """
-        import re # easier to transplant for testing if everything here
+        import re #easier to transplant for testing if everything here
         debug = False
         if not isinstance(text, basestring):
             raise Exception(u"UniLib._ms2unicode() requires strings as inputs.")
@@ -1481,7 +1511,7 @@ class DlgHelp(wx.Dialog):
         webbrowser.open_new_tab(url)
         event.Skip()
 
-    def on_close(self, event):
+    def on_close(self, unused_event):
         self.Destroy()
 
 
@@ -1531,7 +1561,7 @@ class StaticWrapText(wx.StaticText):
         # refresh the widget
         self.Refresh()
 
-    def on_size(self, event):
+    def on_size(self, unused_event):
         # dispatch to the wrap method which will 
         # determine if any changes are needed
         self.__wrap()

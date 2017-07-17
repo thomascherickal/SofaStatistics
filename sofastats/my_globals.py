@@ -719,6 +719,7 @@ FLD_CHART_BY = u"fld_chart_by"
 FLD_CHART_BY_NAME = u"fld_chart_by_name"
 FLD_CHART_BY_LBLS = u"fld_chart_by_lbls"
 # chart gui
+MAX_DISPLAY_DP = 20
 SIMPLE_BARCHART = u"Simple Bar Chart"
 CLUSTERED_BARCHART = u"Clustered Bar Chart"
 PIE_CHART = u"Pie Chart"
@@ -738,15 +739,15 @@ LBL_KEY = u"lbl_key"
 MIN_DATA_TYPE_KEY = u"min_data_type_key"
 EMPTY_VAL_OK = u"empty_val_ok"
 # what role is each dropdown controlling?
-VAR_ROLE_KEY = u"var_role_key" # all keys must be usable as variable names
-VAR_ROLE_AGG = u"var_role_agg" # the variable being aggregated
-VAR_ROLE_BIN = u"var_role_bin" # the variable being binned (histogram)
-VAR_ROLE_DESC = u"var_role_desc" # the variable being described e.g. Boxplots
-VAR_ROLE_CATEGORY = u"var_role_cat" # the var supplying the category - usually x-axis category values
-VAR_ROLE_SERIES = u"var_role_series" # if multiple series within a single chart we will have multiple
-VAR_ROLE_CHARTS = u"var_role_charts" # the var charts are split by
-VAR_ROLE_X_AXIS = u"var_role_x_axis" # for scatterplots
-VAR_ROLE_Y_AXIS = u"var_role_y_axis" # for scatterplots
+VAR_ROLE_KEY = u"key" # all keys must be usable as variable names
+VAR_ROLE_AGG = u"agg" # the variable being aggregated
+VAR_ROLE_BIN = u"bin" # the variable being binned (histogram)
+VAR_ROLE_DESC = u"desc" # the variable being described e.g. Boxplots
+VAR_ROLE_CATEGORY = u"cat" # the var supplying the category - usually x-axis category values
+VAR_ROLE_SERIES = u"series" # if multiple series within a single chart we will have multiple
+VAR_ROLE_CHARTS = u"charts" # the var charts are split by
+VAR_ROLE_X_AXIS = u"x_axis" # for scatterplots
+VAR_ROLE_Y_AXIS = u"y_axis" # for scatterplots
 CHART_CONFIG = {
     SIMPLE_BARCHART: {
         AGGREGATE_KEY: [
