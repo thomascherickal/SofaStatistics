@@ -67,6 +67,7 @@ import os
 import shutil
 import subprocess
 
+from PIL import Image, ImageChops
 import wx
 
 from sofastats import basic_lib as b
@@ -89,7 +90,8 @@ class ExportImage(object):
     @staticmethod
     def export2imgs(hdr, img_items, save2report_path, report_path,
             alternative_path, output_dpi, gauge_start_imgs=0, headless=False,
-            export_status=None, steps_per_img=None, msgs=None, progbar=None):
+            export_status=None, steps_per_img=None, msgs=None, progbar=None,
+            multi_page_items=True):
         """
         hdr -- HTML header with css, javascript etc. Make hdr (and img_items)
         with get_hdr_and_items()
@@ -167,7 +169,8 @@ class ExportImage(object):
         ftr = u"</body></html>"
         for i, item in enumerate(img_items, 1): # the core - where images are actually exported
             ExportImage._export2img(i, item, hdr, ftr, report_path, imgs_path,
-                html4pdf_path, output_dpi, headless, export_status, progbar)
+                html4pdf_path, output_dpi, headless, export_status, progbar,
+                multi_page_items)
             gauge2show += steps_per_img
             if progbar: progbar.SetValue(gauge2show)
         if save2report_path:
@@ -206,7 +209,8 @@ class ExportImage(object):
             raise my_exceptions.ExportCancel
 
     @staticmethod
-    def _html2img(i, item, hdr, ftr, html4pdf_path, img_pth_no_ext, output_dpi):
+    def _html2img(i, item, hdr, ftr, html4pdf_path, img_pth_no_ext, output_dpi,
+            multi_page_items=True):
         """
         Key bits htmltopdf() and pdf2img()
         """
@@ -220,17 +224,16 @@ class ExportImage(object):
             pdf_path=PDF2IMG_PATH, as_pre_img=True)
         #wx.MessageBox(img_pth_no_ext)
         if debug: print(img_pth_no_ext)
-        pdf2img_processor = (Pdf2ImgPythonMagick if mg.PLATFORM != mg.MAC
-            else Pdf2ImgImageMagick)
-        imgs_made = pdf2img_processor.pdf2img(pdf_path=PDF2IMG_PATH,
+        imgs_made = Pdf2Img.pdf2img(pdf_path=PDF2IMG_PATH,
             img_pth_no_ext=img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
-            output_dpi=output_dpi)
+            output_dpi=output_dpi, multi_page_items=multi_page_items)
         if debug: print(u"Just made image(s) %s:\n%s" %
             (i, u",\n".join(imgs_made)))
 
     @staticmethod
     def _export2img(i, item, hdr, ftr, report_path, imgs_path, html4pdf_path,
-            output_dpi, headless=False, export_status=None, progbar=None):
+            output_dpi, headless=False, export_status=None, progbar=None,
+            multi_page_items=True):
         # give option of backing out
         if not headless: wx.Yield()
         if export_status[mg.CANCEL_EXPORT]:
@@ -243,7 +246,7 @@ class ExportImage(object):
                 headless, progbar)
         else:
             ExportImage._html2img(i, item, hdr, ftr, html4pdf_path,
-                img_pth_no_ext, output_dpi)
+                img_pth_no_ext, output_dpi, multi_page_items)
 
 
 def copy_output():
@@ -289,8 +292,10 @@ class Pdf2Img(object):
         images.
         """
         global img_creation_problem
-        if not os.path.exists(img_path):
+        img_made = os.path.exists(img_path)
+        if not img_made:
             img_creation_problem = True
+        return img_made
 
     @staticmethod
     def _u2utf8(unicode_txt):
@@ -298,214 +303,37 @@ class Pdf2Img(object):
         #     ...how-to-pass-an-unicode-char-argument-to-imagemagick
         return unicode_txt.encode("utf-8")
 
-
-class Pdf2ImgPythonMagick(Pdf2Img):
-
-    import PythonMagick as pm  #@UnusedImport
-
     @staticmethod
-    def pdf2img(pdf_path, img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
-            output_dpi=300):
+    def trim(img_path):
         """
-        Can use python-pythonmagick.
-        Windows may crash with higher output_dpis e.g. 1200.
+        Assumes starting point has white with a black border and surrounding
+        transparency. This is what convert seems to be making from its PDF
+        input SOFA supplies it. The goal is to trim through all that as close
+        through the white as possible.
         """
         debug = False
-        if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
-        imgs_made = []
-        n_pages = export_output_pdfs.get_pdf_page_count(pdf_path) # may include blank page at end
-        for i in range(n_pages):
-            try:
-                img_made = Pdf2ImgPythonMagick._try_pdf_page_to_img(pdf_path, i,
-                    img_pth_no_ext, bgcolour, output_dpi)
-                if img_made is None:
-                    break # not a content page - just a trailing empty page
-            except Exception, e:
-                raise Exception(u"Failed to convert PDF into image using "
-                    u"PythonMagick. Orig error: %s" % b.ue(e))
-            if debug: print(u"img_made: %s" % img_made)
-            Pdf2ImgPythonMagick._check_img_made(img_path=img_made)
-            imgs_made.append(img_made)
-        return imgs_made
-
-    @staticmethod
-    def _get_crop_dims(orig_pdf, pdf_path, i, bgcolour, output_dpi, debug):
-        im = Pdf2ImgPythonMagick.pm.Image()
-        #wx.MessageBox(orig_pdf)
-        cheap_dpi = 30
-        # small throw-away version to get size (cheap process to avoid slow process)
-        im.density(str(cheap_dpi))
-        if mg.PLATFORM == mg.WINDOWS:
-            cheap_dpi_png2read_path = os.path.join(mg.INT_PATH, 
-                u"cheap_dpi_png2read.png")
-            try:
-                Pdf2ImgPythonMagick._pdf2png_ghostscript(
-                    cheap_dpi_png2read_path, i, pdf_path, cheap_dpi)
-            except Exception, e:
-                if i == 0:
-                    raise Exception(u"Unable to convert PDF using ghostscript. "
-                        u"Orig error: %s" % b.ue(e))
-                else:
-                    # Not a problem if fails to read page 2 etc if not multipage
-                    if debug: 
-                        print(u"Failed to convert page idx %s PDF (%s) into "
-                            u"image. Probably not a multipage PDF. "
-                            u"Orig error: %s" % (i, pdf_path, b.ue(e)))
-                    return None
-                
-            try: # can read directly from PDF because IM knows where GS is
-                im.read(Pdf2ImgPythonMagick._u2utf8(cheap_dpi_png2read_path)) # will fail on page idx 1 if not multipage PDF
-            except Exception, e:
-                raise Exception(u"Failed to read PDF (%s) into image. "
-                    u"Orig error: %s" % (pdf_path, b.ue(e)))
-        else:
-            try: # can read directly from PDF because IM knows where GS is
-                im.read(Pdf2ImgPythonMagick._u2utf8(orig_pdf)) # will fail on page idx 1 if not multipage PDF
-            except Exception, e:
-                if i == 0:
-                    raise Exception(u"Failed to read PDF (%s) into image. "
-                        u"Orig error: %s" % (pdf_path, b.ue(e)))
-                else:
-                    # Not a problem if fails to read page 2 etc if not multipage
-                    if debug: 
-                        print(u"Failed to read page idx %s PDF (%s) into image."
-                            u" Probably not a multipage PDF. Orig error: %s"
-                            % (i, pdf_path, b.ue(e)))
-                    return None
+        img_raw = Image.open(img_path, 'r')
+        ## crop off transparency first
+        img_no_trans = img_raw.crop(img_raw.getbbox())
+        ## trim off 1px black boundary "helpfully" added when convert makes png
+        bb = img_no_trans.getbbox()
+        img_no_border = img_no_trans.crop((1, 1, bb[2]-2, bb[3]-2))  ## l, t, r, b
+        ## trim white off by getting bbox for image which is diff of existing
+        ## and one same size but completely of the colour being trimmed
+        bg_mode = img_no_border.mode
+        bg = Image.new(bg_mode, img_no_border.size, 'white')
+        diff = ImageChops.difference(img_no_border, bg)
+        bbox = diff.getbbox()
         if debug:
-            print(u"About to set border colour for image to %s" % bgcolour)
-        im.borderColor(Pdf2ImgPythonMagick._u2utf8(bgcolour))
-        if debug: print(u"Just set border colour for image")
-        im.border("1x1")
-        try:
-            im.trim() # sometimes the PDF has an empty page at the end. Trim hates that and dies even though we don't need that page as an image.
-        except Exception, e:
-            if debug: print(u"Failed with im.trim(). Orig error: %s" % b.ue(e))
-            return None
-        if debug: print(u"Just trimmed image")
-        get_dims_only_pth = os.path.join(mg.INT_PATH, u"get_dims_only.png")
-        im.write(Pdf2ImgPythonMagick._u2utf8(get_dims_only_pth))
-        if debug: print(u"Just written get_dims_only_pth")
-        shrunk_width = im.size().width()
-        shrunk_height = im.size().height()
-        if debug: print(shrunk_width, shrunk_height)
-        # apply crop sizes based on small throwaway version
-        upscale_by = output_dpi/float(cheap_dpi)
-        if debug: print upscale_by
-        crop_width = upscale_by*(shrunk_width + 30)
-        crop_height = upscale_by*(shrunk_height + 30)
-        return crop_width, crop_height
-
-    @staticmethod
-    def _try_pdf_page_to_img(pdf_path, i, img_pth_no_ext,
-            bgcolour=mg.BODY_BACKGROUND_COLOUR, output_dpi=300):
-        """
-        If a single-page PDF will always be an exception when trying to make a
-        non-existent page 2 into an image. But we (apparently) need to try and
-        fail to know when to stop. Failing to make a first page, on the other
-        hand, is always an error. Clearly, we don't return an image_made string
-        if we didn't actually make an image so we return None instead.
-
-        Return img_made or None. Returning None lets calling function break loop
-        through pages.
-        """
-        debug = True
-        if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
-        orig_pdf = u"%s[%s]" % (pdf_path, i)
-        suffix = "" if i == 0 else "_%02i" % i
-        img_made = "%s%s.png" % (img_pth_no_ext, suffix)
-        if mg.PLATFORM == mg.WINDOWS:
-            img_made = img_made.replace(u'"', u"'")
-        if debug:
-            print(u"About to process '%s' into '%s'" % (orig_pdf, img_made))
-        crop_width, crop_height = Pdf2ImgPythonMagick._get_crop_dims(orig_pdf,
-            pdf_path, i, bgcolour, output_dpi, debug)
-        im = Pdf2ImgPythonMagick.pm.Image()
-        im.density(str(output_dpi))
-        try:
-            if mg.PLATFORM == mg.WINDOWS:
-                output_dpi_png2read_path = os.path.join(mg.INT_PATH, 
-                    u"output_dpi_png2read.png")
-                #wx.MessageBox(output_dpi_png2read_path)
-                Pdf2ImgPythonMagick._pdf2png_ghostscript_on_windows(
-                    output_dpi_png2read_path, i, pdf_path, output_dpi)
-                im.read(Pdf2ImgPythonMagick._u2utf8(output_dpi_png2read_path))
-            else:
-                im.read(Pdf2ImgPythonMagick._u2utf8(orig_pdf))
-        except: # Windows XP with 1GB of RAM crashes if 1200 dpi. Note - trying to use e or even Exception may keep crash going.
-            raise Exception(u"Unable to process PDF at %s dpi. Please try again"
-                u" with a lower output quality if possible." % output_dpi)
-        if debug:
-            pdf_just_read = os.path.join(mg.INT_PATH,
-                u"pdf_just_read_into_img.png")
-            im.write(Pdf2ImgPythonMagick._u2utf8(pdf_just_read))
-            print(u"Just made '%s'" % pdf_just_read) 
-        im.crop("%sx%s+50+50" % (crop_width, crop_height))
-        if debug:
-            print(u"Just cropped to width %s and height %s" % (crop_width,
-                crop_height))
-        ## Now trim only has to handle a much smaller image
-        ## (makes big difference if high density/dpi image desired as per output_dpi)
-        im.borderColor(Pdf2ImgPythonMagick._u2utf8(bgcolour))
-        im.border("1x1")
-        if debug: print(u"Just about to trim")
-        try:
-            im.trim()
-        except Exception, e:
-            if debug: print(u"Failed with im.trim(). Orig error: %s" % b.ue(e))
-            return None
-        if debug:
-            print(u"Just trimmed")
-            print(u"img_made: %s" % img_made)
-        im.write(Pdf2ImgPythonMagick._u2utf8(img_made))
-        return img_made
-
-    @staticmethod
-    def _pdf2png_ghostscript_on_windows(png2read_path, i, pdf_path, dpi):
-        """
-        http://stackoverflow.com/questions/2598669/... ghostscript-whats-are-
-        the-differences-between-linux-and-windows-variants
-
-        On Windows you have two executables, gswin32c.exe and gswin32.exe
-        instead of gs only. The first one is to run Ghostscript on the
-        commandline ("DOS box"), the second one will open two GUI windows: one
-        to render the output, another one which is console-like and shows GS
-        stdout/stderr or takes your command input if you run GS in interactive
-        mode.
-
-        http://stackoverflow.com/questions/11002982/...
-        ...converting-multi-page-pdfs-to-several-jpgs-using-imagemagick-and-or-
-        ghostscript
-
-        The png16m device produces 24bit RGB color. You could swap this for
-        pnggray (for pure grayscale output), png256 (for 8-bit color), png16
-        (4-bit color), pngmono (black and white only) or pngmonod (alternative
-        black-and-white module).
-
-        -o not just less explicit -sOutputFile ;-)
-        http://ghostscript.com/doc/8.63/Use.htm#PDF_switches
-
-        As a convenient shorthand you can use the -o option followed by the
-        output file specification as discussed above. The -o option also sets
-        the -dBATCH and -dNOPAUSE options.
-        """
-        cmd_pdf2png = (u'"%(exe_tmp)s\\gswin32c.exe" -o "%(png2make)s" '
-            u'-sDEVICE=png16m -r%(dpi)s -dFirstPage=%(pg)s '
-            u'-dLastPage=%(pg)s "%(pdf_path)s"' % 
-            {u"exe_tmp": export_output.EXE_TMP, u"png2make": png2read_path,
-             u"dpi": dpi, u"pg": i+1, u"pdf_path": pdf_path})
-        try:
-            export_output.shellit(cmd_pdf2png)
-        except Exception, e:
-            raise Exception(u"pdf2png_ghostscript command failed: %s. "
-                u"Orig error: %s" % (cmd_pdf2png, b.ue(e)))
-
-
-class Pdf2ImgImageMagick(Pdf2Img):
+            print("raw size {}\nraw bb {}\nno border size {}"
+                "\nbg size {}\nbbox{}".format(img_raw.size, img_raw.getbbox(),
+                img_no_border.size, bg.size, bbox))
+        img_trimmed = img_no_trans.crop(bbox)
+        img_trimmed.save(img_path)
 
     @staticmethod
     def pdf2img(pdf_path, img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
-            output_dpi=300):
+            output_dpi=300, multi_page_items=True):
         """
         Use ImageMagick directly side-stepping the Python wrapper. Only needed
         because of grief setting pythonmagick up on OSX.
@@ -517,8 +345,10 @@ class Pdf2ImgImageMagick(Pdf2Img):
         imgs_made = []
         n_pages = export_output_pdfs.get_pdf_page_count(pdf_path)
         for i in range(n_pages):
+            if not multi_page_items and i > 0:
+                break
             orig_pdf = "%s[%s]" % (pdf_path, i)
-            # Make small throwaway version to get size (cheap process to avoid slow process)
+            # Make small throw-away version to get size (cheap process to avoid slow process)
             suffix = "" if i == 0 else "_%02i" % i
             img_made = "%s%s.png" % (img_pth_no_ext, suffix)
             try:
@@ -551,8 +381,8 @@ class Pdf2ImgImageMagick(Pdf2Img):
                     raise Exception(u"Encountered an unexpected platform!")
                 cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
                     '"%s" "%s"' % (convert, output_dpi,
-                    Pdf2ImgImageMagick._u2utf8(bgcolour), "1x1", 
-                    Pdf2ImgImageMagick._u2utf8(orig_pdf), img_made))
+                    Pdf2Img._u2utf8(bgcolour), "1x1", 
+                    Pdf2Img._u2utf8(orig_pdf), img_made))
                 retcode = subprocess.call(cmd, shell=True)
                 if retcode < 0:
                     raise Exception("%s was terminated by signal %s" % (cmd, 
@@ -565,6 +395,11 @@ class Pdf2ImgImageMagick(Pdf2Img):
                     u"Orig error: %s" % (mg.CONTACT, b.ue(e)))
                 print u"Failed to read PDF into image. Orig error: %s" % b.ue(e)
                 break
-            Pdf2ImgImageMagick._check_img_made(img_path=img_made)
-            imgs_made.append(img_made)
+            if Pdf2Img._check_img_made(img_path=img_made):
+                Pdf2Img.trim(img_made)
+                imgs_made.append(img_made)
+            else:
+                raise Exception("Unable to make these images at this resolution"
+                    " ({} dpi). Please try again at a lower resolution.".format(
+                    output_dpi))
         return imgs_made

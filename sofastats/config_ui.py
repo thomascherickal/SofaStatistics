@@ -121,12 +121,12 @@ class DlgVarConfig(wx.Dialog):
         self.szr_btns.Realize()
         btn_ok.SetDefault()
 
-    def on_cancel(self, event):
+    def on_cancel(self, unused_event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
 
-    def on_ok(self, event):
+    def on_ok(self, unused_event):
         """
         If file doesn't exist, check if folder exists. If so, make file with
         required vdt variables initialised. If not, advise user that folder
@@ -174,7 +174,7 @@ class DlgVarConfig(wx.Dialog):
         self.SetReturnCode(wx.ID_OK) # or nothing happens!  
         # Prebuilt dialogs must do this internally.
 
-    def on_btn_var_dets_path(self, event):
+    def on_btn_var_dets_path(self, unused_event):
         "Open dialog and takes the variable details file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _("Choose an existing variable config file:"), 
@@ -185,7 +185,7 @@ class DlgVarConfig(wx.Dialog):
             self.txt_var_dets_file.SetValue(dlg_get_file.GetPath())
         dlg_get_file.Destroy()
     
-    def on_btn_script_path(self, event):
+    def on_btn_script_path(self, unused_event):
         "Open dialog and takes the script file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _("Choose or create a file to export scripts to:"), 
@@ -208,7 +208,7 @@ class ConfigUI(object):
         when looking from the class that inherits from this mixin.
     """
     
-    def __init__(self, autoupdate):
+    def __init__(self, autoupdate, multi_page_items=True):
         """
         This interface is used in two cases - where we want changes to be 
         automatically shared across all subsequent operations e.g. selecting a
@@ -227,6 +227,7 @@ class ConfigUI(object):
         self.rows_n = self.get_rows_n()
         self.export_output_enabled = False
         self.copy_output_enabled = False
+        self.multi_page_items = multi_page_items
 
     def get_gen_config_szrs(self, panel, readonly=False, hide_db=True):
         """
@@ -302,7 +303,7 @@ class ConfigUI(object):
         return self.szr_data
 
     def get_szr_output_config(self, panel, readonly=False, report_file=None,
-            show_run_btn=True, show_add_btn=True, show_view_btn=True, 
+            show_run_btn=True, show_add_btn=True, show_view_btn=True,
             show_export_options=True):
         """
         Returns self.szr_output_config (reports and css) complete with widgets.
@@ -480,7 +481,7 @@ class ConfigUI(object):
         self.vdt_file = vdt_file
         self.script_file = script_file
         
-    def on_btn_var_config(self, event):
+    def on_btn_var_config(self, unused_event):
         """
         Return the settings selected
         """
@@ -494,7 +495,7 @@ class ConfigUI(object):
         dlg.Destroy()
         return ret_dic
 
-    def on_chk_add_to_report(self, event):
+    def on_chk_add_to_report(self, unused_event):
         try:
             mg.ADD2RPT = self.chk_add_to_report.IsChecked()
         except Exception:
@@ -547,7 +548,7 @@ class ConfigUI(object):
         return too_long
 
     # database/ tables (and views)
-    def on_database_sel(self, event):
+    def on_database_sel(self, unused_event):
         """
         Copes if have to back out of selection because cannot access required
             details e.g. MS SQL Server model database.
@@ -563,7 +564,7 @@ class ConfigUI(object):
             return True
         return False
         
-    def on_table_sel(self, event):
+    def on_table_sel(self, unused_event):
         "Reset key data details after table selection."  
         debug = False
         if debug: print(u"on_table_sel called")     
@@ -585,12 +586,12 @@ class ConfigUI(object):
                 parent.drop_tbls_szr, parent.drop_tbls_panel)
         lib.GuiLib.safe_end_cursor()
 
-    def on_rclick_tables(self, event):
+    def on_rclick_tables(self, unused_event):
         "Allow addition or removal of data filter"
         self.filters()
         # event.Skip() - don't use or will appear twice in Windows!
 
-    def on_btn_filter(self, event):
+    def on_btn_filter(self, unused_event):
         self.filters()
         
     def on_open(self, event):
@@ -603,7 +604,7 @@ class ConfigUI(object):
         return os.path.exists(expected_subfolder)
     
     # report output
-    def on_btn_report_path(self, event):
+    def on_btn_report_path(self, unused_event):
         "Open dialog and takes the report file selected (if any)"
         cc = output.get_cc()
         dlg_get_file = wx.FileDialog(self, 
@@ -649,7 +650,7 @@ class ConfigUI(object):
             raise Exception(u"Unexpected export selection: {}".format(
                 idx_export_sel))
 
-    def on_sel_export_report(self, event):
+    def on_sel_export_report(self, unused_event):
         cc = output.get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
@@ -673,20 +674,22 @@ class ConfigUI(object):
             return
         cc = output.get_cc()
         dlg = export_output_gui.DlgExportOutput(title=u"Export Report", 
-            report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True)
+            report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True,
+            multi_page_items=self.multi_page_items)
         dlg.ShowModal()
 
         
-    def on_sel_export_output(self, event):
+    def on_sel_export_output(self, unused_event):
         try:
             self.update_demo_display() # so mg.INT_REPORT_PATH includes the latest title
         except AttributeError:
             pass
         dlg = export_output_gui.DlgExportOutput(title=u"Export Output", 
-            report_path=mg.INT_REPORT_PATH, save2report_path=False)
+            report_path=mg.INT_REPORT_PATH, save2report_path=False,
+            multi_page_items=self.multi_page_items)
         dlg.ShowModal()
 
-    def on_sel_copy_output(self, event):
+    def on_sel_copy_output(self, unused_event):
         wx.BeginBusyCursor()
         try:
             export_output_images.copy_output()
@@ -788,7 +791,7 @@ class ConfigUI(object):
         event.Skip()
     
     # table style
-    def on_style_sel(self, event):
+    def on_style_sel(self, unused_event):
         """
         Change style. Note - when a listbox, fires on exit from form too - but 
             no GetStringSelection possible at that point (returns empty string)

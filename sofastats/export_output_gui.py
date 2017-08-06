@@ -30,7 +30,8 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     tables, and knowing how many items of each sort there are.
     """
     pdf_taken = (n_pdfs*PDF_ITEM_TAKES)
-    output_dpi2takes = {72: 1, 150: 2, 300: 4, 600: 10, 1200: 30}
+    output_dpi2takes = {mg.DRAFT_DPI: 1, mg.SCREEN_DPI: 2, mg.PRINT_DPI: 4,
+        mg.HIGH_QUAL_DPI: 10, mg.TOP_DPI: 20}
     IMG_ITEM_TAKES = output_dpi2takes[output_dpi]
     imgs_taken = (n_imgs*IMG_ITEM_TAKES)
     tbls_taken = (n_tbls*TBL_ITEM_TAKES)
@@ -65,7 +66,8 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
 
 class DlgExportOutput(wx.Dialog):
     
-    def __init__(self, title, report_path, save2report_path=True):
+    def __init__(self, title, report_path, save2report_path=True,
+            multi_page_items=True):
         """
         save2report_path -- output goes into the report folder. If False, 
         exporting output to a temporary desktop folder for the user to look at. 
@@ -75,6 +77,7 @@ class DlgExportOutput(wx.Dialog):
             wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
             wx.CAPTION|wx.CLIP_CHILDREN)
         self.save2report_path = save2report_path
+        self.multi_page_items = multi_page_items
         if mg.OVERRIDE_FOLDER:
             self.save2report_path = True
         self.report_path = report_path
@@ -139,8 +142,8 @@ class DlgExportOutput(wx.Dialog):
         self.SetSizer(szr)
         szr.SetSizeHints(self)
         szr.Layout()
-    
-    def on_btn_export(self, event):
+
+    def on_btn_export(self, unused_event):
         debug = False
         headless = False
         if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
@@ -203,7 +206,8 @@ class DlgExportOutput(wx.Dialog):
                 export_output_images.ExportImage.export2imgs(hdr, img_items,
                     self.save2report_path, self.report_path, temp_desktop_path,
                     self.output_dpi, gauge_start_imgs, headless,
-                    self.export_status, steps_per_img, msgs, self.progbar)
+                    self.export_status, steps_per_img, msgs, self.progbar,
+                    self.multi_page_items)
             except Exception, e:
                 try:
                     raise
@@ -252,17 +256,17 @@ class DlgExportOutput(wx.Dialog):
             else _(u"EXPORTED CURRENT OUTPUT"))
         wx.MessageBox(_(u"Exporting completed.\n\n%s") % msg, caption=caption)
         self.progbar.SetValue(0)
-    
-    def on_chk_pdf(self, event):
+
+    def on_chk_pdf(self, unused_event):
         self.align_btns_to_completeness()
-        
-    def on_chk_imgs(self, event):
+
+    def on_chk_imgs(self, unused_event):
         self.align_btns_to_completeness()
-        
-    def on_chk_tbls(self, event):
+
+    def on_chk_tbls(self, unused_event):
         self.align_btns_to_completeness()
-    
-    def on_btn_cancel(self, event):
+
+    def on_btn_cancel(self, unused_event):
         self.export_status[mg.CANCEL_EXPORT] = True
 
     def align_btns_to_completeness(self):
@@ -276,6 +280,6 @@ class DlgExportOutput(wx.Dialog):
         self.btn_close.Enable(not exporting)
         self.btn_cancel.Enable(exporting)
         self.btn_export.Enable(not exporting)
-    
-    def on_btn_close(self, event):
+
+    def on_btn_close(self, unused_event):
         self.Destroy()

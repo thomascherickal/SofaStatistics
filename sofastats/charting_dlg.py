@@ -56,7 +56,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_ui.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True,
+            multi_page_items=False)
         if mg.PLATFORM == mg.WINDOWS:
             self.checkbox2use = lib.MultilineCheckBox
         else:

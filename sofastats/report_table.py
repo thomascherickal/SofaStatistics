@@ -196,7 +196,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
     only columns related to the row variables e.g. total, row and col %s.
     """
 
-    def __init__(self, var_labels=None, var_notes=None, val_dics=None):
+    def __init__(self):
         debug = False
         self.exiting = False
         cc = output.get_cc()
@@ -205,7 +205,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_ui.ConfigUI.__init__(self, autoupdate=True)
+        config_ui.ConfigUI.__init__(self, autoupdate=True,
+            multi_page_items=True)
         self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
         self.output_modules = ["my_globals as mg", "dimtables", "rawtables", 
@@ -425,7 +426,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             self.szr_output_config, szr_bottom]
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
-    def on_show(self, event):
+    def on_show(self, unused_event):
         if self.exiting:
             return
         try:
@@ -512,7 +513,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             tree.SetItemText(descendant, fresh_label)
 
     # table type
-    def on_tab_type_change(self, event):
+    def on_tab_type_change(self, unused_event):
         "Respond to change of table type"
         self.update_by_tab_type()
     
@@ -581,25 +582,25 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         "Enable (or disable) Show Percentage Symbol option"
         self.chk_show_perc_symbol.Enable(enable)
 
-    def on_chk_totals_row(self, event):
+    def on_chk_totals_row(self, unused_event):
         "Update display as total rows checkbox changes"
         self.update_demo_display()
 
-    def on_chk_first_as_label(self, event):
+    def on_chk_first_as_label(self, unused_event):
         "Update display as first column as label checkbox changes"
         self.update_demo_display()
 
-    def on_chk_show_perc_symbol(self, event):
+    def on_chk_show_perc_symbol(self, unused_event):
         "Update display as show percentage symbol checkbox changes"
         self.update_demo_display()
 
-    def on_dp_spin(self, event):
+    def on_dp_spin(self, unused_event):
         "Set maximum decimal places to display"
         mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
         self.update_demo_display()
 
     # titles/subtitles
-    def on_title_change(self, event):
+    def on_title_change(self, unused_event):
         """
         Update display as titles change
         
@@ -609,7 +610,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.update_demo_display(titles_only=True)
         self.txt_titles.SetFocus()
 
-    def on_subtitle_change(self, event):
+    def on_subtitle_change(self, unused_event):
         """
         Update display as subtitles change.  See on_title_change comment.
         """
@@ -689,9 +690,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                 item_conf = self.rowtree.GetItemPyData(child)
                 child_fldname = item_conf.var_name
                 self.add_to_parent(script_lst=script_lst, tree=self.rowtree,
-                    parent=self.rowtree, parent_node_label=u"tree_rows",
-                    parent_name=u"row", child=child,
-                    child_fldname=child_fldname)
+                    parent_node_label=u"tree_rows", parent_name=u"row",
+                    child=child, child_fldname=child_fldname)
             script_lst.append(u"# Columns" + 57*u"*")
             script_lst.append(u"tree_cols = dimtables.DimNodeTree()")
             if has_cols:
@@ -700,9 +700,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                     item_conf = self.coltree.GetItemPyData(child)
                     child_fldname = item_conf.var_name
                     self.add_to_parent(script_lst=script_lst, tree=self.coltree, 
-                        parent=self.coltree, parent_node_label=u"tree_cols",
-                        parent_name=u"column", child=child,
-                        child_fldname=child_fldname)
+                        parent_node_label=u"tree_cols", parent_name=u"column",
+                        child=child, child_fldname=child_fldname)
             script_lst.append(u"# Misc" + 60*u"*")
         elif self.tab_type == mg.DATA_LIST:
             (col_names, col_labels, 
@@ -781,8 +780,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             yield u"node_%s" % i # guaranteed collision free
             i += 1
  
-    def add_to_parent(self, script_lst, tree, parent, parent_node_label, 
-            parent_name, child, child_fldname):
+    def add_to_parent(self, script_lst, tree, parent_node_label, parent_name,
+            child, child_fldname):
         """
         Add script code for adding child nodes to parent nodes.
         
@@ -849,8 +848,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             # grandchild -- NB GUI tree items, not my Dim Node obj
             item_conf = tree.GetItemPyData(grandchild)
             grandchild_fldname = item_conf.var_name
-            self.add_to_parent(script_lst=script_lst, tree=tree, parent=child,
-                parent_node_label=child_node_label, parent_name=child_fldname, 
+            self.add_to_parent(script_lst=script_lst, tree=tree,
+                parent_node_label=child_node_label, parent_name=child_fldname,
                 child=grandchild, child_fldname=grandchild_fldname)
     
     def on_btn_help(self, event):
@@ -862,7 +861,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
             u"?id=help:report_tables")
         webbrowser.open_new_tab(url)
         event.Skip()
-    
+
     def delete_all_dim_children(self):
         """
         If wiping columns, must always reset col_no_vars_item to None.
@@ -870,8 +869,8 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         self.rowtree.DeleteChildren(self.rowroot)
         self.coltree.DeleteChildren(self.colroot)
         self.col_no_vars_item = None
-          
-    def on_btn_clear(self, event):
+
+    def on_btn_clear(self, unused_event):
         "Clear all settings"
         self.txt_titles.SetValue("")        
         self.txt_subtitles.SetValue("")
@@ -883,7 +882,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
     def update_titles_subtitles(self, orig):
         titles, subtitles = self.get_titles()
         return replace_titles_subtitles(orig, titles, subtitles)
-    
+
     # demo table display
     def get_live_html(self):
         run_ok, has_cols = self.table_config_ok(silent=True)
@@ -894,7 +893,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
         bolran_report, str_content = config_ui.ConfigUI.get_script_output(
             self, get_script_args, new_has_dojo, allow_add2rpt=False)
         return bolran_report, str_content
-    
+
     def update_demo_display(self, titles_only=False):
         """
         Update demo table display. If small data volume, use real data. 
