@@ -206,8 +206,7 @@ class ExportImage(object):
             raise my_exceptions.ExportCancel
 
     @staticmethod
-    def _html2img(i, item, hdr, ftr, imgs_path, html4pdf_path, img_pth_no_ext,
-            output_dpi):
+    def _html2img(i, item, hdr, ftr, html4pdf_path, img_pth_no_ext, output_dpi):
         """
         Key bits htmltopdf() and pdf2img()
         """
@@ -243,7 +242,7 @@ class ExportImage(object):
             ExportImage.copy_existing_img(item, report_path, imgs_path,
                 headless, progbar)
         else:
-            ExportImage._html2img(i, item, hdr, ftr, imgs_path, html4pdf_path,
+            ExportImage._html2img(i, item, hdr, ftr, html4pdf_path,
                 img_pth_no_ext, output_dpi)
 
 

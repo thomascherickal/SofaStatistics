@@ -540,14 +540,7 @@ def get_css_dets():
     css_idx = css_fils.index(cc[mg.CURRENT_CSS_PATH])
     return css_fils, css_idx
 
-def get_title_dets_html(titles, subtitles, css_idx, istable=False):
-    """
-    Table title and subtitle html ready to display.
-    
-    If title and/or subtitle are empty, want minimal display height. But have to 
-    have stable html. Solution - have cells table containing spans. But make 
-    separate table from main table so wide title !- wide table ;-)
-    """
+def _get_report_table_title_dets_html(titles, subtitles, css_idx):
     (CSS_TBL_TITLE, 
      CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
     title_dets_html_lst = []
@@ -555,28 +548,66 @@ def get_title_dets_html(titles, subtitles, css_idx, istable=False):
     title_dets_html_lst.append(u"<table cellspacing='0'><thead><tr>"
         u"<th class='%s'>" % CSS_TBL_TITLE_CELL)
     title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_TITLE)
-    if istable:
-        title_dets_html_lst.append(mg.TBL_TITLE_START) # so we can refresh content
+    title_dets_html_lst.append(mg.TBL_TITLE_START) # so we can refresh content
     if titles:
         title_dets_html_lst.append(get_titles_inner_html(titles))
-    if istable:
-        title_dets_html_lst.append(mg.TBL_TITLE_END)
+    title_dets_html_lst.append(mg.TBL_TITLE_END)
     title_dets_html_lst.append(u"</span>")
     # subtitles
     if titles and subtitles:
         title_dets_html_lst.append(u"<br>")
     title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_SUBTITLE)
-    if istable:
-        title_dets_html_lst.append(mg.TBL_SUBTITLE_START) # so we can refresh content
+    title_dets_html_lst.append(mg.TBL_SUBTITLE_START) # so we can refresh content
     if subtitles:
         title_dets_html_lst.append(get_subtitles_inner_html(subtitles))
-    if istable:
-        title_dets_html_lst.append(mg.TBL_SUBTITLE_END)
+    title_dets_html_lst.append(mg.TBL_SUBTITLE_END)
     title_dets_html_lst.append(u"</span>")
     title_dets_html_lst.append(u"</th></tr></thead></table>")
     # combine
     title_dets_html = u"\n".join(title_dets_html_lst)
-    return title_dets_html    
+    return title_dets_html      
+
+def _get_chart_title_dets_html(titles, subtitles, css_idx):
+    """
+    Don't add any HTML if not used - creates problems when
+    HTML --> PDF (and thus --> image)
+    """
+    (CSS_TBL_TITLE, 
+     CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
+    title_dets_html_lst = []
+    # titles
+    if titles:
+        title_dets_html_lst.append(u"<table cellspacing='0'><thead><tr>"
+            u"<th class='%s'>" % CSS_TBL_TITLE_CELL)
+        title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_TITLE)
+        title_dets_html_lst.append(get_titles_inner_html(titles))
+        title_dets_html_lst.append(u"</span>")
+    # subtitles
+    if titles and subtitles:
+        title_dets_html_lst.append(u"<br>")
+    if subtitles:
+        title_dets_html_lst.append(u"<span class='%s'>" % CSS_TBL_SUBTITLE)
+        title_dets_html_lst.append(get_subtitles_inner_html(subtitles))
+        title_dets_html_lst.append(u"</span>")
+        title_dets_html_lst.append(u"</th></tr></thead></table>")
+    # combine
+    title_dets_html = u"\n".join(title_dets_html_lst)
+    return title_dets_html  
+
+def get_title_dets_html(titles, subtitles, css_idx, istable=False):
+    """
+    Table title and subtitle html ready to display.
+
+    istable -- is being called by a report table rather than a chart
+
+    If title and/or subtitle are empty, want minimal display height. But have to 
+    have stable html so when report tables use this they can just change what is
+    in the middle and show it live very fast. Solution - have cells table
+    containing spans. But make separate table from main table so wide title !=
+    wide table ;-)
+    """
+    return (_get_report_table_title_dets_html(titles, subtitles, css_idx)
+        if istable else _get_chart_title_dets_html(titles, subtitles, css_idx))
     
 def get_titles_inner_html(titles):
     """
