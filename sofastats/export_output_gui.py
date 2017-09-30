@@ -23,10 +23,10 @@ TBL_ITEM_TAKES = 1
 
 def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     """
-    Where should we start on the progress gauge and how much should each item 
+    Where should we start on the progress gauge and how much should each item
     move us along?
-    
-    Start by have a basic concept of the relativities for pdf vs images vs 
+
+    Start by have a basic concept of the relativities for pdf vs images vs
     tables, and knowing how many items of each sort there are.
     """
     pdf_taken = (n_pdfs*PDF_ITEM_TAKES)

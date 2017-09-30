@@ -24,18 +24,18 @@ javascript and SVG.
 For each split item, a separate HTML file must be made, rendered within 
 wkhtmltopdf, and the PDF converted into an image.
 
-Because we don't know the final size of the output image we have to start with 
-an oversized version which is then autocropped down to the correct size. If we 
-did this on the full-resolution image it would take far too long (cropping is a 
-very computer-intensive process) so we use a different approach to get a cropped 
+Because we don't know the final size of the output image we have to start with
+an oversized version which is then autocropped down to the correct size. If we
+did this on the full-resolution image it would take far too long (cropping is a
+very computer-intensive process) so we use a different approach to get a cropped
 high-resolution image output. We make the very low-resolution version and then
-read its dimension properties. We can use these to make a final output instead 
+read its dimension properties. We can use these to make a final output instead
 of having to crop down from an oversized version. Even though we are not using
-autocropping to get the dimensions anymore we still need to use it. Because we 
-are reading our dimensions from a low-resolution image there is a margin of 
-error when translating to the high-resolution version so it is safest to add a 
-slight bit of padding to the outside of our dimensions and then autocrop from 
-there. Note - more padding required than might be expected for some reason. 
+autocropping to get the dimensions anymore we still need to use it. Because we
+are reading our dimensions from a low-resolution image there is a margin of
+error when translating to the high-resolution version so it is safest to add a
+slight bit of padding to the outside of our dimensions and then autocrop from
+there. Note - more padding required than might be expected for some reason.
 Anyway, still an expensive process but we are doing very little of it.
 
 SPLITTING OUTPUT ************
@@ -65,7 +65,7 @@ http://stackoverflow.com/questions/4809314/...
 import codecs
 import os
 import shutil
-import subprocess
+from subprocess import Popen, PIPE
 
 from PIL import Image, ImageChops
 import wx
@@ -321,7 +321,11 @@ class Pdf2Img(object):
         ## trim white off by getting bbox for image which is diff of existing
         ## and one same size but completely of the colour being trimmed
         bg_mode = img_no_border.mode
-        bg = Image.new(bg_mode, img_no_border.size, 'white')
+        try:
+            bg = Image.new(bg_mode, img_no_border.size, 'white')
+        except TypeError as e:
+            raise Exception(u"Unable to trim image to correct width. Orig "
+                u"error:\n\n{}".format(e))
         diff = ImageChops.difference(img_no_border, bg)
         bbox = diff.getbbox()
         if debug:
@@ -332,16 +336,44 @@ class Pdf2Img(object):
         img_trimmed.save(img_path)
 
     @staticmethod
+    def _get_convert(platform):
+        if platform == mg.WINDOWS:
+            convert = u"convert.exe"
+        elif platform == mg.MAC:
+            """
+            Assumes the framework path is the first path in PATH, so we
+            can just reference 'gs' in delegates.xml without a fully
+            qualified file name, AND that the environment variable
+            MAGICK_CONFIGURE_PATH has been set to the framework path so
+            that imagemagick convert can find delegates.xml (and
+            colors.xml) and thus make use of the largely self-contained
+            gs (ghostscript) binary there.
+
+            These changes don't persist it seems so OK to call multiple
+            times here.
+            """
+            #import os
+            #print(os.environ["PATH"])
+            convert = (u'export PATH="%(framework_path)s:${PATH}" '
+                u'&& export MAGICK_CONFIGURE_PATH="%(framework_path)s" '
+                u'&& "%(framework_path)s/convert"' 
+                % {"framework_path": mg.MAC_FRAMEWORK_PATH})
+        elif platform == mg.LINUX:
+            convert = u"convert"
+        else:
+            raise Exception(u"Encountered an unexpected platform!")
+        return convert
+
+    @staticmethod
     def pdf2img(pdf_path, img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
             output_dpi=300, multi_page_items=True):
         """
-        Use ImageMagick directly side-stepping the Python wrapper. Only needed
-        because of grief setting pythonmagick up on OSX.
+        Wanted to use pythonmagick wrapper instead of ImageMagick directly but
+        too much grief setting up on OSX.
         """
-        debug = False # not used at present but all wired up ready
-        if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
-        if debug: pass
+        debug = False
         verbose = False
+        if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
         imgs_made = []
         n_pages = export_output_pdfs.get_pdf_page_count(pdf_path)
         for i in range(n_pages):
@@ -350,54 +382,33 @@ class Pdf2Img(object):
             orig_pdf = "%s[%s]" % (pdf_path, i)
             # Make small throw-away version to get size (cheap process to avoid slow process)
             suffix = "" if i == 0 else "_%02i" % i
-            img_made = "%s%s.png" % (img_pth_no_ext, suffix)
-            try:
-                # Note - change density before setting input image otherwise 72 dpi 
-                # no matter what you subsequently do with -density
-                if mg.PLATFORM == mg.WINDOWS:
-                    convert = u"convert.exe"
-                elif mg.PLATFORM == mg.MAC:
-                    """
-                    Assumes the framework path is the first path in PATH, so we
-                    can just reference 'gs' in delegates.xml without a fully
-                    qualified file name, AND that the environment variable
-                    MAGICK_CONFIGURE_PATH has been set to the framework path so
-                    that imagemagick convert can find delegates.xml (and
-                    colors.xml) and thus make use of the largely self-contained
-                    gs (ghostscript) binary there.
-
-                    These changes don't persist it seems so OK to call multiple
-                    times here.
-                    """
-                    #import os
-                    #print(os.environ["PATH"])
-                    convert = (u'export PATH="%(framework_path)s:${PATH}" '
-                        u'&& export MAGICK_CONFIGURE_PATH="%(framework_path)s" '
-                        u'&& "%(framework_path)s/convert"' 
-                        % {"framework_path": mg.MAC_FRAMEWORK_PATH})
-                elif mg.PLATFORM == mg.LINUX:
-                    convert = u"convert"
+            img_name = "%s%s.png" % (img_pth_no_ext, suffix)
+            # Note - change density before setting input image otherwise 72 dpi 
+            # no matter what you subsequently do with -density
+            convert = Pdf2Img._get_convert(mg.PLATFORM)
+            cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
+                '"%s" "%s"' % (convert, output_dpi, Pdf2Img._u2utf8(bgcolour),
+                "1x1", Pdf2Img._u2utf8(orig_pdf), img_name))
+            if debug: print(cmd)
+            p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
+            output, err = p.communicate()
+            if err:
+                if (u"cache resources exhausted" in err
+                        or u"Image width exceeds user limit" in err):
+                    wx.MessageBox(u"Unable to make these images at this "
+                        u"resolution ({} dpi) by converting from PDF version. "
+                        u"Please try again at a lower resolution.\n\nOrig error"
+                        u": {}".format(output_dpi, err))
                 else:
-                    raise Exception(u"Encountered an unexpected platform!")
-                cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
-                    '"%s" "%s"' % (convert, output_dpi,
-                    Pdf2Img._u2utf8(bgcolour), "1x1", 
-                    Pdf2Img._u2utf8(orig_pdf), img_made))
-                retcode = subprocess.call(cmd, shell=True)
-                if retcode < 0:
-                    raise Exception("%s was terminated by signal %s" % (cmd, 
-                        retcode))
-                else:
-                    if verbose: print("%s returned %s" % (cmd, retcode))
-            except Exception, e:
-                wx.MessageBox(u"Unable to convert PDF into image. Please pass "
-                    u"on this error message to the developer at %s. "
-                    u"Orig error: %s" % (mg.CONTACT, b.ue(e)))
-                print u"Failed to read PDF into image. Orig error: %s" % b.ue(e)
+                    wx.MessageBox(u"Unable to make these images successfully."
+                        u"\n\nOrig error: {}".format(output_dpi, err))
+                if debug and verbose:
+                    print("%s returned %s with error %s" % (cmd,
+                        p.returncode, err))
                 break
-            if Pdf2Img._check_img_made(img_path=img_made):
-                Pdf2Img.trim(img_made)
-                imgs_made.append(img_made)
+            if Pdf2Img._check_img_made(img_path=img_name):
+                Pdf2Img.trim(img_name)
+                imgs_made.append(img_name)
             else:
                 raise Exception("Unable to make these images at this resolution"
                     " ({} dpi). Please try again at a lower resolution.".format(

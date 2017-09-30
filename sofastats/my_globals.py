@@ -1079,5 +1079,5 @@ DRAFT_DPI = 72
 SCREEN_DPI = 150
 PRINT_DPI = 300
 HIGH_QUAL_DPI = 600
-TOP_DPI = 900 #1000 if mg.PLATFORM == mg.WINDOWS else 1200 # Windows XP crashes with a message about
+TOP_DPI = 1000 if PLATFORM == WINDOWS else 1200 # Windows XP crashes with a message about
 # PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such file or directory
