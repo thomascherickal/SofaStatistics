@@ -310,28 +310,29 @@ class Pdf2Img(object):
         transparency. This is what convert seems to be making from its PDF
         input SOFA supplies it. The goal is to trim through all that as close
         through the white as possible.
+
+        The following settings allow 1200dpi images to be output in
+        /etc/ImageMagick-6/policy.xml (Ubuntu Linux):
+
+        <policy domain="resource" name="memory" value="1GiB"/>
+        <policy domain="resource" name="map" value="1GiB"/>
+        <policy domain="resource" name="width" value="256KP"/>
+        <policy domain="resource" name="height" value="256KP"/>
+        <policy domain="resource" name="area" value="256MB"/>
+        <policy domain="resource" name="disk" value="10GiB"/>
         """
-        debug = False
         img_raw = Image.open(img_path, 'r')
         ## crop off transparency first
         img_no_trans = img_raw.crop(img_raw.getbbox())
         ## trim off 1px black boundary "helpfully" added when convert makes png
         bb = img_no_trans.getbbox()
         img_no_border = img_no_trans.crop((1, 1, bb[2]-2, bb[3]-2))  ## l, t, r, b
+        img_no_border = img_no_border.convert('RGBA')  ## starts as P but even if both are P doesn't work - both seem to need to be RGBA
         ## trim white off by getting bbox for image which is diff of existing
         ## and one same size but completely of the colour being trimmed
-        bg_mode = img_no_border.mode
-        try:
-            bg = Image.new(bg_mode, img_no_border.size, 'white')
-        except TypeError as e:
-            raise Exception(u"Unable to trim image to correct width. Orig "
-                u"error:\n\n{}".format(e))
+        bg = Image.new('RGBA', img_no_border.size, 'white')
         diff = ImageChops.difference(img_no_border, bg)
         bbox = diff.getbbox()
-        if debug:
-            print("raw size {}\nraw bb {}\nno border size {}"
-                "\nbg size {}\nbbox{}".format(img_raw.size, img_raw.getbbox(),
-                img_no_border.size, bg.size, bbox))
         img_trimmed = img_no_trans.crop(bbox)
         img_trimmed.save(img_path)
 
