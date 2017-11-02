@@ -32,7 +32,7 @@ TEST_LANGID = wx.LANGUAGE_FRENCH
 DOJO_DEBUG = False  ## so can use unminified javascript and tweak it
 LOCALEDIR = './locale' # overridden in setup.py
 LANGDIR = None # overridden in start.py 
-CANON_NAME = None # overridden in start.py 
+CANON_NAME = None # overridden in start.py
 FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
 MAIN_SCRIPT_START = u"#sofa_main_script_start"
 SCRIPT_END = u"#sofa_script_end"
@@ -1081,3 +1081,12 @@ PRINT_DPI = 300
 HIGH_QUAL_DPI = 600
 TOP_DPI = 1000 if PLATFORM == WINDOWS else 1200 # Windows XP crashes with a message about
 # PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such file or directory
+
+IMPORT_EXTENTIONS = {
+    u"csv": u".csv",
+    u"tsv": u".tsv",
+    u"tab": u".tab",
+    u"txt": u".txt",
+    u"xls": u".xls",
+    u"xlsx": u".xlsx",
+    u"ods": u".ods", }

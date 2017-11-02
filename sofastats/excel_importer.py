@@ -205,7 +205,8 @@ class ExcelImporter(importer.FileImporter):
             raise Exception(u"No data to import")
         return fldtypes, sample_data
 
-    def import_content(self, progbar, import_status, lbl_feedback):
+    def import_content(self,
+            lbl_feedback=None, import_status=None, progbar=None):
         """
         Get field types dict.  Use it to test each and every item before they 
         are added to database (after adding the records already tested).
@@ -214,6 +215,10 @@ class ExcelImporter(importer.FileImporter):
         table to final name.
         """
         debug = False
+        if lbl_feedback is None: lbl_feedback = importer.DummyLabel()
+        if import_status is None:
+            import_status = importer.dummy_import_status.copy()
+        if progbar is None: progbar = importer.DummyProgBar()
         faulty2missing_fld_list = []
         if not self.headless:
             wx.BeginBusyCursor()
@@ -258,13 +263,15 @@ class ExcelImporter(importer.FileImporter):
         gauge_start = steps_per_item*sample_n
         try:
             feedback = {mg.NULLED_DOTS: False}
-            importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tblname, self.has_header, 
-                ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
-                steps_per_item, gauge_start, headless=self.headless)
+            importer.add_to_tmp_tbl(
+                feedback, import_status,
+                default_dd.con, default_dd.cur,
+                self.tblname, self.has_header, ok_fldnames, fldtypes,
+                faulty2missing_fld_list, data,
+                progbar, n_datarows, steps_per_item, gauge_start,
+                headless=self.headless)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],
-                self.headless)
+                self.tblname, progbar, feedback[mg.NULLED_DOTS], self.headless)
         except Exception, e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

@@ -9,10 +9,10 @@ import sys
 
 import pyPdf
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import export_output
-from sofastats import output
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import export_output  #@UnresolvedImport
+from sofastats import output  #@UnresolvedImport
 
 RAWPDF_FILE = u"raw.pdf"
 RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)

@@ -70,8 +70,7 @@ def import_dbe_plugin(dbe_plugin):
 def import_dbe_plugins():
     """
     Tries to keep going even if a database module doesn't work etc. Of course,
-        if SQLite isn't available we are doomed as that runs the default 
-        database.
+    if SQLite isn't available we are doomed as that runs the default database.
     """
     for dbe_plugin, dbe_mod_name in mg.DBE_PLUGINS:
         wrong_os = (dbe_plugin in [mg.DBE_MS_ACCESS, mg.DBE_MS_SQL] 

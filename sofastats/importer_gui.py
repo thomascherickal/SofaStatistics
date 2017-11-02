@@ -23,52 +23,10 @@ FIRST_MISMATCH_TPL = (u"\nRow: %(row)s"
     u"\nExpected column type: %(fldtype)s")
 ROWS_TO_SHOW_USER = 5 # only need enough to decide if a header (except for csv when also needing to choose encoding)
 
-IMPORT_EXTENTIONS = {
-    u"csv": u".csv",
-    u"tsv": u".tsv",
-    u"tab": u".tab",
-    u"txt": u".txt",
-    u"xls": u".xls",
-    u"xlsx": u".xlsx",
-    u"ods": u".ods", }
-
-
-class DummyProgbar(object):
-    def SetValue(self, value):
-        print(u"Progress %s ..." % round(value, 2))
-
-class DummyLabel(object):
-    def SetLabel(self, unused):
-        pass
-
-class DummyImporter(object):    
-    def __init__(self):
-        self.progbar = DummyProgbar()
-        self.import_status = {mg.CANCEL_IMPORT: False} # can change and 
-        # running script can check on it.
-        self.lbl_feedback = DummyLabel()
-        
 def run_gui_import(self):
     run_import(self)
-    
-def run_headless_import(file_path, tblname, headless_has_header, 
-        supplied_encoding=None, force_quickcheck=False):
-    """
-    Usage:
-    file_path = "/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx" #csvfiles/percent_names.csv"
-    tblname = "headless_yeah_baby"
-    headless_has_header = True
-    supplied_encoding = "utf-8"
-    force_quickcheck = True
-    importer.run_headless_import(file_path, tblname, headless_has_header, 
-        supplied_encoding, force_quickcheck)
-    """
-    dummy_importer = DummyImporter()
-    run_import(dummy_importer, headless=True, file_path=file_path, 
-        tblname=tblname, headless_has_header=headless_has_header,
-        supplied_encoding=supplied_encoding, force_quickcheck=force_quickcheck)
 
-    
+
 class DlgImportFileSelect(wx.Dialog):
     def __init__(self, parent):
         """
@@ -175,7 +133,7 @@ class DlgImportFileSelect(wx.Dialog):
             "BMP files (*.bmp)|*.bmp|GIF files (*.gif)|*.gif"
         E.g. consolidated settings: "pictures (*.jpeg,*.png)|*.jpeg;*.png"
         """
-        exts = [u"*%s" % x for x in IMPORT_EXTENTIONS.values()]
+        exts = [u"*%s" % x for x in mg.IMPORT_EXTENTIONS.values()]
         exts.sort()
         wildcard_comma_bits = u",".join(exts)
         wildcard_semi_colon_bits = u";".join(exts)
@@ -187,7 +145,7 @@ class DlgImportFileSelect(wx.Dialog):
         if dlg_get_file.ShowModal() == wx.ID_OK:
             path = dlg_get_file.GetPath()
             self.txt_file.SetValue(path)
-            filestart, unused = get_file_start_ext(path)
+            filestart, unused = importer.get_file_start_ext(path)
             newname = importer.process_tblname(filestart)
             self.txt_int_name.SetValue(newname)
         dlg_get_file.Destroy()
@@ -227,10 +185,6 @@ class DlgImportFileSelect(wx.Dialog):
         run_gui_import(self)
         event.Skip()
 
-def get_file_start_ext(path):
-    unused, filename = os.path.split(path)
-    filestart, extension = os.path.splitext(filename)
-    return filestart, extension
 
 def check_tblname(file_path, tblname, headless):
     """
@@ -272,128 +226,87 @@ def check_tblname(file_path, tblname, headless):
                 pass # use name (overwrite orig)
     return tblname
 
-def run_import(self, headless=False, file_path=None, tblname=None, 
-        headless_has_header=True, supplied_encoding=None, 
-        force_quickcheck=False):
+def run_import(self, force_quickcheck=False):
     """
     Identify type of file by extension and open dialog if needed
     to get any additional choices e.g. separator used in 'csv'.
-    
-    headless -- enable script to be run without user intervention. Anything that 
-    would normally prompt user decisions raises an exception instead.
-
-    headless_has_header -- seeing as we won't tell it through the GUI if 
-    headless, need to tell it here.
-
-    supplied_encoding -- if headless, we can't manually select from likely 
-    encoding so must supply here.
     """
+    headless = False
+    headless_has_header = False
+    supplied_encoding = None
     dd = mg.DATADETS_OBJ
-    if not headless:
-        self.align_btns_to_importing(importing=True)
-        self.progbar.SetValue(0)
-        file_path = self.txt_file.GetValue()
+    self.align_btns_to_importing(importing=True)
+    self.progbar.SetValue(0)
+    file_path = self.txt_file.GetValue()
     if not file_path:
-        if headless:
-            raise Exception(_(u"A file name must be supplied when importing"
-                u" if running in headless mode."))
-        else:
-            wx.MessageBox(_("Please select a file"))
-            self.align_btns_to_importing(importing=False)
-            self.txt_file.SetFocus()
-            return
+        wx.MessageBox(_("Please select a file"))
+        self.align_btns_to_importing(importing=False)
+        self.txt_file.SetFocus()
+        return
     # identify file type
-    unused, extension = get_file_start_ext(file_path)
-    if extension.lower() in (IMPORT_EXTENTIONS[u"csv"],
-            IMPORT_EXTENTIONS[u"tsv"], IMPORT_EXTENTIONS[u"tab"]):
+    unused, extension = importer.get_file_start_ext(file_path)
+    if extension.lower() in (mg.IMPORT_EXTENTIONS[u"csv"],
+            mg.IMPORT_EXTENTIONS[u"tsv"], mg.IMPORT_EXTENTIONS[u"tab"]):
         self.file_type = FILE_CSV
-    elif extension.lower() == IMPORT_EXTENTIONS[u"txt"]:
-        if headless:
-            self.file_type = FILE_CSV
+    elif extension.lower() == mg.IMPORT_EXTENTIONS[u"txt"]:
+        ret = wx.MessageBox(_(u"SOFA imports txt files as csv or "
+            u"tab-delimited files.\n\nIs your txt file a valid csv or "
+            u"tab-delimited file?"), caption=_("CSV FILE?"), style=wx.YES_NO)
+        if ret == wx.NO:
+            wx.MessageBox(_(u"Unable to import txt files unless csv or "
+                u"tab-delimited format inside"))
+            self.align_btns_to_importing(importing=False)
+            return
         else:
-            ret = wx.MessageBox(_(u"SOFA imports txt files as csv or "
-                u"tab-delimited files.\n\nIs your txt file a valid csv or "
-                u"tab-delimited file?"), caption=_("CSV FILE?"), 
-                style=wx.YES_NO)
-            if ret == wx.NO:
-                wx.MessageBox(_(u"Unable to import txt files unless csv or "
-                    u"tab-delimited format inside"))
-                self.align_btns_to_importing(importing=False)
-                return
-            else:
-                self.file_type = FILE_CSV
-    elif extension.lower() in (IMPORT_EXTENTIONS[u"xls"],
-            IMPORT_EXTENTIONS[u"xlsx"]):
+            self.file_type = FILE_CSV
+    elif extension.lower() in (mg.IMPORT_EXTENTIONS[u"xls"],
+            mg.IMPORT_EXTENTIONS[u"xlsx"]):
         self.file_type = FILE_EXCEL
-    elif extension.lower() == IMPORT_EXTENTIONS[u"ods"]:
+    elif extension.lower() == mg.IMPORT_EXTENTIONS[u"ods"]:
         self.file_type = FILE_ODS
     else:
         unknown_msg = _("Files with the file name extension "
             "'%s' are not supported") % extension
-        if headless:
-            raise Exception(unknown_msg)
-        else:
-            self.file_type = FILE_UNKNOWN
-            wx.MessageBox(unknown_msg)
-            self.align_btns_to_importing(importing=False)
-            return
-    if not headless:
-        tblname = self.txt_int_name.GetValue()
+        self.file_type = FILE_UNKNOWN
+        wx.MessageBox(unknown_msg)
+        self.align_btns_to_importing(importing=False)
+        return
+    tblname = self.txt_int_name.GetValue()
     if not tblname:
-        if headless:
-            raise Exception("Unable to import headless unless a table "
-                "name supplied")
-        else:
-            wx.MessageBox(_("Please select a SOFA Table Name for the file"))
-            self.align_btns_to_importing(importing=False)
-            self.txt_int_name.SetFocus()
-            return
+        wx.MessageBox(_("Please select a SOFA Table Name for the file"))
+        self.align_btns_to_importing(importing=False)
+        self.txt_int_name.SetFocus()
+        return
     if u" " in tblname:
         empty_spaces_msg = _("SOFA Table Name can't have empty spaces")
-        if headless:
-            raise Exception(empty_spaces_msg)
-        else:
-            wx.MessageBox(empty_spaces_msg)
-            self.align_btns_to_importing(importing=False)
-            return
+        wx.MessageBox(empty_spaces_msg)
+        self.align_btns_to_importing(importing=False)
+        return
     bad_chars = [u"-", ]
     for bad_char in bad_chars:
         if bad_char in tblname:
             bad_char_msg = (_("Do not include '%s' in SOFA Table Name") % 
                 bad_char)
-            if headless:
-                raise Exception(bad_char_msg)
-            else:
-                wx.MessageBox(bad_char_msg)
-                self.align_btns_to_importing(importing=False)
-                return
-    if tblname[0] in [unicode(x) for x in range(10)]:
-        digit_msg = _("SOFA Table Names cannot start with a digit")
-        if headless:
-            raise Exception(digit_msg)
-        else:
-            wx.MessageBox(digit_msg)
+            wx.MessageBox(bad_char_msg)
             self.align_btns_to_importing(importing=False)
             return
+    if tblname[0] in [unicode(x) for x in range(10)]:
+        digit_msg = _("SOFA Table Names cannot start with a digit")
+        wx.MessageBox(digit_msg)
+        self.align_btns_to_importing(importing=False)
+        return
     try:
         final_tblname = check_tblname(file_path, tblname, headless)
         if final_tblname is None:
-            if headless:
-                raise Exception("Table name supplied is inappropriate for "
-                    "some reason.")
-            else:
-                self.txt_int_name.SetFocus()
-                self.align_btns_to_importing(importing=False)
-                self.progbar.SetValue(0)
-                return
-    except Exception:
-        if headless:
-            raise
-        else:
-            wx.MessageBox(_("Please select a suitable SOFA Table Name "
-                "and try again"))
+            self.txt_int_name.SetFocus()
             self.align_btns_to_importing(importing=False)
+            self.progbar.SetValue(0)
             return
+    except Exception:
+        wx.MessageBox(_("Please select a suitable SOFA Table Name "
+            "and try again"))
+        self.align_btns_to_importing(importing=False)
+        return
     # import file
     if self.file_type == FILE_CSV:
         from sofastats import csv_importer
@@ -412,36 +325,25 @@ def run_import(self, headless=False, file_path=None, tblname=None,
     try:
         proceed = file_importer.get_params()
     except Exception, e:
-        if headless:
-            raise
-        else:
-            wx.MessageBox(_("Unable to import data after getting "
-                u"parameters\n\nError") + u": %s" % b.ue(e))
-            lib.GuiLib.safe_end_cursor()
+        wx.MessageBox(_("Unable to import data after getting "
+            u"parameters\n\nError") + u": %s" % b.ue(e))
+        lib.GuiLib.safe_end_cursor()
     if proceed:
         try:
-            file_importer.import_content(self.progbar, self.import_status,
-                self.lbl_feedback)
-            if not headless: dd.set_db(dd.db, tbl=tblname)
+            file_importer.import_content(
+                self.lbl_feedback, self.progbar, self.import_status)
+            dd.set_db(dd.db, tbl=tblname)
             lib.GuiLib.safe_end_cursor()
         except my_exceptions.ImportConfirmationRejected, e:
             lib.GuiLib.safe_end_cursor()
-            if headless: # although should never occur when headless
-                raise
-            else:
-                wx.MessageBox(b.ue(e))
+            wx.MessageBox(b.ue(e))
         except my_exceptions.ImportCancel, e:
             lib.GuiLib.safe_end_cursor()
             self.import_status[mg.CANCEL_IMPORT] = False # reinit
-            if not headless: # should never occur when headless
-                wx.MessageBox(b.ue(e))
+            wx.MessageBox(b.ue(e))
         except Exception, e:
-            if headless:
-                raise
-            else:
-                self.progbar.SetValue(0)
-                lib.GuiLib.safe_end_cursor()
-                wx.MessageBox(_(u"Unable to import data\n\nHelp available "
-                    u"at %s\n\n") % mg.CONTACT + u"Error: %s" % b.ue(e))
-    if not headless:
-        self.align_btns_to_importing(importing=False)
+            self.progbar.SetValue(0)
+            lib.GuiLib.safe_end_cursor()
+            wx.MessageBox(_(u"Unable to import data\n\nHelp available "
+                u"at %s\n\n") % mg.CONTACT + u"Error: %s" % b.ue(e))
+    self.align_btns_to_importing(importing=False)

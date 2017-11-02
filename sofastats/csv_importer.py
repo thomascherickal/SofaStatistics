@@ -11,12 +11,12 @@ import pprint
 import wx #@UnusedImport
 import wx.html
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats import getdata
-from sofastats import importer
+from sofastats import basic_lib as b #@UnresolvedImport
+from sofastats import my_globals as mg #@UnresolvedImport
+from sofastats import lib #@UnresolvedImport
+from sofastats import my_exceptions #@UnresolvedImport
+from sofastats import getdata #@UnresolvedImport
+from sofastats import importer #@UnresolvedImport
 
 ROWS_TO_SHOW_USER = 10 # need to show enough to choose encoding
 
@@ -347,7 +347,7 @@ class UnicodeCsvDictReader(object):
         Iterates through rows. If no field names were fed in at the start, will
         begin at the second row (the first having been consumed to get the field 
         names).
-        
+
         If required, decode UTF8-encoded byte string back to Unicode, dict pair 
         by pair.
         """
@@ -666,7 +666,7 @@ class DlgImportDisplay(wx.Dialog):
         """
         For display in GUI dlg - so makes sense to use the encoding the user has 
         selected - whether or not it is a good choice.
-        
+
         Have to get whole file even though for this part we only need the first 
         few lines. No reliable way of breaking into lines pre-csv reader so
         happens at last step.
@@ -735,6 +735,23 @@ class DlgImportDisplay(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
 
 
+class CsvData():
+
+    def __init__(self, utf8_encoded_csv_data, dialect, fieldnames):
+        self.utf8_encoded_csv_data = utf8_encoded_csv_data
+        self.dialect = dialect
+        self.fieldnames = fieldnames
+        self.reset()
+
+    def reset(self):
+        self.reader = UnicodeCsvDictReader(self.utf8_encoded_csv_data,
+            dialect=self.dialect, fieldnames=self.fieldnames)
+
+    def __iter__(self):
+        for row in self.reader:
+            yield row
+
+
 class CsvImporter(importer.FileImporter):
     """
     Import csv file into default SOFA SQLite database.
@@ -749,22 +766,22 @@ class CsvImporter(importer.FileImporter):
             headless, headless_has_header, supplied_encoding)
         self.ext = u"CSV"
         self.force_quickcheck = force_quickcheck
-        
+
     def assess_sample(self, reader, progbar, steps_per_item, import_status, 
             comma_delimiter, faulty2missing_fld_list, ok_fldnames):
         """
         Assess data sample to identify field types based on values in fields.
-        
+
         If a field has mixed data types will define as string.
-        
+
         Returns fldtypes, sample_data.
-        
+
         fldtypes - dict with original (uncorrected) field names as keys and 
         field types as values.
-        
+
         sample_data - list of dicts containing the first rows of data 
         (no point reading them all again during subsequent steps).   
-        
+
         Sample first N data rows (at most) to establish field types.   
         """
         debug = False
@@ -788,11 +805,13 @@ class CsvImporter(importer.FileImporter):
                 # empty strings or whatever later.
             gauge_val = min(i*steps_per_item, mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
-            if not self.headless:
+            if self.headless:
+                i2break = ROWS_TO_SHOW_USER
+            else:
                 i2break = (ROWS_TO_SHOW_USER if self.has_header 
                     else ROWS_TO_SHOW_USER - 1)
-                if i == i2break:
-                    break
+            if i == i2break:
+                break
         fldtypes = []
         for ok_fldname in ok_fldnames:
             fldtype = importer.assess_sample_fld(sample_data, self.has_header,
@@ -890,7 +909,7 @@ class CsvImporter(importer.FileImporter):
         else: # get number of fields from first row (not consumed because not 
             # using dictreader.
             try:
-                tmp_reader = UnicodeCsvReader(utf8_encoded_csv_sample, 
+                tmp_reader = UnicodeCsvReader(utf8_encoded_csv_sample,
                     dialect=dialect)
             except Exception, e:
                 # should have already been successfully through this in 
@@ -912,15 +931,20 @@ class CsvImporter(importer.FileImporter):
         return True # cover all this in more complex fashion handling encoding 
             #and delimiters
 
-    def import_content(self, progbar, import_status, lbl_feedback):
+    def import_content(self,
+            lbl_feedback=None, import_status=None, progbar=None):
         """
-        Get field types dict.  Use it to test each and every item before they 
+        Get field types dict.  Use it to test each and every item before they
         are added to database (after adding the records already tested).
-        
+
         Add to disposable table first and if completely successful, rename
         table to final name.
         """
         debug = False
+        if lbl_feedback is None: lbl_feedback = importer.DummyLabel()
+        if import_status is None:
+            import_status = importer.dummy_import_status.copy()
+        if progbar is None: progbar = importer.DummyProgBar()
         faulty2missing_fld_list = []
         if not self.headless:
             wx.BeginBusyCursor()
@@ -952,33 +976,35 @@ class CsvImporter(importer.FileImporter):
             raise Exception(u"Unable to get count of rows. "
                 u"\nCaused by error: %s" % b.ue(e))
         try:
-            utf8_encoded_csv_data = csv2utf8_bytelines(self.file_path, 
+            utf8_encoded_csv_data = csv2utf8_bytelines(self.file_path,
                 encoding, dialect.delimiter, strict=False)
             # we supply field names so will start with first row
-            reader = UnicodeCsvDictReader(utf8_encoded_csv_data, 
+            reader = UnicodeCsvDictReader(utf8_encoded_csv_data,
                 dialect=dialect, fieldnames=ok_fldnames)
         except Exception, e:
             lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to create reader for file. "
-                u"\nCaused by error: %s" % b.ue(e)) 
+                u"\nCaused by error: %s" % b.ue(e))
         default_dd = getdata.get_default_db_dets()
         sample_n = min(ROWS_TO_SHOW_USER, rows_n)
         items_n = rows_n + sample_n + 1 # 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         try:
-            fldtypes, sample_data = self.assess_sample(reader, progbar, 
+            fldtypes, unused = self.assess_sample(reader, progbar,
                 steps_per_item, import_status, comma_delimiter,
                 faulty2missing_fld_list, ok_fldnames)
             # NB reader will be at position ready to access records after sample
-            data = sample_data + list(reader) # must be a list not a reader or 
-                # can't start again from start of data (e.g. if correction made)
+            data = CsvData(utf8_encoded_csv_data, dialect, ok_fldnames)
             gauge_start = steps_per_item*sample_n
             feedback = {mg.NULLED_DOTS: False}
-            importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tblname, self.has_header, 
-                ok_fldnames, fldtypes, faulty2missing_fld_list, data, progbar, 
-                steps_per_item, gauge_start, allow_none=False, 
-                comma_dec_sep_ok=not comma_delimiter, headless=self.headless)
+            importer.add_to_tmp_tbl(
+                feedback, import_status,
+                default_dd.con, default_dd.cur,
+                self.tblname, self.has_header, ok_fldnames, fldtypes,
+                faulty2missing_fld_list, data,
+                progbar, rows_n, steps_per_item, gauge_start,
+                allow_none=False, comma_dec_sep_ok=not comma_delimiter,
+                headless=self.headless)
             # so fast only shows last step in progress bar
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
                 self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],
@@ -990,4 +1016,3 @@ class CsvImporter(importer.FileImporter):
         default_dd.con.commit()
         default_dd.con.close()
         progbar.SetValue(0)
-        

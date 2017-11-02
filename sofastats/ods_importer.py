@@ -109,7 +109,8 @@ class OdsImporter(importer.FileImporter):
                     self.has_header = (ret == mg.HAS_HEADER)
                     return True
     
-    def import_content(self, progbar, import_status, lbl_feedback):
+    def import_content(self,
+            lbl_feedback=None, import_status=None, progbar=None):
         """
         Get field types dict. Use it to test each and every item before they 
         are added to database (after adding the records already tested).
@@ -118,6 +119,10 @@ class OdsImporter(importer.FileImporter):
         table to final name.
         """
         debug = False
+        if lbl_feedback is None: lbl_feedback = importer.DummyLabel()
+        if import_status is None:
+            import_status = importer.dummy_import_status.copy()
+        if progbar is None: progbar = importer.DummyProgBar()
         faulty2missing_fld_list = []
         large = True
         if not self.headless:
@@ -152,13 +157,15 @@ class OdsImporter(importer.FileImporter):
         gauge_start = prog_steps_for_xml_steps
         try:
             feedback = {mg.NULLED_DOTS: False}
-            importer.add_to_tmp_tbl(feedback, import_status, default_dd.con, 
-                default_dd.cur, self.file_path, self.tblname, self.has_header, 
-                ok_fldnames, fldtypes, faulty2missing_fld_list, rows, 
-                progbar, steps_per_item, gauge_start, headless=self.headless)
+            importer.add_to_tmp_tbl(
+                feedback, import_status,
+                default_dd.con, default_dd.cur,
+                self.tblname, self.has_header, ok_fldnames, fldtypes,
+                faulty2missing_fld_list, rows,
+                progbar, rows_n, steps_per_item, gauge_start,
+                headless=self.headless)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                self.tblname, self.file_path, progbar, feedback[mg.NULLED_DOTS],
-                self.headless)
+                self.tblname, progbar, feedback[mg.NULLED_DOTS], self.headless)
         except Exception:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
