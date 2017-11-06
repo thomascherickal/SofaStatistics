@@ -4,12 +4,12 @@ import datetime
 import wx
 import xlrd
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import my_exceptions
-from sofastats import lib
-from sofastats import getdata
-from sofastats import importer
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import my_exceptions  #@UnresolvedImport
+from sofastats import lib  #@UnresolvedImport
+from sofastats import getdata  #@UnresolvedImport
+from sofastats import importer  #@UnresolvedImport
 
 ROWS_TO_SAMPLE = 500 # fast enough to sample quite a few
 

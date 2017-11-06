@@ -601,7 +601,6 @@ def _process_row_dets(
         u"\n(%s)\nVALUES(%s)" % (fldnames_clause, placeholders))
     for row_num, row in rows_dets:
         if debug and verbose: print(str(row_num), row)
-        gauge_start += 1
         vals = []
         report_fld_n_mismatch(row, row_num, has_header, ok_fldnames, 
             allow_none)
@@ -620,8 +619,8 @@ def _process_row_dets(
         if headless:
             gauge_val = row_num
         else:
-            raw_gauge_val = gauge_start + (row_num*steps_per_item)
-            gauge_val = min(raw_gauge_val, mg.IMPORT_GAUGE_STEPS)
+            raw_gauge_val = gauge_start + (len(rows_dets)*steps_per_item)
+            gauge_val = min(raw_gauge_val, mg.IMPORT_GAUGE_STEPS)  ## must never exceed IMPORT_GAUGE_STEPS through rounding errors etc.
         progbar.SetValue(gauge_val)
     except Exception, e:
         ## run through one by one to find faulty row
@@ -633,7 +632,7 @@ def _process_row_dets(
                 raise Exception(u"Unable to add row {:,}.\nCaused by error: {}"
                     .format(row_num, b.ue(e)))
     con.commit()
-    return gauge_start
+    return gauge_val
 
 def add_rows(
         con, cur,
@@ -1164,8 +1163,8 @@ if __name__ == '__main__':
     """
     cd /home/g/projects/sofastats_proj/sofastatistics/ && python -m sofastats.importer
     """
-    file_path = "/home/g/grantshare/import_testing/csvfiles/moussa_elhallak.csv"
-    tblname = "moussa_elhallak"
+    file_path = "/home/g/grantshare/import_testing/csvfiles/....csv"
+    tblname = "..."
     headless_has_header = False
     supplied_encoding = "utf-8"
     force_quickcheck = True

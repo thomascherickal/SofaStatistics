@@ -5,14 +5,14 @@ from __future__ import print_function
 import os
 import wx #@UnusedImport
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats import config_output
-from sofastats import getdata # must be before anything referring to plugin modules
-from sofastats import importer
-from sofastats.dbe_plugins import dbe_sqlite
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import lib  #@UnresolvedImport
+from sofastats import my_exceptions  #@UnresolvedImport
+from sofastats import config_output  #@UnresolvedImport
+from sofastats import getdata   #@UnresolvedImport # must be before anything referring to plugin modules
+from sofastats import importer  #@UnresolvedImport
+from sofastats.dbe_plugins import dbe_sqlite  #@UnresolvedImport
 
 FILE_CSV = u"csv"
 FILE_EXCEL = u"excel"
@@ -309,16 +309,16 @@ def run_import(self, force_quickcheck=False):
         return
     # import file
     if self.file_type == FILE_CSV:
-        from sofastats import csv_importer
+        from sofastats import csv_importer  #@UnresolvedImport
         file_importer = csv_importer.CsvImporter(self, file_path, 
             final_tblname, headless, headless_has_header, supplied_encoding,
             force_quickcheck)
     elif self.file_type == FILE_EXCEL:
-        from sofastats import excel_importer
+        from sofastats import excel_importer  #@UnresolvedImport
         file_importer = excel_importer.ExcelImporter(self, file_path,
             final_tblname, headless, headless_has_header, force_quickcheck)
     elif self.file_type == FILE_ODS:
-        from sofastats import ods_importer
+        from sofastats import ods_importer  #@UnresolvedImport
         file_importer = ods_importer.OdsImporter(self, file_path,
             final_tblname, headless, headless_has_header, force_quickcheck)
     proceed = False
@@ -331,7 +331,7 @@ def run_import(self, force_quickcheck=False):
     if proceed:
         try:
             file_importer.import_content(
-                self.lbl_feedback, self.progbar, self.import_status)
+                self.lbl_feedback, self.import_status, self.progbar)
             dd.set_db(dd.db, tbl=tblname)
             lib.GuiLib.safe_end_cursor()
         except my_exceptions.ImportConfirmationRejected, e:

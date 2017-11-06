@@ -426,7 +426,13 @@ class StartFrame(wx.Frame):
             size=(self.form_width, self.form_height),
             pos=(self.form_pos_left,-1), style=wx.CAPTION|wx.MINIMIZE_BOX
             |wx.CLOSE_BOX|wx.SYSTEM_MENU)
-        self.SetClientSize(self.GetSize())
+        
+        
+        ## fails
+        #print(self.GetSize())
+        #self.SetClientSize(self.GetSize())
+        
+        
         global REVERSE
         REVERSE = lib.mustreverse()
         self.panel = wx.Panel(self, size=(self.form_width, self.form_height)) # win
