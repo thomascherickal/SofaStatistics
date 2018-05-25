@@ -5,15 +5,15 @@ import pprint
 import wx #@UnusedImport
 import wx.grid
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import export_data
-from sofastats import getdata
-from sofastats import db_tbl
-from sofastats import output
-from sofastats import config_ui
-from sofastats import config_output
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import lib  #@UnresolvedImport
+from sofastats import export_data  #@UnresolvedImport
+from sofastats import getdata  #@UnresolvedImport
+from sofastats import db_tbl  #@UnresolvedImport
+from sofastats import output  #@UnresolvedImport
+from sofastats import config_ui  #@UnresolvedImport
+from sofastats import config_output  #@UnresolvedImport
 
 """
 DbTbl is the link between the grid and the underlying data.
@@ -238,7 +238,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         for col_idx in range(len(self.dd.flds)):
             fld_dic = self.dbtbl.get_fld_dic(col_idx)
             if fld_dic[mg.FLD_BOLNUMERIC]:
-                if fld_dic[mg.FLD_DECPTS] > 0: # float
+                if fld_dic[mg.FLD_DECPTS] is None:  ## be liberal in case
+                    width = 20
+                    precision = 1
+                    self.grid.SetColFormatFloat(col_idx, width, precision)
+                elif fld_dic[mg.FLD_DECPTS] > 0: # float
                     width = fld_dic[mg.FLD_NUM_WIDTH]
                     precision = fld_dic[mg.FLD_DECPTS]
                     self.grid.SetColFormatFloat(col_idx, width, precision)
@@ -344,10 +348,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def on_grid_key_down(self, event):
         """
         Normally we let on_select_cell handle cell navigation instead.
+
         The only case where we can't rely on on_select_cell to take care of
-            add_cell_move_evt for us is if we are moving right or down from the 
-            last col after a keypress.
+        add_cell_move_evt for us is if we are moving right or down from the last
+        col after a keypress.
+
         Potentially capture use of keypress to move away from a cell.
+
         Must process here. NB dest row and col yet to be determined.
         """
         if debug_events: print("on_grid_key_down")
@@ -625,8 +632,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         was_final_row = self.is_final_row(self.current_row_idx)
         if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
             (self.current_row_idx, src_row, was_new_row))
-        dest_row_is_new = self.dest_row_is_current_new(src_row, dest_row, 
-                                                       direction, was_final_col)
+        dest_row_is_new = self.dest_row_is_current_new(
+            src_row, direction, was_final_col)
         if was_new_row and dest_row_is_new:
             move_type = mg.MOVING_IN_NEW
         elif was_new_row and not dest_row_is_new:
@@ -658,8 +665,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                                     u"right, or down.")
         return (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
                 dest_col)
-    
-    def dest_row_is_current_new(self, src_row, dest_row, direction, final_col):
+
+    def dest_row_is_current_new(self, src_row, direction, final_col):
         """
         Is the destination row (assuming no validation problems) the current 
             new row?
@@ -691,7 +698,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         else: # more than one row away from new row
             dest_row_is_new = False
         return dest_row_is_new
-    
+
     def leaving_cell_in_existing_row(self, was_final_col, was_final_row,
             direction):
         """
@@ -723,7 +730,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.dbtbl.SQL_cell_to_update = None
         self.dbtbl.val_of_cell_to_update = None
         return move_to_dest
-    
+
     def moving_in_new_row(self):
         """
         Process attempt to move away from a cell in the new row to another cell
@@ -736,7 +743,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         move_to_dest = not self.cell_invalid(self.current_row_idx, 
             self.current_col_idx)
         return move_to_dest
-    
+
     def leaving_new_row(self, dest_row, dest_col, direction):
         """
         Process attempt to leave a new row.
@@ -804,7 +811,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 return False
         if self.debug: print("%s was accepted" % raw_val)
         return True
-    
+
     def cell_invalid(self, row, col):
         """
         Does a cell contain a value which shouldn't be allowed (even
@@ -890,10 +897,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         What was the value of a cell?
         NB always returned as a string.
-        If it has just been edited, GetCellValue(), which calls 
+        If it has just been edited, GetCellValue(), which calls
             dbtbl.GetValue(), will not work. It will get the cached version
             which is now out-of-date (we presumably just changed it).
-        Need to get version stored by editor. So MUST close editors which 
+        Need to get version stored by editor. So MUST close editors which
             presumably flushes the value to where it becomes available to
             GetCellValue().
         """
@@ -904,8 +911,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 cell_val_unhidden = self.grid.GetCellValue(row, col)
                 self.grid.DisableCellEditControl()
                 cell_val_hidden = self.grid.GetCellValue(row, col)
-                print("""val_of_cell_to_update: %s, cell_val_unhidden: %s, 
-                      cell_val_hidden: %s""" % (raw_val, cell_val_unhidden, 
+                print("""val_of_cell_to_update: %s, cell_val_unhidden: %s,
+                      cell_val_hidden: %s""" % (raw_val, cell_val_unhidden,
                                                 cell_val_hidden))
         else:
             self.grid.DisableCellEditControl()
@@ -913,7 +920,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         if debug: print(raw_val)
         raw_val = lib.fix_eols(raw_val) # everything coming out goes through here
         return raw_val
-    
+
     def cell_ok_to_save(self, row, col):
         """
         Cannot be an invalid value (must be valid or missing value).
@@ -955,7 +962,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         return True
 
     # CHANGING DATA /////////////////////////////////////////////////////////
-       
+
     def update_cell(self, row, col):
         """
         Returns boolean - True if updated successfully.
@@ -1067,7 +1074,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         If dirty we should block filtering no matter what. Need to save
         edits/additions before changing away to fresh data source.
         """
-        from sofastats import filtselect # by now, DLG will be available to inherit from
+        from sofastats import filtselect   #@UnresolvedImport by now, DLG will be available to inherit from
         if debug_events: print("on_btn_filter")
         debug = False
         if self.any_editor_shown or self.dbtbl.new_is_dirty:
@@ -1158,13 +1165,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.button_enablement(enable=False)
         self.any_editor_shown = True
         event.Skip()
-        
+
     def on_editor_hidden(self, event):
         if debug_events: print("on_editor_hidden")
         self.button_enablement(enable=True)
         self.any_editor_shown = False
         event.Skip()
-        
+
     def on_mouse_move(self, event):
         """
         Only respond if no cell editor is currently open.
@@ -1192,10 +1199,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                     tip = _(u"%s (Read only column)") % tip
             self.grid.GetGridWindow().SetToolTipString(tip)
         event.Skip()
-        
+
     def get_cols_n(self):
         return len(self.dd.flds)
-    
+
     def on_size_cols(self, event):
         if debug_events: print("on_size_cols")
         n_data_rows = self.dbtbl.get_n_data_rows()
@@ -1212,7 +1219,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 self.set_colwidths()
         self.grid.SetFocus()
         event.Skip()
-    
+
     def on_btn_export(self, event):
         if debug_events: print("on_btn_export")
         n_rows = self.dbtbl.rows_n - 1
@@ -1226,7 +1233,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         dlg = export_data.DlgExportData(n_rows)
         dlg.ShowModal()
         event.Skip()
-        
+
     def set_colwidths(self):
         "Set column widths based on display widths of fields"
         debug = False
@@ -1276,15 +1283,15 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         except Exception:
             pass
         lib.GuiLib.safe_end_cursor()
-    
+
     def is_new_row(self, row):
         new_row = self.dbtbl.is_new_row(row)
         return new_row
-    
+
     def is_final_row(self, row):
         final_row = self.dbtbl.is_final_row(row)
         return final_row
-        
+
     def on_cell_change(self, event):
         if debug_events: print("on_cell_change")
         debug = False
@@ -1295,7 +1302,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         if debug: print("Cell changed")
         self.grid.ForceRefresh()
         event.Skip()
-    
+
     def on_close(self, event):
         if debug_events: print("on_close")
         output.update_var_dets(dlg=self.parent)

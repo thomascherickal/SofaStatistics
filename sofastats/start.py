@@ -24,7 +24,7 @@ import os
 import sys
 print(sys.path)
 sys.path.insert(0, '/'.join(os.getcwd().split('/')[:-1]))
-from sofastats import setup_sofastats  #@UnresolvedImport
+from sofastatistics.sofastats import setup_sofastats
 from sofastats import home  #@UnresolvedImport
 
 

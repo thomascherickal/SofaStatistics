@@ -746,25 +746,11 @@ class LiveTable(DimTable):
         val_freq_label_lst = []
         xs_maybe_used_as_lbls = set([val for val, val_freq in all_vals])
         dp = lib.OutputLib.get_best_dp(xs_maybe_used_as_lbls)
-        val_type = type(all_vals[0][0])
-        for (val, val_freq) in all_vals:
-            """
-            If float and dp is 0 then round to 0 and convert to int.
-            If float, and dp > 0 then round to dp.
-            Otherwise, including integers, just pass in as is.
-            """
-            if val_type == float:
-                if dp == 0:
-                    val2use = int(round(val, dp))  ## so 3.5 -> 4.0 -> 4
-                else:
-                    val2use = round(val, dp)
-            elif val_type == float and dp == 0:
-                val2use = int(round(val, dp))
-            else:
-                val2use = val
-            default_val_label = lib.UniLib.any2unicode(val2use)
-            val_label = tree_dims_node.labels.get(val, default_val_label)
-            val_tup = (val, val_freq, val_label)
+        for (x_val, val_freq) in all_vals:
+            xval4lbl = lib.OutputLib.get_best_x_lbl(x_val, dp)    
+            default_val_label = lib.UniLib.any2unicode(xval4lbl)
+            val_label = tree_dims_node.labels.get(x_val, default_val_label)
+            val_tup = (x_val, val_freq, val_label)
             if debug: print(val_tup)
             val_freq_label_lst.append(val_tup)
         lib.sort_value_lbls(tree_dims_node.sort_order, val_freq_label_lst, 

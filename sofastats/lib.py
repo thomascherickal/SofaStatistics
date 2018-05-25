@@ -21,9 +21,9 @@ import urllib
 import wx
 
 # only import my_globals from local modules
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import my_exceptions
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import my_exceptions  #@UnresolvedImport
 
 DatetimeSplit = namedtuple('DatetimeSplit', 'date_part, time_part, '
     'boldate_then_time')
@@ -182,7 +182,8 @@ class OutputLib(object):
         else:
             num_string = unicode(val)
         if '.' in num_string:
-            return len(num_string.partition('.')[2])
+            trimmed_dec = num_string.rstrip(u'0')
+            sig_dp = len(trimmed_dec.partition('.')[2])
         else:
             sig_dp = 0
         return sig_dp
@@ -203,6 +204,25 @@ class OutputLib(object):
                 for val in xs_maybe_used_as_lbls])
             best_dp = min(mg.DEFAULT_REPORT_DP, max_dp)
         return best_dp
+
+    @staticmethod
+    def get_best_x_lbl(x_val, dp):
+        try:
+            xval4lbl = round(x_val, dp)
+            if dp == 0:
+                xval4lbl = int(xval4lbl)  ## so 1 not 1.0
+        except TypeError:
+            xval4lbl = x_val
+        return xval4lbl
+
+    @staticmethod
+    def get_best_x_lbls(xs_maybe_used_as_lbls):
+        dp = OutputLib.get_best_dp(xs_maybe_used_as_lbls)
+        x_lbls = []
+        for x_val in xs_maybe_used_as_lbls:
+            xval4lbl = OutputLib.get_best_x_lbl(x_val, dp)
+            x_lbls.append(xval4lbl)
+        return x_lbls
 
     @staticmethod
     def get_count_pct_dets(inc_count, inc_pct, lbl, count, pct):
@@ -536,7 +556,7 @@ class UniLib(object):
 
         Also handles smart quotes etc (which are multibyte) and commonly used ;-).
         """
-        import re #easier to transplant for testing if everything here
+        import re  # easier to transplant for testing if everything here
         debug = False
         if not isinstance(text, basestring):
             raise Exception(u"UniLib._ms2unicode() requires strings as inputs.")

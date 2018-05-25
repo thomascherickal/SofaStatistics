@@ -6,9 +6,9 @@ import pprint
 import wx #@UnusedImport
 import wx.grid
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import getdata
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import lib  #@UnresolvedImport
+from sofastats import getdata  #@UnresolvedImport
 
 debug = False
 
@@ -44,7 +44,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             #ready to be saved
         self.new_is_dirty = False # db_grid can set to True.  Is reset to 
             # False when adding a new record
-    
+
     def set_row_ids_lst(self):
         """
         Row number and the value of the primary key will not always be the same.
@@ -66,14 +66,14 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.dd.cur.execute(SQL_get_id_vals)
         # NB could easily be 10s or 100s of thousands of records
         self.row_ids_lst = [x[0] for x in self.dd.cur.fetchall()]
-    
+
     def get_fldname(self, col):
         return self.fldnames[col]
-    
+
     def get_fld_dic(self, col):
         fldname = self.get_fldname(col)
         return self.dd.flds[fldname]
-    
+
     def get_index_col(self):
         """
         Pick first unique indexed column and return col position, and must_quote 
@@ -97,7 +97,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                     print(u"Col idx: %s" % col_idx)
                     print(u"Must quote:" + unicode(must_quote))
                 return col_idx, must_quote
-    
+
     def GetNumberCols(self):
         # wxPython
         num_cols = len(self.dd.flds)
@@ -130,23 +130,23 @@ class DbTbl(wx.grid.PyGridTableBase):
         if self.debug or debug:
             print(u"N rows: %s" % self.rows_n)
             print(u"idx_final_data_row: %s" % self.idx_final_data_row)
-    
+
     def GetNumberRows(self):
         """Includes new data row if there is one."""
         # wxPython
         return self.rows_n
-    
+
     def get_n_data_rows(self):
         return self.idx_final_data_row + 1
-    
+
     def is_new_row(self, row):
         new_row = row > self.idx_final_data_row
         return new_row
-    
+
     def is_final_row(self, row):
         final_row = (row == self.idx_final_data_row)
         return final_row 
-    
+
     def GetRowLabelValue(self, row):
         # wxPython
         new_row = row > self.idx_final_data_row
@@ -157,46 +157,46 @@ class DbTbl(wx.grid.PyGridTableBase):
                 return mg.NEW_IS_READY
         else:
             return row + 1
-    
+
     def GetColLabelValue(self, col):
         # wxPython
         return self.fldlbls[col]
-    
+
     def none_to_missing_val(self, val):
         if val is None:
             val = mg.MISSING_VAL_INDICATOR
         return val
-    
+
     def GetValue(self, row, col):
         # wxPython
         """
         NB row and col are 0-based.
-        
+
         The performance of this method is critical to the performance of the 
         grid as a whole - displaying, scrolling, updating etc.
-        
+
         Very IMPORTANT to have a unique field we can use to identify rows if at 
         all possible.
-        
+
         On larger datasets (> 10,000) performance is hideous using order by and 
         limit or similar.
-        
+
         Need to be able to filter to individual, unique, indexed row.
-        
+
         Use unique index where possible - if < 1000 recs and no unique index, 
         could use the method below (while telling the user the lack of an index 
         significantly harms performance esp while scrolling).
-         
+
         SQL_get_value = "SELECT %s " % col_name + \
             " FROM %s " % dd.tbl + \
             " ORDER BY %s " % id_col_name + \
             " LIMIT %s, 1" % row
-        
+
         Much, much faster to do one database call per row than once per cell 
         (esp with lots of columns).
-        
+
         NB if not read only will be an empty row at the end.
-        
+
         Turn None (Null) into . as missing value identifier.
         """
         # try cache first
@@ -267,7 +267,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             val = self.row_vals_dic[row][col] # the bit we're interested in now
         display_val = lib.UniLib.any2unicode(val)
         return display_val
-    
+
     def add_data_to_row_vals_dic(self, row_vals_dic, row_idx, data_tup):
         """
         row_vals_dic - key = row, val = tuple of values
@@ -277,12 +277,12 @@ class DbTbl(wx.grid.PyGridTableBase):
         proc_data_lst = [self.none_to_missing_val(x) for x in data_tup]
         row_vals_dic[row_idx] = proc_data_lst
         if self.debug or debug: print(row_vals_dic)
-    
+
     def IsEmptyCell(self, row, col):
         # wxPython
         value = self.GetValue(row, col)
         return value == mg.MISSING_VAL_INDICATOR
-    
+
     def SetValue(self, row, col, value):
         # wxPython
         """
@@ -292,7 +292,7 @@ class DbTbl(wx.grid.PyGridTableBase):
 
         Fires after keypress and SelectCell if you use TAB to move.
 
-        If a new row, stores value in new row buffer ready to be saved if OK to 
+        If a new row, stores value in new row buffer ready to be saved if OK to
         save row.
 
         If an existing, ordinary row, stores sql_cell_to_update if OK to update
@@ -355,4 +355,3 @@ class DbTbl(wx.grid.PyGridTableBase):
         msg = wx.grid.GridTableMessage(self, 
             wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
         self.grid.ProcessTableMessage(msg)
-    

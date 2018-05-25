@@ -30,14 +30,14 @@ from operator import itemgetter
 import pprint
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats import charting_pylab
-from sofastats import core_stats
-from sofastats import getdata
-from sofastats import output
+from sofastats import basic_lib as b  #@UnresolvedImport
+from sofastats import my_globals as mg  #@UnresolvedImport
+from sofastats import lib  #@UnresolvedImport
+from sofastats import my_exceptions  #@UnresolvedImport
+from sofastats import charting_pylab  #@UnresolvedImport
+from sofastats import core_stats  #@UnresolvedImport
+from sofastats import getdata  #@UnresolvedImport
+from sofastats import output  #@UnresolvedImport
 
 AVG_CHAR_WIDTH_PXLS = 6.5
 AVG_LINE_HEIGHT_PXLS = 12
@@ -427,7 +427,7 @@ def charts_append_divider(html, titles, overall_title, indiv_title=u"",
     output.append_divider(html, title, indiv_title, item_type)
 
 def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic, var_role_dic,
-        sort_opt, dp_x, dp_y, rotate=False, data_show=mg.SHOW_FREQ_KEY,
+        sort_opt, rotate=False, data_show=mg.SHOW_FREQ_KEY,
         major_ticks=False, time_series=False):
     """
     Structure data for general charts (use different processes preparing data 
@@ -547,12 +547,7 @@ def _structure_gen_data(chart_ns, chart_type, raw_data, xlblsdic, var_role_dic,
             xy_vals = series_dic[XY_KEY]
             vals_etc_lst = []
             for x_val, y_val in xy_vals:
-                try:
-                    xval4lbl = round(x_val, dp_x)
-                    if dp_x == 0:
-                        xval4lbl = int(xval4lbl)  ## so 1 not 1.0
-                except TypeError:
-                    xval4lbl = x_val
+                xval4lbl = lib.OutputLib.get_best_x_lbl(x_val, dp_x)
                 y_val_rounded = round(y_val, dp_y)
                 x_val_lbl = xlblsdic.get(x_val, unicode(xval4lbl))  ## original value for label matching, rounded for display if no label
                 (x_val_split_lbl,
@@ -695,8 +690,8 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     chart_ns = dict(x for x in chart_ns_data)
     # restructure and return data
     chart_output_dets = _structure_gen_data(chart_ns, chart_type, raw_data,
-        xlblsdic, var_role_dic, sort_opt, rotate, data_show, major_ticks,
-        time_series)
+        xlblsdic, var_role_dic, sort_opt, rotate=rotate, data_show=data_show,
+        major_ticks=major_ticks, time_series=time_series)
     if debug: print(chart_output_dets)
     return chart_output_dets
 
@@ -1421,13 +1416,13 @@ class BoxPlot(object):
 
         xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
 
-        series_dets -- [{mg.CHART_SERIES_LBL: "Girls", 
-            mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True, 
-                                    mg.CHART_BOXPLOT_LWHISKER: 1.7, 
-                                    mg.CHART_BOXPLOT_LBOX: 3.2, ...}, 
+        series_dets -- [{mg.CHART_SERIES_LBL: "Girls",
+            mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True,
+                                    mg.CHART_BOXPLOT_LWHISKER: 1.7,
+                                    mg.CHART_BOXPLOT_LBOX: 3.2, ...},
                                {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
     
-        NB supply a boxdet even for an empty box. Put marker that it should be 
+        NB supply a boxdet even for an empty box. Put marker that it should be
         skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
 
         # list of subseries dicts each of which has a label and a list of dicts 
@@ -1507,7 +1502,8 @@ class BoxPlot(object):
                 for x in cat_vals]
             if sort_opt == mg.SORT_LBL_KEY:
                 cat_vals_and_lbls.sort(key=itemgetter(1))
-            sorted_cat_vals = [x[0] for x in cat_vals_and_lbls]
+            xs_maybe_used_as_lbls = [x[0] for x in cat_vals_and_lbls]
+            sorted_cat_vals = lib.OutputLib.get_best_x_lbls(xs_maybe_used_as_lbls)
             if debug: print(sorted_cat_vals)
             n_boxplots = len(sorted_cat_vals)
             if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
@@ -1772,8 +1768,8 @@ class BoxPlot(object):
         n_chart = ("N = " + lib.formatnum(n_chart) if show_n else "")
         display_dets = mg.CHART_BOXPLOT_OPTIONS2LABELS.get(boxplot_opt, u"")
         axis_lbl_rotate = -90 if rotate else 0
-        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
-            css_idx)
+        CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
+            mg.CSS_PAGE_BREAK_BEFORE, css_idx)
         title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
         lbl_dets = get_lbl_dets(xaxis_dets)
         lbl_dets.insert(0, u"""{value: 0, text: ""}""")

@@ -617,8 +617,8 @@ class SettingsEntry(object):
         # 1) move type
         final_col = (src_col == len(self.col_dets) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
-        dest_row_is_new = self.dest_row_is_current_new(src_row, dest_row, 
-                                                       direction, final_col)
+        dest_row_is_new = self.dest_row_is_current_new(
+            src_row, direction, final_col)
         if debug or self.debug:
             print(u"Current row idx: %s, src_row: %s, was_new_row: %s, "
                   u"dest_row_is_new: %s" % (self.current_row_idx, src_row, 
@@ -654,7 +654,7 @@ class SettingsEntry(object):
                                 u"not a left, right, or down.")
         return move_type, dest_row, dest_col
     
-    def dest_row_is_current_new(self, src_row, dest_row, direction, final_col):
+    def dest_row_is_current_new(self, src_row, direction, final_col):
         """
         Is the destination row (assuming no validation problems) the current 
             new row?
