@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 SOFA Statistics is released under the AGPL3 and the copyright is held by
 Paton-Simpson & Associates Ltd.
@@ -30,8 +27,6 @@ When the form is shown for the first time on Windows versions, a warning is
 given and com types are initialised.
 """
 
-from __future__ import absolute_import
-
 dev_debug = True  ## relates to errors etc once GUI application running.
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True # same in setup and start
@@ -48,7 +43,7 @@ if platform.system() == u"Windows":
     # handle pyw issue - but allow py to output useful messages
     try: # http://bugs.python.org/issue1415#msg57459
         print(" "*10000) # large enough to force flush to file
-    except IOError, e: # fails in pyw (i.e. running pythonw.exe)
+    except OSError as e: # fails in pyw (i.e. running pythonw.exe)
         # IOError: [Errno 9] Bad file descriptor error when eventually tries to
         # flush content of all the writes to file.
         class NullWriter:
@@ -80,7 +75,7 @@ except ImportError: # if it's not there locally, try the wxPython lib.
                u"package. %s" % traceback.format_exc())
         if show_early_steps:
             print(msg)
-            raw_input(setup_sofastats.INIT_DEBUG_MSG)
+            input(setup_sofastats.INIT_DEBUG_MSG)
         raise Exception(msg)
 if show_early_steps: print(u"Imported hl successfully.")
 from sofastats import basic_lib as b  #@UnresolvedImport
@@ -120,12 +115,12 @@ def setup_lang_and_fonts():
 
     Must be done AFTER redirection has occurred or has no effect!
     """
-    sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
-    sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'replace')
+    #sys.stdout = codecs.getwriter('utf-8')(sys.stdout, 'replace')
+    #sys.stderr = codecs.getwriter('utf-8')(sys.stderr, 'replace')
     config_globals.set_fonts()
     try:
         setup_i18n()
-    except Exception, e:
+    except Exception as e:
         print(u"Error setting up internationalisation. Orig error: %s" % e)
         pass # OK if unable to get translation settings. English will do.
 
@@ -169,7 +164,7 @@ class SofaApp(wx.App):
             frame.CentreOnScreen(wx.VERTICAL)
             frame.Show()
             self.SetTopWindow(frame)
-        except Exception, e: # frame will close by itself now
+        except Exception as e: # frame will close by itself now
             raise Exception(u"Problem initialising application. "
                 u"Original error: %s" % b.ue(e))
         if mg.EXPORT_IMAGES_DIAGNOSTIC:
@@ -196,14 +191,14 @@ def setup_i18n():
     try:
         canon_name = get_canon_name(mg.LANGDIR)
         mg.CANON_NAME = canon_name
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to get canon name. Original error: %s"
             % b.ue(e))
     try:
         mytrans = gettext.translation(u"sofastats", mg.LANGDIR,
             languages=[canon_name,], fallback=True)
-        mytrans.install(unicode=True) # must set explicitly here for Mac
-    except Exception, e:
+        mytrans.install() # must set explicitly here for Mac
+    except Exception as e:
         raise Exception(u"Problem installing translation. "
             u"Original error: %s" % b.ue(e))
     if mg.PLATFORM == mg.LINUX:
@@ -219,7 +214,7 @@ def was_translation_supplied(langdir, langid):
     try:
         langids_supplied = get_langids_supported_by_sofa(langdir)
         supplied = (langid in langids_supplied)
-    except Exception, e:
+    except Exception as e:
         supplied = False
     return supplied
 
@@ -330,23 +325,23 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
         "cli": cli, "contact": mg.CONTACT})
     try:
         lang = mylocale.GetLanguage()
-    except Exception, e:
+    except Exception as e:
         lang = u"Unable to get language."
     try:
         canon_name = mylocale.GetCanonicalName()
-    except Exception, e:
+    except Exception as e:
         canon_name = u"Unable to get canonical name."
     try:
         sysname = mylocale.GetSysName()
-    except Exception, e:
+    except Exception as e:
         sysname = u"Unable to get system name."
     try:
         getlocale = mylocale.GetLocale()
-    except Exception, e:
+    except Exception as e:
         getlocale = u"Unable to get locale."
     try:
         localename = mylocale.GetName()
-    except Exception, e:
+    except Exception as e:
         localename = u"Unable to get locale name."
     extra_diagnostics = (u"\n\nExtra details for developer:"
     u"\nGetLanguageName: %(GetLanguageName)s"
@@ -373,7 +368,7 @@ def get_langids_supported_by_sofa(langdir):
         try:
             langinfo = wx.Locale.FindLanguageInfo(locale_pth)
             langids.append(langinfo.Language)
-        except Exception, e:
+        except Exception as e:
             pass # Don't prevent the user getting an English version of SOFA running because of this minor problem.
     return langids
 
@@ -392,7 +387,7 @@ def get_closest_langid_supplied(langdir, orig_langinfo):
                     if root == orig_root:
                         closest_langid_supplied = langid
                         break
-    except Exception, e:
+    except Exception as e:
         closest_langid_supplied = None
     return closest_langid_supplied
 
@@ -447,7 +442,7 @@ class StartFrame(wx.Frame):
             # trying to actually connect to a database on start up
             mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
             if show_early_steps: print(u"Initialised mg.DATADETS_OBJ")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_("Unable to connect to data as defined in "
                 "project %s. Please check your settings.") % self.active_proj)
@@ -455,28 +450,28 @@ class StartFrame(wx.Frame):
         try:
             config_output.add_icon(frame=self)
             if show_more_steps: print(u"Added icon to frame")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem adding icon to frame")
             raise # for debugging
         try:
             self.make_sized_imgs()
             if show_more_steps: print(u"Made sized images")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem making sized images")
             raise # for debugging
         try:
             self.setup_stable_imgs()
             if show_more_steps: print(u"Set up stable images")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem making sized images")
             raise # for debugging
         try:
             self.setup_buttons()
             if show_more_steps: print(u"Set up buttons")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up buttons")
             raise # for debug
@@ -493,7 +488,7 @@ class StartFrame(wx.Frame):
         try:
             self.set_help_imgs()
             if show_more_steps: print(u"Set up help images")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             raise Exception(u"Problem setting up help images."
                 u"\nCaused by error: %s" % b.ue(e))
@@ -506,7 +501,7 @@ class StartFrame(wx.Frame):
         try:
             self.setup_links(new_version)
             if show_more_steps: print(u"Set up links")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Problem setting up links")
             raise # for debugging
@@ -545,7 +540,7 @@ class StartFrame(wx.Frame):
         new_version = u""
         try:
             new_version = self.get_latest_version()
-        except Exception, e:
+        except Exception as e:
             pass
         if debug: print(new_version)
         return new_version
@@ -559,7 +554,7 @@ class StartFrame(wx.Frame):
         try:
             self.upgrade_available = lib.version_a_is_newer(
                 version_a=new_version, version_b=mg.VERSION)
-        except Exception, e:
+        except Exception as e:
             self.upgrade_available = False
 
     def set_layout_constants(self):
@@ -704,7 +699,7 @@ class StartFrame(wx.Frame):
             btn_font_sz, "white")
         if REVERSE: bmp_btn_get_started = reverse_bmp(bmp_btn_get_started)
         self.btn_get_started = wx.BitmapButton(self.panel, -1,
-            bmp_btn_get_started, pos=(self.btn_left, g.next()))
+            bmp_btn_get_started, pos=(self.btn_left, next(g)))
         self.btn_get_started.Bind(wx.EVT_BUTTON, self.on_get_started_click)
         self.btn_get_started.Bind(wx.EVT_ENTER_WINDOW,
             self.on_get_started_enter)
@@ -714,7 +709,7 @@ class StartFrame(wx.Frame):
             btn_font_sz, "white")
         if REVERSE: bmp_btn_data = reverse_bmp(bmp_btn_data)
         self.btn_data = wx.BitmapButton(self.panel, -1, bmp_btn_data,
-            pos=(self.btn_left, g.next()))
+            pos=(self.btn_left, next(g)))
         self.btn_data.Bind(wx.EVT_BUTTON, self.on_data_click)
         self.btn_data.Bind(wx.EVT_ENTER_WINDOW, self.on_data_enter)
         # Import
@@ -722,7 +717,7 @@ class StartFrame(wx.Frame):
             _("Import Data"), btn_font_sz, "white")
         if REVERSE: bmp_btn_import = reverse_bmp(bmp_btn_import)
         self.btn_import = wx.BitmapButton(self.panel, -1, bmp_btn_import,
-            pos=(self.btn_left, g.next()))
+            pos=(self.btn_left, next(g)))
         self.btn_import.Bind(wx.EVT_BUTTON, self.on_import_click)
         self.btn_import.Bind(wx.EVT_ENTER_WINDOW, self.on_import_enter)
         # Report tables
@@ -730,7 +725,7 @@ class StartFrame(wx.Frame):
             _("Report Tables"), btn_font_sz, "white")
         if REVERSE: bmp_btn_tables = reverse_bmp(bmp_btn_tables)
         self.btn_tables = wx.BitmapButton(self.panel, -1, bmp_btn_tables,
-            pos=(self.btn_left, g.next()))
+            pos=(self.btn_left, next(g)))
         self.btn_tables.Bind(wx.EVT_BUTTON, self.on_tables_click)
         self.btn_tables.Bind(wx.EVT_ENTER_WINDOW, self.on_tables_enter)
         # Charts
@@ -738,7 +733,7 @@ class StartFrame(wx.Frame):
             _("Charts"), btn_font_sz, "white")
         if REVERSE: bmp_btn_charts = reverse_bmp(bmp_btn_charts)
         self.btn_charts = wx.BitmapButton(self.panel, -1, bmp_btn_charts,
-            pos=(self.btn_left, g.next()))
+            pos=(self.btn_left, next(g)))
         self.btn_charts.Bind(wx.EVT_BUTTON, self.on_charts_click)
         self.btn_charts.Bind(wx.EVT_ENTER_WINDOW, self.on_charts_enter)
         # Stats
@@ -746,7 +741,7 @@ class StartFrame(wx.Frame):
             _("Statistics"), btn_font_sz, "white")
         if REVERSE: bmp_btn_stats = reverse_bmp(bmp_btn_stats)
         self.btn_statistics = wx.BitmapButton(self.panel, -1, bmp_btn_stats,
-            pos=(self.btn_left, g.next()))
+            pos=(self.btn_left, next(g)))
         self.btn_statistics.Bind(wx.EVT_BUTTON, self.on_stats_click)
         self.btn_statistics.Bind(wx.EVT_ENTER_WINDOW, self.on_stats_enter)
         # Right
@@ -757,7 +752,7 @@ class StartFrame(wx.Frame):
             _("Online Help"), btn_font_sz, "white")
         if REVERSE: bmp_btn_help = reverse_bmp(bmp_btn_help)
         self.btn_help = wx.BitmapButton(self.panel, -1, bmp_btn_help,
-            pos=(self.btn_right, g.next()))
+            pos=(self.btn_right, next(g)))
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_help_click)
         self.btn_help.Bind(wx.EVT_ENTER_WINDOW, self.on_help_enter)
         self.btn_help.SetDefault()
@@ -767,7 +762,7 @@ class StartFrame(wx.Frame):
             self.sel_proj_lbl, btn_font_sz, "white")
         if REVERSE: bmp_btn_proj = reverse_bmp(bmp_btn_proj)
         self.btn_proj = wx.BitmapButton(self.panel, -1, bmp_btn_proj,
-            pos=(self.btn_right, g.next()))
+            pos=(self.btn_right, next(g)))
         self.btn_proj.Bind(wx.EVT_BUTTON, self.on_proj_click)
         self.btn_proj.Bind(wx.EVT_ENTER_WINDOW, self.on_proj_enter)
         # Prefs
@@ -775,7 +770,7 @@ class StartFrame(wx.Frame):
             _("Preferences"), btn_font_sz, "white")
         if REVERSE: bmp_btn_prefs = reverse_bmp(bmp_btn_prefs)
         self.btn_prefs = wx.BitmapButton(self.panel, -1, bmp_btn_prefs,
-            pos=(self.btn_right, g.next()))
+            pos=(self.btn_right, next(g)))
         self.btn_prefs.Bind(wx.EVT_BUTTON, self.on_prefs_click)
         self.btn_prefs.Bind(wx.EVT_ENTER_WINDOW, self.on_prefs_enter)
         # Backup
@@ -783,7 +778,7 @@ class StartFrame(wx.Frame):
             _("Run Backup"), btn_font_sz, "white")
         if REVERSE: bmp_btn_backup = reverse_bmp(bmp_btn_backup)
         self.btn_backup = wx.BitmapButton(self.panel, -1, bmp_btn_backup,
-            pos=(self.btn_right, g.next()))
+            pos=(self.btn_right, next(g)))
         self.btn_backup.Bind(wx.EVT_BUTTON, self.on_backup_click)
         self.btn_backup.Bind(wx.EVT_ENTER_WINDOW, self.on_backup_enter)
         # Exit
@@ -791,11 +786,11 @@ class StartFrame(wx.Frame):
             _("Exit"), btn_font_sz, "white")
         if REVERSE: bmp_btn_exit = reverse_bmp(bmp_btn_exit)
         self.btn_exit = wx.BitmapButton(self.panel, -1, bmp_btn_exit,
-            pos=(self.btn_right, g.next()))
+            pos=(self.btn_right, next(g)))
         self.btn_exit.Bind(wx.EVT_BUTTON, self.on_exit_click)
         self.btn_exit.Bind(wx.EVT_ENTER_WINDOW, self.on_exit_enter)
         if mg.PLATFORM == mg.LINUX:
-            hand = wx.StockCursor(wx.CURSOR_HAND)
+            hand = wx.Cursor(wx.CURSOR_HAND)
             self.btn_get_started.SetCursor(hand)
             self.btn_data.SetCursor(hand)
             self.btn_import.SetCursor(hand)
@@ -872,14 +867,14 @@ class StartFrame(wx.Frame):
             new_version = u"%s" % url_reply.read().strip()
             url_reply.close()
             if debug: print("Checked new version: %s" % new_version)
-        except Exception, e:
+        except Exception as e:
             msg = (u"Unable to extract latest sofa version."
                 u"\nCaused by error: %s" % b.ue(e))
             if debug: print(msg)
             raise Exception(msg)
         return new_version
 
-    def on_show(self, event):
+    def on_show(self, _event):
         setup_sofastats.init_com_types(self, self.panel) # fortunately, not needed on Mac
 
     def on_paint_err_msg(self, e):
@@ -964,7 +959,7 @@ class StartFrame(wx.Frame):
             panel_dc.DrawLabel(_(u"Currently using \"%s\" project settings") %
                 active_projname, wx.Rect(self.main_left, 247, 400, 30))
             event.Skip()
-        except Exception, e:
+        except Exception as e:
             event.Skip()
             self.panel.Unbind(wx.EVT_PAINT)
             wx.CallAfter(self.on_paint_err_msg, e)
@@ -1067,12 +1062,12 @@ class StartFrame(wx.Frame):
     def on_tables_click(self, event):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
-        from sofastats import report_table  #@UnresolvedImport
+        from sofastats.tables import report_table  #@UnresolvedImport
         try:
             dlg = report_table.DlgMakeTable()
             lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
-        except Exception, e:
+        except Exception as e:
             msg = _("Unable to open report table dialog."
                 "\nCaused by error: %s") % b.ue(e)
             print(traceback.format_exc())
@@ -1105,13 +1100,13 @@ class StartFrame(wx.Frame):
         cont.append(mg.JS_WRAPPER_R)
 
     def on_charts_click(self, event):
-        from sofastats import charting_dlg  #@UnresolvedImport
+        from sofastats.charting import charting_dlg  #@UnresolvedImport
         wx.BeginBusyCursor()
         try:
             dlg = charting_dlg.DlgCharting(_("Make Chart"))
             lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
-        except Exception, e:
+        except Exception as e:
             msg = _(u"Unable to connect to data as defined in project %s.  "
                 u"Please check your settings") % self.active_proj
             wx.MessageBox(msg)
@@ -1144,7 +1139,7 @@ class StartFrame(wx.Frame):
             dlg = stats_select.DlgStatsSelect(self.active_proj)
             lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
-        except Exception, e:
+        except Exception as e:
             msg = _("Unable to connect to data as defined in project %s.  "
                 "Please check your settings.") % self.active_proj
             wx.MessageBox(msg)
@@ -1256,7 +1251,7 @@ class StartFrame(wx.Frame):
         wx.BeginBusyCursor()
         try:
             msg = backup_sofa.run_backup()
-        except Exception, e:
+        except Exception as e:
             msg = u"Unable to make backup.\n\nOrig error: %s" % e
         lib.GuiLib.safe_end_cursor()
         wx.MessageBox(msg)

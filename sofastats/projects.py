@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import codecs
 import os
@@ -138,13 +137,13 @@ def get_init_settings_data(val_dics, var_name, bolnumeric):
                     if not isinstance(key, (float, int)): # not going to worry about people wanting to add value labels to complex numbers or scientific notation ;-)
                         numeric_fld_but_non_numeric_keys = True
                     else:
-                        init_settings_data.append((key, unicode(value)))
+                        init_settings_data.append((key, str(value)))
                 init_settings_data.sort(key=lambda s: s[0])
                 if numeric_fld_but_non_numeric_keys:
                     msg = BROKEN_VDT_MSG
             else:
                 for key, value in val_dic.items():
-                    init_settings_data.append((key, unicode(value)))
+                    init_settings_data.append((key, str(value)))
                     sensible_sort_keys(init_settings_data)
     return init_settings_data, msg
 

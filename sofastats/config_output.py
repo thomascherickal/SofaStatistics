@@ -81,7 +81,7 @@ def add_icon(frame):
     for sz in [128, 64, 48, 32, 16]:
         icon_path = os.path.join(mg.SCRIPT_PATH, u"images",
             u"sofastats_%s.xpm" % sz)
-        ib.AddIconFromFile(icon_path, wx.BITMAP_TYPE_XPM)
+        ib.AddIcon(icon_path, wx.BITMAP_TYPE_XPM)
     frame.SetIcons(ib)
 
 

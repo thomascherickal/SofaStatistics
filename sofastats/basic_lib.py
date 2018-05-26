@@ -1,13 +1,8 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Some general functions with no scope for circular dependencies (unlike lib)
 """
 
-from __future__ import absolute_import
 import codecs
-import locale
 
 def ue(e):
     """
@@ -17,21 +12,7 @@ def ue(e):
     
     str(e).decode("utf8", ...) handles "找不到指定的模块。"
     """
-    debug = False
-    try:
-        unicode_e = unicode(e)
-    except UnicodeDecodeError:
-        try:
-            unicode_e = str(e).decode(locale.getpreferredencoding())
-        except UnicodeDecodeError:
-            try:
-                unicode_e = str(e).decode("utf8", "replace")
-            except UnicodeDecodeError:
-                unicode_e = u"Problem getting error reason"
-    if debug: 
-        print("unicode_e has type %s" % type(unicode_e))
-        print(repr(u"unicode_e is %s" % unicode_e))
-    return unicode_e
+    return e
 
 def clean_BOM_UTF8_from_bytestring(bytestr):
     """
@@ -56,9 +37,9 @@ def get_unicode_from_file(fpath):
     try:
         with open(fpath, "rb") as f:
             bytestr = f.read()
-    except IOError, e:
+    except OSError as e:
         raise Exception(u"Unable to read non-existent file %s" % fpath)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to read from file '%s'" % (fpath, ue(e)))
     bom_utf8_stripped = clean_BOM_UTF8_from_bytestring(bytestr)
     try:

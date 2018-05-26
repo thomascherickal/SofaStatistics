@@ -74,23 +74,23 @@ def get_con(con_dets, db, add_checks=False):
     # any sqlite connection details at all?
     try:
         con_dets_sqlite = con_dets[mg.DBE_SQLITE]
-    except Exception, e:
+    except Exception as e:
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     # able to extract con dets in a form usable for scripts?
     try:
         sqlite_con_dets_str = lib.UniLib.dic2unicode(con_dets_sqlite)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to extract connection details from %s."
             u"\nCaused by error: %s" % (con_dets_sqlite, b.ue(e)))
     # any connection details for this database?
     try:
         con_dets_sqlite_db = con_dets_sqlite[db]
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"No connections for SQLite database \"%s\"" % db)
     # able to actually connect to database?
     try:
         con = sqlite.connect(**con_dets_sqlite_db) #@UndefinedVariable
-    except Exception, e:
+    except Exception as e:
         # failure because still pointing to dev path?
         if u"/home/g/Documents/sofastats" in sqlite_con_dets_str:
             raise Exception(u"Problem with default project file. Delete "
@@ -140,8 +140,8 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
             db = con_dets[mg.DBE_SQLITE].keys()[0]
     try:
         con = get_con(con_dets, db, add_checks=add_checks)
-    except Exception, e:
-            print(unicode(e))
+    except Exception as e:
+            print(str(e))
             raise
     cur = con.cursor() # must return tuples not dics
     if cur is None:
@@ -165,7 +165,7 @@ def get_unsorted_tblnames(cur, db):
         ORDER BY name"""
     try:
         cur.execute(SQL_get_tbls)
-    except Exception, e:
+    except Exception as e:
         if b.ue(e).startswith(u"malformed database schema"):
             raise my_exceptions.MalformedDb()
         else:
@@ -492,7 +492,7 @@ def valid_fldnames_block(block):
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-    except Exception, e:
+    except Exception as e:
         if debug: print(b.ue(e))
         valid = False
         err = b.ue(e)
@@ -542,7 +542,7 @@ def valid_name(name, is_tblname=True):
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-    except Exception, e:
+    except Exception as e:
         valid = False
         if debug: print(b.ue(e))
         err = b.ue(e)

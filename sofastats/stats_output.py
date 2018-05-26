@@ -1,17 +1,17 @@
-#! -*- coding: utf-8 -*-
+
 import cgi
 from functools import partial
 
 import numpy as np
-import boomslang
 import pylab
 
+from sofastats import boomslang
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
-from sofastats import charting_pylab
-from sofastats import core_stats
 from sofastats import output
+from sofastats.charting import charting_pylab
+from sofastats.stats import core_stats
 
 """
 Output doesn't include the calculation of any values. These are in discrete
@@ -198,7 +198,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                 save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
                 mg.IMG_SRC_END))
-        except Exception, e:
+        except Exception as e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                 (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
@@ -364,7 +364,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
                 save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
                 mg.IMG_SRC_END))
-        except Exception, e:
+        except Exception as e:
             html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
                 (histlbl, b.ue(e)))
         output.append_divider(html, title, indiv_title=histlbl)
@@ -410,7 +410,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         img_src = charting_pylab.save_report_img(add_to_report, report_name,
             save_func=pylab.savefig, dpi=100)
         html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
-    except Exception, e:
+    except Exception as e:
         html.append(u"<b>%s</b> - unable to display histogram. Reason: %s" % 
             (histlbl, b.ue(e)))
     ## details
@@ -1161,7 +1161,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     else:
         width = n_clusters*1.5
         height = 4.5
-    rows_n = len(lst_obs)/val_labels_b_n
+    rows_n = int(len(lst_obs) / val_labels_b_n)
     cols_n = val_labels_b_n
     bs_in_as = np.array(lst_obs).reshape(rows_n, cols_n)
     as_in_bs_lst = bs_in_as.transpose().tolist()

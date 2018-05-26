@@ -27,7 +27,7 @@ def get_val(raw_val, flds, fldname):
         if lib.TypeLib.is_numeric(raw_val):
             return float(raw_val)
         else: # not a num - a valid string?
-            if isinstance(raw_val, basestring):
+            if isinstance(raw_val, str):
                 if raw_val == "" or raw_val.lower() == "null":
                     return None
         raise Exception(u"Only a number, an empty string, or Null can be "
@@ -38,7 +38,7 @@ def get_val(raw_val, flds, fldname):
             if debug: print("A valid datetime: '%s'" % raw_val)
             return lib.DateLib.get_std_datetime_str(raw_val)
         else: # not a datetime - a valid string?
-            if isinstance(raw_val, basestring):
+            if isinstance(raw_val, str):
                 if raw_val == "" or raw_val.lower() == "null":
                     return None
         raise Exception(u"Only a datetime, an empty string, or Null can be "
@@ -88,8 +88,8 @@ class DlgFiltSelect(wx.Dialog):
         # quick content
         self.drop_vars = wx.Choice(self.panel, -1, size=(300,-1))
         self.drop_vars.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_vars)
-        self.drop_vars.SetToolTipString(_("Right click variable to view/edit "
-                                         "details"))
+        self.drop_vars.SetToolTip(
+            _("Right click variable to view/edit details"))
         self.sorted_var_names = [] # refreshed as required and in 
             # order of labels, not raw values
         self.setup_vars()
@@ -282,7 +282,7 @@ class DlgFiltSelect(wx.Dialog):
                                   u"Cancel")
                     self.txt_val.SetFocus()
                     return
-            except Exception, e:
+            except Exception as e:
                 lib.GuiLib.safe_end_cursor()
                 wx.MessageBox(_("Problem with design of filter: %s") % b.ue(e))
                 self.txt_val.SetFocus()

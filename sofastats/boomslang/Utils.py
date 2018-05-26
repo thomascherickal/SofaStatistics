@@ -1,7 +1,9 @@
 import math
 import re
-from Line import Line
-from Bar import Bar
+import sys
+
+from .Line import Line
+from .Bar import Bar
 
 def getGoldenRatioDimensions(width):
     goldenRatio = (math.sqrt(5) - 1.0) / 2.0
@@ -23,7 +25,7 @@ def getXYValsFromFile(filename, regex, postFunction=None):
             matchGroups = match.groups()
             
             if len(matchGroups) < 2:
-                print >>sys.stderr, "Need at least two matching groups to construct a line"
+                print(sys.stderr, "Need at least two matching groups to construct a line")
                 sys.exit(1)
             
             if postFunction is not None:
@@ -43,10 +45,10 @@ def getXYValsFromFile(filename, regex, postFunction=None):
         numMatchGroups = len(matchGroups)
         
         if len(yValues) == 0:
-            yValues = [[] for i in xrange(numMatchGroups - 1)]
+            yValues = [[] for i in range(numMatchGroups - 1)]
         
         xValues.append(matchGroups[0])
-        for i in xrange(1, numMatchGroups):
+        for i in range(1, numMatchGroups):
             yValues[i-1].append(matchGroups[i])
         
     
@@ -57,7 +59,7 @@ def getLinesFromFile(filename, regex, postFunction=None):
     
     lines = []
     
-    for i in xrange(len(yValues)):
+    for i in range(len(yValues)):
         line = Line()
         line.xValues = xValues[:]
         line.yValues = yValues[i][:]
@@ -69,7 +71,7 @@ def getBarsFromFile(filename, regex, postFunction=None):
     
     bars = []
     
-    for i in xrange(len(yValues)):
+    for i in range(len(yValues)):
         bar = Bar()
         bar.xValues = xValues[:]
         bar.yValues = yValues[i][:]
@@ -84,7 +86,7 @@ def getCDF(values):
     count = float(len(cdfValues))
 
     line.xValues = cdfValues
-    line.yValues = [float(x) / count for x in xrange(1, int(count) + 1)]
+    line.yValues = [float(x) / count for x in range(1, int(count) + 1)]
     assert(count == len(line.yValues))
     
     return line

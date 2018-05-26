@@ -5,7 +5,6 @@
 # library - e.g. for ADO it would be Microsoft ActiveX Data Objects 2.8 Library 
 # (2.8) - and select OK. NB DAO must be done separately from ADO etc.
 
-from __future__ import print_function
 import adodbapi #@UnresolvedImport
 import win32com.client #@UnresolvedImport
 
@@ -125,7 +124,7 @@ def get_con_cur_for_db(host, user, pwd, db):
     DSN = get_DSN(provider=u"SQLOLEDB", host=host, user=user, pwd=pwd, db=db)
     try:
         con = adodbapi.connect(DSN)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to connect to MS SQL Server with "
             u"database %s; and supplied connection: " % db
             + u"host: %s; user: %s; pwd: %s." % (host, user, pwd)

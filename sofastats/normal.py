@@ -1,21 +1,19 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
 import pylab
-import wx
+import wx  #@UnusedImport
+import wx.html2
 
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import my_exceptions
-from sofastats import charting_pylab
 from sofastats import config_output
 from sofastats import config_ui
-from sofastats import core_stats
 from sofastats import getdata
-from sofastats import full_html
 from sofastats import output
 from sofastats import projects
+from sofastats.charting import charting_pylab
+from sofastats.stats import core_stats
 
 def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
     """
@@ -124,7 +122,7 @@ def get_normal_output(vals, data_label, add_to_report, report_name,
             thumbnail=False, inner_bg=css_dojo_dic['plot_bg'],
             bar_colour=item_colours[0], line_colour=line_colour,
             inc_attrib=True)
-    except Exception, e:
+    except Exception as e:
         raise my_exceptions.OutputException(u"Unable to produce histogram. "
             u"Reason: %s" % b.ue(e))
     output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
@@ -147,7 +145,8 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|
             wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
-        self.output_modules = ["my_globals as mg", "output", "getdata", "normal"]
+        self.output_modules = [(None, "my_globals as mg"), (None, "output"),
+            (None, "getdata"), (None, "normal")]
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.Bind(wx.EVT_CLOSE, self.on_ok)
@@ -199,12 +198,12 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         szr_vars.Add(self.rad_paired, 0)
         self.drop_var_a = wx.Choice(self.panel, -1, size=(300, -1))
         self.drop_var_a.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_a)
-        self.drop_var_a.SetToolTipString(_("Right click variable to view/edit "
-            "details"))
+        self.drop_var_a.SetToolTip(
+            _("Right click variable to view/edit details"))
         self.drop_var_b = wx.Choice(self.panel, -1, size=(300, -1))
         self.drop_var_b.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var_b)
-        self.drop_var_b.SetToolTipString(_("Right click variable to "
-            "view/edit details"))
+        self.drop_var_b.SetToolTip(
+            _("Right click variable to view/edit details"))
         self.drop_var_b.Enable(False)
         self.setup_vars(var_a=True, var_b=False)
         szr_vars.Add(self.drop_var_a, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
@@ -213,8 +212,11 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         self.szr_output_config = self.get_szr_output_config(self.panel) # mixin
         self.szr_output_display = self.get_szr_output_display(self.panel, 
             inc_clear=False, idx_style=1) # mixin
-        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
-            size=(200,myheight))
+
+        
+        self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(200, myheight))
+        
+        
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -233,15 +235,10 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             self.szr_output_config, szr_lower]
         lib.GuiLib.set_size(window=self, szr_lst=self.szr_lst, width_init=1024)
 
-    def on_show(self, event):
+    def on_show(self, _event):
         if self.exiting:
             return
-        try:
-            self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass # need on Mac or exceptn survives
-        finally: # any initial content
-            self.set_output_to_blank()
+        self.set_output_to_blank()
 
     def test_config_ok(self):
         if self.paired:
@@ -259,7 +256,7 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             # set vals and data_label
             try:
                 self.var_a, unused = self.get_var_a()
-            except Exception, e:
+            except Exception as e:
                 wx.MessageBox(u"Unable to process first variable. "
                     u"Orig error: %s" % e)
                 return
@@ -309,7 +306,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         lib.GuiLib.set_size(window=self, szr_lst=self.szr_lst, height_init=560,
             horiz_padding=horiz_padding)
 
-    def on_rad_paired(self, event):
+    def on_rad_paired(self, _event):
         "Respond to selection of single/paired"
         self.paired = (self.rad_paired.GetSelection() == 1)
         if self.paired:
@@ -323,17 +320,6 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         self.set_output_to_blank()
         self.set_size()
 
-    def get_bmp_blank_hist(self, paired=False):
-        msg = self.blank_hist_txt_paired if self.paired \
-                                            else self.blank_hist_txt_unpaired
-        bmp_blank_hist = wx.BitmapFromImage(self.img_blank_hist)
-        msg_font_sz = 10
-        reverse = lib.mustreverse()
-        lib.GuiLib.add_text_to_bitmap(bmp_blank_hist, msg, msg_font_sz, "white",
-            left=20, top=20)
-        if reverse: bmp_blank_hist = lib.GuiLib.reverse_bmp(bmp_blank_hist)
-        return bmp_blank_hist
-
     def set_output_to_blank(self):
         if self.paired:
             msg = _("Select two variables and click Check button to see results"
@@ -341,7 +327,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         else:
             msg = _("Select a variable and click Check button to see results of"
                 " normality test")
-        self.html.show_html("<p>%s</p>" % msg)
+        self.html.SetPage(f"<p>{msg}</p>", '')
 
     def on_ok(self, event):
         self.exiting = True
@@ -352,22 +338,22 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         if config_ui.ConfigUI.on_database_sel(self, event):
             self.setup_vars(var_a=True, var_b=self.paired)
             self.set_output_to_blank()
-        
+
     def on_table_sel(self, event):
         config_ui.ConfigUI.on_table_sel(self, event)
         self.setup_vars(var_a=True, var_b=self.paired)
         self.set_output_to_blank()
-        
+
     def on_rclick_tables(self, event):
         config_ui.ConfigUI.on_rclick_tables(self, event)
         #event.Skip() - don't use or will appear twice in Windows!
-    
+
     def setup_var_a(self, var=None):
         self.setup_vars(var_a=True, var_b=False, var=var)
-    
+
     def setup_var_b(self, var=None):
         self.setup_vars(var_a=False, var_b=True, var=var)
-        
+
     def setup_vars(self, var_a=True, var_b=True, var=None):
         var_names = projects.get_approp_var_names(self.var_types,
             min_data_type=mg.VAR_TYPE_QUANT_KEY)
@@ -391,7 +377,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
             raise Exception(u"No items in variable")
         try:
             var = self.sorted_var_names[idx]
-        except IndexError, e:
+        except IndexError as e:
             raise Exception(u"Problem getting var from %s with given index "
                 u"(%s). Orig error: %s" % (self.sorted_var_names, idx, e))
         var_item = drop.GetStringSelection()
@@ -403,7 +389,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
     def get_var_b(self):
         return self._get_var(self.drop_var_b)
     
-    def on_rclick_var_a(self, event):
+    def on_rclick_var_a(self, _event):
         try:
             var_a, choice_item = self.get_var_a()
         except Exception:
@@ -416,7 +402,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         if updated:
             self.setup_var_a(var_a)
     
-    def on_rclick_var_b(self, event):
+    def on_rclick_var_b(self, _event):
         try:
             var_b, choice_item = self.get_var_b()
         except Exception:

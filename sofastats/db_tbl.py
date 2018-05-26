@@ -95,7 +95,7 @@ class DbTbl(wx.grid.PyGridTableBase):
                 col_idx = self.fldnames.index(fld2use)
                 if self.debug:
                     print(u"Col idx: %s" % col_idx)
-                    print(u"Must quote:" + unicode(must_quote))
+                    print(u"Must quote:" + str(must_quote))
                 return col_idx, must_quote
 
     def GetNumberCols(self):
@@ -324,7 +324,7 @@ class DbTbl(wx.grid.PyGridTableBase):
             SQL_update_value = (u"UPDATE %s " % 
                 getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
                 + u" SET %s = %s " % (self.objqtr(colname), val2use)
-                + u" WHERE %s = " % self.id_col_name + unicode(id_value))
+                + u" WHERE %s = " % self.id_col_name + str(id_value))
             if self.debug or debug: 
                 print(u"SetValue - SQL update value: %s" % SQL_update_value)
                 print(u"SetValue - Value of cell to update: %s" %

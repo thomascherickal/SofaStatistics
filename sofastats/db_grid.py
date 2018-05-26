@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 from decimal import Decimal
 import locale
 import pprint
@@ -8,7 +8,7 @@ import wx.grid
 from sofastats import basic_lib as b  #@UnresolvedImport
 from sofastats import my_globals as mg  #@UnresolvedImport
 from sofastats import lib  #@UnresolvedImport
-from sofastats import export_data  #@UnresolvedImport
+from sofastats.exporting import export_data  #@UnresolvedImport
 from sofastats import getdata  #@UnresolvedImport
 from sofastats import db_tbl  #@UnresolvedImport
 from sofastats import output  #@UnresolvedImport
@@ -111,7 +111,7 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
             getdata.tblname_qtr(dd.dbe, dd.tbl))
         try:
             dd.cur.execute(SQL_get_count)
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_(u"Problem opening selected table."
                 u"\nCaused by error: %s") % b.ue(e))
         res = dd.cur.fetchone()
@@ -175,7 +175,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             _("Right click variable to view/edit details"))
         self.respond_to_select_cell = True
         self.control = None
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGING, self.on_cell_change)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_select_cell)
         self.grid.Bind(wx.EVT_KEY_DOWN, self.on_grid_key_down)
         self.grid.Bind(EVT_CELL_MOVE, self.on_cell_move)
@@ -800,12 +800,12 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         min_val = fld_dic[mg.FLD_NUM_MIN_VAL]
         max_val = fld_dic[mg.FLD_NUM_MAX_VAL]        
         if min_val is not None:
-            if Decimal(raw_val) < Decimal(unicode(min_val)):
+            if Decimal(raw_val) < Decimal(str(min_val)):
                 if self.debug: 
                     print("%s is < the min_val of %s" % (raw_val, min_val))
                 return False
         if max_val is not None:
-            if Decimal(raw_val) > Decimal(unicode(max_val)):
+            if Decimal(raw_val) > Decimal(str(max_val)):
                 if self.debug: 
                     print("%s is > the max_val of %s" % (raw_val, max_val))
                 return False
@@ -837,7 +837,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             raw_val = self.get_raw_val(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
-                prev_val = unicode(existing_row_data_lst[col])
+                prev_val = str(existing_row_data_lst[col])
                 if self.debug or debug:
                     print("prev_val: %s raw_val: %s" % (prev_val, raw_val))
                 if raw_val == prev_val:
@@ -979,7 +979,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.dd.con.commit()
             self.dd.cur.execute(self.dbtbl.sql_cell_to_update)
             self.dd.con.commit()
-        except Exception, e:
+        except Exception as e:
             if self.debug or debug: 
                 print(u"update_cell failed to save %s. " %
                     self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
@@ -1048,7 +1048,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def reset_row_labels(self, row):
         "Reset new row label and restore previous new row label to default"
         prev_row = row - 1
-        self.grid.SetRowLabelValue(prev_row, unicode(prev_row))
+        self.grid.SetRowLabelValue(prev_row, str(prev_row))
         self.grid.SetRowLabelValue(row, mg.NEW_IS_READY)
 
     def init_new_row_buffer(self):
@@ -1128,7 +1128,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         debug = False
         if debug: 
-            if type(raw_val) != unicode:
+            if type(raw_val) != str:
                 print("Non-unicode type: ", raw_val, type(raw_val))
         if raw_val is None:
             return u""

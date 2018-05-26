@@ -1,11 +1,12 @@
 import pylab
 from matplotlib import pyplot
-from PlotInfo import PlotInfo
+from .PlotInfo import PlotInfo
+
 
 class Label(PlotInfo):
     def __init__(self, x, y, text=None):
         PlotInfo.__init__(self, "label")
-        
+
         self.x = x
         self.y = y
         self.text = text
@@ -24,7 +25,7 @@ class Label(PlotInfo):
 
     def hasArrow(self, style="->", color="black"):
         self.arrow = dict(facecolor=color, arrowstyle=style)
-    
+
     def draw(self, axis):
         kwdict = {}
         kwdict["xytext"] = (self.textX, self.textY)

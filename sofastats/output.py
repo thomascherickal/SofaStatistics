@@ -65,7 +65,6 @@ random data (when too many records to just use real data).
 * Absolute or relative image pathways (GUI requires absolute). Export output?
 """
 
-from __future__ import print_function
 import codecs
 import os
 import time
@@ -527,7 +526,7 @@ def get_css_dets():
                 css_fils_str = content[idx_start: idx_end]
                 css_fils_str = b.get_exec_ready_text(text=css_fils_str)
                 css_dets_dic = {}
-                exec css_fils_str in css_dets_dic
+                exec(css_fils_str, css_dets_dic)
                 css_fils = css_dets_dic[u"css_fils"]
             except Exception:
                 pass # Don't let css failuer stop report production.
@@ -628,8 +627,8 @@ def percent_encode(url2esc):
     """
     try:
         url2esc_str = url2esc.encode("utf-8") #essential to encode first
-        perc_url = urllib.quote(url2esc_str)
-    except Exception, e:
+        perc_url = urllib.parse.quote(url2esc_str)
+    except Exception as e:
         raise Exception(u"Unable to percent encode \"%s\". Orig error: %s" % 
             (url2esc, b.ue(e)))
     return perc_url
@@ -661,7 +660,7 @@ def extract_title_subtitle(txt):
         subtitle_end_idx = txt.index(mg.TBL_SUBTITLE_END)
         subtitle = txt[subtitle_start_idx: subtitle_end_idx].strip()
         return title, subtitle
-    except Exception, e:
+    except Exception as e:
         if debug:
             print(txt)
         raise Exception(u"Unable to extract title and subtitle. Orig error: %s" 
@@ -685,7 +684,7 @@ def extract_tbl_only(tbl_item):
         title, subtitle = extract_title_subtitle(mystart)
         tbl_html, unused = post_start.split(mg.REPORT_TABLE_END)
         tbl_only = u"<h2>%s</h2>\n<h2>%s</h2>\n%s" % (title, subtitle, tbl_html)
-    except Exception, e:
+    except Exception as e:
         msg = (u"Unable to extract report table html and title from "
             u"input. Orig error: %s" % b.ue(e))
         if debug: print(msg)
@@ -932,7 +931,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
         if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
             raise Exception(u"Unable to save to report. You might need to "
                 u"check and correct the path to the report.")
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to save to report. Orig error: %s" % b.ue(e))
     css_fils_str = '[u"' + u'",\nu"'.join(css_fils) + u'"]'
     f.write(u"%s = %s-->\n\n" % (mg.CSS_FILS_START_TAG, css_fils_str))
@@ -974,8 +973,9 @@ def get_cc():
 def export_script(script, css_fils, new_has_dojo=False):
     dd = mg.DATADETS_OBJ
     cc = get_cc()
-    modules = ["my_globals as mg", "core_stats", "dimtables", "getdata", 
-        "output", "rawtables", "stats_output"]
+    modules = [(None, "my_globals as mg"), (None, "core_stats"),
+        ("tables", "dimtables"), (None, "getdata"), (None, "output"),
+        ("tables", "rawtables"), (None, "stats_output"), ]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
         existing_script = b.get_unicode_from_file(fpath=cc[mg.CURRENT_SCRIPT_PATH])
     else:
@@ -1028,12 +1028,15 @@ def insert_prelim_code(modules, f, fil_report, css_fils, new_has_dojo):
     f.write(u"\nimport numpy as np")
     f.write(u"\nimport os")
     f.write(u"\nimport sys")
-    f.write(u"\ngettext.install(domain='sofastats', localedir=\"%s\", "
-        u"unicode=False)" % lib.escape_pre_write(mg.LOCALEDIR))
+    f.write(u"\ngettext.install(domain='sofastats', localedir=\"%s\")"
+        % lib.escape_pre_write(mg.LOCALEDIR))
     f.write(u"\n" + lib.get_gettext_setup_txt())
     f.write(u"\nsys.path.append(u'%s')" % lib.escape_pre_write(mg.SCRIPT_PATH))
-    for module in modules:
-        f.write(u"\nimport %s" % module)
+    for subpackage, module in modules:
+        if subpackage:
+            f.write(f"\nfrom sofastats.{subpackage} import {module}")
+        else:
+            f.write(f"\nimport {module}")
     f.write(u"\nimport my_exceptions")
     f.write(u"\nrun_locally = False  ## set to True to test by running locally")
     f.write(u"\nif run_locally:\n    import config_globals")
@@ -1110,7 +1113,7 @@ def generate_script(modules, css_fils, new_has_dojo, inner_script,
             inc_divider=False)
         add_end_script_code(f)
         f.close()
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to make the script needed to make the output."
             u"\nOrig error: %s" % b.ue(e))
 
@@ -1118,7 +1121,7 @@ def run_script():
     try:
         script_txt = b.get_unicode_from_file(fpath=mg.INT_SCRIPT_PATH)
         script = script_txt[script_txt.index(mg.MAIN_SCRIPT_START):]
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to read part of script for execution."
             u"\nOrig error: %s" % b.ue(e))
     dd = mg.DATADETS_OBJ
@@ -1129,11 +1132,11 @@ def run_script():
         dd.con.close() # close it - or else have to wait till it times out and closes self before script will get data back ;-)
     try:
         dummy_dic = {}
-        exec script in dummy_dic
-    except my_exceptions.OutputException, e:
+        exec(script, dummy_dic) 
+    except my_exceptions.OutputException as e:
         wx.MessageBox(b.ue(e))
         raise my_exceptions.NeedViableInput
-    except Exception, e:
+    except Exception as e:
         print("Unable to run report: %s" % traceback.format_exc())
         raise Exception(_(u"Unable to run script to generate report. Caused by "
             u"error: %s") % b.ue(e))
@@ -1159,7 +1162,7 @@ def get_raw_results():
     try:
         raw_results = b.get_unicode_from_file(fpath=mg.INT_REPORT_PATH)
         if debug and verbose: print(raw_results)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to read local copy of output report."
             u"\nOrig error: %s" % b.ue(e))
     return raw_results
@@ -1177,11 +1180,11 @@ def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo,
     try:
         save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_has_dojo, 
             raw_results)
-    except my_exceptions.MalformedHtml, e:
+    except my_exceptions.MalformedHtml as e:
         raise Exception(_("Problems with the content of the report you are "
             u"saving to. Please fix, or delete report and start again. Caused "
             u"by error: %s") % b.ue(e))
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Problem running report.\n"
             u"Caused by error: %s" % b.ue(e))
 
@@ -1245,7 +1248,7 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
             abs_above_inner_body = get_abs_content(above_inner_body, 
                 add_to_report)
             abs_inner_body = get_abs_content(inner_body, add_to_report)
-        except Exception, e:
+        except Exception as e:
             if add_to_report:
                 raise Exception(u"Problems getting copy of output to display."
                     u"\nOrig error: %s" % b.ue(e))
@@ -1261,9 +1264,9 @@ def run_report(modules, add_to_report, css_fils, new_has_dojo, inner_script):
             gui_display_content = (abs_above_inner_body + mg.BODY_START + source 
                 + u"<p>%s</p>" % filt_msg + abs_inner_body)
         if debug: print(abs_inner_body)
-    except my_exceptions.NeedViableInput, e:
+    except my_exceptions.NeedViableInput as e:
         return False, u"<p>%s</p>" % b.ue(e)
-    except Exception, e:
+    except Exception as e:
         return False, u"<h1>Ooops!</h1><p>%s</p>" % b.ue(e)
     if debug: 
         print(u"\n\n\n\nAdd2report: %s\n%s" % (add_to_report, 

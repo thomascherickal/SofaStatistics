@@ -1,8 +1,5 @@
 # should be imported before any modules which rely on mg.DATADETS_OBJ as dd object
 
-from __future__ import print_function
-from __future__ import absolute_import
-
 from collections import namedtuple
 import pprint
 import sys
@@ -70,7 +67,7 @@ def get_dbe_resources(dbe, con_dets, default_dbs, default_tbls, db=None,
             dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs, 
                 default_tbls, db, tbl, add_checks=True, stop=True)
             mg.MUST_DEL_TMP = True
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to get dbe_resources. Orig error: %s" % e)
     return dbe_resources
 
@@ -168,11 +165,11 @@ class DataDets(object):
             add_checks = False
             self.set_dbe(dbe, db, tbl, add_checks, con_dets, default_dbs,
                 default_tbls)
-        except KeyError, e:
+        except KeyError as e:
             self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to read project dictionary for required "
                 u"keys.\nCaused by error: %s" % b.ue(e))
-        except Exception, e:
+        except Exception as e:
             self.restore_proj_dic(dic2restore)
             raise Exception(u"Unable to set proj dic."
                 u"\nCaused by error: %s" % b.ue(e))
@@ -215,7 +212,7 @@ class DataDets(object):
         try:
             dbe_resources = get_dbe_resources(dbe, con_dets, default_dbs,
                 default_tbls, db, tbl, add_checks)
-        except Exception, e:
+        except Exception as e:
             raise Exception(u"Unable to get dbe resources."
                 u"\nCaused by error: %s" % b.ue(e))
         self.dbe = dbe # only change if getting dbe resources worked
@@ -272,7 +269,7 @@ def force_sofa_tbls_refresh(sofa_default_db_cur):
         ORDER BY name"""
     try:
         sofa_default_db_cur.execute(SQL_get_tbls)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"force_sofa_tbls_refresh() can only be used for the "
             u"default db\nCaused by error: %s" % b.ue(e))
 
@@ -433,7 +430,7 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
             if debug:
                 print(u"val2use: %s" % val2use)
                 print(u"val: %s" % val)
-                print(u"unicode(val): %s" % unicode(val))
+                print(u"str(val): %s" % str(val))
                 print(float(val2use) == val)
             if float(repr(val).strip(u"L")) != val:
                 # will not be found using an SQL query
@@ -472,7 +469,7 @@ def set_con_det_defaults(parent):
         mg.DBE_MODULES[dbe].set_con_det_defaults(parent)
 
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
-    """
+    r"""
     Populate default_dbs, default_tbls, and con_dets.
 
     con_dets must contain paths ready to record i.e. double backslashes where
@@ -595,9 +592,9 @@ def insert_row(tbl_dd, data):
         tbl_dd.cur.execute(SQL_insert, data_tup)
         tbl_dd.con.commit()
         return True, None
-    except Exception, e:
+    except Exception as e:
         if debug: print(u"Failed to insert row. SQL: %s, Data: %s" %
-            (SQL_insert, unicode(data_tup)) + u"\n\nCaused by error: %s" % 
+            (SQL_insert, str(data_tup)) + u"\n\nCaused by error: %s" % 
             b.ue(e))
         return False, u"%s" % b.ue(e)
 
@@ -620,7 +617,7 @@ def delete_row(id_fld, row_id):
         dd.cur.execute(SQL_delete, data_tup)
         dd.con.commit()
         return True, None
-    except Exception, e:
+    except Exception as e:
         if debug: print(u"Failed to delete row.  SQL: %s, row id: %s" %
             (SQL_delete, row_id) + u"\n\nOriginal error: %s" % b.ue(e))
         return False, u"%s" % b.ue(e)
@@ -675,10 +672,10 @@ def get_data_dropdowns(parent, panel, default_dbs):
                 default_dbs)
             oth_db_choices = [(x, oth_dbe) for x in oth_dbe_dbs_list]
             db_choices.extend(oth_db_choices)
-        except my_exceptions.MissingConDets, e:
-            if debug: print(unicode(e))
+        except my_exceptions.MissingConDets as e:
+            if debug: print(str(e))
             pass # no connection possible
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Unable to connect to %(oth_dbe)s using the details"
                 " provided.\nCaused by error: %(e)s") % {"oth_dbe": oth_dbe,
                 "e": b.ue(e)})
@@ -788,7 +785,7 @@ def refresh_db_dets(parent):
         set_parent_db_dets(parent, dbe, db)
         # successful so can now change
         parent.selected_dbe_db_idx = parent.drop_dbs.GetSelection()
-    except Exception, e:
+    except Exception as e:
         wx.MessageBox(_("Experienced problem refreshing database details.") +
             u"\nCaused by error %s" % b.ue(e))
         # roll back

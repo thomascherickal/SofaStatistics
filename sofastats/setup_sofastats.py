@@ -9,7 +9,6 @@ configuration inside files e.g. paths.
 
 # 1) importing, and anything required to enable importing e.g. sys.path changes
 
-from __future__ import absolute_import
 # show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True
 force_error = False
@@ -43,25 +42,10 @@ import sys
 if show_early_steps: print(u"Just imported sys")
 import traceback
 if show_early_steps: print(u"Just imported traceback")
-# yes - an action in a module - but only called once and really about letting 
-# other modules even be found and called
-if not(hasattr(sys, 'frozen') and sys.frozen):
-    try:
-        import wxversion
-        try:
-            wxversion.select(WXPYTHON_VERSION)
-        except wxversion.AlreadyImportedError, e:
-            pass
-    except Exception, e:
-        msg = u"There seems to be a problem with wxversion. %s" % \
-            traceback.format_exc()
-        if show_early_steps: 
-            print(msg)
-            raw_input(INIT_DEBUG_MSG)
-        raise Exception(msg)
-    if show_early_steps: print(u"Just ran wxversion")
 import wx
 if show_early_steps: print(u"Just imported wx")
+import wx.html2
+if show_early_steps: print(u"Just imported wx.html2")
 # All i18n except for wx-based (which MUST happen after wx.App init)
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
@@ -70,7 +54,7 @@ localedir = u"./locale" # fall back
 try:
     localedir = os.path.join(os.path.dirname(__file__), u"locale")
     if debug: print(__file__)
-except NameError, e:
+except NameError as e:
     for path in sys.path:
         if u"sofastats" in path.lower(): # if user hasn't used sofastats, 
             # use default
@@ -78,37 +62,37 @@ except NameError, e:
             break
 if show_early_steps: 
     print(u"Just identified locale folder")
-gettext.install(domain='sofastats', localedir=localedir, unicode=True)
+gettext.install(domain='sofastats', localedir=localedir)
 if show_early_steps: print(u"Just installed gettext")
 try:
     from sofastats import basic_lib as b #@UnresolvedImport
-except Exception, e:
+except Exception as e:
     msg = (u"Problem importing basic_lib. %s" % traceback.format_exc())
     if show_early_steps: 
         print(msg)
-        raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
+        input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
             # to user.  Unlike when a GUI msg possible later on. In those cases
             # just let that step happen.
     raise Exception(msg)
 try:
     from sofastats import my_globals as mg  #@UnresolvedImport # has translated text
-except Exception, e:
+except Exception as e:
     msg = u"Problem with importing my_globals. %s" % traceback.format_exc()
     if show_early_steps: 
         print(msg)
-        raw_input(INIT_DEBUG_MSG)
+        input(INIT_DEBUG_MSG)
     raise Exception(msg)
 mg.LOCALEDIR = localedir
 try:
     from sofastats import my_exceptions #@UnresolvedImport
     from sofastats import config_globals  #@UnresolvedImport
     from sofastats import lib #@UnresolvedImport
-except Exception, e:
+except Exception as e:
     msg = (u"Problem with first round of local importing. %s" %
         traceback.format_exc())
     if show_early_steps: 
         print(msg)
-        raw_input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
+        input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
             # to user.  Unlike when a GUI msg possible later on. In those cases
             # just let that step happen.
     raise Exception(msg)
@@ -118,11 +102,11 @@ try:
     config_globals.set_DEFAULT_DETAILS()
     config_globals.import_dbe_plugins() # as late as possible because uses local 
         # modules e.g. my_exceptions, lib
-except Exception, e:
+except Exception as e:
     msg = (u"Problem with configuring globals. %s" % traceback.format_exc())
     if show_early_steps: 
         print(msg)
-        raw_input(INIT_DEBUG_MSG)
+        input(INIT_DEBUG_MSG)
     raise Exception(msg)
 
 # Give the user something if the program fails at an early stage before anything
@@ -200,9 +184,7 @@ def check_python_version():
     debug = False
     pyversion = sys.version[:3]
     if debug: pyversion = None
-    # Linux installer doesn't have hard-wired site-packages so 2.6 or 2.7 should 
-    # work. Other installers have site-packages baked into the exe for their python version
-    if (mg.PLATFORM == mg.LINUX and pyversion not in(u"2.6", u"2.7")):
+    if (mg.PLATFORM == mg.LINUX and pyversion < "3.6"):
         fixit_file = os.path.join(mg.HOME_PATH, u"Desktop", 
             u"how to get SOFA working.txt")
         f = codecs.open(fixit_file, "w", "utf-8")
@@ -244,13 +226,9 @@ def init_com_types(parent, panel):
         # init com types
         wx.MessageBox(_("Click OK to prepare for first use of SOFA "
             "Statistics.\n\nPreparation may take a moment ..."))
-        h = full_html.FullHTML(panel, parent, size=(10,10))
-        try:
-            h.pizza_magic() # must happen after Show
-        except Exception:
-            pass
-        h.show_html(u"")
-        h = None
+        parent.html = wx.html2.WebView.New(panel, -1, size=wx.Size(10, 10))
+        parent.html.SetPage('', '')
+        parent.html = None
         # leave tag saying it is done
         f = codecs.open(comtypes_tag, "w", "utf-8")
         f.write(u"Comtypes handled successfully :-)")
@@ -278,7 +256,7 @@ def make_local_subfolders(local_path, local_subfolders):
     try:
         os.mkdir(local_path)
         if show_early_steps: print(u"Made local folder successfully.")
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to make local SOFA path \"%s\"." % local_path +
             u"\nCaused by error: %s" % b.ue(e))
     for local_subfolder in local_subfolders: # create required subfolders
@@ -286,7 +264,7 @@ def make_local_subfolders(local_path, local_subfolders):
             os.mkdir(os.path.join(local_path, local_subfolder))
             if show_early_steps: 
                 print(u"Added %s successfully." % local_subfolder)
-        except Exception, e:
+        except Exception as e:
             raise Exception(u"Unable to make local subfolder \"%s\"." % 
                 local_subfolder + u"\nCaused by error: %s" % b.ue(e))
     print(u"Made local subfolders under \"%s\"" % local_path)
@@ -304,12 +282,12 @@ def run_test_code(script):
     test_dic = {}
     try:
         # http://docs.python.org/reference/simple_stmts.html
-        exec test_code in test_dic
-    except SyntaxError, e:
+        exec(test_code, test_dic)
+    except SyntaxError as e:
         raise Exception(_(u"Syntax error in test script \"%(test_path)s\"."
             u"\nCaused by error: %(err)s") % {u"test_path": test_path, 
             u"err": b.ue(e)})
-    except Exception, e:
+    except Exception as e:
         raise Exception(_(u"Error running test script \"%(test_path)s\"."
             u"\nCaused by errors:\n\n%(err)s") % {u"test_path": test_path, 
             u"err": traceback.format_exc()})
@@ -329,7 +307,7 @@ def populate_css_path(prog_path, local_path):
             dest_style = os.path.join(local_path, mg.CSS_FOLDER, style)
             shutil.copy(src_style, dest_style)
             if show_early_steps: print(u"Just copied %s" % style)
-        except Exception, e: # more diagnostic info to explain why it failed
+        except Exception as e: # more diagnostic info to explain why it failed
             raise Exception(u"Problem populating css path using shutil.copy()."
                 u"\nCaused by error: %s" % b.ue(e) +
                 u"\nsrc_style: %s" % src_style +
@@ -389,7 +367,7 @@ def populate_extras_path(prog_path, local_path):
                 mg.REPORT_EXTRAS_FOLDER, extra), os.path.join(local_path, 
                 mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER, extra))
             if show_early_steps: print(u"Just copied %s" % extra)
-        except Exception, e:
+        except Exception as e:
             raise Exception(u"Problem populating report extras path."
                 u"\nCaused by error: %s" % b.ue(e))
     print(u"Populated report extras path under %s" % local_path)
@@ -458,7 +436,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f.write(u"Local project file customised successfully :-)")
         f.close()
         print(u"Configured default project file for user")
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Problem configuring default project settings. "
             u"It may be best to delete your local sofastats folder "
             u"e.g. C:\\Users\\username\\sofastats or C:\\Documents "
@@ -476,7 +454,7 @@ def get_installer_version_status(local_path):
         installer_is_newer = lib.version_a_is_newer(version_a=mg.VERSION, 
             version_b=get_installed_version(local_path))
         installer_newer_status_known = True
-    except Exception, e:
+    except Exception as e:
         installer_is_newer = None
         installer_newer_status_known = False
     return installer_is_newer, installer_newer_status_known
@@ -496,7 +474,7 @@ def archive_older_default_report():
                 "\nto ensure all new content added to the default report "
                 "works with the latest chart display code." % 
                 (mg.VERSION, mg.DEFAULT_REPORT, new_filename))
-        except OSError, e:
+        except OSError as e:
             raise Exception("Unable to archive older default report.")
                     
 def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
@@ -567,7 +545,7 @@ def setup_folders():
                 config_local_proj(mg.LOCAL_PATH, default_proj, 
                     subfolders_in_proj)
                 store_version(mg.LOCAL_PATH)
-        except Exception, e:
+        except Exception as e:
             raise Exception(u"Unable to make local sofa folders in \"%s.\""
                 % mg.LOCAL_PATH + u"\nCaused by error: %s" % b.ue(e))
         run_test_code(mg.TEST_SCRIPT_POST_CONFIG) # can now use dd and proj config
@@ -590,16 +568,16 @@ def setup_folders():
                         os.mkdir(REPORT_EXTRAS_PATH) # under reports
                         if show_early_steps: 
                             print(u"Just made %s" % REPORT_EXTRAS_PATH)
-                    except OSError, e:
+                    except OSError as e:
                         pass # Already there.
-                    except Exception, e:
+                    except Exception as e:
                         raise Exception(u"Unable to make report extras "
                             u"path \"%s\"." % REPORT_EXTRAS_PATH
                             + u"\nCaused by error: %s" % b.ue(e))
                     populate_extras_path(prog_path, mg.LOCAL_PATH)
                     archive_older_default_report()
                     store_version(mg.LOCAL_PATH) # update it so only done once
-            except Exception, e:
+            except Exception as e:
                 raise Exception(u"Problem modifying your local sofastats "
                     u"folder. One option is to delete the \"%s\" folder and let"
                     u" SOFA make a fresh one.\nCaused by error: %s" %
@@ -607,7 +585,7 @@ def setup_folders():
         # 3) Make a fresh recovery folder if needed
         try:
             freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
-        except Exception, e:
+        except Exception as e:
             raise Exception(u"Problem freshening your recovery folder \"%s\"."
                 u"\nCaused by error: %s" % (prog_path, b.ue(e)))
         # 4) ensure the internal copy images path exists
@@ -615,7 +593,7 @@ def setup_folders():
             os.mkdir(mg.INT_COPY_IMGS_PATH)
         except OSError:
             pass # already there
-    except Exception, e:
+    except Exception as e:
         if show_early_steps: 
             print(u"Problem running initial setup - about to make msg.")
         msg = (u"Problem running initial setup.\nCaused by error: %s" % 
@@ -633,8 +611,6 @@ try:
     about = u"config_output"
     from sofastats import config_output  #@UnresolvedImport actually uses proj dict and connects to sofa_db. Thus
         # can't rely on wx.msgboxes etc because wx.App not up yet
-    about = u"full_html"
-    from sofastats import full_html #@UnresolvedImport
     about = u"getdata"
     from sofastats import getdata #@UnresolvedImport
     about = u"projects"
@@ -645,11 +621,11 @@ try:
     from sofastats import projselect #@UnresolvedImport
     about = u"quotes"
     from sofastats import quotes #@UnresolvedImport
-except my_exceptions.ComtypesException, e:
+except my_exceptions.ComtypesException as e:
     msgapp = ErrMsgApp(b.ue(e))
-except my_exceptions.InconsistentFileDate, e:
+except my_exceptions.InconsistentFileDate as e:
     msgapp = ErrMsgApp(b.ue(e))
-except Exception, e:
+except Exception as e:
     msg = (u"Problem with second round of local importing while "
        u"importing %s." % about +
        u"\nCaused by error: %s" % b.ue(e) +

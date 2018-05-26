@@ -1,4 +1,3 @@
-from __future__ import print_function
 import os
 import wx
 
@@ -79,23 +78,23 @@ class DlgProjSelect(wx.Dialog):
         proj_cont = b.get_exec_ready_text(text=proj_txt)
         proj_dic = {}
         try:
-            exec proj_cont in proj_dic
-        except SyntaxError, e:
+            exec(proj_cont, proj_dic)
+        except SyntaxError as e:
             wx.MessageBox(\
                 _(u"Syntax error in project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %s") % {u"fil_proj": fil_proj, 
-                u"err": unicode(e)})
+                u"err": str(e)})
             raise
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(\
                 _(u"Error processing project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                u"err": unicode(e)})
+                u"err": str(e)})
             raise
         # must always be stored, even if only ""
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Please check %s for errors. Use the default "
                 "project file for reference.") % fil_proj)
             raise
@@ -117,7 +116,7 @@ class DlgProjSelect(wx.Dialog):
         try:
             dlgProj = projects_gui.DlgProject(parent=self, readonly=readonly,
                 fil_proj=fil_proj)
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(u"Unable to open project dialog for %s. "
                 u"Orig error: %s" % (fil_proj, b.ue(e)))
             return
@@ -167,7 +166,7 @@ class DlgProjSelect(wx.Dialog):
             cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
             proj_name = projects.filname2projname(fil_proj) # might not be a sensible ...proj file
             self.parent.set_proj_lbl(proj_name)
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to use the selected project file. Please "
                 u"check name of file and its contents using %(def_proj)s as "

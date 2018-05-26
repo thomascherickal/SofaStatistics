@@ -1,6 +1,8 @@
+import sys
+
 import pylab
 from matplotlib import pyplot
-from PlotInfo import PlotInfo
+from .PlotInfo import PlotInfo
 
 class Line(PlotInfo):
     def __init__(self):
@@ -20,7 +22,7 @@ class Line(PlotInfo):
         validStepTypes = ["pre", "mid", "post"]
         
         if stepType not in validStepTypes:
-            print >>sys.stderr, "%s is not a valid step type. Valid step types are %s" % (stepType, ", ".join(validStepTypes))
+            print(sys.stderr, "%s is not a valid step type. Valid step types are %s" % (stepType, ", ".join(validStepTypes)))
             sys.exit(1)
         
         self.steps = stepType

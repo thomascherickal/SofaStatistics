@@ -1,4 +1,3 @@
-import os
 import sys
 import copy
 
@@ -56,7 +55,7 @@ class PlotInfo(object):
         valChunkSize = numXVals / pieces
         valChunkRemainder = numXVals % pieces
         
-        for i in xrange(pieces):
+        for i in range(pieces):
             element = copy.deepcopy(self)
 
             if i < pieces - 1 or valChunkRemainder == 0:
@@ -104,8 +103,8 @@ class PlotInfo(object):
 
         if self.yMins is not None and self.yMaxes is not None:
             numYVals = len(self.yValues)
-            yMin = [self.yValues[i] - self.yMins[i] for i in xrange(numYVals)]
-            yMax = [self.yMaxes[i] - self.yValues[i] for i in xrange(numYVals)]
+            yMin = [self.yValues[i] - self.yMins[i] for i in range(numYVals)]
+            yMax = [self.yMaxes[i] - self.yValues[i] for i in range(numYVals)]
 
 
             errorBarKeywords["yerr"] = [yMin, yMax]

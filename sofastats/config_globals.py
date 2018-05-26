@@ -1,10 +1,6 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
-from __future__ import absolute_import
 import os
 import subprocess
-import sys
 import wx
 
 """
@@ -29,8 +25,7 @@ def set_SCRIPT_PATH():
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
     rawpth = os.path.dirname(mg.__file__)
-    local_encoding = sys.getfilesystemencoding()
-    mg.SCRIPT_PATH = unicode(rawpth, local_encoding)
+    mg.SCRIPT_PATH = rawpth
     if mg.SCRIPT_PATH == mg.LOCAL_PATH:
         raise Exception(_(u"Oops - it looks like you've installed SOFA to your "
             u"user directory rather than a program directory. Please uninstall "
@@ -62,7 +57,7 @@ def import_dbe_plugin(dbe_plugin):
             mod = dbe_postgresql
         else:
             raise Exception(u"Unknown database engine plug-in type")
-    except ImportError, e:
+    except ImportError as e:
         raise Exception(u"Import error with \"%s\". Caused by error: %s" % 
             (dbe_plugin, b.ue(e)))
     return mod
@@ -83,7 +78,7 @@ def import_dbe_plugins():
             else:
                 try:
                     dbe_mod = import_dbe_plugin(dbe_plugin)
-                except Exception, e:
+                except Exception as e:
                     msg = (u"Not adding dbe plugin %s. " % dbe_plugin +
                         u"\nReason: %s" % b.ue(e))
                     print(msg)
@@ -113,7 +108,7 @@ def get_date_fmt():
             try: # the following must have been specially installed
                 import win32api
                 import win32con
-            except ImportError, e:
+            except ImportError as e:
                 raise Exception(_("Problem with Windows modules. Did all steps "
                     "in installation succeed? You may need to install again."
                     "\nError caused by: %s" % b.ue(e)))
@@ -140,7 +135,7 @@ def get_date_fmt():
         except KeyError:
             print(u"Unexpected raw_d_fmt (%s) in get_date_fmt()" % raw_d_fmt)
             d_fmt = default_d_fmt
-    except Exception, e:
+    except Exception as e:
         print(u"Unable to get date format.\nCaused by error: %s" % b.ue(e))
         d_fmt = default_d_fmt
     return d_fmt
@@ -203,25 +198,24 @@ def get_settings_dic(subfolder, fil_name):
     settings_cont = b.get_unicode_from_file(fpath=settings_path)
     settings_dic = {}
     try:
-        # http://docs.python.org/reference/simple_stmts.html
-        exec settings_cont in settings_dic
-    except SyntaxError, e:
+        exec(settings_cont, settings_dic)
+    except SyntaxError as e:
         err_msg = _(u"Syntax error in settings file \"%(fil_name)s\"."
             u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
             u"details": b.ue(e)}
         try:
             wx.MessageBox(err_msg) # only works if wx.App up.
             raise
-        except Exception, e:
+        except Exception as e:
             raise Exception(err_msg)
-    except Exception, e:
+    except Exception as e:
         err_msg = _(u"Error processing settings file \"%(fil_name)s\"."
             u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
             u"details": b.ue(e)}
         try:
             wx.MessageBox(err_msg)
             raise
-        except Exception, e:
+        except Exception as e:
             raise Exception(err_msg)
     return settings_dic
 

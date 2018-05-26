@@ -1,10 +1,10 @@
 import codecs
-import wx
+import wx  #@UnusedImport
+import wx.html2
 import os
 
 from sofastats import my_globals as mg
 from sofastats import lib
-from sofastats import full_html
 
 def display_report(parent, str_content, url_load=False):
     # display results
@@ -21,7 +21,7 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
     %content% is replaced with the content
     """
     #get html content
-    fil = file(template, "r")
+    fil = open(template, "r")
     html = fil.read()
     html = html.replace("%title%", title)
     html = html.replace("%content%", content)
@@ -36,7 +36,7 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
 
 def get_html_header(title, header_template):
     "Get the HTML down as far as (and including) <body>"
-    fil = file(header_template, "r")
+    fil = open(header_template, "r")
     hdr = fil.read()
     hdr = hdr.replace("%title%", title)
     fil.close()
@@ -52,7 +52,6 @@ class DlgHTML(wx.Dialog):
         """
         url -- url to display (either this or content).
         content -- html ready to display.
-        url_load -- if need to save content to file and then load as url
         file_name -- excludes any path information. Needed for printing.
         title -- dialog title.
         print_folder -- needs to be a subfolder of the current folder.
@@ -66,8 +65,7 @@ class DlgHTML(wx.Dialog):
         self.url = url
         self.content = content
         self.url_load = url_load
-        self.html = full_html.FullHTML(panel=self, parent=self, 
-                                       size=wx.DefaultSize)
+        self.html = wx.html2.WebView.New(self, -1, size=wx.DefaultSize)
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -98,23 +96,18 @@ class DlgHTML(wx.Dialog):
         self.Restore()
         lib.GuiLib.safe_end_cursor()
 
-    def on_show(self, event):
-        try:
-            self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass # need on Mac or exceptn survives
-        finally: # any initial content
-            self.show_content(self.url, self.content, self.url_load)
+    def on_show(self, _event):
+        self.show_content(self.url, self.content)
             
-    def show_content(self, url=None, content=None, url_load=None):
+    def show_content(self, url=None, content=None):
         if content is None and url is None:
             raise Exception(u"Need whether string content or a url")
         if content:
-            self.html.show_html(content, url_load)
+            self.html.SetPage(content, '')
         else:
-            self.html.load_url(url)
+            self.html.LoadURL(url)
     
-    def on_print(self, event):
+    def on_print(self, _event):
         "Print page"
         #printer = wx.html.HtmlEasyPrinting("Printing output", None)
         #printer.PrintFile(self.file_name) #horrible printing - large H1s, no CSS etc
@@ -122,6 +115,6 @@ class DlgHTML(wx.Dialog):
         full_file = os.path.join(os.getcwd(), self.print_folder, self.file_name)
         os.system("rundll32.exe MSHTML.DLL,PrintHTML \"%s\"" % full_file)
     
-    def on_close(self, event):
+    def on_close(self, _event):
         "Close Viewer"        
         self.Destroy()    

@@ -73,15 +73,15 @@ class NodeTree(Nodes):
     def print_children(self, node):
         l = []
         for child_node in node.children:
-            l.append(unicode(child_node))
-            children_str = unicode(self.print_children(child_node))
+            l.append(str(child_node))
+            children_str = str(self.print_children(child_node))
             if children_str: #otherwise an empty string will get own line
-                l.append(unicode(self.print_children(child_node)))
+                l.append(str(self.print_children(child_node)))
         return "\n".join(l)
 
     def __str__(self):
         l = []
-        l.append(unicode(self.root_node))
+        l.append(str(self.root_node))
         l.append(self.print_children(self.root_node))
         return "\n".join(l)
 
@@ -106,8 +106,8 @@ class Node(Nodes):
         self.label = label
         
     def __str__(self):
-        return self.level*2*" " + "Level: " + unicode(self.level) + \
+        return self.level*2*" " + "Level: " + str(self.level) + \
             "; Label: " + self.label + \
-            "; Details: " + unicode(self.dets_dic) + \
+            "; Details: " + str(self.dets_dic) + \
             "; Child labels: " + ", ".join([x.label for x in self.children])
             

@@ -1,4 +1,4 @@
-from __future__ import print_function
+
 import pprint
 import wx
 
@@ -157,7 +157,7 @@ class DlgDataSelect(wx.Dialog):
                 dd.set_db(dd.db) # refresh tbls downwards
                 self.reset_tbl_dropdown()
                 self.ctrl_enablement()
-            except Exception, e:
+            except Exception as e:
                 wx.MessageBox(u"Unable to delete \"%s\". Caused by error: %s"
                     % (dd.tbl, b.ue(e)))
         event.Skip()

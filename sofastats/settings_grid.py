@@ -1,4 +1,3 @@
-from __future__ import print_function
 import wx
 import wx.grid
 
@@ -232,7 +231,7 @@ class SettingsEntry(object):
         # grid event handling
         self.grid.Bind(wx.EVT_KEY_DOWN, self.on_grid_key_down)
         self.grid.Bind(EVT_CELL_MOVE, self.on_cell_move)
-        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGE, self.on_cell_change)
+        self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGING, self.on_cell_change)
         self.grid.Bind(wx.grid.EVT_GRID_SELECT_CELL, self.on_select_cell)
         
         self.grid.Bind(wx.grid.EVT_GRID_CELL_LEFT_CLICK, self.on_mouse_cell)
@@ -251,8 +250,9 @@ class SettingsEntry(object):
         self.rows_to_fill = self.rows_n if self.readonly else self.rows_n - 1
         for i in range(self.rows_to_fill):
             for j in range(self.cols_n):
-                self.grid.SetCellValue(row=i, col=j, 
-                                       s=unicode(self.init_settings_data[i][j]))
+                self.grid.SetCellValue(
+                    row=i, col=j, 
+                    s=str(self.init_settings_data[i][j]))
         if not self.readonly:
                 self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.current_col_idx = 0
@@ -991,7 +991,7 @@ class SettingsEntry(object):
     
     def update_next_row_labels(self, pos):
         for i in range(pos, self.rows_n - 1):
-            self.grid.SetRowLabelValue(i, unicode(i + 1))
+            self.grid.SetRowLabelValue(i, str(i + 1))
     
     def reset_row_n(self, change=1):
         "Reset rows_n and rows_to_fill by incrementing or decrementing."
@@ -1012,7 +1012,7 @@ class SettingsEntry(object):
             self.grid.SetCellRenderer(new_row_idx, col_idx, renderer)
             self.grid.SetCellEditor(new_row_idx, col_idx, editor)
         self.reset_row_n(change=1)
-        self.grid.SetRowLabelValue(self.rows_n - 2, unicode(self.rows_n - 1))
+        self.grid.SetRowLabelValue(self.rows_n - 2, str(self.rows_n - 1))
         self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.safe_layout_adjustment()
         

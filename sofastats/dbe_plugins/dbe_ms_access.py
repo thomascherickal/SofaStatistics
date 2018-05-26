@@ -5,7 +5,6 @@
 # library - e.g. for ADO it would be Microsoft ActiveX Data Objects 2.8 Library 
 # (2.8) - and select OK. NB DAO must be done separately from ADO etc.
 
-from __future__ import print_function
 import adodbapi #@UnresolvedImport
 import pprint
 import win32com.client #@UnresolvedImport
@@ -102,7 +101,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
                                                     "pwd": pwd, "mdw": mdw})
     try:
         con = adodbapi.connect(DSN)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to connect to MS Access database using "
             u"supplied database: %s, user: %s, " % (database, user) + 
             u"pwd: %s, or mdw: %s.\nCaused by error: %s" % (pwd, mdw, b.ue(e)))

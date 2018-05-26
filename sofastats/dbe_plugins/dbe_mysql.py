@@ -1,5 +1,3 @@
-from __future__ import print_function
-from __future__ import division # so 5/2 = 2.5 not 2 !
 
 # 0.9.25 the first to use pymysql (for OS X). 
 
@@ -11,10 +9,15 @@ from sofastats import my_globals as mg
 if mg.PLATFORM == mg.MAC:
     try:
         import pymysql as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
-    except Exception, e:
-        raise Exception(u"Contact the developer (%s) for "
-                        u"specific advice on how to use SOFA with MySQL on a "
-                        u"Mac." % mg.CONTACT)
+    except Exception as e:
+        raise Exception(f"Contact the developer ({mg.CONTACT}) for specific "
+            "advice on how to use SOFA with MySQL on a Mac.")
+elif mg.PLATFORM == mg.LINUX:
+    try:
+        import PyMySQL as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
+    except Exception as e:
+        raise Exception(f"Contact the developer ({mg.CONTACT}) for specific "
+            "advice on how to use SOFA with MySQL on Linux.")
 else:
     import MySQLdb as mysql #@Import redefinition
 from sofastats import my_exceptions
@@ -65,7 +68,7 @@ def get_con_cur_for_db(con_dets_mysql, db):
         if db:
             con_dets_mysql["db"] = db
         con = mysql.connect(**con_dets_mysql)
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to connect to MySQL db. "
             u"\nCaused by error: %s" % b.ue(e))
     cur = con.cursor() # must return tuples not dics
@@ -101,7 +104,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     for db4list in all_dbs:
         try:
             con, cur = get_con_cur_for_db(con_dets_mysql, db4list)
-        except Exception, e:
+        except Exception as e:
             continue
         if has_tbls(cur, db4list):
             dbs.append(db4list)

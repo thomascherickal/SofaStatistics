@@ -1,8 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
-from __future__ import absolute_import
 
 import codecs
 from collections import namedtuple
@@ -71,18 +66,18 @@ class TypeLib(object):
         NB a string containing a numeric value is not a number type even though it
         will pass is_numeric().
         """
-        numtyped = type(val) in [int, long, float]
+        numtyped = type(val) in [int, float]
         return numtyped
 
     @staticmethod
     def is_integer(val):
         # http://mail.python.org/pipermail/python-list/2006-February/368113.html
-        return isinstance(val, (int, long))
+        return isinstance(val, (int, ))
 
     @staticmethod
     def is_string(val):
         # http://mail.python.org/pipermail/winnipeg/2007-August/000237.html
-        return isinstance(val, basestring)
+        return isinstance(val, str)
 
     @staticmethod
     def is_pytime(val): 
@@ -94,7 +89,7 @@ class DbLib(object):
 
     @staticmethod
     def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, 
-                  pystr_use_double_quotes=True, charset2try=u"utf-8"):
+                  pystr_use_double_quotes=True):
         """
         Need to quote a value e.g. for inclusion in an SQL statement.
 
@@ -144,9 +139,9 @@ class DbLib(object):
                         sql_esc_str_literal_quote)
                 except UnicodeDecodeError:
                     if debug: print(repr(raw_val))
-                    val = unicode(raw_val, charset2try).replace(
+                    val = raw_val.replace(
                         sql_str_literal_quote, sql_esc_str_literal_quote)
-            except AttributeError, e:
+            except AttributeError as e:
                 raise Exception(u"Inappropriate attempt to quote non-string value."
                     u"\nCaused by error: %s" % b.ue(e))
             if pystr_use_double_quotes:
@@ -165,7 +160,7 @@ class DbLib(object):
     def get_unique_db_name_key(db_names, db_name):
         "Might have different paths but same name."
         if db_name in db_names:
-            db_name_key = db_name + u"_" + unicode(db_names.count(db_name))
+            db_name_key = db_name + u"_" + db_names.count(db_name)
         else:
             db_name_key = db_name
         db_names.append(db_name)
@@ -176,11 +171,11 @@ class OutputLib(object):
 
     @staticmethod
     def get_sig_dp(val):
-        strval = unicode(val)
+        strval = str(val)
         if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
-            num_string = unicode(repr(val)) # 1000000000000.4 rather than 1e+12
+            num_string = repr(val) # 1000000000000.4 rather than 1e+12
         else:
-            num_string = unicode(val)
+            num_string = strval
         if '.' in num_string:
             trimmed_dec = num_string.rstrip(u'0')
             sig_dp = len(trimmed_dec.partition('.')[2])
@@ -236,7 +231,7 @@ class OutputLib(object):
                     bits.append(u" ({}%)".format(pct))
                 else:
                     bits.append(u"{}%".format(pct))
-        count_pct = u"".join(unicode(x) for x in bits)
+        count_pct = "".join(str(x) for x in bits)
         return count_pct
 
     @staticmethod
@@ -260,7 +255,7 @@ class OutputLib(object):
             print(u"idx_end: %s" % idx_end)
             print(u"img_path: %s" % img_path)
         if not use_as_url:
-            img_path = urllib.unquote(img_path) # so a proper path and not %20 etc
+            img_path = urllib.parse.unquote(img_path) # so a proper path and not %20 etc
             if debug: print(u"not use_as_url img_path:\n%s" % img_path)
         # strip off 'file:///' (or file:// as appropriate for os)
         if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
@@ -319,27 +314,27 @@ class OutputLib(object):
     def extract_dojo_style(css_fil):
         try:
             f = codecs.open(css_fil, "r", "utf-8")
-        except IOError, e:
+        except OSError as e:
             raise my_exceptions.MissingCss(css_fil)
         css = f.read()
         f.close()
         try:
             css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
             css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
-        except ValueError, e:
+        except ValueError as e:
             raise my_exceptions.MalformedCssDojo(css)
         text = css[css_dojo_start_idx + len(mg.DOJO_STYLE_START): css_dojo_end_idx]
         css_dojo = b.get_exec_ready_text(text)
         css_dojo_dic = {}
         try:
-            exec css_dojo in css_dojo_dic
-        except SyntaxError, e:
+            exec(css_dojo, css_dojo_dic)
+        except SyntaxError as e:
             wx.MessageBox(_(u"Syntax error in dojo settings in css file"
                 u" \"%(css_fil)s\"."
                 u"\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
                 u"css_dojo": css_dojo, u"err": b.ue(e)})
             raise
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_(u"Error processing css dojo file \"%(css_fil)s\"."
                 u"\n\nDetails: %(err)s") % {u"css_fil": css_fil, u"err": b.ue(e)})
             raise
@@ -348,7 +343,7 @@ class OutputLib(object):
     @staticmethod
     def update_local_display(html_ctrl, str_content, wrap_text=False):
         str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
-        html_ctrl.show_html(str_content, url_load=True) # allow footnotes
+        html_ctrl.SetPage(str_content, '') # allow footnotes
 
     @staticmethod
     def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):
@@ -419,7 +414,7 @@ class OutputLib(object):
     @staticmethod
     def get_num2display(num, output_type, inc_perc=True):
         if output_type == mg.FREQ_KEY:
-            num2display = unicode(num)
+            num2display = str(num)
         else:
             if inc_perc:
                 num2display = u"%s%%" % num
@@ -486,11 +481,11 @@ class OutputLib(object):
             var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
             var_dets = b.get_exec_ready_text(text=var_dets)
             var_dets_dic = {}
-            exec var_dets in var_dets_dic
+            exec(var_dets, var_dets_dic)
             if debug: wx.MessageBox(u"%s got a clean bill of health from "
                 u"get_invalid_var_dets_msg()!" % fil_var_dets)
             return None
-        except Exception, e:
+        except Exception as e:
             return b.ue(e)
 
 
@@ -558,7 +553,7 @@ class UniLib(object):
         """
         import re  # easier to transplant for testing if everything here
         debug = False
-        if not isinstance(text, basestring):
+        if not isinstance(text, str):
             raise Exception(u"UniLib._ms2unicode() requires strings as inputs.")
         if debug: print(repr(text))
         for gremlin in UniLib.oth_ms_gremlins:  # turn to unicode any bytes which contain
@@ -591,9 +586,9 @@ class UniLib(object):
 
         Return safe unicode string (pure unicode and no unescaped backslashes).
         """
-        if not isinstance(raw, basestring): # isinstance includes descendants
+        if not isinstance(raw, (str, bytes)): # isinstance includes descendants
             raise Exception(u"UniLib._str2unicode() requires strings as inputs.")
-        if type(raw) == str:
+        if type(raw) == bytes:
             try:
                 safe = raw.decode(locale.getpreferredencoding())
             except UnicodeDecodeError:
@@ -608,12 +603,12 @@ class UniLib(object):
             try:
                 safe = UniLib._ms2unicode(raw)
             except Exception:
-                safe = raw.decode("utf8", "replace") # final fallback
+                safe = raw # final fallback
         return safe
 
     @staticmethod
     def handle_ms_data(data):
-        if not isinstance(data, basestring):
+        if not isinstance(data, str):
             return data
         else:
             return UniLib._ms2unicode(data)
@@ -628,26 +623,26 @@ class UniLib(object):
         if TypeLib.is_basic_num(raw):
             # only work with repr if you have to
             # 0.3 -> 0.3 if print() but 0.29999999999999999 if repr()
-            strval = unicode(raw)
+            strval = str(raw)
             if re.search(r"\d+e[+-]\d+", strval): # num(s) e +or- num(s)
-                return unicode(repr(raw)) # 1000000000000.4 rather than 1e+12
+                return str(repr(raw)) # 1000000000000.4 rather than 1e+12
             else:
-                return unicode(raw)
-        elif isinstance(raw, basestring): # isinstance includes descendants
+                return str(raw)
+        elif isinstance(raw, (str, bytes)): # isinstance includes descendants
             return UniLib._str2unicode(raw)
         else:
-            return unicode(raw)
+            return str(raw)
 
     @staticmethod
     def _get_unicode_repr(item):
-        if isinstance(item, unicode):
-            return u'u"%s"' % unicode(item).replace('"', '""')
+        if isinstance(item, str):
+            return u'u"%s"' % str(item).replace('"', '""')
         elif isinstance(item, str):
-            return u'"%s"' % unicode(item).replace('"', '""')
+            return u'"%s"' % str(item).replace('"', '""')
         elif item is None:
             return u"None"
         else:
-            return u"%s" % unicode(item).replace('"', '""')
+            return u"%s" % str(item).replace('"', '""')
 
     @staticmethod
     def dic2unicode(mydic, indent=1):
@@ -733,9 +728,9 @@ class DateLib(object):
         """
         try:
             datetime_str = "%s-%s-%s %s:%s:%s" % (pytime.year,
-              unicode(pytime.month).zfill(2), unicode(pytime.day).zfill(2),
-              unicode(pytime.hour).zfill(2),  unicode(pytime.minute).zfill(2),
-              unicode(pytime.second).zfill(2))
+              str(pytime.month).zfill(2), str(pytime.day).zfill(2),
+              str(pytime.hour).zfill(2),  str(pytime.minute).zfill(2),
+              str(pytime.second).zfill(2))
         except ValueError:
             datetime_str = "NULL"
         return datetime_str
@@ -824,9 +819,9 @@ class DateLib(object):
                 bits = datetime_str.split(u" ") # e.g. [u"1 Feb 2009", u"4pm"]
                 if first_bit_passes_time_test:
                     first = bits[0]
-                    last = u" ".join([x for x in bits[1:]]) # at least one bit
+                    last = " ".join([str(x) for x in bits[1:]]) # at least one bit
                 else:
-                    first = u" ".join([x for x in bits[:-1]]) # at least one bit
+                    first = " ".join([str(x) for x in bits[:-1]]) # at least one bit
                     last = bits[-1]
                 parts_lst = [first, last]
         else:
@@ -892,7 +887,7 @@ class DateLib(object):
             if debug: print("Spaces or empty text are not valid datetime strings")
             return None
         try:
-            unicode(raw_datetime_str)
+            str(raw_datetime_str)
         except Exception:
             return None # can't do anything further with something that can't be converted to unicode
         # evaluate date and/or time components against allowable formats
@@ -1211,7 +1206,7 @@ class GuiLib(object):
     def get_text_to_draw(orig_txt, max_width):
         "Return text broken into new lines so wraps within pixel width"
         mem = wx.MemoryDC()
-        mem.SelectObject(wx.EmptyBitmap(100,100)) # mac fails without this
+        mem.SelectObject(wx.Bitmap(100, 100)) # mac fails without this
         # add words to it until its width is too long then put into split
         lines = []
         words = orig_txt.split()
@@ -1232,7 +1227,7 @@ class GuiLib(object):
     def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
         "Shrink font until it fits or is min size"
         mem = wx.MemoryDC()
-        mem.SelectObject(wx.EmptyBitmap(max_width,100)) # mac fails without this
+        mem.SelectObject(wx.Bitmap(max_width, 100)) # mac fails without this
         while font_sz > min_font_sz:
             font = wx.Font(font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
             mem.SetFont(font)
@@ -1657,8 +1652,8 @@ def get_gettext_setup_txt():
     bits.append(u"    mytrans = gettext.translation(u'sofastats', \"%s\"," % 
         escape_pre_write(mg.LANGDIR))
     bits.append(u"        languages=[u'%s',], fallback=True)" % mg.CANON_NAME)
-    bits.append(u"    mytrans.install(unicode=True)")
-    bits.append(u"except Exception, e:")
+    bits.append(u"    mytrans.install()")
+    bits.append(u"except Exception as e:")
     bits.append(u"    raise Exception(u\"Problem installing translation. \"")
     bits.append(u"        u\"Original error: %s\" % e)")
     if mg.PLATFORM == mg.LINUX:
@@ -1896,7 +1891,7 @@ def esc_str_input(raw):
     """
     try:
         new_str = raw.replace("%", "%%")
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Unable to escape str input."
             u"\nCaused by error: %s" % b.ue(e))
     return new_str
@@ -1916,8 +1911,8 @@ def get_var_dets(fil_var_dets):
     var_dets = b.get_exec_ready_text(text=var_dets)
     var_dets_dic = {}
     results = empty_var_dets # init
-    try: # http://docs.python.org/reference/simple_stmts.html
-        exec var_dets in var_dets_dic
+    try:
+        exec(var_dets, var_dets_dic)
         try: # puts out results in form which should work irrespective of surrounding encoding of script. E.g. labels={u'1': u'R\xe9parateurs de lampe \xe0 p\xe9trole',
             orig_var_types = var_dets_dic["var_types"]
             var_types = {}
@@ -1931,20 +1926,20 @@ def get_var_dets(fil_var_dets):
                 var_types[key] = new_type
             results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
                 var_types, var_dets_dic["val_dics"])
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
                 u"var_notes, var_types, and val_dics. "
                 u"Please check file. Orig error: %s" % (fil_var_dets, b.ue(e)))
-    except SyntaxError, e:
+    except SyntaxError as e:
         wx.MessageBox(
             _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
             u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-            u"err": unicode(e)})
-    except Exception, e:
+            u"err": str(e)})
+    except Exception as e:
         wx.MessageBox(
             _(u"Error processing variable details file \"%(fil_var_dets)s\"."
             u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-            u"err": unicode(e)})
+            u"err": str(e)})
     return results
 
 def get_rand_val_of_type(lbl_type_key):
@@ -2050,7 +2045,7 @@ def get_escaped_dict_pre_write(mydict):
             item = u"None"
         elif type(val) is dict:
             item = get_escaped_dict_pre_write(val)
-        elif isinstance(val, basestring):
+        elif isinstance(val, str):
             item = u'u"' + escape_pre_write(val) + u'"'
         else:
             item = val 
@@ -2058,7 +2053,7 @@ def get_escaped_dict_pre_write(mydict):
     return u"{" + u",\n    ".join(items_list) + u"}"
 
 if mg.PLATFORM == mg.WINDOWS:
-    exec u"import pywintypes"
+    exec("import pywintypes")
 
 def escape_pre_write(txt):
     """

@@ -4,7 +4,7 @@ from matplotlib import pyplot
 import sys
 import os
 
-from Utils import getGoldenRatioDimensions
+from .Utils import getGoldenRatioDimensions
 
 class PlotLayout:
     def __init__(self):
@@ -101,7 +101,7 @@ class PlotLayout:
 
     def __doPlot(self):
         if len(self.groupedPlots) + len(self.plots) == 0:
-            print "PlotLayout.plot(): No data to plot!"
+            print("PlotLayout.plot(): No data to plot!")
             return
 
         if self.rcParams is not None:
@@ -169,7 +169,7 @@ class PlotLayout:
                 (currPlotHandles, currPlotLabels) = plot.subplot(
                     myRows, myCols, myPos)
 
-                for i in xrange(len(currPlotHandles)):
+                for i in range(len(currPlotHandles)):
                     if currPlotLabels[i] in plotLabels:
                         continue
 
@@ -200,7 +200,7 @@ class PlotLayout:
 
                 (currPlotHandles, currPlotLabels) = plot.subplot(
                     myRows, myCols, myPos)
-                for i in xrange(len(currPlotHandles)):
+                for i in range(len(currPlotHandles)):
                     if currPlotLabels[i] in plotLabels:
                         continue
 

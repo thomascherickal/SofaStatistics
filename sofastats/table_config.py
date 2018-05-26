@@ -16,6 +16,7 @@ import sqlite3 as sqlite
 import string
 import wx #@UnusedImport
 import wx.grid
+import wx.html2
 
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
@@ -23,7 +24,6 @@ from sofastats import lib
 from sofastats import config_output
 from sofastats import getdata # must be anything referring to plugin modules
 from sofastats.dbe_plugins import dbe_sqlite
-from sofastats import full_html
 from sofastats import output
 from sofastats import recode
 from sofastats import settings_grid
@@ -47,7 +47,7 @@ def reset_default_dd(tbl=None, add_checks=False):
             obj_qtr = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
             dd.cur.execute(u"SELECT * FROM %s" % obj_qtr(dd.tbls[0]))
             print(dd.cur.fetchone())
-    except Exception, e:
+    except Exception as e:
         raise Exception(u"Problem resetting dd with tbl %s."
             u"\nCaused by error: %s" % (tbl, b.ue(e)))   
 
@@ -397,7 +397,7 @@ class SafeTblNameValidator(wx.PyValidator):
         except Exception:
             return
         # allow alphanumeric and underscore
-        if (keycode not in string.letters 
+        if (keycode not in string.ascii_letters
                 and keycode not in string.digits
                 and keycode != "_"):
             return
@@ -526,8 +526,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             if not self.readonly else _("Demonstration Result:")
         lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
         lbl_see_result.SetFont(mg.LABEL_FONT)
-        self.html = full_html.FullHTML(panel=self.panel, parent=self, 
-            size=(500,200))
+
+
+        self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(500, 200))
+        
+        
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -668,7 +671,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         """
         debug = False
         if not self.settings_data:
-            self.html.show_html(WAITING_MSG)
+            self.html.SetPage(WAITING_MSG, '')
             return
         if debug: print(self.settings_data)
         # 1) part before the table-specific items e.g. column names and data
@@ -723,7 +726,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             html.append(u"</tr>")
         html.append(u"\n</tbody>\n</table></body></html>")
         html2show = u"".join(html)
-        self.html.show_html(html2show)
+        self.html.SetPage(html2show, '')
     
     def setup_settings_data(self, data):
         debug = False
@@ -826,11 +829,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         try: # 1 way or other must do strict_cleanup()
             make_strict_typing_tbl(orig_tblname, oth_name_types, 
                 self.settings_data)
-        except sqlite.IntegrityError, e: #@UndefinedVariable
+        except sqlite.IntegrityError as e: #@UndefinedVariable
             if debug: print(b.ue(e))
             strict_cleanup(restore_tblname=orig_tblname)
             raise FldMismatchException
-        except Exception, e:
+        except Exception as e:
             strict_cleanup(restore_tblname=orig_tblname)
             raise Exception(u"Problem making strictly-typed table."
                 u"\nCaused by error: %s" % b.ue(e))
@@ -841,7 +844,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             make_redesigned_tbl(final_name, oth_name_types)
             strict_cleanup(restore_tblname=final_name)
             dd.set_tbl(tbl=final_name)
-        except Exception, e:
+        except Exception as e:
             strict_cleanup(restore_tblname=orig_tblname)
             restore_copy_tbl(orig_tblname) # effectively removes tmp_tbl 2
             dd.set_tbl(tbl=orig_tblname)
@@ -913,7 +916,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             self.tabentry.grid.InsertRows(row_idx, 1)
             self.tabentry.grid.SetCellValue(row_idx, 0, fldname)
             self.tabentry.grid.SetCellValue(row_idx, 1, fldtype)
-            self.tabentry.grid.SetRowLabelValue(row_idx, unicode(row_idx+1))
+            self.tabentry.grid.SetRowLabelValue(row_idx, str(row_idx+1))
             self.tabentry.grid.ForceRefresh() # deleteme
         # extra config
         self.tabentry.grid.SetRowLabelValue(self.tabentry.rows_n-1, 
@@ -970,7 +973,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                         "not match the column type. Please edit and try "
                         "again."))
                     return
-                except Exception, e:
+                except Exception as e:
                     wx.MessageBox(_(u"Unable to modify table."
                         u"\nCaused by error: %s") % b.ue(e))
                     return
@@ -1031,7 +1034,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                         "not match the column type. Please edit and try "
                         "again."))
                     return
-                except Exception, e:
+                except Exception as e:
                     wx.MessageBox(_("Unable to modify table.\nCaused by error:"
                         " %s") % b.ue(e))
                     return

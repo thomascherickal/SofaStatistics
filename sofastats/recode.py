@@ -79,7 +79,7 @@ def process_orig(orig, fldname, fldtype):
     """
     debug = False
     fld = objqtr(fldname)
-    if not isinstance(orig, basestring):
+    if not isinstance(orig, str):
         raise Exception(u"process_orig() expects strings")
     orig_clause = None
     # 1 Special (except REMAINING which always appears as part of END)
@@ -200,11 +200,11 @@ def warn_about_existing_labels(recode_dlg, val, row, col, grid, col_dets):
             max_width = 0
             fld_val_dic = recode_dlg.val_dics[recode_dlg.new_fldname]
             for key, label in fld_val_dic.items():
-                max_width = len(unicode(key)) if len(unicode(key)) > max_width \
+                max_width = len(str(key)) if len(str(key)) > max_width \
                     else max_width
             existing_labels_lst = []
             for key, label in fld_val_dic.items():
-                display = u"%s:   %s" % (unicode(key).ljust(max_width), label)
+                display = u"%s:   %s" % (str(key).ljust(max_width), label)
                 existing_labels_lst.append(display)
             existing_labels = u"\n".join(existing_labels_lst)
             wx.MessageBox(_("\"%(new_fldname)s\" already has value labels set. "
@@ -452,9 +452,9 @@ e.g. if you want all missing values to become 99 you would have a line with From
         print("*"*60)
         try:
             dd.cur.execute(SQL_insert_content)
-        except Exception, e:
+        except Exception as e:
             print(SQL_insert_content)
-            print(unicode(e))
+            print(str(e))
             self.recover_from_failed_recode()
             raise
         dd.con.commit()
@@ -567,7 +567,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
         try:
             case_when = self.get_case_when_clause(new_fldname, new_fldtype, 
                 fldtype, dict_labels)
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Problem with your recode configuration."
                 "\nCaused by error: %s") % b.ue(e))
             return
@@ -587,7 +587,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
             wx.MessageBox(_("Please Note - this was a once-off recode - it "
                 "won't be applied automatically when new rows are added or "
                 "cells are edited."))
-        except Exception, e:
+        except Exception as e:
             raise Exception(_("Problem recoding table."
                 "\nCaused by error: %s") % b.ue(e))
         self.update_labels(new_fldname, dict_labels)

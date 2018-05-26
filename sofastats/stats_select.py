@@ -85,10 +85,10 @@ class DlgStatsSelect(wx.Dialog):
             stats_sel_img = u"stats_select.gif"
         else:
             stats_sel_img = u"stats_select_tight.gif"
-        img_stats_select = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images",
-                                                 stats_sel_img), 
-                           wx.BITMAP_TYPE_GIF)
-        self.bmp_stats_select = wx.BitmapFromImage(img_stats_select)
+        img_stats_select = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, u"images", stats_sel_img),
+            wx.BITMAP_TYPE_GIF)
+        self.bmp_stats_select = wx.Bitmap(img_stats_select)
         # direct or assisted
         self.rad_direct = wx.RadioButton(self.panel, -1, 
                             pos=(self.main_left-25, 55), 
@@ -205,8 +205,8 @@ class DlgStatsSelect(wx.Dialog):
         self.groups_label = _("Groups")
         btn_groups = wx.Button(self.panel, -1, self.groups_label,
                                   pos=(self.btn1_left, self.question_btns_top))
-        btn_groups.SetToolTipString(_("Make report tables to see how many "
-                                      "groups in data"))
+        btn_groups.SetToolTip(
+            _("Make report tables to see how many groups in data"))
         btn_groups.Bind(wx.EVT_BUTTON, self.on_groups_btn)
         self.normality_label = _("Normality")
         self.normality_msg = _("Use the \"%s\" button at the bottom to assess "
@@ -215,14 +215,14 @@ class DlgStatsSelect(wx.Dialog):
                 self.normality_label
         btn_normality = wx.Button(self.panel, -1, self.normality_label,
                                   pos=(self.btn2_left, self.question_btns_top))
-        btn_normality.SetToolTipString(_("Assess the normality of your "
-                                         "numerical data"))
+        btn_normality.SetToolTip(
+            _("Assess the normality of your numerical data"))
         btn_normality.Bind(wx.EVT_BUTTON, self.on_normality_btn)
         self.data_type_label = _("Data Type")
         btn_type = wx.Button(self.panel, -1, self.data_type_label,
                                   pos=(self.help_left, self.question_btns_top))
-        btn_type.SetToolTipString(_("Assess data type e.g. categorical, "
-                                    "ordered etc"))
+        btn_type.SetToolTip(
+            _("Assess data type e.g. categorical, ordered etc"))
         btn_type.Bind(wx.EVT_BUTTON, self.on_type_btn)
         # listbox of tests
         self.lst_tests = wx.ListCtrl(self.panel, -1,
@@ -243,18 +243,18 @@ class DlgStatsSelect(wx.Dialog):
         self.lst_tests.InsertColumn(1, u"")
         self.lst_tests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
-            unused = self.lst_tests.InsertStringItem(i, test)
-            self.lst_tests.SetStringItem(i, 1, u"", self.idx_blank)
-        unused = self.lst_tests.InsertStringItem(i+1, u"")
+            unused = self.lst_tests.InsertItem(i, test)
+            self.lst_tests.SetItem(i, 1, u"", self.idx_blank)
+        unused = self.lst_tests.InsertItem(i+1, u"")
         self.lst_tests.Select(0)
         self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED,
                            self.on_list_item_selected)
         self.lst_tests.Bind(wx.EVT_LIST_ITEM_ACTIVATED,
                            self.on_list_item_activated)
         # tips etc
-        self.lbl_tips = wx.StaticText(self.panel, -1,
-                                      pos=(self.lst_left,
-                                           self.lst_top+self.lst_height+40))
+        self.lbl_tips = wx.StaticText(
+            self.panel, -1,
+            pos=(self.lst_left, self.lst_top+self.lst_height+40))
         self.lbl_tips.SetFont(mg.LABEL_FONT)
         self.lbl_tips.SetForegroundColour(self.text_brown)
         # run test button
@@ -262,9 +262,9 @@ class DlgStatsSelect(wx.Dialog):
              pos=(self.config_left + self.lst_width + 55, self.lst_top))
         self.btn_config.Bind(wx.EVT_BUTTON, self.on_config_clicked)
         # close button
-        self.btn_close = wx.Button(self.panel, wx.ID_CLOSE,
-                                   pos=(self.form_width-100,
-                                        self.form_height-42))
+        self.btn_close = wx.Button(
+            self.panel, wx.ID_CLOSE,
+            pos=(self.form_width-100, self.form_height-42))
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_close_click)
         self.update_test_tips(STATS_TESTS[0], assisted=False)
         self.lst_tests.SetFocus()
@@ -467,12 +467,12 @@ class DlgStatsSelect(wx.Dialog):
 
     def on_groups_btn(self, event):
         wx.BeginBusyCursor()
-        from sofastats import report_table
+        from sofastats.tables import report_table
         try:
             dlg = report_table.DlgMakeTable()
             lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
-        except Exception, e:
+        except Exception as e:
             msg = _("Unable to open report table")
             wx.MessageBox(msg)
             raise Exception(u"%s.\nCaused by error: %s" % (msg, b.ue(e)))
@@ -836,44 +836,44 @@ class DlgStatsSelect(wx.Dialog):
             return
         try:
             if sel_test == TEST_TTEST_INDEP:
-                from sofastats import ttest_indep
+                from sofastats.stats import ttest_indep
                 dlg = ttest_indep.DlgConfig(_("Configure Independent t-test"))
                 dlg.ShowModal()        
             elif sel_test == TEST_TTEST_PAIRED:
-                from sofastats import ttest_paired
+                from sofastats.stats import ttest_paired
                 dlg = ttest_paired.DlgConfig(
                                         _("Configure Paired Samples t-test"))
                 dlg.ShowModal()
             elif sel_test == TEST_ANOVA:
-                from sofastats import anova
+                from sofastats.stats import anova
                 dlg = anova.DlgConfig(_("Configure ANOVA test"), 
                                       takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_WILCOXON:
-                from sofastats import wilcoxon
+                from sofastats.stats import wilcoxon
                 dlg = wilcoxon.DlgConfig(
                                     _("Configure Wilcoxon Signed Ranks test"))
                 dlg.ShowModal()
             elif sel_test == TEST_MANN_WHITNEY:
-                from sofastats import mann_whitney
+                from sofastats.stats import mann_whitney
                 dlg = mann_whitney.DlgConfig(_("Configure Mann Whitney U test"))
                 dlg.ShowModal()
             elif sel_test == TEST_KRUSKAL_WALLIS:
-                from sofastats import kruskal_wallis
+                from sofastats.stats import kruskal_wallis
                 dlg = kruskal_wallis.DlgConfig(
                                         _("Configure Kruskal Wallis H test"), 
                                         takes_range=True)
                 dlg.ShowModal()
             elif sel_test == TEST_CHI_SQUARE:
-                from sofastats import chisquare
+                from sofastats.stats import chisquare
                 dlg = chisquare.DlgConfig(_("Configure Chi Square test"))
                 dlg.ShowModal()
             elif sel_test == TEST_PEARSONS_R:
-                from sofastats import pearsonsr
+                from sofastats.stats import pearsonsr
                 dlg = pearsonsr.DlgConfig(_("Configure Pearson's R test"))
                 dlg.ShowModal()
             elif sel_test == TEST_SPEARMANS_R:
-                from sofastats import spearmansr
+                from sofastats.stats import spearmansr
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"))
                 dlg.ShowModal()
             else:

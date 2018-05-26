@@ -1,8 +1,8 @@
 import pylab
 from matplotlib import pyplot
 import sys
-from sofastats.boomslang.PlotInfo import PlotInfo
-from sofastats.boomslang.PlotLayout import *
+from .PlotInfo import PlotInfo
+from .PlotLayout import *
 import copy
 
 try:
@@ -11,7 +11,7 @@ try:
 except ImportError:
     insetLocatorLoaded = False
 
-from Utils import getGoldenRatioDimensions
+from .Utils import getGoldenRatioDimensions
 
 class Plot:
     """
@@ -103,14 +103,14 @@ class Plot:
         self.legendLabelSize = size
     
     def split(self, pieces):
-        splitPlots = [copy.deepcopy(self) for i in xrange(pieces)]
+        splitPlots = [copy.deepcopy(self) for i in range(pieces)]
        
         for plot in splitPlots:
             plot.plots = []
        
         for plot in self.plots:
             elements = plot.split(pieces)
-            for i in xrange(pieces):
+            for i in range(pieces):
                 splitPlots[i].add(elements[i])
                 splitPlots[i].setXLimits(min(elements[i].xValues), max(elements[i].xValues))
         return splitPlots
@@ -323,7 +323,8 @@ class Plot:
 
     def plotInset(self, parentAxes, width, height, location, padding):
         if not insetLocatorLoaded:
-            print sys.stderr, "Plotting insets requires mpl_toolkits.axes_grid.inset_locatoor, which your version of matplotlib doesn't appear to have."
+            print(sys.stderr,
+                "Plotting insets requires mpl_toolkits.axes_grid.inset_locator, which your version of matplotlib doesn't appear to have.")
             sys.exit(1)
 
         locationMap = {"best" : 0, 
@@ -508,7 +509,7 @@ class Plot:
         legendKeywords = {}
         
         if self.legendCols > 0:
-            versionParts = [int(filter(lambda x: x.isdigit(), x)) 
+            versionParts = [int(list(filter(lambda x: x.isdigit(), x))) 
                             for x in matplotlib.__version__.split('.')]
             #versionParts = [int(x) for x in matplotlib.__version__.split('.')]
             (superMajor, major, minor) = versionParts[0:3]
@@ -533,4 +534,3 @@ class Plot:
                             **legendKeywords)
                 
         return (plotHandles, plotLabels)
-

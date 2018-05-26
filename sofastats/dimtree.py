@@ -40,7 +40,7 @@ class DlgSelectVars(wx.Dialog):
         self.var_selector = wx.ListBox(self, -1, choices=var_choices, 
                                        style=wx.LB_MULTIPLE, size=(-1, 300))
         self.var_selector.Bind(wx.EVT_LISTBOX_DCLICK, self.on_var_sel)
-        self.var_selector.SetToolTipString(_("Select variable(s)"))
+        self.var_selector.SetToolTip(_("Select variable(s)"))
         self.setup_btns()
         szr.Add(self.var_selector, 0, wx.GROW|wx.ALL, 10)
         szr.Add(self.szr_btns, 0, wx.ALL, 10)
@@ -120,11 +120,11 @@ class DimTree(object):
             }
         }
 
-    def on_row_item_activated(self, event):
+    def on_row_item_activated(self, _event):
         "Activated row item in tree. Show config dialog."
         self.config_dim(dim=mg.ROWDIM_KEY)
     
-    def on_col_item_activated(self, event):
+    def on_col_item_activated(self, _event):
         "Activated col item in tree. Show config dialog."
         self.config_dim(dim=mg.COLDIM_KEY)
     
@@ -158,19 +158,19 @@ class DimTree(object):
                     lib.GuiLib.get_choice_item(self.var_labels, var_name))
             self.update_demo_display()
     
-    def on_row_add(self, event):
+    def on_row_add(self, _event):
         "Add row var under root"
         self.try_adding(tree=self.rowtree, root=self.rowroot, dim=mg.ROWDIM_KEY, 
                         oth_dim=mg.COLDIM_KEY, oth_dim_tree=self.coltree, 
                         oth_dim_root=self.colroot)
      
-    def on_col_add(self, event):
+    def on_col_add(self, _event):
         "Add column var under root"
         self.try_adding(tree=self.coltree, root=self.colroot, dim=mg.COLDIM_KEY, 
                         oth_dim=mg.ROWDIM_KEY, oth_dim_tree=self.rowtree, 
                         oth_dim_root=self.rowroot)
     
-    def get_selected_idxs(self, dim, sorted_choices):
+    def get_selected_idxs(self, sorted_choices):
         selected_idxs = []
         dlg = DlgSelectVars(parent=self, var_choices=sorted_choices,
                             selected_idxs=selected_idxs)
@@ -193,7 +193,7 @@ class DimTree(object):
         (sorted_choices, 
          sorted_vars) = lib.GuiLib.get_sorted_choice_items(
              dic_labels=self.var_labels, vals=var_names)
-        selected_idxs = self.get_selected_idxs(dim, sorted_choices)
+        selected_idxs = self.get_selected_idxs(sorted_choices)
         if selected_idxs:
             # only use in one dimension
             for idx in selected_idxs:
@@ -334,7 +334,7 @@ class DimTree(object):
         (sorted_choices, 
          sorted_vars) = lib.GuiLib.get_sorted_choice_items(
              self.var_labels, var_names)
-        selected_idxs = self.get_selected_idxs(dim, sorted_choices)
+        selected_idxs = self.get_selected_idxs(sorted_choices)
         if not selected_idxs:
             return
         for idx in selected_idxs:
@@ -577,11 +577,11 @@ class DimTree(object):
             dim_item_conf[MEASURES] = item_config_dets.measures_lst
     
     def add_default_column_config(self):
-        self.col_no_vars_item = self.coltree.AppendItem(self.colroot, 
-                                                        mg.COL_CONFIG_ITEM_LBL)
+        self.col_no_vars_item = self.coltree.AppendItem(
+            self.colroot, mg.COL_CONFIG_ITEM_LBL)
         self.set_initial_config(self.coltree, mg.COLDIM_KEY, self.col_no_vars_item)
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
-        self.coltree.ExpandAll(self.colroot)
+        self.coltree.Expand(self.colroot)
         self.coltree.SelectItem(self.col_no_vars_item)
         self.btn_col_add.Disable()
         self.btn_col_add_under.Disable()

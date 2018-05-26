@@ -1,8 +1,4 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
-from __future__ import print_function
-import os
 import wx #@UnusedImport
 
 from sofastats import basic_lib as b  #@UnresolvedImport
@@ -11,7 +7,7 @@ from sofastats import lib  #@UnresolvedImport
 from sofastats import my_exceptions  #@UnresolvedImport
 from sofastats import config_output  #@UnresolvedImport
 from sofastats import getdata   #@UnresolvedImport # must be before anything referring to plugin modules
-from sofastats import importer  #@UnresolvedImport
+from sofastats.importing import importer  #@UnresolvedImport
 from sofastats.dbe_plugins import dbe_sqlite  #@UnresolvedImport
 
 FILE_CSV = u"csv"
@@ -80,7 +76,7 @@ class DlgImportFileSelect(wx.Dialog):
         self.btn_import.Enable(False)
         # progress
         self.progbar = wx.Gauge(self.panel, -1, mg.IMPORT_GAUGE_STEPS,
-            size=(-1, 20), style=wx.GA_PROGRESSBAR)
+            size=(-1, 20), style=wx.GA_HORIZONTAL)
         # sizers
         szr_file_path = wx.BoxSizer(wx.HORIZONTAL)
         szr_file_path.Add(btn_help, 0, wx.LEFT, 10)
@@ -290,7 +286,7 @@ def run_import(self, force_quickcheck=False):
             wx.MessageBox(bad_char_msg)
             self.align_btns_to_importing(importing=False)
             return
-    if tblname[0] in [unicode(x) for x in range(10)]:
+    if tblname[0] in [str(x) for x in range(10)]:
         digit_msg = _("SOFA Table Names cannot start with a digit")
         wx.MessageBox(digit_msg)
         self.align_btns_to_importing(importing=False)
@@ -324,7 +320,7 @@ def run_import(self, force_quickcheck=False):
     proceed = False
     try:
         proceed = file_importer.get_params()
-    except Exception, e:
+    except Exception as e:
         wx.MessageBox(_("Unable to import data after getting "
             u"parameters\n\nError") + u": %s" % b.ue(e))
         lib.GuiLib.safe_end_cursor()
@@ -334,14 +330,14 @@ def run_import(self, force_quickcheck=False):
                 self.lbl_feedback, self.import_status, self.progbar)
             dd.set_db(dd.db, tbl=tblname)
             lib.GuiLib.safe_end_cursor()
-        except my_exceptions.ImportConfirmationRejected, e:
+        except my_exceptions.ImportConfirmationRejected as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(b.ue(e))
-        except my_exceptions.ImportCancel, e:
+        except my_exceptions.ImportCancel as e:
             lib.GuiLib.safe_end_cursor()
             self.import_status[mg.CANCEL_IMPORT] = False # reinit
             wx.MessageBox(b.ue(e))
-        except Exception, e:
+        except Exception as e:
             self.progbar.SetValue(0)
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(_(u"Unable to import data\n\nHelp available "

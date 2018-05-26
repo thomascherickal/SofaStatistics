@@ -1,6 +1,7 @@
 import pylab
 from matplotlib import pyplot
-from PlotInfo import *
+from .PlotInfo import *
+
 
 class Bar(PlotInfo):
     """

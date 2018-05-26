@@ -1,7 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-from __future__ import print_function
 
 import wx
 import pprint
@@ -13,10 +9,10 @@ from sofastats import lib
 from sofastats import getdata
 try:
     import psycopg2 as pg
-except ImportError, e:
+except ImportError as e:
     try:
         import pgdb as pg
-    except ImportError, e:
+    except ImportError as e:
         raise Exception(u"Not importing PostgreSQL driver. NB SOFA can only work "
             u"with PostgreSQL if its path e.g. \"C:\\Program Files\\PostgreSQL\\"
             u"9.1\\bin\" is added to your Windows PATH variable. See "
@@ -113,7 +109,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if db:
             con_dets_pgsql["database"] = db
         con = pg.connect(**con_dets_pgsql)
-    except Exception, e:
+    except Exception as e:
         user = con_dets_pgsql.get("user")
         if user != 'postgres' and not db:
             msg = (u"Unable to connect to PostgreSQL db. A default database "

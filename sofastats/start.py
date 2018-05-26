@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 SOFA Statistics is released under the open source AGPL3 licence and the
 copyright is held by Paton-Simpson & Associates Ltd.
@@ -16,36 +13,27 @@ start the main loop. That will need to happen in the calling code which replaces
 start.py.
 """
 
-from __future__ import absolute_import
-import traceback
-
-## to avoid using dist-package version if installed as well
-import os
+## modify sys.path to avoid using dist-package version if installed as well
 import sys
 print(sys.path)
-sys.path.insert(0, '/'.join(os.getcwd().split('/')[:-1]))
-from sofastatistics.sofastats import setup_sofastats
+from pathlib import Path
+sys.path.insert(0, Path.cwd().parent)
+from sofastats import setup_sofastats
 from sofastats import home  #@UnresolvedImport
-
 
 show_early_steps = True # same in setup and start
 
 def main():
     try:
         if show_early_steps:
-            print(u"About to load app")
+            print("About to load Sofastats app")
         app = home.SofaApp()
-        #inspect = True
-        #if inspect:
-        #    import wx.lib.inspection
-        #    wx.lib.inspection.InspectionTool().Show()
         app.MainLoop()
-    except Exception, e:
-        print(traceback.format_exc())
+    except Exception as e:
+        print(e)
         app = setup_sofastats.ErrMsgApp(e)
         app.MainLoop()
         del app
-
 
 if __name__ == '__main__':
     main()

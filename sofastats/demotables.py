@@ -1,12 +1,11 @@
-from __future__ import print_function
 
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import my_exceptions
-from sofastats import dimtables
 from sofastats import output
-from sofastats import rawtables
+from sofastats.tables import dimtables
+from sofastats.tables import rawtables
 
 import wx
 
@@ -57,7 +56,7 @@ class DemoTable(object):
                 row_filt_flds_lst, col_measures_lst, col_filters_lst,
                 col_tots_lst, col_filt_flds_lst, row_label_rows_lst,
                 data_cells_n, col_term_nodes, css_idx, dp)
-        except Exception, e:
+        except Exception as e:
             row_label_rows_lst = [u"<td>Problem getting table output: "
                 u"Orig error: %s</td>" % b.ue(e)]
         return row_label_rows_lst
@@ -132,7 +131,7 @@ class DemoTable(object):
             raise
         except my_exceptions.TooFewValsForDisplay:
             raise
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Unable to make report. Error details: %s") % 
                 b.ue(e))
             raise

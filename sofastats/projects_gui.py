@@ -1,4 +1,3 @@
-from __future__ import print_function
 
 import codecs
 import os
@@ -218,14 +217,14 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         proj_cont = b.get_exec_ready_text(text=proj_txt)
         proj_dic = {}
         try:
-            exec proj_cont in proj_dic
-        except SyntaxError, e:
+            exec(proj_cont, proj_dic)
+        except SyntaxError as e:
             wx.MessageBox(
                 _(u"Syntax error in project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
                 u"err": b.ue(e)})
             raise
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(
                 _(u"Error processing project file \"%(fil_proj)s\"."
                 u"\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
@@ -233,7 +232,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             raise
         try:
             self.proj_name = projects.filname2projname(fil_proj)
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
                 "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
                 u"def_proj": mg.DEFAULT_PROJ})
@@ -249,13 +248,13 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             self.fil_script = proj_dic[mg.PROJ_FIL_SCRIPT]
             self.default_dbe = proj_dic[mg.PROJ_DBE]
             getdata.get_proj_con_settings(self, proj_dic)
-        except KeyError, e:
+        except KeyError as e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
                 "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj,
                 u"def_proj": mg.DEFAULT_PROJ})
             raise Exception(u"Key error reading from proj_dic."
                 u"\nCaused by error: %s" % b.ue(e))
-        except Exception, e:
+        except Exception as e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
                 "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj, 
                 u"def_proj": mg.DEFAULT_PROJ})
@@ -409,7 +408,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                 os.remove(fil_name)
             try:
                 f = codecs.open(fil_name, "w", encoding="utf-8")
-            except IOError, e:
+            except OSError as e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
                     u"\"%(fil_name)s\" is a valid file name."
                     u"\n\nCaused by error: %(err)s") % {u"fil_name": fil_name, 

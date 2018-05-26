@@ -1,7 +1,4 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 
-from __future__ import print_function
 import os
 import platform
 from subprocess import Popen, PIPE
@@ -440,15 +437,15 @@ platforms = {u"Linux": LINUX, u"Windows": WINDOWS, u"Darwin": MAC}
 PLATFORM = platforms.get(platform.system())
 INT_FOLDER = u"_internal"
 local_encoding = sys.getfilesystemencoding()
-HOME_PATH = unicode(os.path.expanduser("~"), local_encoding)
+HOME_PATH = os.path.expanduser("~")
 OLD_SOFASTATS_FOLDER = False
 if PLATFORM == LINUX: # see https://bugs.launchpad.net/sofastatistics/+bug/952077
     try:
-        USER_PATH = Popen(['xdg-user-dir', 'DOCUMENTS'], 
-            stdout=PIPE).communicate()[0].strip() # get output i.e. [0]. err is 2nd.
+        USER_PATH = str(Popen(['xdg-user-dir', 'DOCUMENTS'],
+            stdout=PIPE).communicate()[0], encoding='utf-8').strip() # get output i.e. [0]. err is 2nd.
     except OSError:
         USER_PATH = ""
-    USER_PATH = unicode(USER_PATH or os.path.expanduser('~'), local_encoding)
+    USER_PATH = USER_PATH or os.path.expanduser('~')
 else:
     USER_PATH = HOME_PATH
 # USER_PATH = '/path/to/new/root/for/sofastats/and/sofastats_recovery/folders' # can override but make sure the new folder doesn't exist yet - let SOFA make and populate it. Only then override anything you want to override.

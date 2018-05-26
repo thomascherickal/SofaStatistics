@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import locale
 import os
 import wx
@@ -9,8 +6,8 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import my_exceptions
 from sofastats import lib
-from sofastats import export_output_gui
-from sofastats import export_output_images
+from sofastats.exporting import export_output_gui
+from sofastats.exporting import export_output_images
 from sofastats import getdata
 from sofastats import output
 from sofastats import showhtml
@@ -84,7 +81,7 @@ class DlgVarConfig(wx.Dialog):
         self.btn_var_dets_path = wx.Button(self.panel, -1, browse)
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
         self.btn_var_dets_path.Enable(not readonly)
-        self.btn_var_dets_path.SetToolTipString(_("Select an existing variable "
+        self.btn_var_dets_path.SetToolTip(_("Select an existing variable "
             "config file"))
         szr_main = wx.BoxSizer(wx.VERTICAL)
         # Variables
@@ -191,7 +188,7 @@ class DlgVarConfig(wx.Dialog):
             _("Choose or create a file to export scripts to:"), 
             defaultDir=os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER), 
             defaultFile="", wildcard=_("Scripts (*.py)|*.py"),
-            style=wx.SAVE)
+            style=wx.FD_SAVE)
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             self.txt_script_file.SetValue(dlg_get_file.GetPath())
@@ -267,7 +264,7 @@ class ConfigUI(object):
         # 2) Tables
         # not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
-        self.drop_tbls.SetToolTipString(_("Right click to add/remove filter"))
+        self.drop_tbls.SetToolTip(_("Right click to add/remove filter"))
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(mg.LABEL_FONT)
         # 3) Readonly
@@ -320,7 +317,7 @@ class ConfigUI(object):
             self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(170,-1))
             self.btn_run.SetFont(mg.BTN_FONT)
             self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
-            self.btn_run.SetToolTipString(_("Run report and show results"))
+            self.btn_run.SetToolTip(_("Run report and show results"))
         if show_add_btn:
             self.chk_add_to_report = wx.CheckBox(panel, -1, ADD2_RPT_LBL)
             self.chk_add_to_report.SetFont(mg.GEN_FONT)
@@ -347,14 +344,14 @@ class ConfigUI(object):
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
-        self.btn_report_path.SetToolTipString(_("Select or create an HTML "
+        self.btn_report_path.SetToolTip(_("Select or create an HTML "
             "output file"))
         if show_view_btn:
             self.btn_view = wx.Button(panel, -1, _("View Report"), size=(-1,25))
             self.btn_view.SetFont(mg.BTN_FONT)
             self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
             self.btn_view.Enable(not self.readonly)
-            self.btn_view.SetToolTipString(_("View selected HTML output file "
+            self.btn_view.SetToolTip(_("View selected HTML output file "
                 "in your default browser"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         if show_run_btn:
@@ -376,7 +373,7 @@ class ConfigUI(object):
             ]
             self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
             self.drop_export.Enable(not self.readonly)
-            self.drop_export.SetToolTipString(_(u"Export report as PDF, images,"
+            self.drop_export.SetToolTip(_(u"Export report as PDF, images,"
                 u" or to spreadsheet ready for reports, slideshows etc"))
             self.drop_export.SetSelection(0)
             lbl_export = wx.StaticText(panel, -1, _("Export:"))
@@ -388,7 +385,7 @@ class ConfigUI(object):
             self.btn_export = wx.Button(panel, -1, _("Export"), size=(-1,25))
             self.btn_export.SetFont(mg.BTN_FONT)
             self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
-            self.btn_export.SetToolTipString(_("Export output as per selection"))
+            self.btn_export.SetToolTip(_("Export output as per selection"))
             szr_output_config.Add(vln, 0, wx.GROW)
             szr_export_upper.Add(lbl_export, 0, wx.TOP|wx.LEFT, 5)
             szr_export_upper.Add(self.drop_export, 0, wx.LEFT, 5)
@@ -403,13 +400,13 @@ class ConfigUI(object):
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.SetFont(mg.BTN_FONT)
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
-        self.btn_expand.SetToolTipString(_(u"Open displayed output in own "
+        self.btn_expand.SetToolTip(_(u"Open displayed output in own "
             u"window"))
         self.btn_expand.Enable(False)
         if inc_clear:
             self.btn_clear = wx.Button(panel, -1, _("Clear"))
             self.btn_clear.SetFont(mg.BTN_FONT)
-            self.btn_clear.SetToolTipString(_("Clear settings"))
+            self.btn_clear.SetToolTip(_("Clear settings"))
             self.btn_clear.Bind(wx.EVT_BUTTON, self.on_btn_clear)
         self.btn_close = wx.Button(panel, wx.ID_CLOSE)
         self.btn_close.SetFont(mg.BTN_FONT)
@@ -450,7 +447,7 @@ class ConfigUI(object):
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
         style_selector.Enable(not self.readonly)
-        style_selector.SetToolTipString(_("Select an existing css style file"))
+        style_selector.SetToolTip(_("Select an existing css style file"))
         return style_selector
 
     def get_dp_spinner(self, panel, dp_val):
@@ -458,7 +455,7 @@ class ConfigUI(object):
         dp_spinner.SetRange(0, mg.MAX_DISPLAY_DP)
         dp_spinner.Bind(wx.EVT_SPINCTRL, self.on_dp_spin)
         dp_spinner.SetFont(mg.GEN_FONT)
-        dp_spinner.SetToolTipString(_(u"Maximum number of decimal places to "
+        dp_spinner.SetToolTip(_(u"Maximum number of decimal places to "
             u"show"))
         return dp_spinner
 
@@ -467,7 +464,7 @@ class ConfigUI(object):
         btn_var_config.SetFont(mg.BTN_FONT)
         btn_var_config.Bind(wx.EVT_BUTTON, self.on_btn_var_config)
         btn_var_config.Enable(not self.readonly)
-        btn_var_config.SetToolTipString(_(u"Configure variable details e.g. "
+        btn_var_config.SetToolTip(_(u"Configure variable details e.g. "
             u"labels"))
         return btn_var_config
 
@@ -530,7 +527,7 @@ class ConfigUI(object):
         try:
             dd.cur.execute(s)
             rows_n = dd.cur.fetchone()[0]
-        except Exception, e:
+        except Exception as e:
             if debug: print(u"Unable to count rows. Orig error: %s" % b.ue(e))
             rows_n = 0
         return rows_n
@@ -611,7 +608,7 @@ class ConfigUI(object):
             _("Choose or create a report output file:"), 
             defaultDir=mg.REPORTS_PATH, defaultFile=u"", 
             wildcard=_(u"HTML files (*.htm)|*.htm|HTML files (*.html)|*.html"),
-            style=wx.SAVE)
+            style=wx.FD_SAVE)
             # MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
             # not necessary that the report exists, only that its folder is already there
@@ -703,7 +700,7 @@ class ConfigUI(object):
             wx.MessageBox(_(u"Finished. Note - don't close the %s form before "
                 u"pasting the output or it won't work." % self.title),
                 caption=u"COPIED OUTPUT")
-        except Exception, e:
+        except Exception as e:
             lib.GuiLib.safe_end_cursor()
             wx.MessageBox(u"Unable to copy output to clipboard. Orig error: %s"
                 % b.ue(e))
@@ -716,7 +713,7 @@ class ConfigUI(object):
         css_fils, css_idx = output.get_css_dets()
         try:
             script = self.get_script(css_idx, **get_script_args)
-        except Exception, e:
+        except Exception as e:
             raise Exception("Problem getting script. Orig error: %s" % 
                 b.ue(e))
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT
@@ -745,7 +742,7 @@ class ConfigUI(object):
     def on_btn_run(self, event, get_script_args, new_has_dojo=False):
         try:
             self.run_report(get_script_args, new_has_dojo)
-        except my_exceptions.MissingCss, e:    
+        except my_exceptions.MissingCss as e:    
             lib.OutputLib.update_local_display(self.html,
                 _("Please check the CSS file exists or set another. Caused by "
                   "error: %s") % b.ue(e), wrap_text=True)
