@@ -363,7 +363,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             pass # need on Mac or exceptn survives
         finally: # any initial content
             html2show = _(u"<p>Waiting for an analysis to be run.</p>")
-            self.html.SetPage(html2show, '')
+            self.html.SetPage(html2show, mg.BASE_URL)
             
     def add_other_var_opts(self, szr=None):
         "Used by ANOVA at least"

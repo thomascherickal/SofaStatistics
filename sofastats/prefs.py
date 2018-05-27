@@ -1,7 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
-import codecs
 import os
 import pprint
 import wx
@@ -50,19 +46,19 @@ class DlgPrefs(wx.Dialog):
         self.szr_std_btns.AddButton(btn_ok)
         self.szr_std_btns.Realize()
 
-    def on_cancel(self, event):
+    def on_cancel(self, _event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL) # only for dialogs 
         # (MUST come after Destroy)
     
-    def on_ok(self, event):
+    def on_ok(self, _event):
         # collect prefs.  Do it all from scratch here
         prefs_dic_out = {mg.PREFS_KEY: {}}
         prefs_dic_out[mg.PREFS_KEY][mg.PREFS_DEFAULT_DETAILS_KEY] = \
             self.chk_details.GetValue()
         # create updated prefs file
         prefs_path = os.path.join(mg.INT_PATH, mg.INT_PREFS_FILE)
-        f = codecs.open(prefs_path, "w", "utf-8")
+        f = open(prefs_path, "w", encoding="utf-8")
         prefs_str = pprint.pformat(prefs_dic_out[mg.PREFS_KEY])
         f.write(u"%s = " % mg.PREFS_KEY + prefs_str)
         f.close()

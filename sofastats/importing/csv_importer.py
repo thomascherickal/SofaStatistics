@@ -529,7 +529,7 @@ def csv2utf8_bytelines(file_path, encoding, delimiter, strict=True):
     if not unilines:
         try:
             errors = "strict" if strict else "replace"
-            f = codecs.open(file_path, encoding=encoding, errors=errors)
+            f = open(file_path, encoding=encoding, errors=errors)
         except IOError as e:
             raise Exception(u"Unable to open file for re-encoding. "
                 u"\nCaused by error: %s" % b.ue(e))
@@ -603,7 +603,7 @@ class DlgImportDisplay(wx.Dialog):
         if debug: print(content)
         self.html_content = wx.html.HtmlWindow(panel, -1, 
             size=(500, content_height))
-        self.html_content.SetPage(content)
+        self.html_content.SetPage(content, mg.BASE_URL)
         btn_cancel = wx.Button(panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
         btn_ok = wx.Button(panel, wx.ID_OK)
@@ -716,7 +716,7 @@ class DlgImportDisplay(wx.Dialog):
         if len(self.dialect.delimiter) > 0:
             try:
                 content, unused = self.get_content()
-                self.html_content.SetPage(content)
+                self.html_content.SetPage(content, mg.BASE_URL)
             except Exception as e:
                 wx.MessageBox(u"Unable to use the delimiter character supplied."
                     u"\nCaused by error: %s" % b.ue(e))

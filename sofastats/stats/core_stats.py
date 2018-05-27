@@ -271,13 +271,13 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     """
     Get list of observed and expected values ready for inclusion in Pearson's
     Chi Square test.
-    
+
     NB must return 0 if nothing. All cells must be filled.
-    
+
     Returns lst_obs, lst_exp, min_count, perc_cells_lt_5, df.
-    
+
     NB some dbes return integers and some return Decimals.
-    
+
     The lists are b within a e.g. a1b1, a1b2, a1b3, a2b1, a2b2 ...
     """
     debug = False
@@ -286,13 +286,14 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     qfld_a = objqtr(fld_a)
     qfld_b = objqtr(fld_b)
     # A) get ROW vals used ***********************
-    SQL_row_vals_used = u"""SELECT %(qfld_a)s
-    FROM %(qtbl)s
-    WHERE %(qfld_b)s IS NOT NULL AND %(qfld_a)s IS NOT NULL
-    %(and_tbl_filt)s
-    GROUP BY %(qfld_a)s
-    ORDER BY %(qfld_a)s """ % {"qtbl": qtbl, "qfld_a": qfld_a, "qfld_b": qfld_b, 
-        "and_tbl_filt": and_tbl_filt}
+    SQL_row_vals_used = f"""\
+    SELECT {qfld_a}
+    FROM {qtbl}
+    WHERE {qfld_b} IS NOT NULL AND {qfld_a} IS NOT NULL
+    {and_tbl_filt}
+    GROUP BY {qfld_a}
+    ORDER BY {qfld_a}
+    """
     cur.execute(SQL_row_vals_used)
     row_vals_used = cur.fetchall()
     vals_a = get_unique_dim_vals(row_vals_used, dbe, flds, fld_a)
@@ -301,13 +302,14 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     if len(vals_a) < mg.MIN_CHI_DIMS:
         raise my_exceptions.TooFewRowsInChiSquare
     # B) get COL vals used (almost a repeat) ***********************
-    SQL_col_vals_used = u"""SELECT %(qfld_b)s
-    FROM %(qtbl)s
-    WHERE %(qfld_a)s IS NOT NULL AND %(qfld_b)s IS NOT NULL
-    %(and_tbl_filt)s
-    GROUP BY %(qfld_b)s
-    ORDER BY %(qfld_b)s """ % {"qtbl": qtbl, "qfld_a": qfld_a, "qfld_b": qfld_b, 
-        "and_tbl_filt": and_tbl_filt}
+    SQL_col_vals_used = f"""\
+    SELECT {qfld_b}
+    FROM {qtbl}
+    WHERE {qfld_a} IS NOT NULL AND {qfld_b} IS NOT NULL
+    {and_tbl_filt}
+    GROUP BY {qfld_b}
+    ORDER BY {qfld_b}
+    """
     cur.execute(SQL_col_vals_used)
     col_vals_used = cur.fetchall()
     vals_b = get_unique_dim_vals(col_vals_used, dbe, flds, fld_b)
@@ -319,19 +321,19 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
         raise my_exceptions.TooManyCellsInChiSquare
     # C) combine results of A) and B) ***********************
     # build SQL to get all observed values (for each a, through b's)
-    SQL_get_obs = u"SELECT "
+    SQL_get_obs = "SELECT "
     sql_lst = []
     # need to filter by vals within SQL so may need quoting observed values etc
     for val_a in vals_a:
         val_quoter_a = get_val_quoter(dbe, flds, fld_a, val_a)
         for val_b in vals_b:
             val_quoter_b = get_val_quoter(dbe, flds, fld_b, val_b)
-            clause = (u"\nSUM(CASE WHEN %s = %s and %s = %s THEN 1 ELSE 0 END)"
-                % (qfld_a, val_quoter_a(val_a), qfld_b, val_quoter_b(val_b)))
+            clause = (f"\nSUM(CASE WHEN {qfld_a} = {val_quoter_a(val_a)} "
+                f"AND {qfld_b} = {val_quoter_b(val_b)} THEN 1 ELSE 0 END)")
             sql_lst.append(clause)
-    SQL_get_obs += u", ".join(sql_lst)
-    SQL_get_obs += u"\nFROM %s " % qtbl
-    SQL_get_obs += u"\n%s " % where_tbl_filt
+    SQL_get_obs += ", ".join(sql_lst)
+    SQL_get_obs += f"\nFROM {qtbl} "
+    SQL_get_obs += f"\n{where_tbl_filt} "
     if debug: print(SQL_get_obs)
     cur.execute(SQL_get_obs)
     tup_obs = cur.fetchall()[0]
@@ -340,7 +342,7 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     else:
         if debug: print(tup_obs)
     lst_obs = list(tup_obs)
-    if debug: print(u"lst_obs: %s" % lst_obs)
+    if debug: print(f"lst_obs: {lst_obs}")
     obs_total = float(sum(lst_obs))
     # expected values
     lst_fracs_a = get_fracs(cur, tbl_filt, qtbl, qfld_a, qfld_b)
@@ -350,13 +352,13 @@ def get_obs_exp(dbe, cur, tbl, tbl_filt, where_tbl_filt, and_tbl_filt, flds,
     for frac_a in lst_fracs_a:
         for frac_b in lst_fracs_b:
             lst_exp.append(frac_a*frac_b*obs_total)
-    if debug: print(u"lst_exp: %s" % lst_exp)
+    if debug: print(f"lst_exp: {lst_exp}")
     if len(lst_obs) != len(lst_exp):
-        raise Exception(u"Different number of observed and expected values. "
-            u"%s vs %s" % (len(lst_obs), len(lst_exp)))
+        raise Exception("Different number of observed and expected values. "
+            f"{len(lst_obs)} vs {len(lst_exp)}")
     min_count = min(lst_exp)
     lst_lt_5 = [x for x in lst_exp if x < 5]
-    perc_cells_lt_5 = 100*(len(lst_lt_5))/float(len(lst_exp))
+    perc_cells_lt_5 = 100*(len(lst_lt_5)) / float(len(lst_exp))
     return vals_a, vals_b, lst_obs, lst_exp, min_count, perc_cells_lt_5, df
 
 def get_fracs(cur, tbl_filt, qtbl, qfld, oth_qfld):
@@ -387,8 +389,8 @@ def get_fracs(cur, tbl_filt, qtbl, qfld, oth_qfld):
     lst_fracs = [x/float(total) for x in lst_counts]
     return lst_fracs
 
-def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt, 
-        where_tbl_filt, and_tbl_filt):
+def pearsons_chisquare(dbe, cur, tbl, flds, fld_a, fld_b,
+        tbl_filt, where_tbl_filt, and_tbl_filt):
     """
     Returns chisq, p, min_count, perc_cells_lt_5
     """
@@ -403,7 +405,7 @@ def pearsons_chisquare(dbe, db, cur, tbl, flds, fld_a, fld_b, tbl_filt,
     return (chisq, p, vals_a, vals_b, lst_obs, lst_exp, min_count, 
         perc_cells_lt_5, df)
 
-def chisquare_details(vals_a, vals_b, label_a, label_b, lst_obs, df):
+def chisquare_details(vals_a, vals_b, lst_obs, df):
     n_a = len(vals_a)
     n_b = len(vals_b)
     ## Restructure lst_obs to nested lists following pattern of contingency table

@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 export2pdf() does the real work and can be scripted outside the GUI. Set
 headless = True when calling.

@@ -1,4 +1,3 @@
-import codecs
 import wx  #@UnusedImport
 import wx.html2
 import os
@@ -20,45 +19,45 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
     %title% is replaced with title
     %content% is replaced with the content
     """
-    #get html content
-    fil = open(template, "r")
-    html = fil.read()
+    ## get html content
+    with open(template, "r") as f:
+        html = f.read()
     html = html.replace("%title%", title)
     html = html.replace("%content%", content)
     html = html.replace("%root%", mg.FILE_URL_START_GEN + root)
-    fil.close()
-    #save copy of html content (for printing)
+    ## save copy of html content (for printing)
     if print_folder:
-        fil = codecs.open(os.path.join(print_folder, file_name), "w", "utf-8")
-        fil.write(html)
-        fil.close()
+        fpath = os.path.join(print_folder, file_name)
+        with open(fpath, "w", encoding="utf-8") as f:
+            f.write(html)
     return html
 
 def get_html_header(title, header_template):
     "Get the HTML down as far as (and including) <body>"
-    fil = open(header_template, "r")
-    hdr = fil.read()
+    with open(header_template, "r") as f:
+        hdr = f.read()
     hdr = hdr.replace("%title%", title)
-    fil.close()
     return hdr
 
 
 class DlgHTML(wx.Dialog):
     "Show HTML window with content displayed"    
-    
-    def __init__(self, parent, title, url=None, content=None, url_load=False,
-                 file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER,
-                 width_reduction=80, height_reduction=40):
+
+    def __init__(self, parent, title, *,
+            url=None, content=None, url_load=False,
+            file_name=mg.INT_REPORT_FILE, print_folder=mg.INT_FOLDER,
+            width_reduction=80, height_reduction=40):
         """
-        url -- url to display (either this or content).
-        content -- html ready to display.
-        file_name -- excludes any path information. Needed for printing.
-        title -- dialog title.
-        print_folder -- needs to be a subfolder of the current folder.
+        :param str url: url to display (either this or content).
+        :param str content: html ready to display.
+        :param str file_name: excludes any path information. Needed for printing
+        :param str title: dialog title.
+        :param str print_folder: needs to be a subfolder of the current folder
+        :param int width_reduction: reduce dialog width by this much
+        :param int height_reduction: reduce dialog height by this much
         """
         wx.Dialog.__init__(self, parent=parent, id=-1, title=title,
-                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|
-                                 wx.SYSTEM_MENU)
+            style=wx.RESIZE_BORDER|wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU)
         self.Bind(wx.EVT_CLOSE, self.on_close)
         self.file_name = file_name
         self.print_folder = print_folder
@@ -90,31 +89,32 @@ class DlgHTML(wx.Dialog):
         self.Layout()
         height_adj = 60 if mg.PLATFORM != mg.WINDOWS else 0
         pos_y = 40 if mg.PLATFORM != mg.WINDOWS else 5
-        self.SetSize((mg.MAX_WIDTH-width_reduction, 
-                      mg.MAX_HEIGHT-(height_reduction+height_adj)))
+        self.SetSize(
+            (mg.MAX_WIDTH - width_reduction, 
+             mg.MAX_HEIGHT - (height_reduction+height_adj)))
         self.SetPosition((10, pos_y))
         self.Restore()
         lib.GuiLib.safe_end_cursor()
 
     def on_show(self, _event):
         self.show_content(self.url, self.content)
-            
+  
     def show_content(self, url=None, content=None):
         if content is None and url is None:
-            raise Exception(u"Need whether string content or a url")
+            raise Exception("Need whether string content or a url")
         if content:
-            self.html.SetPage(content, '')
+            self.html.SetPage(content, mg.BASE_URL)
         else:
             self.html.LoadURL(url)
-    
+
     def on_print(self, _event):
         "Print page"
         #printer = wx.html.HtmlEasyPrinting("Printing output", None)
         #printer.PrintFile(self.file_name) #horrible printing - large H1s, no CSS etc
         
         full_file = os.path.join(os.getcwd(), self.print_folder, self.file_name)
-        os.system("rundll32.exe MSHTML.DLL,PrintHTML \"%s\"" % full_file)
-    
+        os.system(f'rundll32.exe MSHTML.DLL,PrintHTML "{full_file}"')
+
     def on_close(self, _event):
         "Close Viewer"        
         self.Destroy()    

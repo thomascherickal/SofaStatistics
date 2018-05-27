@@ -1,5 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 GENERAL ********************
 export2imgs() does the real work and can be scripted outside the GUI. Set
@@ -217,7 +215,7 @@ class ExportImage(object):
         debug = False
         if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
         full_content_html = u"\n".join([hdr, item.content, ftr])
-        with codecs.open(html4pdf_path, "w", "utf-8") as f:
+        with open(html4pdf_path, "w", encoding="utf-8") as f:
             f.write(full_content_html)
             f.close()
         export_output_pdfs.html2pdf(html_path=html4pdf_path,

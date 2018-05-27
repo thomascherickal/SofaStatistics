@@ -815,38 +815,42 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def cell_invalid(self, row, col):
         """
         Does a cell contain a value which shouldn't be allowed (even
-            temporarily)?
-        Values which are OK to allow temporarily are missing values 
-            where data is required (for saving).
+        temporarily)?
+
+        Values which are OK to allow temporarily are missing values
+        where data is required (for saving).
+
         If field numeric, value must be numeric ;-)
-            Cannot be negative if unsigned.
-            Must not be too big (turn 1.00 into 1 first etc).
-            And if a not decimal, cannot have decimal places.
+        * Cannot be negative if unsigned.
+        * Must not be too big (turn 1.00 into 1 first etc).
+        * And if a not decimal, cannot have decimal places.
+
         If field is datetime, value must be valid date (or datetime).
+
         If field is text, cannot be longer than maximum length.
         """
         debug = False
         if self.debug or debug: 
-            print("In cell_invalid for row %s col %s" % (row, col))
+            print(f"In cell_invalid for row {row} col {col}")
         if self.dbtbl.is_new_row(row):
             if self.debug or debug:
-                print("New buffer is %s" % self.dbtbl.new_buffer)
-            raw_val = self.dbtbl.new_buffer.get((row, col), 
-                                                mg.MISSING_VAL_INDICATOR)
+                print(f"New buffer is {self.dbtbl.new_buffer}")
+            raw_val = self.dbtbl.new_buffer.get(
+                (row, col), mg.MISSING_VAL_INDICATOR)
         else:
             raw_val = self.get_raw_val(row, col)
             existing_row_data_lst = self.dbtbl.row_vals_dic.get(row)
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
                 if self.debug or debug:
-                    print("prev_val: %s raw_val: %s" % (prev_val, raw_val))
+                    print(f"prev_val: {prev_val} raw_val: {raw_val}")
                 if raw_val == prev_val:
                     if self.debug or debug: print("Unchanged")
                     return False # i.e. OK
-            if self.debug or debug: print("%s is changed!" % raw_val)
+            if self.debug or debug: print(f"{raw_val} is changed!")
         fld_dic = self.dbtbl.get_fld_dic(col)        
         if self.debug or debug: 
-            print("\"%s\"" % raw_val)
+            print(f'"{raw_val}"')
             print("Field dic is:")
             pprint.pprint(fld_dic)
         if raw_val == mg.MISSING_VAL_INDICATOR or raw_val is None:
@@ -858,13 +862,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         elif fld_dic[mg.FLD_BOLNUMERIC]:
             if not lib.TypeLib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
-                              "Either enter a valid number or "
-                              "the missing value character (.)") % raw_val)
+                    "Either enter a valid number or the missing value "
+                    "character (.)") % raw_val)
                 return True
             if not self.value_in_range(raw_val, fld_dic):
-                wx.MessageBox("\"%s\" " % raw_val + \
-                              _("is invalid for data type ") + \
-                              "%s" % self.dbtbl.get_fldname(col))
+                wx.MessageBox(f'"{raw_val}" '
+                    + _("is invalid for data type ")
+                    + self.dbtbl.get_fldname(col))
                 return True
             return False
         elif fld_dic[mg.FLD_BOLDATETIME]:
@@ -872,11 +876,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             if not usable_datetime:
                 eg1 = mg.OK_DATE_FORMAT_EXAMPLES[0]
                 eg2 = mg.OK_DATE_FORMAT_EXAMPLES[1]
-                wx.MessageBox(u"\"%s\" " % raw_val + \
-                      _(" is not a valid datetime.\n\n"
-                        "Either enter a valid date/ datetime\n") + \
-                      _("e.g. %(eg1)s or %(eg2)s") % {"eg1": eg1, "eg2": eg2} +
-                      _("\nor the missing value character (.)"))
+                wx.MessageBox(f'"{raw_val}"'
+                    + _(" is not a valid datetime.\n\n"
+                    "Either enter a valid date/ datetime\n")
+                    + _("e.g. %(eg1)s or %(eg2)s") % {"eg1": eg1, "eg2": eg2}
+                    + _("\nor the missing value character (.)"))
                 return True
             return False
         elif fld_dic[mg.FLD_BOLTEXT]:
@@ -884,25 +888,28 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             if max_len is None: # SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
-                wx.MessageBox(u"\"%s\" " % raw_val +
-                      _("is longer than the maximum of %s. Either enter a "
-                        "shorter value or the missing value character (.)")
-                      % max_len)
+                wx.MessageBox(f'"{raw_val}" ' +
+                    _("is longer than the maximum of %s. Either enter a "
+                    "shorter value or the missing value character (.)")
+                    % max_len)
                 return True
             return False
         else:
-            raise Exception(u"Field supposedly not numeric, datetime, or text")
+            raise Exception("Field supposedly not numeric, datetime, or text")
     
     def get_raw_val(self, row, col):
         """
         What was the value of a cell?
+
         NB always returned as a string.
+
         If it has just been edited, GetCellValue(), which calls
-            dbtbl.GetValue(), will not work. It will get the cached version
-            which is now out-of-date (we presumably just changed it).
+        dbtbl.GetValue(), will not work. It will get the cached version which is
+        now out-of-date (we presumably just changed it).
+
         Need to get version stored by editor. So MUST close editors which
-            presumably flushes the value to where it becomes available to
-            GetCellValue().
+        presumably flushes the value to where it becomes available to
+        GetCellValue().
         """
         debug = False
         if self.dbtbl.bol_attempt_cell_update:
@@ -911,9 +918,9 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 cell_val_unhidden = self.grid.GetCellValue(row, col)
                 self.grid.DisableCellEditControl()
                 cell_val_hidden = self.grid.GetCellValue(row, col)
-                print("""val_of_cell_to_update: %s, cell_val_unhidden: %s,
-                      cell_val_hidden: %s""" % (raw_val, cell_val_unhidden,
-                                                cell_val_hidden))
+                print(f"""val_of_cell_to_update: {raw_val}, "
+                    cell_val_unhidden: {cell_val_unhidden},
+                    cell_val_hidden: {cell_val_hidden}""")
         else:
             self.grid.DisableCellEditControl()
             raw_val = self.grid.GetCellValue(row, col)
@@ -944,11 +951,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
 
     def row_ok_to_save(self, row, col2skip=None):
         """
-        Each cell must be OK to save. NB validation may be stricter than what 
-        the database will accept into its fields e.g. must be one of three 
+        Each cell must be OK to save. NB validation may be stricter than what
+        the database will accept into its fields e.g. must be one of three
         strings ("Numeric", "Text", or "Date").
 
-        col2skip -- so we can skip validating a cell that has just passed e.g. 
+        col2skip -- so we can skip validating a cell that has just passed e.g.
         in leaving_new_row 
         """
         if self.debug: print("row_ok_to_save - row %s" % row)
@@ -957,7 +964,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 continue
             if not self.cell_ok_to_save(row=row, col=col_idx):
                 wx.MessageBox(_("Unable to save new row.  Invalid value "
-                    "in column") + u"%s" % (col_idx + 1))
+                    "in column") + str(col_idx + 1))
                 return False
         return True
 
@@ -966,14 +973,16 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def update_cell(self, row, col):
         """
         Returns boolean - True if updated successfully.
+
         Update cell.
-        Clear row from cache so forced to update with database values e.g. 
-            typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time 
-            stamp but at 2pm.
+
+        Clear row from cache so forced to update with database values e.g.
+        typed in 2pm and stored in CCYY-MM-DD HH:mm:ss as today's date time
+        stamp but at 2pm.
         """
         debug = False
         if self.debug or debug:
-            print("update_cell - row %s col %s" % (row, col))
+            print(f"update_cell - row {row} col {col}")
         bol_updated_cell = True
         try:
             self.dd.con.commit()
@@ -981,8 +990,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.dd.con.commit()
         except Exception as e:
             if self.debug or debug: 
-                print(u"update_cell failed to save %s. " %
-                    self.dbtbl.sql_cell_to_update + u"\nCaused by error: %s"
+                print("update_cell failed to save %s. " %
+                    self.dbtbl.sql_cell_to_update + "\nCaused by error: %s"
                     % b.ue(e))
             bol_updated_cell = False
             wx.MessageBox(_("Unable to save change to database. %s") % 

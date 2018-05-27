@@ -255,8 +255,7 @@ class Plot:
 
     def __cmp__(self, other):
         assert(isinstance(other, Plot))
-
-        return cmp(self.title, other.title)
+        return (self.title > other.title) - (self.title < other.title)
 
     def __setupLayout(self):
         layout = PlotLayout()
@@ -509,12 +508,12 @@ class Plot:
         legendKeywords = {}
         
         if self.legendCols > 0:
-            versionParts = [int(list(filter(lambda x: x.isdigit(), x))) 
-                            for x in matplotlib.__version__.split('.')]
-            #versionParts = [int(x) for x in matplotlib.__version__.split('.')]
+            versionParts = [int(x) for x in matplotlib.__version__.split('.')
+                if x.isdigit()]
             (superMajor, major, minor) = versionParts[0:3]
             if superMajor == 0 and major < 98:
-                print >>sys.stderr, "Number of columns support not available in versions of matplotlib prior to 0.98"
+                print(sys.stderr,
+                    "Number of columns support not available in versions of matplotlib prior to 0.98")
             else:
                 legendKeywords["ncol"] = self.legendCols
                 legendKeywords["scatterpoints"] = self.scatterPoints
@@ -524,7 +523,8 @@ class Plot:
  
         if self.legend:
             if len(plotHandles) == 0:
-                print >>sys.stderr, "ERROR: Plot wanted to draw a legend, but none of its elements have labels"
+                print(sys.stderr,
+                    "ERROR: Plot wanted to draw a legend, but none of its elements have labels")
                 sys.exit(1)
 
             pylab.legend(plotHandles, plotLabels, loc=self.legendLoc, 

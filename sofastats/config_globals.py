@@ -121,8 +121,9 @@ def get_date_fmt():
             cmd = 'locale -k LC_TIME'
             child = subprocess.Popen(cmd, shell=True, stdout=subprocess.PIPE)
             locale_dets = child.stdout.read().strip().split()
-            d_fmt_str = [x for x in locale_dets if x.startswith("d_fmt")][0]
-            raw_d_fmt = d_fmt_str.split("=")[1].strip().strip('"')
+            d_fmt_str = [x for x in locale_dets if x.startswith(b"d_fmt")][0]
+            raw_d_fmt = str(d_fmt_str.split(b"=")[1].strip().strip(b'"'),
+                encoding='utf-8')
             raw2const = {"%m/%d/%y": mg.MDY, "%m/%d/%Y": mg.MDY, 
                          "%m-%d-%y": mg.MDY, "%m-%d-%Y": mg.MDY,
                          "%d/%m/%y": mg.DMY, "%d/%m/%Y": mg.DMY, 

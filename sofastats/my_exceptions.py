@@ -85,9 +85,9 @@ class OutputException(Exception):
 
 class InvalidTimeSeriesInput(OutputException):
     def __init__(self, fldname):
-        OutputException.__init__(self, _(u"The \"%s\" field can't be "
-            u"used as a category for a time series analysis. It has at least "
-            u"one value that can't be converted into a date.") % fldname)
+        OutputException.__init__(self, _("The \"%s\" field can't be "
+            "used as a category for a time series analysis. It has at least "
+            "one value that can't be converted into a date.") % fldname)
 
 class CategoryTooLong(OutputException):
     def __init__(self, fldname):

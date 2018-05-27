@@ -1,10 +1,7 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
 """
 export2spreadsheet() can be scripted outside the GUI. Set headless = True when
 calling.
 """
-import codecs
 import os
 
 from sofastats import my_globals as mg
@@ -36,7 +33,7 @@ def export2spreadsheet(hdr, tbl_items, save2report_path, report_path,
     html = [hdr,] + [output.extract_tbl_only(tbl_item.content) for tbl_item 
         in tbl_items]
     html2save = u"\n".join(html)
-    with codecs.open(spreadsheet_path, "w", "utf-8") as f_xls:
+    with open(spreadsheet_path, "w", encoding="utf-8") as f_xls:
         f_xls.write(html2save)
         f_xls.close()
     if save2report_path:

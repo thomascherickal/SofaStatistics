@@ -27,8 +27,7 @@ t2d = lib.GuiLib.get_text_to_draw
 
 class DlgStatsSelect(wx.Dialog):
     
-    def __init__(self, proj_name, var_labels=None, var_notes=None, 
-                 val_dics=None):
+    def __init__(self, proj_name):
         # layout "constants"
         self.tight_layout = (mg.MAX_WIDTH <= 1024 or mg.MAX_HEIGHT <= 600)
         #self.tight_layout = True
@@ -82,11 +81,11 @@ class DlgStatsSelect(wx.Dialog):
         self.Bind(wx.EVT_CLOSE, self.on_close_click)
         # background image
         if not self.tight_layout:
-            stats_sel_img = u"stats_select.gif"
+            stats_sel_img = "stats_select.gif"
         else:
-            stats_sel_img = u"stats_select_tight.gif"
+            stats_sel_img = "stats_select_tight.gif"
         img_stats_select = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, u"images", stats_sel_img),
+            os.path.join(mg.SCRIPT_PATH, "images", stats_sel_img),
             wx.BITMAP_TYPE_GIF)
         self.bmp_stats_select = wx.Bitmap(img_stats_select)
         # direct or assisted
@@ -232,20 +231,20 @@ class DlgStatsSelect(wx.Dialog):
         il = wx.ImageList(16, 16)
         self.idx_tick = 0
         self.idx_blank = 1
-        tick = u"tickwin" if mg.PLATFORM == mg.WINDOWS else u"tick"
-        for img in [tick, u"blank"]:
-            bmp_pth = os.path.join(mg.SCRIPT_PATH, u"images", u"%s.png" % img)
+        tick = "tickwin" if mg.PLATFORM == mg.WINDOWS else "tick"
+        for img in [tick, "blank"]:
+            bmp_pth = os.path.join(mg.SCRIPT_PATH, "images", "%s.png" % img)
             bmp = wx.Bitmap(bmp_pth, wx.BITMAP_TYPE_PNG)
             il.Add(bmp)
         self.lst_tests.AssignImageList(il, wx.IMAGE_LIST_SMALL)
         self.lst_tests.InsertColumn(0, _("Statistical Test"))
         self.lst_tests.SetColumnWidth(0, self.lst_width - 25)
-        self.lst_tests.InsertColumn(1, u"")
+        self.lst_tests.InsertColumn(1, "")
         self.lst_tests.SetColumnWidth(1, 25)
         for i, test in enumerate(STATS_TESTS):
             unused = self.lst_tests.InsertItem(i, test)
-            self.lst_tests.SetItem(i, 1, u"", self.idx_blank)
-        unused = self.lst_tests.InsertItem(i+1, u"")
+            self.lst_tests.SetItem(i, 1, "", self.idx_blank)
+        unused = self.lst_tests.InsertItem(i+1, "")
         self.lst_tests.Select(0)
         self.lst_tests.Bind(wx.EVT_LIST_ITEM_SELECTED,
                            self.on_list_item_selected)
@@ -272,21 +271,22 @@ class DlgStatsSelect(wx.Dialog):
     def indicate_test(self, test_const):
         "Select a test in the listbox with a tick and a selection."
         if test_const not in STATS_TESTS:
-            raise Exception(u"indicate_test was passed a test not from the "
-                            u"standard list")
+            raise Exception("indicate_test was passed a test not from the "
+                            "standard list")
         idx = STATS_TESTS.index(test_const)
-        self.lst_tests.SetStringItem(idx, 1, "", self.idx_tick)
+        self.lst_tests.SetItem(idx, 1, "", self.idx_tick)
         self.lst_tests.Select(idx)
     
     def remove_test_indicators(self):
         for i, unused in enumerate(STATS_TESTS):
-            self.lst_tests.SetStringItem(i, 1, "", self.idx_blank)
+            self.lst_tests.SetItem(i, 1, "", self.idx_blank)
             self.lst_tests.Select(i, on=0)
         
     def on_paint(self, event):
         """
-        Cannot use static bitmaps and static text to replace.  In windows
-            doesn't show background wallpaper.
+        Cannot use static bitmaps and static text to replace. In windows doesn't
+        show background wallpaper.
+
         NB painting like this sets things behind the controls.
         """
         panel_dc = wx.PaintDC(self.panel)
@@ -330,7 +330,7 @@ class DlgStatsSelect(wx.Dialog):
            wx.Rect(self.lst_left, self.lst_top+self.lst_height+20, 100, 100))
         event.Skip()
     
-    def on_radio_direct_btn(self, event):        
+    def on_radio_direct_btn(self, _event):        
         self.rad_differences.SetValue(True)
         self.rad_differences.Enable(False)
         self.diff_setup(enable=False)
@@ -339,23 +339,23 @@ class DlgStatsSelect(wx.Dialog):
         self.remove_test_indicators()
         self.update_test_tips(None)
         
-    def on_radio_assisted_btn(self, event):
+    def on_radio_assisted_btn(self, _event):
         self.rad_differences.Enable(True)
         self.rad_differences.SetValue(True)
         self.diff_setup(enable=True)
         self.rad_relationships.Enable(True)
         self.rel_setup(enable=False)
         # tick first test
-        self.lst_tests.SetStringItem(0, 1, "", self.idx_tick)
+        self.lst_tests.SetItem(0, 1, "", self.idx_tick)
         self.lst_tests.Select(0)
         self.respond_to_assisted_choices()
     
-    def on_radio_diff_btn(self, event):
+    def on_radio_diff_btn(self, _event):
         self.diff_setup(enable=True)
         self.rel_setup(enable=False)
         self.respond_to_assisted_choices()
     
-    def on_radio_rel_btn(self, event):
+    def on_radio_rel_btn(self, _event):
         self.rel_setup(enable=True)
         self.diff_setup(enable=False)
         self.respond_to_assisted_choices()
@@ -379,15 +379,15 @@ class DlgStatsSelect(wx.Dialog):
         self.btn_normal_help1.Enable(enable)
         self.indep_setup(enable=enable)
     
-    def on_radio2_groups_btn(self, event):
+    def on_radio2_groups_btn(self, _event):
         self.indep_setup(enable=True)
         self.respond_to_assisted_choices()
     
-    def on_radio3_groups_btn(self, event):
+    def on_radio3_groups_btn(self, _event):
         self.indep_setup(enable=False)
         self.respond_to_assisted_choices()
 
-    def on_groups_help_btn(self, event):
+    def on_groups_help_btn(self, _event):
         wx.MessageBox(_("Are you looking at the difference between two "
               "groups or more?"
               "\n\nExample with 2 groups: average vocabulary of Males vs "
@@ -420,7 +420,7 @@ class DlgStatsSelect(wx.Dialog):
         self.rad_paired.Enable(enable)
         self.btn_indep_help.Enable(enable)
         
-    def on_indep_help_btn(self, event):
+    def on_indep_help_btn(self, _event):
         wx.MessageBox(_("Is your data for each group recorded in different "
           "rows (independent) or together on same row (paired)?"
           "\n\nExample of Independent data: if looking at Male vs Female "
@@ -444,15 +444,15 @@ class DlgStatsSelect(wx.Dialog):
         self.btn_type_help.Enable(enable)
         self.normal_rel_setup(enable=False) # only set to True when cat selected
     
-    def on_radio_nominal_btn(self, event):
+    def on_radio_nominal_btn(self, _event):
         self.normal_rel_setup(enable=False)
         self.respond_to_assisted_choices()
 
-    def on_radio_ordered_btn(self, event):
+    def on_radio_ordered_btn(self, _event):
         self.normal_rel_setup(enable=True)
         self.respond_to_assisted_choices()
 
-    def on_type_help_btn(self, event):
+    def on_type_help_btn(self, _event):
         wx.MessageBox(_("Names only data (Nominal) is just labels or names. "
           "Ordered data has a sense of order and includes Ordinal (order "
           "but no amount) and Quantitative (actual numbers)."
@@ -484,7 +484,7 @@ class DlgStatsSelect(wx.Dialog):
         self.examine_normality()
         event.Skip()
 
-    def on_type_btn(self, event):
+    def on_type_btn(self, _event):
         cc = output.get_cc()
         updated = set() # will get populated with a True to indicate update
         self.var_labels, self.var_notes, self.var_types, self.val_dics = \
@@ -503,7 +503,7 @@ class DlgStatsSelect(wx.Dialog):
         self.rad_not_normal2.Enable(enable)
         self.btn_normal_help2.Enable(enable)
 
-    def on_radio_btn(self, event):
+    def on_radio_btn(self, _event):
         self.respond_to_assisted_choices()
 
     def respond_to_assisted_choices(self):
@@ -877,12 +877,12 @@ class DlgStatsSelect(wx.Dialog):
                 dlg = spearmansr.DlgConfig(_("Configure Spearman's R test"))
                 dlg.ShowModal()
             else:
-                raise Exception(u"Unknown test")
+                raise Exception("Unknown test")
         except Exception:
             wx.MessageBox(_("Unable to connect to data as defined in "
                     "project %s. Please check your settings.") % self.proj_name)
             raise
         event.Skip()
     
-    def on_close_click(self, event):
+    def on_close_click(self, _event):
         self.Destroy()

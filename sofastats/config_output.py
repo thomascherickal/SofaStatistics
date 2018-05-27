@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Misc centralised gui elements that aren't in config_ui. Prevents a multitude of 
 potential circular import problems.

@@ -136,8 +136,8 @@ class ErrMsgFrame(wx.Frame):
                  "error_msg": error_msg, "mybreak": mybreak, 
                  u"contact": mg.CONTACT})
         wx.MessageBox(error_msg)
-        f = codecs.open(os.path.join(mg.HOME_PATH, u"Desktop", err_msg_fname), 
-            "w", "utf-8")
+        f = open(os.path.join(mg.HOME_PATH, u"Desktop", err_msg_fname), 
+            "w", encoding="utf-8")
         f.write(error_msg)
         f.write(mybreak)
         f.write(traceback.format_exc())
@@ -185,14 +185,14 @@ def check_python_version():
     pyversion = sys.version[:3]
     if debug: pyversion = None
     if (mg.PLATFORM == mg.LINUX and pyversion < "3.6"):
-        fixit_file = os.path.join(mg.HOME_PATH, u"Desktop", 
-            u"how to get SOFA working.txt")
-        f = codecs.open(fixit_file, "w", "utf-8")
-        div = u"*"*80
-        os_msg = u"""
+        fixit_file = os.path.join(mg.HOME_PATH, "Desktop", 
+            "how to get SOFA working.txt")
+        f = open(fixit_file, "w", encoding="utf-8")
+        div = "*"*80
+        os_msg = """
 If you have multiple versions of Python available you will need to ensure that
-SOFA Statistics is launched with version 2.6 or 2.7 explicitly defined.
-E.g. /usr/bin/python2.6 instead of python.
+SOFA Statistics is launched with version 3.6+ explicitly defined.
+E.g. /usr/bin/python3.6 instead of python.
         """
         msg_dic = {u"div": div, u"os_msg": os_msg, u"contact": mg.CONTACT}
         msg = (u"""
@@ -227,10 +227,10 @@ def init_com_types(parent, panel):
         wx.MessageBox(_("Click OK to prepare for first use of SOFA "
             "Statistics.\n\nPreparation may take a moment ..."))
         parent.html = wx.html2.WebView.New(panel, -1, size=wx.Size(10, 10))
-        parent.html.SetPage('', '')
+        parent.html.SetPage('', mg.BASE_URL)
         parent.html = None
         # leave tag saying it is done
-        f = codecs.open(comtypes_tag, "w", "utf-8")
+        f = open(comtypes_tag, "w", encoding="utf-8")
         f.write(u"Comtypes handled successfully :-)")
         f.close()
 
@@ -242,7 +242,7 @@ def get_installed_version(local_path):
     """
     version_path = os.path.join(local_path, mg.VERSION_FILE)
     if os.path.exists(version_path):
-        f = codecs.open(version_path, "r", "utf-8")
+        f = open(version_path, "r", encoding="utf-8")
         installed_version = f.read().strip()
         f.close()
     else:
@@ -401,7 +401,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
     """
     # change home username
     try:
-        f = codecs.open(default_proj, "r", "utf-8")
+        f = open(default_proj, "r", encoding="utf-8")
         proj_str = f.read() # provided by me - no BOM or non-ascii 
         f.close()
         if show_early_steps: print(u"Just read default project")
@@ -425,14 +425,14 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
             proj_str = proj_str.replace(u"default_tbls = {",
                 u"default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
             if show_early_steps: print(u"Just updated %s" % mg.DBE_MS_SQL)
-        f = codecs.open(default_proj, "w", "utf-8")
+        f = open(default_proj, "w", encoding="utf-8")
         f.write(proj_str)
         f.close()
         if show_early_steps: 
             print(u"Just wrote to default project %s" % default_proj)
         # create file as tag we have done the changes to the proj file
-        f = codecs.open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w", 
-            "utf-8")
+        f = open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), "w", 
+            encoding="utf-8")
         f.write(u"Local project file customised successfully :-)")
         f.close()
         print(u"Configured default project file for user")
@@ -444,7 +444,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
             u"\nCaused by error: %s" % b.ue(e))
 
 def store_version(local_path):
-    f = codecs.open(os.path.join(local_path, mg.VERSION_FILE), "w", "utf-8")
+    f = open(os.path.join(local_path, mg.VERSION_FILE), "w", encoding="utf-8")
     f.write(mg.VERSION)
     f.close()
     print(u"Stored version as %s" % mg.VERSION)

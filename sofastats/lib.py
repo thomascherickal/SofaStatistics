@@ -313,7 +313,7 @@ class OutputLib(object):
     @staticmethod
     def extract_dojo_style(css_fil):
         try:
-            f = codecs.open(css_fil, "r", "utf-8")
+            f = open(css_fil, "r", encoding="utf-8")
         except OSError as e:
             raise my_exceptions.MissingCss(css_fil)
         css = f.read()
@@ -343,7 +343,7 @@ class OutputLib(object):
     @staticmethod
     def update_local_display(html_ctrl, str_content, wrap_text=False):
         str_content = u"<p>%s</p>" % str_content if wrap_text else str_content 
-        html_ctrl.SetPage(str_content, '') # allow footnotes
+        html_ctrl.SetPage(str_content, mg.BASE_URL) # allow footnotes
 
     @staticmethod
     def get_lbls_in_lines(orig_txt, max_width, dojo=False, rotate=False):

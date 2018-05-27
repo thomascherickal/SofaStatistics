@@ -327,7 +327,7 @@ normal_output = normal.get_normal_output(vals, data_label, add_to_report,
         else:
             msg = _("Select a variable and click Check button to see results of"
                 " normality test")
-        self.html.SetPage(f"<p>{msg}</p>", '')
+        self.html.SetPage(f"<p>{msg}</p>", mg.BASE_URL)
 
     def on_ok(self, event):
         self.exiting = True

@@ -7,12 +7,12 @@ import codecs
 def ue(e):
     """
     Return unicode string version of error reason
-    
+
     unicode(e) handles u"找不到指定的模块。" & u"I \u2665 unicode"
-    
+
     str(e).decode("utf8", ...) handles "找不到指定的模块。"
     """
-    return e
+    return str(e)
 
 def clean_BOM_UTF8_from_bytestring(bytestr):
     """

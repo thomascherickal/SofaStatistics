@@ -37,8 +37,6 @@ test_lang = False
 import sys
 import platform
 
-FEEDBACK_LINK = _(u"Give quick feedback on SOFA")
-
 if platform.system() == u"Windows":
     # handle pyw issue - but allow py to output useful messages
     try: # http://bugs.python.org/issue1415#msg57459
@@ -356,9 +354,8 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
     u"GetLocale": getlocale, u"GetName": localename})
     msg += extra_diagnostics
     prob = os.path.join(mg.INT_PATH, u"translation problem.txt")
-    f = codecs.open(prob, "w", "utf8")
-    f.write(msg)
-    f.close()
+    with open(prob, "w", encoding="utf8") as f:
+        f.write(msg)
     #mg.DEFERRED_WARNING_MSGS.append(msg)
 
 def get_langids_supported_by_sofa(langdir):
@@ -509,9 +506,8 @@ class StartFrame(wx.Frame):
         # database check
         if mg.DBE_PROBLEM:
             prob = os.path.join(mg.INT_PATH, u"database connection problem.txt")
-            f = codecs.open(prob, "w", "utf8")
-            f.write(u"\n\n".join(mg.DBE_PROBLEM))
-            f.close()
+            with open(prob, "w", encoding="utf8") as f:
+                f.write(u"\n\n".join(mg.DBE_PROBLEM))
         if show_more_steps: print(u"Passed check for database problems")
         if mg.MUST_DEL_TMP:
             wx.MessageBox(_(u"Please click on \"Enter/Edit Data\" and delete"
@@ -833,26 +829,16 @@ class StartFrame(wx.Frame):
             lib.GuiLib.setup_link(link=link_upgrade,
                 link_colour=wx.Colour(255,255,255),
                 bg_colour=wx.Colour(0, 0, 0))
-        # feedback link
-        feedback_link_hpos = (self.main_left if REVERSE
-            else self.main_sofa_logo_right)
-        link_feedback = hl.HyperLinkCtrl(self.panel, -1, mg.FEEDBACK_LINK,
-            pos=(feedback_link_hpos, self.form_height-53),
-            URL="http://www.sofastatistics.com/feedback.htm")
-        lib.GuiLib.setup_link(link=link_feedback,
-            link_colour=wx.Colour(255,255,255),
-            bg_colour=wx.Colour(116, 99, 84))
 
     def on_deferred_warning_msg(self, deferred_warning_msg):
         wx.MessageBox(deferred_warning_msg)
 
     def update_sofastats_connect_date(self, sofastats_connect_fil,
             days2wait=30):
-        f = codecs.open(sofastats_connect_fil, "w", encoding="utf-8")
-        next_check_date = (datetime.datetime.today() +
-            datetime.timedelta(days=days2wait)).strftime('%Y-%m-%d')
-        f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
-        f.close()
+        with open(sofastats_connect_fil, "w", encoding="utf-8") as f:
+            next_check_date = (datetime.datetime.today() +
+                datetime.timedelta(days=days2wait)).strftime('%Y-%m-%d')
+            f.write("%s = '%s'" % (mg.SOFASTATS_CONNECT_VAR, next_check_date))
 
     def get_latest_version(self):
         """

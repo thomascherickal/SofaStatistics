@@ -80,7 +80,7 @@ class DlgDataSelect(wx.Dialog):
         szr_existing.Add(self.szr_data, 0, wx.GROW|wx.ALL, 10)
         szr_existing.Add(szr_existing_bottom, 0, wx.GROW|wx.ALL, 10)
         szr_new = wx.StaticBoxSizer(bx_new, wx.HORIZONTAL)
-        lbl_new_extra = u"" if hide_db else _(u" to the default SOFA database")
+        lbl_new_extra = '' if hide_db else _(" to the default SOFA database")
         lbl_new = wx.StaticText(self.panel, -1, _("... or add a new data table") 
             + lbl_new_extra)
         btn_new = wx.Button(self.panel, wx.ID_NEW)
@@ -124,7 +124,7 @@ class DlgDataSelect(wx.Dialog):
         self.chk_readonly.SetValue(readonly_settings.readonly)
         self.chk_readonly.Enable(readonly_settings.enabled)
         
-    def on_database_sel(self, event):
+    def on_database_sel(self, _event):
         if getdata.refresh_db_dets(self):
             self.reset_tbl_dropdown()
             self.ctrl_enablement()
@@ -135,7 +135,7 @@ class DlgDataSelect(wx.Dialog):
         parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
             parent.drop_tbls_szr, parent.drop_tbls_panel)
     
-    def on_table_sel(self, event):
+    def on_table_sel(self, _event):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
         self.ctrl_enablement()
@@ -158,11 +158,11 @@ class DlgDataSelect(wx.Dialog):
                 self.reset_tbl_dropdown()
                 self.ctrl_enablement()
             except Exception as e:
-                wx.MessageBox(u"Unable to delete \"%s\". Caused by error: %s"
-                    % (dd.tbl, b.ue(e)))
+                wx.MessageBox(f"Unable to delete \"{dd.tbl}\". "
+                    f"Caused by error: {b.ue(e)}")
         event.Skip()
 
-    def on_design(self, event):
+    def on_design(self, _event):
         """
         Open table config dlg which starts with the design settings for the 
             table (fld names and types).
@@ -185,16 +185,16 @@ class DlgDataSelect(wx.Dialog):
         init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
         if debug: print("Initial table_config data: %s" % init_fld_settings)
         fld_settings = [] # can read final result at the end  
-        dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics, 
-                                             tblname_lst, init_fld_settings, 
-                                             fld_settings, readonly, new=False)
+        dlg_config = table_config.DlgConfigTable(
+            self.var_labels, self.val_dics,
+            tblname_lst, init_fld_settings, fld_settings, readonly, new=False)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
-            if debug: print(u"Flds before: %s" % dd.flds)
+            if debug: print(f"Flds before: {dd.flds}")
             returned_tblname = tblname_lst[0]
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=returned_tblname)
-            if debug: print(u"Flds after: %s" % dd.flds)
+            if debug: print(f"Flds after: {dd.flds}")
             self.reset_tbl_dropdown()
             output.update_var_dets(dlg=self)
     

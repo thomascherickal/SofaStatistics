@@ -1,5 +1,3 @@
-
-import codecs
 import os
 import wx
 
@@ -15,7 +13,7 @@ BROKEN_VDT_MSG = _(u"This field is numeric, so any non-numeric keys in the "
 def valid_proj(subfolder, proj_filname):
     settings_path = os.path.join(mg.LOCAL_PATH, subfolder, proj_filname)
     try:
-        with codecs.open(settings_path, "U", encoding="utf-8") as f:
+        with open(settings_path, "U", encoding="utf-8") as f:
             f.close()
             valid_proj = True
     except IOError:
@@ -80,7 +78,7 @@ def update_val_labels(val_dics, var_name, val_type, keyvals):
 def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
     cc = output.get_cc()
-    f = codecs.open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
+    f = open(cc[mg.CURRENT_VDTS_PATH], "w", encoding="utf-8")
     f.write(u"var_labels=" + lib.UniLib.dic2unicode(var_labels))
     f.write(u"\n\nvar_notes=" + lib.UniLib.dic2unicode(var_notes))
     f.write(u"\n\nvar_types=" + lib.UniLib.dic2unicode(var_types))

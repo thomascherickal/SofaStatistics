@@ -193,7 +193,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if self.exiting:
             return
         html2show = _(u"<p>Waiting for an analysis to be run.</p>")
-        self.html.SetPage(html2show, '')
+        self.html.SetPage(html2show, mg.BASE_URL)
 
     def on_rclick_group_a(self, _event):
         var_a, choice_item = self.get_var_a()
@@ -239,7 +239,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
                     mg.VAR_TYPE_KEY2_SHORT_LBL.get(self.min_data_type, 
                         _("suitable")))
             try:
-                self.html.SetPage(msg, '')
+                self.html.SetPage(msg, mg.BASE_URL)
             except Exception: # no html ctrl yet so defer and display when ready
                 pass
         (fld_choice_items, 

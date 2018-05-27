@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 """
 Use English UK spelling e.g. colour and when writing JS use camelcase.
 
@@ -30,14 +27,14 @@ from operator import itemgetter
 import pprint
 import wx
 
-from sofastats import basic_lib as b  #@UnresolvedImport
-from sofastats import my_globals as mg  #@UnresolvedImport
-from sofastats import lib  #@UnresolvedImport
-from sofastats import my_exceptions  #@UnresolvedImport
-from sofastats import charting_pylab  #@UnresolvedImport
-from sofastats import core_stats  #@UnresolvedImport
-from sofastats import getdata  #@UnresolvedImport
-from sofastats import output  #@UnresolvedImport
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import lib
+from sofastats import my_exceptions
+from sofastats import getdata
+from sofastats import output
+from sofastats.charting import charting_pylab
+from sofastats.stats import core_stats
 
 AVG_CHAR_WIDTH_PXLS = 6.5
 AVG_LINE_HEIGHT_PXLS = 12
@@ -1483,10 +1480,10 @@ class BoxPlot(object):
         # 2) Get all cat vals needed for x-axis i.e. all those appearing in any
         # rows where all fields are non-missing.
         if var_role_dic['cat']: # might just be a single box e.g. a box for age overall
-            and_series_filt = (u"" if not var_role_dic['series']
+            and_series_filt = ('' if not var_role_dic['series']
                 else " AND var_role_dic['%(var_role_series)s'] IS NOT NULL "
                 % sql_dic)
-            sql_dic[u"and_series_filt"] = and_series_filt
+            sql_dic["and_series_filt"] = and_series_filt
             SQL_cat_vals = """SELECT %(var_role_cat)s
                 FROM %(tbl)s
                 WHERE %(var_role_cat)s IS NOT NULL
@@ -1495,7 +1492,11 @@ class BoxPlot(object):
                 %(and_tbl_filt)s
                 GROUP BY %(var_role_cat)s""" % sql_dic
             if debug: print(SQL_cat_vals)
-            cur.execute(SQL_cat_vals)
+            try:
+                cur.execute(SQL_cat_vals)
+            except Exception:
+                print(SQL_cat_vals)
+                raise
             cat_vals = [x[0] for x in cur.fetchall()]
             # sort appropriately
             cat_vals_and_lbls = [(x, var_role_dic['cat_lbls'].get(x, x))
@@ -1507,9 +1508,9 @@ class BoxPlot(object):
             if debug: print(sorted_cat_vals)
             n_boxplots = len(sorted_cat_vals)
             if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
-                if wx.MessageBox(_(u"This chart will have %(n_boxplots)s series"
-                        u" by %(var_role_cat)s and may not display properly. Do"
-                        u" you wish to make it anyway?")
+                if wx.MessageBox(_("This chart will have %(n_boxplots)s series"
+                        " by %(var_role_cat)s and may not display properly. Do"
+                        " you wish to make it anyway?")
                         % {"n_boxplots": n_boxplots,
                            "var_role_cat": var_role_dic['cat']},
                         caption=_("HIGH NUMBER OF SERIES"),
@@ -2959,8 +2960,8 @@ class LineAreaChart(object):
     def _get_time_series_affected_dets(time_series, x_title, xaxis_dets,
             series_det, lbl_dets):
         if time_series:
-            js_time_series = u"true"
-            xaxis_lbls = u"[]"
+            js_time_series = "true"
+            xaxis_lbls = "[]"
             ## https://phillipsb1.wordpress.com/2010/07/25/date-and-time-based-charts/
             try:
                 xs = []

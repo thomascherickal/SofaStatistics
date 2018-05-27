@@ -1,6 +1,6 @@
 
 import os
-import wx
+import wx  #@UnusedImport
 import wx.html2
 
 from sofastats import my_globals as mg
@@ -8,9 +8,9 @@ from sofastats import lib
 from sofastats import config_output
 from sofastats import config_ui
 from sofastats import getdata
-from sofastats.stats import indep2var
 from sofastats import output
 from sofastats import projects
+from sofastats.stats import indep2var
 
 CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
 CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
@@ -64,9 +64,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.title = title
         self.SetFont(mg.GEN_FONT)
         cc = output.get_cc()
-        self.output_modules = [(None, "my_globals as mg"), (None, "core_stats"),
-            ("charting", "charting_output"), (None, "output"),
-            (None, "getdata")]
+        self.output_modules = [(None, "my_globals as mg"),
+            ("stats", "core_stats"), ("charting", "charting_output"),
+            (None, "output"), (None, "getdata")]
         global CUR_DATA_OPT_LBL
         CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
         self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
@@ -165,7 +165,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             panel2hide.Show(True)
             self.panel_mid.Layout() # self.Layout() doesn't work in Windows
             panel2hide.Show(False)
-            self.szr_mid.Remove(panel2hide)
+            self.szr_mid.Detach(panel2hide)
         # default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
@@ -910,7 +910,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         finally:
             # any initial content
             html2show = _(u"<p>Waiting for a chart to be run.</p>")
-            self.html.SetPage(html2show, '')
+            self.html.SetPage(html2show, mg.BASE_URL)
 
     def on_btn_help(self, event):
         import webbrowser
@@ -1019,7 +1019,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_boxplot.SetToolTip(_("Make Box and Whisker Plot"))
         szr_chart_btns.Add(self.btn_boxplot)
         if mg.PLATFORM == mg.LINUX:
-            hand = wx.StockCursor(wx.CURSOR_HAND)
+            hand = wx.Cursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
             self.btn_clust_bar.SetCursor(hand)
             self.btn_pie_chart.SetCursor(hand)

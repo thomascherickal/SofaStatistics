@@ -971,7 +971,7 @@ class DlgHasHeaderGivenData(wx.Dialog):
         content, unused = get_content_dets(strdata)
         if debug: print(content)
         html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,240))
-        html_content.SetPage(content)
+        html_content.SetPage(content, mg.BASE_URL)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER,
             _("Has Header Row"))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)

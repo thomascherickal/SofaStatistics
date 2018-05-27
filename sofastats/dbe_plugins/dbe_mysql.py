@@ -14,7 +14,7 @@ if mg.PLATFORM == mg.MAC:
             "advice on how to use SOFA with MySQL on a Mac.")
 elif mg.PLATFORM == mg.LINUX:
     try:
-        import PyMySQL as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
+        import MySQLdb as mysql #@UnresolvedImport @UnusedImport - easier to get working on a Mac
     except Exception as e:
         raise Exception(f"Contact the developer ({mg.CONTACT}) for specific "
             "advice on how to use SOFA with MySQL on Linux.")

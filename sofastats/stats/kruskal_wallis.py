@@ -1,6 +1,3 @@
-#! /usr/bin/env python
-# -*- coding: utf-8 -*-
-
 import wx
 
 from sofastats import basic_lib as b
@@ -45,28 +42,28 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             (var_gp_numeric, var_gp, label_gp, val_a, 
              label_a, val_b, label_b, var_avg, label_avg) = self.get_drop_vals()
         except Exception as e:
-            wx.MessageBox(u"Unable to get script to make output. Orig error: %s" 
-                % b.ue(e))
-        script_lst = [u"dp = 3"]
+            wx.MessageBox("Unable to get script to make output. "
+                f"Orig error: {b.ue(e)}")
+        script_lst = ["dp = 3"]
         script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
             dd.tbl))
         lst_samples = []
         lst_labels = []
         # need sample for each of the values in range
-        idx_val_a, idx_val_b = indep2var.get_range_idxs(self.gp_vals_sorted, 
-                                                        val_a, val_b)
+        idx_val_a, idx_val_b = indep2var.get_range_idxs(
+            self.gp_vals_sorted, val_a, val_b)
         vals_in_range = self.gp_vals_sorted[idx_val_a: idx_val_b + 1]
-        str_get_sample = (u"%s = core_stats.get_list(" +
-            u"dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe] +
-            u"cur=cur, tbl=u\"%s\"," % dd.tbl +
-            u"\n    tbl_filt=tbl_filt, " +
-            u"flds=flds, " +
-            u"fld_measure=u\"%s\", " % lib.esc_str_input(var_avg) +
-            u"fld_filter=u\"%s\", " % lib.esc_str_input(var_gp) +
-            u"filter_val=%s)")
+        str_get_sample = ("%s = core_stats.get_list("
+            + f"dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]}, "
+            + f"cur=cur, tbl=u\"{dd.tbl}\","
+            + "\n    tbl_filt=tbl_filt, "
+            + "flds=flds, "
+            + f"fld_measure=u\"{lib.esc_str_input(var_avg)}\", "
+            + f"fld_filter=\"{lib.esc_str_input(var_gp)}\", "
+            + "filter_val=%s)")
         for i, val in enumerate(vals_in_range):
-            sample_name = u"sample_%s" % i
-            val_str_quoted = val if var_gp_numeric else u"u\"%s\"" % val
+            sample_name = f"sample_{i}"
+            val_str_quoted = val if var_gp_numeric else f"\"{val}\""
             script_lst.append(str_get_sample % (sample_name, val_str_quoted))
             lst_samples.append(sample_name)
             try:
@@ -74,32 +71,32 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
             except KeyError:
                 val_label = str(val).title()
             lst_labels.append(val_label)
-        samples = u"[%s]" % u", ".join(lst_samples)
-        script_lst.append(u"raw_labels = %s" % lst_labels)
-        script_lst.append(u"raw_samples = %s" % samples)
-        script_lst.append(u"raw_sample_dets = zip(raw_labels, raw_samples)")
-        script_lst.append(u"sample_dets = [x for x in raw_sample_dets "
-                          u"if len(x[1]) > 0]")
-        script_lst.append(u"labels = [x[0] for x in sample_dets]")
-        script_lst.append(u"samples = [x[1] for x in sample_dets]")
-        script_lst.append(u"""
+        samples = "[%s]" % ", ".join(lst_samples)
+        script_lst.append(f"raw_labels = {lst_labels}")
+        script_lst.append(f"raw_samples = {samples}")
+        script_lst.append("raw_sample_dets = zip(raw_labels, raw_samples)")
+        script_lst.append("sample_dets = [x for x in raw_sample_dets "
+                          "if len(x[1]) > 0]")
+        script_lst.append("labels = [x[0] for x in sample_dets]")
+        script_lst.append("samples = [x[1] for x in sample_dets]")
+        script_lst.append("""
 if len(samples) < 2:
     raise my_exceptions.TooFewSamplesForAnalysis""")
-        script_lst.append(u"label_gp = u\"%s\"" % label_gp)
-        script_lst.append(u"label_a = u\"%s\"" % label_a)
-        script_lst.append(u"label_b = u\"%s\"" % label_b)
-        script_lst.append(u"label_avg = u\"%s\"" % label_avg)
-        script_lst.append(u"indep = True")
-        script_lst.append(u"h, p, dics, df = " +
-            u"core_stats.kruskalwallish(samples, labels)")
-        script_lst.append(u"details = True" if details else u"details = {}")
-        script_lst.append(u"""
+        script_lst.append(f"label_gp = u\"{label_gp}\"")
+        script_lst.append(f"label_a = u\"{label_a}\"")
+        script_lst.append(f"label_b = u\"{label_b}\"")
+        script_lst.append(f"label_avg = u\"{label_avg}\"")
+        script_lst.append("indep = True")
+        script_lst.append("h, p, dics, df = "
+            + "core_stats.kruskalwallish(samples, labels)")
+        script_lst.append("details = True" if details else "details = {}")
+        script_lst.append("""
 kruskal_wallis_output = stats_output.kruskal_wallis_output(h, p, label_gp, 
-    label_a, label_b, dics, df, label_avg, css_fil=u"%(css_fil)s", 
+    label_a, label_b, dics, df, label_avg, 
     css_idx=%(css_idx)s, dp=dp, details=details, page_break_after=False)"""
-        % {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
-        script_lst.append(u"fil.write(kruskal_wallis_output)")
-        return u"\n".join(script_lst)
+        % {"css_fil": lib.escape_pre_write(css_fil), "css_idx": css_idx})
+        script_lst.append("fil.write(kruskal_wallis_output)")
+        return "\n".join(script_lst)
 
     def on_btn_help(self, event):
         import webbrowser

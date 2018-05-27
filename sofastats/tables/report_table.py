@@ -436,7 +436,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(self.tab_type, has_rows,
             has_cols)
-        self.html.SetPage(waiting_msg, '')
+        self.html.SetPage(waiting_msg, mg.BASE_URL)
 
     def update_css(self):
         "Update css, including for demo table"
@@ -965,7 +965,7 @@ tab_test = rawtables.RawTable(titles=%(titles)s,
                         demo_tbl_html = demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print(u"\n" + demo_tbl_html + "\n")
-        self.html.SetPage(demo_tbl_html, '')
+        self.html.SetPage(demo_tbl_html, mg.BASE_URL)
         return demo_was_live
 
     def get_row_col_status(self):

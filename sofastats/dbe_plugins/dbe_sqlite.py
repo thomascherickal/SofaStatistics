@@ -24,26 +24,25 @@ DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
 DATABASE_KEY = "database"
 DATABASE_FLD_LABEL = _("Database(s)")
 
-if_clause = u"CASE WHEN %s THEN %s ELSE %s END"
-placeholder = u"?"
-left_obj_quote = u"`"
-right_obj_quote = u"`"
-gte_not_equals = u"!="
-cartesian_joiner = u" JOIN "
+if_clause = "CASE WHEN %s THEN %s ELSE %s END"
+placeholder = "?"
+left_obj_quote = "`"
+right_obj_quote = "`"
+gte_not_equals = "!="
+cartesian_joiner = " JOIN "
 
 # http://www.sqlite.org/lang_keywords.html
 # The following is non-standard but will work
 def quote_obj(raw_val):
-    return u"%s%s%s" % (left_obj_quote, raw_val, right_obj_quote)
+    return f"{left_obj_quote}{raw_val}{right_obj_quote}"
 
-def quote_val(raw_val, charset2try="iso-8859-1"):
+def quote_val(raw_val):
     """
     Single quote is the literal delimiter and internal single quotes need 
     escaping by repeating them.
     """
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote=u"'", 
-        sql_esc_str_literal_quote=u"''", pystr_use_double_quotes=True, 
-        charset2try=charset2try)
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'", 
+        sql_esc_str_literal_quote="''", pystr_use_double_quotes=True)
 
 def get_summable(clause):
     return clause
@@ -53,8 +52,8 @@ def get_syntax_elements():
         placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
-    orderby = u"ORDER BY %s" % quote_obj(order_val) if order_val else u""
-    return u"SELECT * FROM %(tblname)s %(orderby)s LIMIT %(top_n)s" % \
+    orderby = "ORDER BY %s" % quote_obj(order_val) if order_val else ''
+    return "SELECT * FROM %(tblname)s %(orderby)s LIMIT %(top_n)s" % \
         {"top_n": top_n, "tblname": quoted_tblname, "orderby": orderby}
         
 def add_funcs_to_con(con):
@@ -67,7 +66,7 @@ def get_con(con_dets, db, add_checks=False):
     Use this connection rather than hand-making one. Risk of malformed database
     schema. E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
     no such function: is_numeric
-    
+
     add_checks -- adds user-defined functions so can be used in check 
     constraints to ensure data type integrity.
     """
@@ -512,7 +511,7 @@ def valid_name(name, is_tblname=True):
     debug = False
     if name == u"":
         return False
-    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, u"sofa_tmp")
+    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, "sofa_tmp")
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
@@ -521,9 +520,9 @@ def valid_name(name, is_tblname=True):
     try:
         if is_tblname:
             tblname = quote_obj(name)
-            fldname = u"safefldname"
+            fldname = "safefldname"
         else:
-            tblname = u"safetblname"
+            tblname = "safetblname"
             fldname = name
         # in case it survives somehow esp safetblname
         # OK if this fails here

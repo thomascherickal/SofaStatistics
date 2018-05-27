@@ -1,5 +1,3 @@
-
-import codecs
 import os
 import wx
 
@@ -185,7 +183,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             fil_default_var_dets = os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER, 
                 mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
-                f = codecs.open(fil_default_var_dets, "w", "utf-8")
+                f = open(fil_default_var_dets, "w", encoding="utf-8")
                 f.write(u"# add variable details here")
                 f.close()
             self.fil_var_dets = fil_default_var_dets
@@ -407,7 +405,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             if mg.PLATFORM == mg.WINDOWS and os.path.exists(fil_name):
                 os.remove(fil_name)
             try:
-                f = codecs.open(fil_name, "w", encoding="utf-8")
+                f = open(fil_name, "w", encoding="utf-8")
             except OSError as e:
                 wx.MessageBox(_(u"Unable to save project file. Please check "
                     u"\"%(fil_name)s\" is a valid file name."
