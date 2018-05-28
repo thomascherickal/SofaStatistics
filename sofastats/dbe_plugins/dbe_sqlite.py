@@ -13,14 +13,13 @@ from sofastats import settings_grid
 
 Row = sqlite.Row # @UndefinedVariable - needed for making cursor return dicts
 
-DEFAULT_DB = u"sqlite_default_db"
-DEFAULT_TBL = u"sqlite_default_tbl"
+DEFAULT_DB = "sqlite_default_db"
+DEFAULT_TBL = "sqlite_default_tbl"
 # http://www.sqlite.org/datatype3.html
-NUMERIC_TYPES = [u"int", u"integer", u"tinyint", u"smallint", u"mediumint",
-    u"bigint", u"unsigned big int", u"int2", u"int8", u"float", u"numeric", 
-    u"real", u"double", u"double precision", u"float real", u"numeric"]
-DATE_TYPES = [u"date", u"datetime", u"time", u"timestamp"]
-# no unicode keys for 2.6 bug http://bugs.python.org/issue2646
+NUMERIC_TYPES = ["int", "integer", "tinyint", "smallint", "mediumint", "bigint",
+    "unsigned big int", "int2", "int8", "float", "numeric", "real", "double",
+    "double precision", "float real", "numeric"]
+DATE_TYPES = ["date", "datetime", "time", "timestamp"]
 DATABASE_KEY = "database"
 DATABASE_FLD_LABEL = _("Database(s)")
 
@@ -53,15 +52,14 @@ def get_syntax_elements():
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
     orderby = "ORDER BY %s" % quote_obj(order_val) if order_val else ''
-    return "SELECT * FROM %(tblname)s %(orderby)s LIMIT %(top_n)s" % \
-        {"top_n": top_n, "tblname": quoted_tblname, "orderby": orderby}
+    return f"SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}"
         
 def add_funcs_to_con(con):
     con.create_function("is_numeric", 1, lib.TypeLib.is_numeric)
     con.create_function("is_std_datetime_str", 1,
         lib.DateLib.is_std_datetime_str)
 
-def get_con(con_dets, db, add_checks=False):
+def get_con(con_dets, db, *, add_checks=False):
     """
     Use this connection rather than hand-making one. Risk of malformed database
     schema. E.g. DatabaseError: malformed database schema (sofa_tmp_tbl) - 
@@ -70,50 +68,50 @@ def get_con(con_dets, db, add_checks=False):
     add_checks -- adds user-defined functions so can be used in check 
     constraints to ensure data type integrity.
     """
-    # any sqlite connection details at all?
+    ## any sqlite connection details at all?
     try:
         con_dets_sqlite = con_dets[mg.DBE_SQLITE]
     except Exception as e:
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
-    # able to extract con dets in a form usable for scripts?
+    ## able to extract con dets in a form usable for scripts?
     try:
         sqlite_con_dets_str = lib.UniLib.dic2unicode(con_dets_sqlite)
     except Exception as e:
-        raise Exception(u"Unable to extract connection details from %s."
-            u"\nCaused by error: %s" % (con_dets_sqlite, b.ue(e)))
-    # any connection details for this database?
+        raise Exception("Unable to extract connection details from "
+            f"{con_dets_sqlite}.\nCaused by error: {b.ue(e)}")
+    ## any connection details for this database?
     try:
         con_dets_sqlite_db = con_dets_sqlite[db]
     except Exception as e:
-        raise Exception(u"No connections for SQLite database \"%s\"" % db)
-    # able to actually connect to database?
+        raise Exception(f'No connections for SQLite database "{db}"')
+    ## able to actually connect to database?
     try:
         con = sqlite.connect(**con_dets_sqlite_db) #@UndefinedVariable
     except Exception as e:
-        # failure because still pointing to dev path?
-        if u"/home/g/Documents/sofastats" in sqlite_con_dets_str:
-            raise Exception(u"Problem with default project file. Delete "
-                u"%s and restart SOFA.\nCaused by error %s." %
-                (os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE), b.ue(e)))
+        ## failure because still pointing to dev path?
+        if "/home/g/Documents/sofastats" in sqlite_con_dets_str:
+            raise Exception("Problem with default project file. "
+                f"Delete {os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE)} "
+                f"and restart SOFA.\nCaused by error {b.ue(e)}.")
         else:
-            raise Exception(u"Unable to make connection with db '%s' "
-                u"using: %s\nCaused by error: %s" % 
-                (db, lib.escape_pre_write(sqlite_con_dets_str), b.ue(e)))
+            raise Exception(f"Unable to make connection with db '{db}' "
+                f"using: {lib.escape_pre_write(sqlite_con_dets_str)}"
+                f"\nCaused by error: {b.ue(e)}")
     if mg.USE_SQLITE_UDFS:
-        print("*"*60)
+        print('*'*60)
         print("Overriding so can open sofa_db in SOFA")
-        print("*"*60)
-        add_checks = True # if having trouble opening e.g. if tmp_tbl left there
-            # will have constraints relying on absent user-defined functions.
+        print('*'*60)
+        add_checks = True  ## if having trouble opening e.g. if tmp_tbl left
+            ## there will have constraints relying on absent UDFs
     if add_checks:
-        # some user-defined functions needed for strict type checking constraints
+        ## some UDFs needed for strict type checking constraints
         add_funcs_to_con(con)
     return con
 
 def get_dbs_list(con_dets, default_dbs):
     """
     Get list of all databases for this dbe (as per con dets in proj file).
-    
+
     NB con_resources will only have one db listed (this dbe has one db per 
     connection).
     """
@@ -122,17 +120,17 @@ def get_dbs_list(con_dets, default_dbs):
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     return con_dets_sqlite.keys()
 
-def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
+def get_con_resources(con_dets, default_dbs, db=None, *, add_checks=False):
     """
     When opening from scratch, e.g. clicking on Report Tables from Start,
     no db, so must identify one, but when selecting dbe-db in dropdowns, there 
     will be a db.
-    
+
     Returns dict with con, cur, dbs, db.
     """
     if not db:
-        # if no con specified, use default, or failing that, try a specific file
-        default_db = default_dbs.get(mg.DBE_SQLITE) # might be None
+        ## if no con specified, use default, or failing that, try a specific file
+        default_db = default_dbs.get(mg.DBE_SQLITE)  ## might be None
         if default_db:
             db = default_db
         else:
@@ -140,32 +138,32 @@ def get_con_resources(con_dets, default_dbs, db=None, add_checks=False):
     try:
         con = get_con(con_dets, db, add_checks=add_checks)
     except Exception as e:
-            print(str(e))
-            raise
-    cur = con.cursor() # must return tuples not dics
+        print(str(e))
+        raise
+    cur = con.cursor()  ## must return tuples not dics
     if cur is None:
-        raise Exception(_(u"Unable to get valid cursor from database "
-            u"connection to \"%s\"" % db))
+        raise Exception(_("Unable to get valid cursor from database "
+            "connection to \"%s\"" % db))
     if not has_tbls(cur, db):
-        raise Exception(_(u"\n\nDatabase \"%s\" didn't have any tables. "
-            u"You can only connect to SQLite databases which have data in them."
-            u"\n\nIf you just wanted an empty SQLite database to put fresh data" 
-            u" into from within SOFA, use the supplied sofa_db database "
-            u"instead.") % db)
+        raise Exception(_("\n\nDatabase \"%s\" didn't have any tables. "
+            "You can only connect to SQLite databases which have data in them."
+            "\n\nIf you just wanted an empty SQLite database to put fresh data" 
+            " into from within SOFA, use the supplied sofa_db database "
+            "instead.") % db)
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur, mg.DBE_DBS: [db,],
         mg.DBE_DB: db}
     return con_resources
 
 def get_unsorted_tblnames(cur, db):
     "Get table names given database and cursor"
-    SQL_get_tbls = u"""SELECT name 
+    SQL_get_tbls = """SELECT name 
         FROM sqlite_master 
         WHERE type = 'table'
         ORDER BY name"""
     try:
         cur.execute(SQL_get_tbls)
     except Exception as e:
-        if b.ue(e).startswith(u"malformed database schema"):
+        if b.ue(e).startswith("malformed database schema"):
             raise my_exceptions.MalformedDb()
         else:
             print(b.ue(e))
@@ -185,12 +183,14 @@ def has_tbls(cur, db):
     if tbls:
         return True
     return False
-    
+
 def get_char_len(type_text):
     """
     NB SQLite never truncates whatever you specify.
     http://www.sqlite.org/faq.html#q9
+
     Look for numbers in brackets (if any) to work out length.
+
     If just, for example, TEXT, will return None.
     """
     reobj = re.compile(r"\w*()")
@@ -202,11 +202,11 @@ def get_char_len(type_text):
 
 def get_flds(cur, db, tbl):
     "http://www.sqlite.org/pragma.html"
-    # get encoding
+    ## get encoding
     cur.execute(u"PRAGMA encoding")
     encoding = cur.fetchone()[0]
-    # get field details
-    cur.execute(u"PRAGMA table_info(%s)" % quote_obj(tbl))
+    ## get field details
+    cur.execute(f"PRAGMA table_info({quote_obj(tbl)})")
     fld_dets = cur.fetchall() 
     flds = {}
     for cid, fldname, fldtype, notnull, dflt_value, pk in fld_dets:
@@ -227,11 +227,11 @@ def get_flds(cur, db, tbl):
             mg.FLD_CHARSET: encoding,
             mg.FLD_BOLNUMERIC: bolnumeric,
             mg.FLD_BOLAUTONUMBER: bolautonum,
-            mg.FLD_DECPTS: None, # not really applicable - no limit
-            mg.FLD_NUM_WIDTH: None, # no limit (TODO unless check constraint)
+            mg.FLD_DECPTS: None,  ## not really applicable - no limit
+            mg.FLD_NUM_WIDTH: None,  ## no limit (TODO unless check constraint)
             mg.FLD_BOL_NUM_SIGNED: bolsigned,
-            mg.FLD_NUM_MIN_VAL: None, # not really applicable - no limit
-            mg.FLD_NUM_MAX_VAL: None, # not really applicable - no limit
+            mg.FLD_NUM_MIN_VAL: None,  ## not really applicable - no limit
+            mg.FLD_NUM_MAX_VAL: None,  ## not really applicable - no limit
             mg.FLD_BOLDATETIME: boldatetime, 
             }
         flds[fldname] = dets_dic
@@ -239,25 +239,25 @@ def get_flds(cur, db, tbl):
 
 def get_index_dets(cur, db, tbl):
     """
-    db -- needed by some dbes sharing interface.
-    idxs = [idx0, idx1, ...]
-    each idx is a dict name, is_unique, flds
-    has_unique - boolean
+    :param str db: needed by some dbes sharing interface.
+    :return: idxs = [idx0, idx1, ...] each idx is a dict name with keys
+     is_unique, flds, has_unique (boolean)
+    :rtype: list
     """
     debug = False
-    cur.execute(u"PRAGMA index_list(\"%s\")" % tbl)
-    idx_lst = cur.fetchall() # [(seq, name, unique), ...]
+    cur.execute(f'PRAGMA index_list("{tbl}")')
+    idx_lst = cur.fetchall()  ## [(seq, name, unique), ...]
     if debug: pprint.pprint(idx_lst)
     names_idx_name = 1
     names_idx_unique = 2
-    # initialise
+    ## initialise
     has_unique = False
     idxs = []
     if idx_lst:
         idx_names = [x[names_idx_name] for x in idx_lst]
         for i, idx_name in enumerate(idx_names):
-            cur.execute(u"PRAGMA index_info(\"%s\")" % idx_name)
-            # [(seqno, cid, name), ...]
+            cur.execute(f'PRAGMA index_info("{idx_name}")')
+            ## [(seqno, cid, name), ...]
             flds_idxnames = 2
             index_info = cur.fetchall()
             if debug: pprint.pprint(index_info)
@@ -275,29 +275,26 @@ def get_index_dets(cur, db, tbl):
 
 def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     bx_sqlite = wx.StaticBox(scroll, -1, "SQLite")
-    # default database
+    ## default database
     parent.lbl_sqlite_default_db = wx.StaticText(scroll, -1, 
         _("Default Database (name only):"))
     parent.lbl_sqlite_default_db.SetFont(lblfont)
-    DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ""
-    parent.txt_sqlite_default_db = wx.TextCtrl(scroll, -1, DEFAULT_DB, 
-        size=(250,-1))
+    DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ''
+    parent.txt_sqlite_default_db = wx.TextCtrl(
+        scroll, -1, DEFAULT_DB, size=(250, -1))
     parent.txt_sqlite_default_db.Enable(not readonly)
-    parent.txt_sqlite_default_db.SetToolTipString(_("Default database"
-        " (optional)"))
-    # default table
+    parent.txt_sqlite_default_db.SetToolTip(_("Default database (optional)"))
+    ## default table
     parent.lbl_sqlite_default_tbl = wx.StaticText(scroll, -1, 
         _("Default Table (optional):"))
     parent.lbl_sqlite_default_tbl.SetFont(lblfont)
-    DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl \
-        else u""
-    parent.txt_sqlite_default_tbl = wx.TextCtrl(scroll, -1, DEFAULT_TBL, 
-        size=(250,-1))
+    DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl else ''
+    parent.txt_sqlite_default_tbl = wx.TextCtrl(
+        scroll, -1, DEFAULT_TBL, size=(250, -1))
     parent.txt_sqlite_default_tbl.Enable(not readonly)
-    parent.txt_sqlite_default_tbl.SetToolTipString(_("Default table"
-        " (optional)"))
+    parent.txt_sqlite_default_tbl.SetToolTip(_("Default table (optional)"))
     parent.szr_sqlite = wx.StaticBoxSizer(bx_sqlite, wx.VERTICAL)
-    #3 SQLITE INNER
+    ## 3 SQLITE INNER
     szr_sqlite_inner = wx.BoxSizer(wx.HORIZONTAL)
     szr_sqlite_inner.Add(parent.lbl_sqlite_default_db, 0, wx.LEFT|wx.RIGHT, 5)
     szr_sqlite_inner.Add(parent.txt_sqlite_default_db, 0, wx.RIGHT, 10)
@@ -317,7 +314,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     """
     Make sofa_db stand out as special but allow users to edit it (it may have 
     changed location since the project was created).
-    
+
     Responsibility for making sure there is a database called sofa_db is up to 
     the validation code for saving the project.
     """
@@ -325,7 +322,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     #attr.SetReadOnly(True)
     attr.SetBackgroundColour(mg.READONLY_COLOUR)
     for row_idx, db_path in enumerate([x[0] for x in init_settings_data]):
-        db_name = lib.get_file_name(db_path) # might not be unique
+        db_name = lib.get_file_name(db_path)  ## might not be unique
         if db_is_default_sofa_db(db_name):
             parent.sqlite_grid.grid.SetRowAttr(row_idx, attr)
     parent.szr_sqlite.Add(parent.sqlite_grid.grid, 1, wx.GROW|wx.ALL, 5)
@@ -335,12 +332,12 @@ def db_is_default_sofa_db(db_name):
     """
     Be generous in what counts as a default sofa database. The following should 
     all be OK: sofa_db (of course), original_sofa_db, sofa_db_testing etc.
-    
+
     The user may have made copies, shifted it around etc. The only fixed one is 
     that created during installation. The default project references that and it 
     cannot be changed. But if they make copies etc and put them somewhere else, 
     those versions can be used just like a standard default.
-    
+
     Of course, a user can mess things up by giving other unsuitable files names
     which include sofa_db.
     """
@@ -348,8 +345,8 @@ def db_is_default_sofa_db(db_name):
 
 def get_proj_settings(parent, proj_dic):
     parent.sqlite_default_db = proj_dic[mg.PROJ_DEFAULT_DBS].get(mg.DBE_SQLITE)
-    parent.sqlite_default_tbl = (proj_dic[mg.PROJ_DEFAULT_TBLS]
-        .get(mg.DBE_SQLITE))
+    parent.sqlite_default_tbl = (
+        proj_dic[mg.PROJ_DEFAULT_TBLS].get(mg.DBE_SQLITE))
     if proj_dic[mg.PROJ_CON_DETS].get(mg.DBE_SQLITE):
         parent.sqlite_data = [(x[DATABASE_KEY],) for x 
             in proj_dic[mg.PROJ_CON_DETS][mg.DBE_SQLITE].values()]
@@ -360,11 +357,11 @@ def set_con_det_defaults(parent):
     try:            
         parent.sqlite_default_db
     except AttributeError: 
-        parent.sqlite_default_db = u""
+        parent.sqlite_default_db = ''
     try:
         parent.sqlite_default_tbl
     except AttributeError: 
-        parent.sqlite_default_tbl = u""
+        parent.sqlite_default_tbl = ''
     try:
         parent.sqlite_data
     except AttributeError: 
@@ -373,15 +370,15 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Copes with missing default database and table. Will get the first available.
-    
+
     Namespace multiple databases with same name (presumably in different 
     folders).
     """
     if parent.sqlite_grid.new_is_dirty:
         incomplete_sqlite = True
         has_sqlite_con = False
-        wx.MessageBox(_(u"The SQLite details on the new row have not been "
-            u"saved. Select the \"%s\" field in the new row and press Enter")
+        wx.MessageBox(_("The SQLite details on the new row have not been "
+            "saved. Select the \"%s\" field in the new row and press Enter")
             % DATABASE_FLD_LABEL)
         parent.sqlite_grid.SetFocus()
         return incomplete_sqlite, has_sqlite_con
@@ -393,12 +390,12 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         con_dets_sqlite = {}
         db_names = []
         for sqlite_setting in sqlite_settings:
-            # e.g. ("C:\.....\my_sqlite_db",)
+            ## e.g. ("C:\.....\my_sqlite_db",)
             db_path = sqlite_setting[0]
-            db_name = lib.get_file_name(db_path) # might not be unique
+            db_name = lib.get_file_name(db_path)  ## might not be unique
             if db_is_default_sofa_db(db_name):
                 lacks_default_sofa_db = False
-            # need unique version to use as key
+            ## need unique version to use as key
             db_name_key = lib.DbLib.get_unique_db_name_key(db_names, db_name)
             new_sqlite_dic = {}
             new_sqlite_dic[DATABASE_KEY] = db_path
@@ -415,21 +412,21 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     incomplete_sqlite = defaults_but_no_conns or conns_but_no_default_sofa_db
     if incomplete_sqlite:
         if defaults_but_no_conns:
-            wx.MessageBox(_(u"The SQLite details are partially complete - "
-                u"either add a database or clear the SQLite default database "
-                u"and table"))
+            wx.MessageBox(_("The SQLite details are partially complete - "
+                "either add a database or clear the SQLite default database "
+                "and table"))
         elif conns_but_no_default_sofa_db:
-            wx.MessageBox(_(u"The sofa default database \"%s\"must be included"
-                u" in the project.") % mg.SOFA_DB)
+            wx.MessageBox(_("The sofa default database \"%s\"must be included"
+                " in the project.") % mg.SOFA_DB)
         parent.txt_sqlite_default_db.SetFocus()
     else:
         default_dbs[mg.DBE_SQLITE] = DEFAULT_DB if DEFAULT_DB else None
         default_tbls[mg.DBE_SQLITE] = DEFAULT_TBL if DEFAULT_TBL else None
     return incomplete_sqlite, has_sqlite_con
 
-# unique to SQLite (because used to store tables for user-entered data plus 
-# imported data)
-    
+## unique to SQLite (because used to store tables for user-entered data plus 
+## imported data)
+  
 def valid_tblname(tblname):
     return valid_name(tblname, is_tblname=True)
 
@@ -443,7 +440,7 @@ def get_blocks(fldnames, block_sz=50):
     i = 0
     while True:
         block = fldnames[i*block_sz:(i+1)*block_sz]
-        if debug: print("Block is: %s" % block)
+        if debug: print(f"Block is: {block}")
         if not block: break
         blocks.append(block)
         i += 1
@@ -452,8 +449,8 @@ def get_blocks(fldnames, block_sz=50):
 
 def valid_fldnames(fldnames, block_sz=50):
     valid = True
-    err = ""
-    # make blocks of at most block_sz
+    err = ''
+    ## make blocks of at most block_sz
     blocks = get_blocks(fldnames, block_sz)
     for block in blocks:
         block_valid, block_err = valid_fldnames_block(block)
@@ -465,29 +462,29 @@ def valid_fldnames(fldnames, block_sz=50):
 
 def valid_fldnames_block(block):
     debug = False
-    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, u"sofa_tmp")
+    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, "sofa_tmp")
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
     valid = True
-    err = u""
+    err = ''
     try:
-        flds_clause = u", ".join([u"`%s` TEXT" % x for x in block])
-        tblname = u"safetblname"
-        # in case it survives somehow esp safetblname
-        # OK if this fails here
-        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        flds_clause = ", ".join(["`%s` TEXT" % x for x in block])
+        tblname = "safetblname"
+        ## in case it survives somehow esp safetblname
+        ## OK if this fails here
+        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-        # usable names in practice?
-        sql_make = "CREATE TABLE %s (%s)" % (tblname, flds_clause)
+        ## usable names in practice?
+        sql_make = f"CREATE TABLE {tblname} ({flds_clause})"
         if debug: print(sql_make)
         cur.execute(sql_make)
-        con.commit() # otherwise when committing, no net change to commit and 
-            # no actual chance to succeed or fail
-        # clean up
-        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        con.commit()  ## otherwise when committing, no net change to commit and 
+            ## no actual chance to succeed or fail
+        ## clean up
+        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
@@ -499,24 +496,24 @@ def valid_fldnames_block(block):
         cur.close()
         con.close()
         return valid, err
-    
+
 def valid_name(name, is_tblname=True):
     """
     tbl -- True for tblname being tested, False if a fldname being tested.
-    
+
     Bad name for SQLite? The best way is to find out for real (not too costly
-    and 100% valid by definition). Strangely, SQLite accepts u"" as a table name 
+    and 100% valid by definition). Strangely, SQLite accepts '' as a table name 
     but we won't ;-).
     """
     debug = False
-    if name == u"":
+    if name == '':
         return False
     default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, "sofa_tmp")
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
     valid = True
-    err = ""
+    err = ''
     try:
         if is_tblname:
             tblname = quote_obj(name)
@@ -524,20 +521,20 @@ def valid_name(name, is_tblname=True):
         else:
             tblname = "safetblname"
             fldname = name
-        # in case it survives somehow esp safetblname
-        # OK if this fails here
-        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        ## in case it survives somehow esp safetblname
+        ## OK if this fails here
+        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
-        # usable names in practice?
-        sql_make = "CREATE TABLE %s (`%s` TEXT)" % (tblname, fldname)
+        ## usable names in practice?
+        sql_make = f"CREATE TABLE {tblname} (`{fldname}` TEXT)"
         if debug: print(sql_make)
         cur.execute(sql_make)
-        con.commit() # otherwise when committing, no net change to commit and 
-            # no actual chance to succeed or fail
-        # clean up
-        sql_drop = "DROP TABLE IF EXISTS %s" % tblname
+        con.commit()  ## otherwise when committing, no net change to commit and 
+            ## no actual chance to succeed or fail
+        ## clean up
+        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
