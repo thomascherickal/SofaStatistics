@@ -1,4 +1,3 @@
-
 import pprint
 import wx
 
@@ -184,10 +183,11 @@ class DlgDataSelect(wx.Dialog):
         tblname_lst = [dd.tbl,]
         init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
         if debug: print("Initial table_config data: %s" % init_fld_settings)
-        fld_settings = [] # can read final result at the end  
+        fld_settings = []  ## can read final result at the end
         dlg_config = table_config.DlgConfigTable(
             self.var_labels, self.val_dics,
-            tblname_lst, init_fld_settings, fld_settings, readonly, new=False)
+            tblname_lst, init_fld_settings, fld_settings,
+            readonly=readonly, new=False)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret == mg.RET_CHANGED_DESIGN and not readonly:
@@ -200,48 +200,48 @@ class DlgDataSelect(wx.Dialog):
     
     def on_new(self, event):
         """
-        Get table name (must be unique etc), create empty table in SOFA Default 
-            database with that name, and start off with 5 fields ready to 
-            rename.  Must be able to add fields, and rename fields.
+        Get table name (must be unique etc), create empty table in SOFA Default
+        database with that name, and start off with 5 fields ready to rename.
+        Must be able to add fields, and rename fields.
         """
         debug = False
         dd = mg.DATADETS_OBJ
         sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
         try:
             con = dbe_sqlite.get_con(dd.con_dets, mg.SOFA_DB)
-            # not dd.con because we may fail making a new one and need to 
-            # stick with the original
+            ## not dd.con because we may fail making a new one and need to
+            ## stick with the original
             con.close()
         except Exception:
-            wx.MessageBox(_("The current project does not include a link to "
-                            "the default SOFA database so a new table cannot "
-                            "be made there."))
+            wx.MessageBox(_("The current project does not include a link to the"
+                " default SOFA database so a new table cannot be made there."))
             return
-        # switch dd if necessary i.e. if default sofa db not already selected
+        ## switch dd if necessary i.e. if default sofa db not already selected
         if not sofa_default_db:
             dbe2restore = dd.dbe
             db2restore = dd.db
             tbl2restore = dd.tbl
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB)
-        # table config dialog
+        ## table config dialog
         tblname_lst = [] # not quite worth using validator mechanism ;-)
-        init_fld_settings = [("sofa_id", mg.FLDTYPE_NUMERIC_LBL), 
-            ("var001", mg.FLDTYPE_NUMERIC_LBL),]
-        fld_settings = [] # can read final result at the end
+        init_fld_settings = [
+            ('sofa_id', mg.FLDTYPE_NUMERIC_LBL),
+            ('var001', mg.FLDTYPE_NUMERIC_LBL),]
+        fld_settings = []  ## can read final result at the end
         if debug: print(mg.DATADETS_OBJ)
         dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics,
-                                 tblname_lst, init_fld_settings, fld_settings,
-                                 readonly=False, new=True)
+            tblname_lst, init_fld_settings, fld_settings,
+            readonly=False, new=True)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret != mg.RET_CHANGED_DESIGN:
             event.Skip()
             return
-        # update tbl dropdown
+        ## update tbl dropdown
         if debug: print(mg.DATADETS_OBJ)
         if sofa_default_db:
-            self.reset_tbl_dropdown() # won't be affected otherwise
-        # open data
+            self.reset_tbl_dropdown()  ## won't be affected otherwise
+        ## open data
         wx.BeginBusyCursor()
         readonly = False
         dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes,
@@ -254,5 +254,5 @@ class DlgDataSelect(wx.Dialog):
         self.ctrl_enablement()
         event.Skip()
     
-    def on_close(self, event):
+    def on_close(self, _event):
         self.Destroy()         

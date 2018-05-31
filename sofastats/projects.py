@@ -147,40 +147,42 @@ def get_init_settings_data(val_dics, var_name, bolnumeric):
 
 def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT_KEY):
     """
-    Get filtered list of variable names according to minimum data type. Use the 
-        information on the type of each variable to decide whether meets 
-        minimum e.g ordinal.
+    Get filtered list of variable names according to minimum data type. Use the
+    information on the type of each variable to decide whether meets minimum
+    e.g ordinal.
     """
     debug = False
     dd = mg.DATADETS_OBJ
     if min_data_type == mg.VAR_TYPE_CAT_KEY:
         var_names = [x for x in dd.flds]
     elif min_data_type == mg.VAR_TYPE_ORD_KEY:
-        # check for numeric as well in case user has manually 
-        # misconfigured var_type in vdts file.
-        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-            var_types.get(x) in (None, mg.VAR_TYPE_ORD_KEY, 
-            mg.VAR_TYPE_QUANT_KEY)]
+        ## check for numeric as well in case user has manually misconfigured
+        ## var_type in vdts file.
+        var_names = [x for x in dd.flds
+            if dd.flds[x][mg.FLD_BOLNUMERIC]
+            and var_types.get(x) in (
+                None, mg.VAR_TYPE_ORD_KEY, mg.VAR_TYPE_QUANT_KEY)]
     elif min_data_type == mg.VAR_TYPE_QUANT_KEY:
-        # check for numeric as well in case user has manually 
-        # misconfigured var_type in vdts file.
+        ## check for numeric as well in case user has manually misconfigured
+        ## var_type in vdts file.
         if debug:
             print(dd.flds)
-        var_names = [x for x in dd.flds if dd.flds[x][mg.FLD_BOLNUMERIC] and
-            var_types.get(x) in (None, mg.VAR_TYPE_QUANT_KEY)]
+        var_names = [x for x in dd.flds
+            if dd.flds[x][mg.FLD_BOLNUMERIC]
+            and var_types.get(x) in (None, mg.VAR_TYPE_QUANT_KEY)]
     else:
-        raise Exception(u"get_approp_var_names received a faulty min_data_"
-            u"type: %s" % min_data_type)
+        raise Exception(
+            f"get_approp_var_names received a faulty min_data_type: {min_data_type}")
     return var_names
 
 def get_idx_to_select(choice_items, drop_var, var_labels, default):
     """
     Get index to select. If variable passed in, use that if possible.
-    
+
     It will not be possible if it has been removed from the list e.g. because
     of a user reclassification of data type (e.g. was quantitative but has been 
     redefined as categorical); or because of a change of filtering.
-    
+
     If no variable passed in, or it was but couldn't be used (see above), use 
     the default if possible. If not possible, select the first item.
     """
@@ -190,15 +192,15 @@ def get_idx_to_select(choice_items, drop_var, var_labels, default):
         try:
             idx = choice_items.index(item_new_version_drop)
         except ValueError:
-            var_removed = True # e.g. may require QUANT and user changed to 
-            # ORD.  Variable will no longer appear in list. Cope!
+            var_removed = True  ## e.g. may require QUANT and user changed to
+            ## ORD. Variable will no longer appear in list. Cope!
     if (not drop_var) or var_removed: # use default if possible
         idx = 0
         if default:
             try:
                 idx = choice_items.index(default)
             except ValueError:
-                pass # OK if no default - use idx of 0.
+                pass  ## OK if no default - use idx of 0.
     return idx
 
 def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,

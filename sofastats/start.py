@@ -21,7 +21,7 @@ sys.path.insert(0, Path.cwd().parent)
 from sofastats import setup_sofastats
 from sofastats import home  #@UnresolvedImport
 
-show_early_steps = True # same in setup and start
+show_early_steps = True  ## same in setup and start
 
 def main():
     try:

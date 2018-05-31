@@ -40,7 +40,7 @@ class DlgSettingsEntry(wx.Dialog):
         settings_data -- is effectively "returned". Add details to it in form 
             of a list of tuples.
         insert_data_func -- what data do you want to see in a new inserted row 
-            (if any). Must take row index as argument.
+            (if any). Must take grid_data as argument.
         """
         wx.Dialog.__init__(self, None, title=title, size=(400,400), 
                           style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU, 
@@ -966,13 +966,13 @@ class SettingsEntry(object):
             wx.MessageBox(_("Cannot insert a row while in the middle of making "
                             "a new one"))
             return False, None
-        grid_data = self.get_grid_data() # only needed to prevent field name
+        grid_data = self.get_grid_data()  ## only needed to prevent field name
         # collisions
         row_idx = pos
         self.grid.InsertRows(row_idx)
         row_data = None
         if self.insert_data_func:
-            row_data = self.insert_data_func(row_idx, grid_data)
+            row_data = self.insert_data_func(grid_data)
             for col_idx in range(len(self.col_dets)):
                 renderer, editor = self.get_new_renderer_editor(col_idx)
                 self.grid.SetCellRenderer(row_idx, col_idx, renderer)

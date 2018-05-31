@@ -1,4 +1,3 @@
-
 import wx
 import pprint
 
@@ -123,7 +122,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     # get database name
     SQL_get_db_names = u"""SELECT datname FROM pg_database"""
     cur.execute(SQL_get_db_names)
-    # only want dbs with at least one table.
+    ## only want dbs with at least one table.
     all_dbs = [x[0] for x in cur.fetchall()]
     dbs = []
     for db4list in all_dbs:
@@ -404,66 +403,65 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_pgsql_default_db = wx.TextCtrl(scroll, -1, pgsql_default_db, 
                                               size=(250,-1))
     parent.txt_pgsql_default_db.Enable(not readonly)
-    parent.txt_pgsql_default_db.SetToolTipString(_("Default database"
+    parent.txt_pgsql_default_db.SetToolTip(_("Default database"
                                             " (optional if user is postgres)"))
     # default table
     parent.lbl_pgsql_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
     parent.lbl_pgsql_default_tbl.SetFont(lblfont)
-    pgsql_default_tbl = parent.pgsql_default_tbl if parent.pgsql_default_tbl \
-        else ""
-    parent.txt_pgsql_default_tbl = wx.TextCtrl(scroll, -1, pgsql_default_tbl, 
-                                               size=(250,-1))
+    pgsql_default_tbl = (parent.pgsql_default_tbl if parent.pgsql_default_tbl
+        else '')
+    parent.txt_pgsql_default_tbl = wx.TextCtrl(
+        scroll, -1, pgsql_default_tbl, size=(250,-1))
     parent.txt_pgsql_default_tbl.Enable(not readonly)
-    parent.txt_pgsql_default_tbl.SetToolTipString(_("Default table (optional)"))
-    # host
+    parent.txt_pgsql_default_tbl.SetToolTip(_("Default table (optional)"))
+    ## host
     parent.lbl_pgsql_host = wx.StaticText(scroll, -1, _("Host:"))
     parent.lbl_pgsql_host.SetFont(lblfont)
-    pgsql_host = parent.pgsql_host if parent.pgsql_host else ""
+    pgsql_host = parent.pgsql_host if parent.pgsql_host else ''
     parent.txt_pgsql_host = wx.TextCtrl(scroll, -1, pgsql_host, size=(100,-1))
     parent.txt_pgsql_host.Enable(not readonly)
-    parent.txt_pgsql_host.SetToolTipString(_("Host e.g. localhost, or "
-                                             "remote:3307"))
-    # 5432 is the default port for PostgreSQL
-    # user
+    parent.txt_pgsql_host.SetToolTip(_("Host e.g. localhost, or remote:3307"))
+    ## 5432 is the default port for PostgreSQL
+    ## user
     parent.lbl_pgsql_user = wx.StaticText(scroll, -1, _("User:"))
     parent.lbl_pgsql_user.SetFont(lblfont)
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ""
     parent.txt_pgsql_user = wx.TextCtrl(scroll, -1, pgsql_user, size=(100,-1))
     parent.txt_pgsql_user.Enable(not readonly)
-    parent.txt_pgsql_user.SetToolTipString(_("User e.g. postgres"))
-    # password
+    parent.txt_pgsql_user.SetToolTip(_("User e.g. postgres"))
+    ## password
     parent.lbl_pgsql_pwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lbl_pgsql_pwd.SetFont(lblfont)
     pgsql_pwd = parent.pgsql_pwd if parent.pgsql_pwd else u""
-    parent.txt_pgsql_pwd = wx.TextCtrl(scroll, -1, pgsql_pwd, size=(300,-1), 
-                                       style=wx.TE_PASSWORD)
+    parent.txt_pgsql_pwd = wx.TextCtrl(
+        scroll, -1, pgsql_pwd, size=(300,-1), style=wx.TE_PASSWORD)
     parent.txt_pgsql_pwd.Enable(not readonly)
-    parent.txt_pgsql_pwd.SetToolTipString(_("Password"))
-    #2 pgsql
+    parent.txt_pgsql_pwd.SetToolTip(_("Password"))
+    ## 2 pgsql
     parent.szr_pgsql = wx.StaticBoxSizer(bx_pgsql, wx.VERTICAL)
-    #3 pgsql INNER
-    #4 pgsql INNER TOP
+    ## 3 pgsql INNER
+    ## 4 pgsql INNER TOP
     szr_pgsql_inner_top = wx.BoxSizer(wx.HORIZONTAL)
-    # default database
+    ## default database
     szr_pgsql_inner_top.Add(parent.lbl_pgsql_default_db, 0, 
                             wx.LEFT|wx.RIGHT, 5)
     szr_pgsql_inner_top.Add(parent.txt_pgsql_default_db, 0, 
                             wx.GROW|wx.RIGHT, 10)
-    # default table
+    ## default table
     szr_pgsql_inner_top.Add(parent.lbl_pgsql_default_tbl, 0, 
                             wx.LEFT|wx.RIGHT, 5)
     szr_pgsql_inner_top.Add(parent.txt_pgsql_default_tbl, 0, 
                             wx.GROW|wx.RIGHT, 10)
-    #4 pgsql INNER BOTTOM
+    ## 4 pgsql INNER BOTTOM
     szr_pgsql_inner_btm = wx.BoxSizer(wx.HORIZONTAL)
-    # host 
+    ## host
     szr_pgsql_inner_btm.Add(parent.lbl_pgsql_host, 0, wx.LEFT|wx.RIGHT, 5)
     szr_pgsql_inner_btm.Add(parent.txt_pgsql_host, 0, wx.RIGHT, 10)
-    # user
+    ## user
     szr_pgsql_inner_btm.Add(parent.lbl_pgsql_user, 0, wx.LEFT|wx.RIGHT, 5)
     szr_pgsql_inner_btm.Add(parent.txt_pgsql_user, 0, wx.RIGHT, 10)
-    # password
+    ## password
     szr_pgsql_inner_btm.Add(parent.lbl_pgsql_pwd, 0, wx.LEFT|wx.RIGHT, 5)
     szr_pgsql_inner_btm.Add(parent.txt_pgsql_pwd, 1, wx.GROW|wx.RIGHT, 10)
     #2 combine

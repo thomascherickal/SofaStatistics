@@ -777,9 +777,8 @@ class DateLib(object):
     @staticmethod
     def _get_datetime_parts(datetime_str):
         """
-        Return potential date and time parts separately if possible.
-        Split in the ways that ensure any legitimate datetime strings are split
-        properly.
+        Return potential date and time parts separately if possible. Split in
+        the ways that ensure any legitimate datetime strings are split properly.
 
         E.g. 2009 (or 4pm) returned as a list of 1 item []
         E.g. 2011-04-14T23:33:05 returned as [u"2011-04-14", u"23:33:052"]
@@ -796,32 +795,32 @@ class DateLib(object):
 
         Returns parts_lst.
         """
-        datetime_str = datetime_str.replace(" pm", "pm")
-        datetime_str = datetime_str.replace(" am", "am")
-        datetime_str = datetime_str.replace(" PM", "PM")
-        datetime_str = datetime_str.replace(" AM", "AM")
-        if datetime_str.count("T") == 1:
-            parts_lst = datetime_str.split("T")  ## e.g. [u"2011-04-14", u"23:33:052"]
-        elif u" " in datetime_str and datetime_str.strip() != u"": # split by last one unless ... last one fails time test
-            # So we handle 1 Feb 2009 and 1 Feb 2009 4pm and 2011/03/23 4pm correctly
-            # and 4pm 2011/03/23.
-            # Assumed no spaces in times (as cleaned up to this point e.g. 4 pm -> 4pm).
-            # So if a valid time, will either be first or last item or not at all. 
+        datetime_str = datetime_str.replace(' pm', 'pm')
+        datetime_str = datetime_str.replace(' am', 'am')
+        datetime_str = datetime_str.replace(' PM', 'PM')
+        datetime_str = datetime_str.replace(' AM', 'AM')
+        if datetime_str.count('T') == 1:
+            parts_lst = datetime_str.split('T')  ## e.g. ["2011-04-14", "23:33:052"]
+        elif ' ' in datetime_str and datetime_str.strip() != '': # split by last one unless ... last one fails time test
+            ## So we handle 1 Feb 2009 and 1 Feb 2009 4pm and 2011/03/23 4pm correctly
+            ## and 4pm 2011/03/23.
+            ## Assumed no spaces in times (as cleaned up to this point e.g. 4 pm -> 4pm).
+            ## So if a valid time, will either be first or last item or not at all.
             last_bit_passes_time_test = DateLib._is_time_part(
                 datetime_str.split()[-1])
             first_bit_passes_time_test = DateLib._is_time_part(
                 datetime_str.split()[0])
-            if not first_bit_passes_time_test and not last_bit_passes_time_test: # this is our best shot - still might fail
+            if not first_bit_passes_time_test and not last_bit_passes_time_test:  ## this is our best shot - still might fail
                 parts_lst = [datetime_str]
-            else: # Has to be split to potentially be valid. Split by last space 
-                # (or first space if potentially starts with time).
-                # Safe because we have removed spaces within times.
-                bits = datetime_str.split(u" ") # e.g. [u"1 Feb 2009", u"4pm"]
+            else:  ## Has to be split to potentially be valid. Split by last space
+                ## (or first space if potentially starts with time).
+                ## Safe because we have removed spaces within times.
+                bits = datetime_str.split(u" ")  ## e.g. ["1 Feb 2009", u"4pm"]
                 if first_bit_passes_time_test:
                     first = bits[0]
-                    last = " ".join([str(x) for x in bits[1:]]) # at least one bit
+                    last = ' '.join([str(x) for x in bits[1:]])  ## at least one bit
                 else:
-                    first = " ".join([str(x) for x in bits[:-1]]) # at least one bit
+                    first = ' '.join([str(x) for x in bits[:-1]])  ## at least one bit
                     last = bits[-1]
                 parts_lst = [first, last]
         else:
@@ -881,24 +880,26 @@ class DateLib(object):
         """
         debug = False
         if not TypeLib.is_string(raw_datetime_str):
-            if debug: print("%s is not a valid datetime string" % raw_datetime_str)
+            if debug:
+                print(f"{raw_datetime_str} is not a valid datetime string")
             return None
-        if raw_datetime_str.strip() == u"":
-            if debug: print("Spaces or empty text are not valid datetime strings")
+        if raw_datetime_str.strip() == '':
+            if debug:
+                print("Spaces or empty text are not valid datetime strings")
             return None
         try:
             str(raw_datetime_str)
         except Exception:
-            return None # can't do anything further with something that can't be converted to unicode
-        # evaluate date and/or time components against allowable formats
+            return None  ## can't do anything further with something that can't be converted to unicode
+        ## evaluate date and/or time components against allowable formats
         dt_split = DateLib._datetime_split(raw_datetime_str)
         if dt_split.date_part is None and dt_split.time_part is None:
             if debug: print("Both date and time parts are empty.")
             return None
-        # gather information on the parts we have (we have at least one)
+        ## gather information on the parts we have (we have at least one)
         date_format = None
         if dt_split.date_part:
-            # see cell_invalid for message about correct datetime entry formats
+            ## see cell_invalid for message about correct datetime entry formats
             bad_date = True
             for ok_date_format in ok_date_formats:
                 try:
@@ -927,12 +928,12 @@ class DateLib(object):
         return (dt_split.date_part, date_format, dt_split.time_part, time_format,
             dt_split.boldate_then_time)
 
-    #print(_get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS, 
+    #print(_get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS,
     #                                       mg.OK_TIME_FORMATS))
 
     @staticmethod
-    def is_usable_datetime_str(raw_datetime_str, ok_date_formats=None, 
-                               ok_time_formats=None):
+    def is_usable_datetime_str(raw_datetime_str,
+        ok_date_formats=None, ok_time_formats=None):
         """
         Is the datetime string usable? Used for checking user-entered datetimes.
 
@@ -963,8 +964,9 @@ class DateLib(object):
     def is_std_datetime_str(raw_datetime_str):
         """
         The only format accepted as valid for SQL is yyyy-mm-dd hh:mm:ss.
-        NB lots of other formats may be usable, but this is the only one acceptable
-            for direct entry into a database.
+
+        NB lots of other formats may be usable, but this is the only one
+        acceptable for direct entry into a database.
         http://www.cl.cam.ac.uk/~mgk25/iso-time.html
         """
         try:
@@ -985,33 +987,35 @@ class DateLib(object):
         datetime_dets = DateLib._get_dets_of_usable_datetime_str(
             raw_datetime_str, mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
         if datetime_dets is None:
-            raise Exception(u"Need a usable datetime string to return a standard "
-                u"datetime string.")
+            raise Exception("Need a usable datetime string to return a standard"
+                " datetime string.")
         else: 
-            # usable (possibly requiring a date to be added to a time)
-            # has at least one part (date/time) and anything it has is ok
-            (date_part, date_format, time_part, time_format, boldate_then_time) = \
-                datetime_dets
-            # determine what type of valid datetime then make time object
+            ## usable (possibly requiring a date to be added to a time)
+            ## has at least one part (date/time) and anything it has is ok
+            (date_part, date_format,
+             time_part, time_format,
+             boldate_then_time) = datetime_dets
+            ## determine what type of valid datetime then make time object
             if date_part is not None and time_part is not None:
                 if boldate_then_time:
-                    time_obj = time.strptime("%s %s" % (date_part, time_part),
-                        "%s %s" % (date_format, time_format))
-                else: # time then date
-                    time_obj = time.strptime("%s %s" % (time_part, date_part),
-                        "%s %s" % (time_format, date_format))
+                    time_obj = time.strptime(f"{date_part} {time_part}",
+                        f"{date_format} {time_format}")
+                else:  ## time then date
+                    time_obj = time.strptime(f"{time_part} {date_part}",
+                        f"{time_format} {date_format}")
             elif date_part is not None and time_part is None:
-                # date only (add time of 00:00:00)
-                time_obj = time.strptime("%s 00:00:00" % date_part,
-                    "%s %%H:%%M:%%S" % date_format)
+                ## date only (add time of 00:00:00)
+                time_obj = time.strptime(
+                    f"{date_part} 00:00:00", f"{date_format} %H:%M:%S")
             elif date_part is None and time_part is not None:
-                # time only (assume today's date)
+                ## time only (assume today's date)
                 today = time.localtime()
-                time_obj = time.strptime("%s-%s-%s %s" % (today[0], today[1],
-                    today[2], time_part), "%%Y-%%m-%%d %s" % time_format)
+                time_obj = time.strptime(
+                    f"{today[0]}-{today[1]}-{today[2]} {time_part}",
+                    f"%Y-%m-%d {time_format}")
             else:
-                raise Exception(u"Supposedly a usable datetime str but no usable "
-                    u"parts")
+                raise Exception(
+                    "Supposedly a usable datetime str but no usable parts")
             if debug: print(time_obj)
         return time_obj
 
@@ -1056,7 +1060,7 @@ class DateLib(object):
         time_obj = DateLib._get_time_obj(raw_datetime_str)
         input_dt = datetime.datetime(*time_obj[:6])
         epoch_start_dt = datetime.datetime(1970,1,1)
-        epoch_seconds = (input_dt - epoch_start_dt).total_seconds() # time.mktime(time_obj)
+        epoch_seconds = (input_dt - epoch_start_dt).total_seconds()  ## time.mktime(time_obj)
         return epoch_seconds
 
 
@@ -1074,14 +1078,14 @@ class FiltLib(object):
         try:
             tbl_filt_label, tbl_filt = mg.DBE_TBL_FILTS[dbe][db][tbl]
         except KeyError:
-            tbl_filt_label, tbl_filt = u"", u""
+            tbl_filt_label, tbl_filt = '', ''
         return tbl_filt_label, tbl_filt
 
     @staticmethod
     def get_tbl_filt_clause(dbe, db, tbl):
         """Clause must be self-contained so AND/OR problems don't occur"""
         unused, tbl_filt = FiltLib.get_tbl_filt(dbe, db, tbl)
-        tbl_filt_clause = u'tbl_filt = u""" %s """' % tbl_filt
+        tbl_filt_clause = f'tbl_filt = """ {tbl_filt} """'
         return tbl_filt_clause
 
     @staticmethod
@@ -1098,12 +1102,12 @@ class FiltLib(object):
         Filters must still work if empty strings (for performance when no filter 
         required).
         """
-        if tbl_filt.strip() != "":
-            where_tbl_filt = u""" WHERE (%s)""" % tbl_filt
-            and_tbl_filt = u""" AND (%s)""" % tbl_filt
+        if tbl_filt.strip() != '':
+            where_tbl_filt = f""" WHERE ({tbl_filt})"""
+            and_tbl_filt = f""" AND ({tbl_filt})"""
         else:
-            where_tbl_filt = u""
-            and_tbl_filt = u""
+            where_tbl_filt = ''
+            and_tbl_filt = ''
         return where_tbl_filt, and_tbl_filt
 
     @staticmethod
@@ -1111,8 +1115,8 @@ class FiltLib(object):
         """
         Return filter message.
         """
-        if tbl_filt.strip() != "":
-            if tbl_filt_label.strip() != "":
+        if tbl_filt.strip() != '':
+            if tbl_filt_label.strip() != '':
                 filt_msg = _("Data filtered by \"%(label)s\": %(filt)s") % \
                     {"label": tbl_filt_label, "filt": tbl_filt.strip()}
             else:
@@ -1153,7 +1157,7 @@ class GuiLib(object):
         y = 0
         for szr in szr_lst:
             szr_x, szr_y = szr.GetMinSize()
-            if debug: print("szr_x: %s; szr_y: %s" % (szr_x, szr_y))
+            if debug: print(f"szr_x: {szr_x}; szr_y: {szr_y}")
             if vertical:
                 x = max([szr_x, x])
                 y += szr_y
@@ -1183,12 +1187,12 @@ class GuiLib(object):
         NB no need to set size=() in __init__ of window. 
         """
         width_cont_min, height_cont_min = GuiLib._get_min_content_size(szr_lst)
-        width_min = width_cont_min + 2*horiz_padding # left and right
+        width_min = width_cont_min + 2*horiz_padding  ## left and right
         height_correction = 200 if mg.PLATFORM == mg.MAC else 100
         height_min = height_cont_min + height_correction
         width_init = width_init if width_init else width_min
         height_init = height_init if height_init else height_min
-        if mg.PLATFORM == mg.WINDOWS: # jitter to display inner controls
+        if mg.PLATFORM == mg.WINDOWS:  ## jitter to display inner controls
             window.SetSize((width_init+1, height_init+1))
         window.SetSize((width_init, height_init))
         window.SetMinSize((width_min,height_min))
@@ -1200,26 +1204,26 @@ class GuiLib(object):
             if wx.IsBusy():
                 wx.EndBusyCursor()
         except Exception:
-            pass # might be called outside of gui e.g. headless importing
+            pass  ## might be called outside of gui e.g. headless importing
 
     @staticmethod
     def get_text_to_draw(orig_txt, max_width):
         "Return text broken into new lines so wraps within pixel width"
         mem = wx.MemoryDC()
-        mem.SelectObject(wx.Bitmap(100, 100)) # mac fails without this
-        # add words to it until its width is too long then put into split
+        mem.SelectObject(wx.Bitmap(100, 100))  ## mac fails without this
+        ## add words to it until its width is too long then put into split
         lines = []
         words = orig_txt.split()
         line_words = []
         for word in words:
             line_words.append(word)
-            line_width = mem.GetTextExtent(u" ".join(line_words))[0]
+            line_width = mem.GetTextExtent(' '.join(line_words))[0]
             if line_width > max_width:
                 line_words.pop()
-                lines.append(u" ".join(line_words))
+                lines.append(' '.join(line_words))
                 line_words = [word]
-        lines.append(u" ".join(line_words))
-        wrapped_txt = u"\n".join(lines)
+        lines.append(' '.join(line_words))
+        wrapped_txt = '\n'.join(lines)
         mem.SelectObject(wx.NullBitmap)
         return wrapped_txt
 
@@ -1227,7 +1231,7 @@ class GuiLib(object):
     def get_font_size_to_fit(text, max_width, font_sz, min_font_sz):
         "Shrink font until it fits or is min size"
         mem = wx.MemoryDC()
-        mem.SelectObject(wx.Bitmap(max_width, 100)) # mac fails without this
+        mem.SelectObject(wx.Bitmap(max_width, 100))  ## mac fails without this
         while font_sz > min_font_sz:
             font = wx.Font(font_sz, wx.SWISS, wx.NORMAL, wx.BOLD)
             mem.SetFont(font)
@@ -1267,17 +1271,17 @@ class GuiLib(object):
         return bitmap
 
     @staticmethod
-    def get_blank_btn_bmp(xpm=u"blankbutton.xpm"):
-        blank_btn_path = os.path.join(mg.SCRIPT_PATH, u"images", xpm)
+    def get_blank_btn_bmp(xpm='blankbutton.xpm'):
+        blank_btn_path = os.path.join(mg.SCRIPT_PATH, 'images', xpm)
         if not os.path.exists(blank_btn_path):
-            raise Exception(u"Problem finding background button image.  "
-                u"Missing path: %s" % blank_btn_path)
+            raise Exception("Problem finding background button image. "
+                f"Missing path: {blank_btn_path}")
         try:
             blank_btn_bmp = wx.Image(blank_btn_path,
                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         except Exception:
-            raise Exception(u"Problem creating background button image from %s"
-                % blank_btn_path)
+            raise Exception(
+                f"Problem creating background button image from {blank_btn_path}")
         return blank_btn_bmp
 
     @staticmethod
@@ -1298,16 +1302,16 @@ class GuiLib(object):
         bmp = img.ConvertToBitmap()
         return bmp
 
-    # All items are ids with methods e.g. IsOk().  The tree uses the ids to do
-    # things.  Items don't get their siblings; the tree does knowing the item id.
+    ## All items are ids with methods e.g. IsOk(). The tree uses the ids to do
+    ## things. Items don't get their siblings; the tree does knowing the item id.
     @staticmethod
     def get_tree_ctrl_children(tree, item):
         """
         Get children of TreeCtrl item
         """
         children = []
-        child, cookie = tree.GetFirstChild(item) # p.471 wxPython
-        while child: # an id
+        child, cookie = tree.GetFirstChild(item)  ## p.471 wxPython
+        while child:  ## an id
             children.append(child)
             child, cookie = tree.GetNextChild(item, cookie)
         return children
@@ -1329,7 +1333,8 @@ class GuiLib(object):
     @staticmethod
     def get_tree_ctrl_descendants(tree, parent, descendants=None):
         """
-        Get all descendants (descendent is an alternative spelling in English grrr).
+        Get all descendants (descendent is an alternative spelling in English
+        grrr).
         """
         if descendants is None:
             descendants = []
@@ -1344,19 +1349,19 @@ class GuiLib(object):
         "Return string representing subtree"
         descendants = GuiLib.get_tree_ctrl_descendants(tree, parent)
         descendant_labels = [tree.GetItemText(x) for x in descendants]
-        return ", ".join(descendant_labels)
+        return ', '.join(descendant_labels)
 
     @staticmethod
     def get_tree_ancestors(tree, child):
         "Get ancestors of TreeCtrl item"
         ancestors = []
         item = tree.GetItemParent(child)
-        while item: # an id
+        while item:  ## an id
             ancestors.append(item)
             item = tree.GetItemParent(item)
         return ancestors
 
-    # report tables
+    ## report tables
     @staticmethod
     def get_col_dets(coltree, colroot, var_labels):
         """
@@ -1367,7 +1372,7 @@ class GuiLib(object):
             parent=colroot)
         col_names = []
         col_sorting = []
-        for descendant in descendants: # NB GUI tree items, not my Dim Node obj
+        for descendant in descendants:  ## NB GUI tree items, not my Dim Node obj
             item_conf = coltree.GetItemPyData(descendant)
             col_names.append(item_conf.var_name)
             col_sorting.append(item_conf.sort_order)
@@ -1381,7 +1386,7 @@ class GuiLib(object):
         e.g. if has a label, turn agegrp into Age Group
         """
         item_val_u = UniLib.any2unicode(item_val)
-        return item_labels.get(item_val, item_val_u.title()) #.replace(u"\n", u" ") # leave as is
+        return item_labels.get(item_val, item_val_u.title())  ##.replace(u"\n", u" ") # leave as is
 
     @staticmethod
     def get_choice_item(item_labels, item_val):
@@ -1389,10 +1394,10 @@ class GuiLib(object):
         e.g. "Age Group (agegrp)"
         """
         item_label = GuiLib.get_item_label(item_labels, item_val)
-        return u"%s (%s)" % (item_label, UniLib.any2unicode(item_val)) #.replace(u"\n", u" "))
+        return f"{item_label} ({UniLib.any2unicode(item_val)})"
 
     @staticmethod
-    def get_sorted_choice_items(dic_labels, vals, inc_drop_select=False):
+    def get_sorted_choice_items(dic_labels, vals, *, inc_drop_select=False):
         """
         Sorted by label, not name.
 
@@ -1404,8 +1409,7 @@ class GuiLib(object):
 
         Returns choice_items_sorted, orig_items_sorted.
 
-        http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated- ...
-            ... sort-can-you-do-a-schwartzian-transform-in-python
+        http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated-sort-can-you-do-a-schwartzian-transform-in-python
         """
         sorted_vals = vals
         sorted_vals.sort(
@@ -1505,12 +1509,12 @@ class DlgHelp(wx.Dialog):
         szr_guidance.Add(lbl_guidance, 1, wx.GROW|wx.ALL, 10)
         btn_online_help = wx.Button(self.panel, -1, _("Online Help"))
         btn_online_help.Bind(wx.EVT_BUTTON, self.on_online_help)
-        btn_online_help.SetToolTipString(_(u"Get more help with %s "
-                                           "online") % activity_lbl)
+        btn_online_help.SetToolTip(
+            _("Get more help with %s online") % activity_lbl)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szr_btns.AddGrowableCol(1,2) # idx, propn
+        szr_btns.AddGrowableCol(1,2)  ## idx, propn
         szr_btns.Add(btn_online_help, 0)
         szr_btns.Add(btn_close, 0, wx.ALIGN_RIGHT)
         szr_main.Add(szr_guidance, 0, wx.GROW|wx.ALL, 10)
@@ -1521,8 +1525,8 @@ class DlgHelp(wx.Dialog):
 
     def on_online_help(self, event):
         import webbrowser
-        url = (u"http://www.sofastatistics.com/wiki/doku.php"
-            u"?id=help:%s" % self.help_pg)
+        url = (
+            f"http://www.sofastatistics.com/wiki/doku.php?id=help:{self.help_pg}")
         webbrowser.open_new_tab(url)
         event.Skip()
 
@@ -1542,9 +1546,9 @@ class StaticWrapText(wx.StaticText):
 
     def __init__(self, *args, **kwargs):
         wx.StaticText.__init__(self, *args, **kwargs)
-        # store the initial label
+        ## store the initial label
         self.__label = super(StaticWrapText, self).get_label()
-        # listen for sizing events
+        ## listen for sizing events
         self.Bind(wx.EVT_SIZE, self.on_size)
 
     def set_label(self, newLabel):
@@ -1560,7 +1564,7 @@ class StaticWrapText(wx.StaticText):
         """Wraps the words in label."""
         words = self.__label.split()
         lines = []
-        # get the maximum width (that of our parent)
+        ## get the maximum width (that of our parent)
         max_width = self.GetParent().GetVirtualSizeTuple()[0]
         current = []
         for word in words:
@@ -1569,16 +1573,15 @@ class StaticWrapText(wx.StaticText):
                 del current[-1]
                 lines.append(" ".join(current))
                 current = [word]
-        # pick up the last line of text
+        ## pick up the last line of text
         lines.append(" ".join(current))
-        # set the actual label property to the wrapped version
+        ## set the actual label property to the wrapped version
         super(StaticWrapText, self).set_label("\n".join(lines))
-        # refresh the widget
+        ## refresh the widget
         self.Refresh()
 
     def on_size(self, unused_event):
-        # dispatch to the wrap method which will 
-        # determine if any changes are needed
+        ## dispatch to the wrap method which will determine if any changes needed
         self.__wrap()
 
 
@@ -1613,8 +1616,8 @@ class ItemConfig(object):
         if total_part:
             str_parts.append(total_part)
         # ordinary sorting by freq (may include rows and cols)
-        order2lbl_dic = {mg.SORT_NONE_KEY: u"Not Sorted",
-            mg.SORT_VALUE_KEY: u"Sort by Value",
+        order2lbl_dic = {mg.SORT_NONE_KEY: "Not Sorted",
+            mg.SORT_VALUE_KEY: "Sort by Value",
             mg.SORT_LBL_KEY: _("Sort by Label"),
             mg.SORT_INCREASING_KEY: _("Sort by Freq (Asc)"),
             mg.SORT_DECREASING_KEY: _("Sort by Freq (Desc)")}
@@ -1630,7 +1633,7 @@ class ItemConfig(object):
         measures_part = _("Measures: %s") % measures if measures else None
         if measures_part:
             str_parts.append(measures_part)
-        return u"; ".join(str_parts)
+        return '; '.join(str_parts)
 
 
 def get_safer_name(rawname):
@@ -1640,32 +1643,32 @@ def get_gettext_setup_txt():
     """
     Must achieve same result for gettext as occurs in SofaApp.setup_i18n() in
     start.py.
-    
+
     Need to explicitly set proper locale in scripts so they can run 
     independently of the GI.
-    
+
     Doesn't need to be in start.py but safest to be next to where code it is
     meant to replicate.
     """
     bits = []
-    bits.append(u"try:")
-    bits.append(u"    mytrans = gettext.translation(u'sofastats', \"%s\"," % 
-        escape_pre_write(mg.LANGDIR))
-    bits.append(u"        languages=[u'%s',], fallback=True)" % mg.CANON_NAME)
-    bits.append(u"    mytrans.install()")
-    bits.append(u"except Exception as e:")
-    bits.append(u"    raise Exception(u\"Problem installing translation. \"")
-    bits.append(u"        u\"Original error: %s\" % e)")
+    bits.append("try:")
+    bits.append("    mytrans = gettext.translation('sofastats', "
+        f'"{escape_pre_write(mg.LANGDIR)}",')
+    bits.append(f"        languages=['{mg.CANON_NAME}',], fallback=True)")
+    bits.append("    mytrans.install()")
+    bits.append("except Exception as e:")
+    bits.append('    raise Exception("Problem installing translation. "')
+    bits.append('        "Original error: %s" % e)')
     if mg.PLATFORM == mg.LINUX:
-        bits.append(u"try:")
-        bits.append(u"    os.environ['LANG'] = u'%s.UTF-8'" % mg.CANON_NAME)
-        bits.append(u"except (ValueError, KeyError):")
-        bits.append(u"    pass # OK if unable to set environment settings.")
-    return "\n".join(bits)
+        bits.append("try:")
+        bits.append(f"    os.environ['LANG'] = '{mg.CANON_NAME}.UTF-8'")
+        bits.append("except (ValueError, KeyError):")
+        bits.append("    pass  ## OK if unable to set environment settings.")
+    return '\n'.join(bits)
 
 def formatnum(num):
     try:
-        formatted = "{:,}".format(num)
+        formatted = f"{num:,}"
     except ValueError:
         formatted = num
     return formatted
@@ -1677,7 +1680,7 @@ def fix_eols(orig):
     """
     try:
         fixed = orig.replace(u"\n", u" ")
-    except AttributeError: # e.g. None
+    except AttributeError:  ## e.g. None
         fixed = orig
     return fixed
 
@@ -1707,7 +1710,7 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
 def pluralise_with_s(singular, n):
-    return singular if n == 1 else u"{}s".format(singular)
+    return singular if n == 1 else f"{singular}s"
 
 def get_bins(min_val, max_val, n_distinct):
     """
@@ -1731,11 +1734,11 @@ def get_bins(min_val, max_val, n_distinct):
     n_bins -- need an integer ready for core_stats.histogram
     """
     debug = False
-    # init
+    ## init
     if min_val > max_val:
-        if debug: print("Had to swap %s and %s ..." % (min_val, max_val))
+        if debug: print(f"Had to swap {min_val} and {max_val} ...")
         min_val, max_val = max_val, min_val
-        if debug: print("... to %s and %s" % (min_val, max_val))
+        if debug: print(f"... to {min_val} and {max_val}")
     data_range = max_val - min_val
     if data_range == 0:
         data_range = 1
@@ -1751,24 +1754,24 @@ def get_bins(min_val, max_val, n_distinct):
     else:
         min_n_bins = n_distinct
     init_bin_width = data_range/(target_n_bins*1.0)
-    # normalise init_bin_width to val between 1 and 10
+    ## normalise init_bin_width to val between 1 and 10
     norm_bin_width = init_bin_width
     while norm_bin_width <= 1:
         norm_bin_width *= 10
     while norm_bin_width > 10:
         norm_bin_width /= 10.0
     if debug:
-        print("init: %s, normed: %s" % (init_bin_width, norm_bin_width))
-    # get denorm ratio so can convert norm_bin widths back to data bin widths
+        print(f"init: {init_bin_width}, normed: {norm_bin_width}")
+    ## get denorm ratio so can convert norm_bin widths back to data bin widths
     denorm_ratio = init_bin_width/norm_bin_width
-    # adjust upwards to either 5 or 10
+    ## adjust upwards to either 5 or 10
     better_norm_bin_width = 5 if norm_bin_width <= 5 else 10
-    # denormalise
+    ## denormalise
     better_bin_width = better_norm_bin_width*denorm_ratio
     n_bins = int(math.ceil(data_range/better_bin_width))
-    # possible to increase granularity?
+    ## possible to increase granularity?
     if n_bins < min_n_bins:
-        # halve normalised bin width and try again but with an extra option of 2
+        ## halve normalised bin width and try again but with an extra option of 2
         norm_bin_width /= 2.0
         if norm_bin_width <= 2:
             better_norm_bin_width = 2
@@ -1776,21 +1779,21 @@ def get_bins(min_val, max_val, n_distinct):
             better_norm_bin_width = 5
         else:
             better_norm_bin_width = 10
-        # denormalise
+        ## denormalise
         better_bin_width = better_norm_bin_width*denorm_ratio
         n_bins = int(math.ceil(data_range/(better_bin_width*1.0)))
     lower_limit = min_val
     upper_limit = max_val
-    # Adjust lower and upper limits if bin_width doesn't exactly fit.  If an
-    # exact fit, leave alone on assumption the limits are meaningful e.g. if
-    # 9.69 - 19.69 and 20 bins then leave limits alone.
+    ## Adjust lower and upper limits if bin_width doesn't exactly fit.  If an
+    ## exact fit, leave alone on assumption the limits are meaningful e.g. if
+    ## 9.69 - 19.69 and 20 bins then leave limits alone.
     if better_bin_width*n_bins != data_range:
         if debug: print(data_range, better_bin_width*n_bins)
-        # Set lower limit to a clean multiple of the bin_width e.g. 3*bin_width
-        # or -6*bin_width. Identify existing multiple and set to integer below
-        # (floor). Lower limit is now that lower integer times the bin_width.
-        # NB the multiple is an integer but the lower limit might not be
-        # e.g. if the bin_size is a fraction e.g. 0.002
+        ## Set lower limit to a clean multiple of the bin_width e.g. 3*bin_width
+        ## or -6*bin_width. Identify existing multiple and set to integer below
+        ## (floor). Lower limit is now that lower integer times the bin_width.
+        ## NB the multiple is an integer but the lower limit might not be
+        ## e.g. if the bin_size is a fraction e.g. 0.002
         existing_multiple = lower_limit/(better_bin_width*1.0)
         lower_limit = math.floor(existing_multiple)*better_bin_width
         upper_limit = lower_limit + (n_bins*better_bin_width)
@@ -1798,9 +1801,9 @@ def get_bins(min_val, max_val, n_distinct):
         upper_limit += better_bin_width
         n_bins += 1
     if debug:
-        print(("For %s to %s use an interval size of %s for a data range of %s "
-            "to %s giving you %s bins") % (min_val, max_val, better_bin_width, 
-            lower_limit, upper_limit, n_bins))
+        print(f"For {min_val} to {max_val} use an interval size of "
+            f"{better_bin_width} for a data range of "
+            f"{lower_limit} to {upper_limit} giving you {n_bins} bins")
     return n_bins, lower_limit, upper_limit
 
 def version_a_is_newer(version_a, version_b):
@@ -1808,19 +1811,19 @@ def version_a_is_newer(version_a, version_b):
     Must be able to process both version details or error raised.
     """
     try:
-        version_b_parts = version_b.split(u".")
+        version_b_parts = version_b.split('.')
         if len(version_b_parts) != 3:
-            raise Exception(u"Faulty Version B details")
+            raise Exception("Faulty Version B details")
         version_b_parts = [int(x) for x in version_b_parts]
     except Exception:
-        raise Exception(u"Version B parts faulty")
+        raise Exception("Version B parts faulty")
     try:
         version_a_parts = version_a.split(u".")
         if len(version_a_parts) != 3:
-            raise Exception(u"Faulty Version A details")
+            raise Exception("Faulty Version A details")
         version_a_parts = [int(x) for x in version_a_parts]
     except Exception:
-        raise Exception(u"Version A parts faulty")
+        raise Exception("Version A parts faulty")
     if version_a_parts[0] > version_b_parts[0]:
         is_newer = True
     elif (version_a_parts[0] == version_b_parts[0]
@@ -1836,7 +1839,7 @@ def version_a_is_newer(version_a, version_b):
 
 def none2empty(val):
     if val is None:
-        return u""
+        return ''
     else:
         return val
 
@@ -1844,16 +1847,16 @@ def get_val_type(val, comma_dec_sep_ok=False):
     """
     comma_dec_sep_ok -- Some countries use commas as decimal separators.
     """
-    if TypeLib.is_numeric(val, comma_dec_sep_ok): # anything SQLite can add 
-            # _as a number_ into a numeric field
+    if TypeLib.is_numeric(val, comma_dec_sep_ok):  ## anything SQLite can add
+            ## _as a number_ into a numeric field
         val_type = mg.VAL_NUMERIC
-    elif TypeLib.is_pytime(val): # COM on Windows
+    elif TypeLib.is_pytime(val):  ## COM on Windows
         val_type = mg.VAL_DATE
     else:
         usable_datetime = DateLib.is_usable_datetime_str(val)
         if usable_datetime:
             val_type = mg.VAL_DATE
-        elif val == "": # Note - some strings can't be coerced into u"" comparison
+        elif val == '':  ## Note - some strings can't be coerced into u"" comparison
             val_type = mg.VAL_EMPTY_STRING
         else:
             val_type = mg.VAL_STRING
@@ -1863,7 +1866,7 @@ def get_overall_fldtype(type_set):
     """
     type_set may contain empty_str as well as actual types.  Useful to remove
     empty str and see what is left.
-    
+
     STRING is the fallback.
     """
     debug = False
@@ -1890,18 +1893,18 @@ def esc_str_input(raw):
     name %Y will confuse the string formatting operation.  %%Y will be fine.
     """
     try:
-        new_str = raw.replace("%", "%%")
+        new_str = raw.replace('%', '%%')
     except Exception as e:
-        raise Exception(u"Unable to escape str input."
-            u"\nCaused by error: %s" % b.ue(e))
+        raise Exception(
+            f"Unable to escape str input.\nCaused by error: {b.ue(e)}")
     return new_str
 
 def get_var_dets(fil_var_dets):
     """
     Get variable details from fil_var_dets file.
-    
+
     Returns var_labels, var_notes, var_types, val_dics.
-    
+
     If any errors, return empty dicts and let user continue. Perhaps a corrupted 
     vdts file. Not a reason to bring the whole show down. At least make it easy 
     for them to fix the variable details/change the project settings etc. 
@@ -1910,36 +1913,36 @@ def get_var_dets(fil_var_dets):
     var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
     var_dets = b.get_exec_ready_text(text=var_dets)
     var_dets_dic = {}
-    results = empty_var_dets # init
+    results = empty_var_dets  ## init
     try:
         exec(var_dets, var_dets_dic)
-        try: # puts out results in form which should work irrespective of surrounding encoding of script. E.g. labels={u'1': u'R\xe9parateurs de lampe \xe0 p\xe9trole',
-            orig_var_types = var_dets_dic["var_types"]
+        try:  ## puts out results in form which should work irrespective of surrounding encoding of script. E.g. labels={'1': 'R\xe9parateurs de lampe \xe0 p\xe9trole',
+            orig_var_types = var_dets_dic['var_types']
             var_types = {}
             for key, orig_type in orig_var_types.items():
-                # if type not in new list, get from old list
+                ## if type not in new list, get from old list
                 if orig_type in mg.VAR_TYPE_KEYS:
                     new_type = orig_type
                 else:
                     new_type = mg.VAR_TYPE_LBL2KEY.get(orig_type,
                         mg.VAR_TYPE_CAT_KEY)
                 var_types[key] = new_type
-            results = (var_dets_dic["var_labels"], var_dets_dic["var_notes"],
-                var_types, var_dets_dic["val_dics"])
+            results = (var_dets_dic['var_labels'], var_dets_dic['var_notes'],
+                var_types, var_dets_dic['val_dics'])
         except Exception as e:
-            wx.MessageBox(u"Four variables needed in \"%s\": var_labels, "
-                u"var_notes, var_types, and val_dics. "
-                u"Please check file. Orig error: %s" % (fil_var_dets, b.ue(e)))
+            wx.MessageBox(f'Four variables needed in "{fil_var_dets}": '
+                "var_labels, var_notes, var_types, and val_dics. "
+                f"Please check file. Orig error: {b.ue(e)}")
     except SyntaxError as e:
         wx.MessageBox(
-            _(u"Syntax error in variable details file \"%(fil_var_dets)s\"."
-            u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-            u"err": str(e)})
+            _("Syntax error in variable details file \"%(fil_var_dets)s\"."
+            "\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets,
+            "err": str(e)})
     except Exception as e:
         wx.MessageBox(
-            _(u"Error processing variable details file \"%(fil_var_dets)s\"."
-            u"\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets, 
-            u"err": str(e)})
+            _("Error processing variable details file \"%(fil_var_dets)s\"."
+            "\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets,
+            "err": str(e)})
     return results
 
 def get_rand_val_of_type(lbl_type_key):
@@ -1950,7 +1953,7 @@ def get_rand_val_of_type(lbl_type_key):
     elif lbl_type_key == mg.FLDTYPE_DATE_KEY:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
-        raise Exception(u"Unknown lbl_type_key in get_rand_val_of_type")
+        raise Exception("Unknown lbl_type_key in get_rand_val_of_type")
     return random.choice(vals_of_type)
 
 def get_n_fldnames(n):
@@ -1969,8 +1972,8 @@ def get_unique_fldnames(existing_fldnames):
     fldnames = []
     prev_fldnames_and_counters = {}
     for i, name in enumerate(existing_fldnames, 1):
-        name = name.replace("\n", "_")
-        if name == u"":
+        name = name.replace('\n', '_')
+        if name == '':
             newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
         else:
             if existing_fldnames.count(name) > 1:
@@ -1979,7 +1982,7 @@ def get_unique_fldnames(existing_fldnames):
                         prev_fldnames_and_counters[name] = 1
                     else:
                         prev_fldnames_and_counters[name] += 1
-                    # make unique using next number
+                    ## make unique using next number
                     newname = mg.NEXT_VARIANT_FLDNAME_TEMPLATE % (name, 
                         prev_fldnames_and_counters[name])
                     if newname not in existing_fldnames:
@@ -2018,13 +2021,12 @@ def n2d(f):
         try:
             f = float(f)
         except (ValueError, TypeError):
-            raise Exception(u"Unable to convert value to Decimal.  "
-                + u"Value was \"%s\"" % f)
+            raise Exception(f'Unable to convert value "{f}" to Decimal')
     try:
         n, d = f.as_integer_ratio()
     except Exception:
-        raise Exception(u"Unable to turn value \"%s\" into integer " % f
-            + u"ratio for unknown reason.")
+        raise Exception(f'Unable to turn value "{f}" into integer ratio for '
+            + "unknown reason.")
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)
@@ -2035,18 +2037,18 @@ def n2d(f):
     return result
 
 def get_escaped_dict_pre_write(mydict):
-    # process each part and escape the paths only
+    ## process each part and escape the paths only
     items_list = []
     keys = mydict.keys()
-    keys.sort() # so testing can expect a fixed output for a fixed input
+    keys.sort()  ## so testing can expect a fixed output for a fixed input
     for key in keys:
         val = mydict[key]
         if val is None:
-            item = u"None"
+            item = 'None'
         elif type(val) is dict:
             item = get_escaped_dict_pre_write(val)
         elif isinstance(val, str):
-            item = u'u"' + escape_pre_write(val) + u'"'
+            item = '"' + escape_pre_write(val) + '"'
         else:
             item = val 
         items_list.append(f'"{key}": {item}')
@@ -2074,7 +2076,7 @@ def escape_pre_write(txt):
 
 def get_file_name(path):
     "Works on Windows paths as well"
-    path = path.replace("\\\\", "\\").replace("\\", "/")
+    path = path.replace('\\\\', '\\').replace('\\', '/')
     return os.path.split(path)[1]
     
 def if_none(val, default):

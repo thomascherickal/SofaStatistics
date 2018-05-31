@@ -253,8 +253,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                                  MSACCESS_DEFAULT_DB, 
                                                  size=(250,-1))
     parent.txt_msaccess_default_db.Enable(not readonly)
-    parent.txt_msaccess_default_db.SetToolTipString(_("Default database"
-                                                      " (optional)"))
+    parent.txt_msaccess_default_db.SetToolTip(_("Default database (optional)"))
     # default table
     parent.lbl_msaccess_default_tbl = wx.StaticText(scroll, -1, 
                                                  _("Default Table:"))
@@ -265,8 +264,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
                                                   MSACCESS_DEFAULT_TBL, 
                                                   size=(250,-1))
     parent.txt_msaccess_default_tbl.Enable(not readonly)
-    parent.txt_msaccess_default_tbl.SetToolTipString(_("Default table"
-                                                       " (optional)"))
+    parent.txt_msaccess_default_tbl.SetToolTip(_("Default table (optional)"))
     parent.szr_msaccess = wx.StaticBoxSizer(bx_msaccess, wx.VERTICAL)
     #3 MS ACCESS INNER
     szr_msaccess_inner = wx.BoxSizer(wx.HORIZONTAL)

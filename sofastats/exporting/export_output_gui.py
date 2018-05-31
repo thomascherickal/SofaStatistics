@@ -35,8 +35,8 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     tbls_taken = (n_tbls*TBL_ITEM_TAKES)
     tot_taken = pdf_taken + imgs_taken + tbls_taken
     if tot_taken == 0:
-        raise Exception(u"Unable to get start and steps - zero items to show "
-            u"progress for.")
+        raise Exception(
+            "Unable to get start and steps - zero items to show progress for.")
     pdf_as_prop = pdf_taken/float(tot_taken)
     imgs_as_prop = imgs_taken/float(tot_taken)
     tbls_as_prop = tbls_taken/float(tot_taken)
@@ -64,13 +64,13 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
 
 class DlgExportOutput(wx.Dialog):
     
-    def __init__(self, title, report_path, save2report_path=True,
-            multi_page_items=True):
+    def __init__(self, title, report_path, *,
+            save2report_path=True, multi_page_items=True):
         """
-        save2report_path -- output goes into the report folder. If False, 
-        exporting output to a temporary desktop folder for the user to look at. 
+        save2report_path -- output goes into the report folder. If False,
+        exporting output to a temporary desktop folder for the user to look at.
         """
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET+200, 300), style=wx.MINIMIZE_BOX|
             wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
             wx.CAPTION|wx.CLIP_CHILDREN)
@@ -83,17 +83,17 @@ class DlgExportOutput(wx.Dialog):
         self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
         if self.save2report_path:
             report_name = os.path.split(report_path)[1]
-            msg = u"Export \"%s\"" % report_name
+            msg = f'Export "{report_name}"'
         else:
-            msg = u"Export content currently displayed in SOFA"
+            msg = "Export content currently displayed in SOFA"
         lbl_msg = wx.StaticText(self, -1, msg)
         szr.Add(lbl_msg, 0, wx.ALL, 10)
         szr_pdf_or_tbls = wx.BoxSizer(wx.VERTICAL)
         szr_left_and_right = wx.BoxSizer(wx.HORIZONTAL)
         self.chk_pdf = wx.CheckBox(self, -1, _("Export as PDF"))
         self.chk_pdf.Bind(wx.EVT_CHECKBOX, self.on_chk_pdf)
-        self.chk_tbls = wx.CheckBox(self, -1, _("Export to spreadsheet (report "
-            u"tables only)"))
+        self.chk_tbls = wx.CheckBox(self, -1,
+            _("Export to spreadsheet (report tables only)"))
         self.chk_tbls.Bind(wx.EVT_CHECKBOX, self.on_chk_tbls)
         szr_pdf_or_tbls.Add(self.chk_pdf, 0, wx.ALL, 10)
         szr_pdf_or_tbls.Add(self.chk_tbls, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
@@ -104,18 +104,18 @@ class DlgExportOutput(wx.Dialog):
         self.chk_imgs = wx.CheckBox(self, -1, _("Export as Images"))
         self.chk_imgs.Bind(wx.EVT_CHECKBOX, self.on_chk_imgs)
         self.choice_dpis = [
-            (_(u"Draft Quality (%s dpi)") % mg.DRAFT_DPI, mg.DRAFT_DPI), 
-            (_(u"Screen Quality (%s dpi)") % mg.SCREEN_DPI, mg.SCREEN_DPI), 
-            (_(u"Print Quality (%s dpi)") % mg.PRINT_DPI, mg.PRINT_DPI),
-            (_(u"High Quality (%s dpi)") % mg.HIGH_QUAL_DPI, mg.HIGH_QUAL_DPI),
-            (_(u"Top Quality (%s dpi)") % mg.TOP_DPI, mg.TOP_DPI),
+            (_("Draft Quality (%s dpi)") % mg.DRAFT_DPI, mg.DRAFT_DPI),
+            (_("Screen Quality (%s dpi)") % mg.SCREEN_DPI, mg.SCREEN_DPI),
+            (_("Print Quality (%s dpi)") % mg.PRINT_DPI, mg.PRINT_DPI),
+            (_("High Quality (%s dpi)") % mg.HIGH_QUAL_DPI, mg.HIGH_QUAL_DPI),
+            (_("Top Quality (%s dpi)") % mg.TOP_DPI, mg.TOP_DPI),
         ]
         choices = [x[0] for x in self.choice_dpis]
         self.drop_dpi = wx.Choice(self, -1, choices=choices)
         idx_print = 2
         self.drop_dpi.SetSelection(idx_print)
-        self.drop_dpi.SetToolTipString(u"The more dots per inch (dpi) the "
-            u"higher the quality but the slower the export process.")
+        self.drop_dpi.SetToolTip("The more dots per inch (dpi) the higher the "
+            "quality but the slower the export process.")
         szr_imgs.Add(self.chk_imgs, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_imgs.Add(self.drop_dpi, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_left_and_right.Add(szr_imgs, 0)
@@ -123,15 +123,15 @@ class DlgExportOutput(wx.Dialog):
         self.btn_cancel = wx.Button(self, wx.ID_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
         self.btn_cancel.Enable(False)
-        self.btn_export = wx.Button(self, -1, u"Export")
+        self.btn_export = wx.Button(self, -1, "Export")
         self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         self.btn_export.Enable(False)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=0)
-        szr_btns.AddGrowableCol(1,2) # idx, propn
+        szr_btns.AddGrowableCol(1,2)  ## idx, propn
         szr_btns.Add(self.btn_cancel, 0)
         szr_btns.Add(self.btn_export, 0, wx.ALIGN_RIGHT)       
         self.progbar = wx.Gauge(self, -1, mg.EXPORT_IMG_GAUGE_STEPS, 
-            size=(-1, 20), style=wx.GA_PROGRESSBAR)
+            size=(-1, 20), style=wx.GA_HORIZONTAL)
         self.btn_close = wx.Button(self, wx.ID_CLOSE)
         self.btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
         szr.Add(szr_btns, 0, wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)

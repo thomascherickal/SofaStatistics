@@ -240,7 +240,7 @@ class ExportImage(object):
         img_name_no_ext = "%04i_%s" % (i, lib.get_safer_name(item.title))
         img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
         if mg.IMG_SRC_START in item.content:
-            ExportImage.copy_existing_img(item, report_path, imgs_path,
+            ExportImage._copy_existing_img(item, report_path, imgs_path,
                 headless, progbar)
         else:
             ExportImage._html2img(i, item, hdr, ftr, html4pdf_path,

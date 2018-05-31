@@ -1,4 +1,3 @@
-
 from decimal import Decimal
 import locale
 import pprint
@@ -103,9 +102,9 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
     debug = False
     dd = mg.DATADETS_OBJ
     if not dd.has_unique:
-        msg = _(u"Table \"%s\" cannot be opened because it lacks a unique "
-            u"index. You can still use it for analysis though.")
-        wx.MessageBox(msg % dd.tbl) # needed for caching even if read only
+        msg = _("Table \"%s\" cannot be opened because it lacks a unique "
+            "index. You can still use it for analysis though.")
+        wx.MessageBox(msg % dd.tbl)  ## needed for caching even if read only
     else:
         SQL_get_count = (u"SELECT COUNT(*) FROM %s" % 
             getdata.tblname_qtr(dd.dbe, dd.tbl))
@@ -171,7 +170,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not self.readonly)
         self.init_tbl()
-        self.grid.GetGridColLabelWindow().SetToolTipString(
+        self.grid.GetGridColLabelWindow().SetToolTip(
             _("Right click variable to view/edit details"))
         self.respond_to_select_cell = True
         self.control = None
@@ -1206,7 +1205,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 tip = self.get_cell_tooltip(col, raw_val)
                 if self.readonly or col in self.readonly_cols:
                     tip = _(u"%s (Read only column)") % tip
-            self.grid.GetGridWindow().SetToolTipString(tip)
+            self.grid.GetGridWindow().SetToolTip(tip)
         event.Skip()
 
     def get_cols_n(self):

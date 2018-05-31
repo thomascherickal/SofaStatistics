@@ -22,7 +22,7 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import config_output
-from sofastats import getdata # must be anything referring to plugin modules
+from sofastats import getdata  ## must be anything referring to plugin modules
 from sofastats.dbe_plugins import dbe_sqlite
 from sofastats import output
 from sofastats import recode
@@ -36,20 +36,20 @@ def reset_default_dd(tbl=None, add_checks=False):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if debug: print("Resetting connection to default db. Add_checks: %s" % 
-                    add_checks)
+    if debug:
+        print(f"Resetting connection to default db. Add_checks: {add_checks}")
     try:
         dd.cur.close()
         dd.con.close()
         dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=tbl, 
-                add_checks=add_checks) # Must reset entire dbe to change checks
-        if debug: # check the connection is still working
+                add_checks=add_checks)  ## Must reset entire dbe to change checks
+        if debug:  ## check the connection is still working
             obj_qtr = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
-            dd.cur.execute(u"SELECT * FROM %s" % obj_qtr(dd.tbls[0]))
+            dd.cur.execute(f"SELECT * FROM {obj_qtr(dd.tbls[0])}")
             print(dd.cur.fetchone())
     except Exception as e:
-        raise Exception(u"Problem resetting dd with tbl %s."
-            u"\nCaused by error: %s" % (tbl, b.ue(e)))   
+        raise Exception(f"Problem resetting dd with tbl {tbl}."
+            f"\nCaused by error: {b.ue(e)}")
 
 WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
 
@@ -75,8 +75,9 @@ class FldMismatchException(Exception):
 
 def has_data_changed(orig_data, final_data):
     """
-    The original data is in the form of a list of tuples - the tuples are 
-        field name and type.
+    The original data is in the form of a list of tuples - the tuples are field
+    name and type.
+
     The final data is a list of dicts, with keys for:
         mg.TBL_FLDNAME, 
         mg.TBL_FLDNAME_ORIG,
@@ -85,13 +86,12 @@ def has_data_changed(orig_data, final_data):
     Different if TBL_FLDNAME != TBL_FLDNAME_ORIG
     Different if TBL_FLDTYPE != TBL_FLDTYPE_ORIG
     Different if set of TBL_FLDNAMEs not same as set of field names. 
-    NB Need first two checks in case names swapped.  Sets wouldn't change 
-        but data would have changed.
+    NB Need first two checks in case names swapped.  Sets wouldn't change but
+    data would have changed.
     """
     debug = False
     if debug:
-        print("\n%s\n%s" % (pprint.pformat(orig_data), 
-            pprint.pformat(final_data)))
+        print(f"\n{pprint.pformat(orig_data)}\n{pprint.pformat(final_data)}")
     data_changed = False
     final_fldnames = set()
     for final_dict in final_data:
@@ -101,7 +101,7 @@ def has_data_changed(orig_data, final_data):
             if debug: print("name or type changed")
             data_changed = True
             break
-    # get fld names from orig_data for comparison
+    ## get fld names from orig_data for comparison
     orig_fldnames = set([x[0] for x in orig_data])
     if orig_fldnames != final_fldnames:
         if debug: print("set of field names changed")
@@ -112,22 +112,22 @@ def copy_orig_tbl(orig_tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_tmp2 = u"DROP TABLE IF EXISTS %s" % (
-        getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2))
+    SQL_drop_tmp2 = ("DROP TABLE IF EXISTS "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)}")
     dd.cur.execute(SQL_drop_tmp2)
     dd.con.commit()
-    # In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
-    SQL_make_copy = u"CREATE TABLE %s AS SELECT * FROM %s" % (
-        getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2), 
-        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname))
+    ## In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
+    SQL_make_copy = ("CREATE TABLE "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} "
+        f"AS SELECT * FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
     dd.cur.execute(SQL_make_copy)
-    SQL_restore_index = u"CREATE UNIQUE INDEX sofa_id_idx on %s (%s)" % (
-        getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2), 
-        getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID))
+    SQL_restore_index = ("CREATE UNIQUE INDEX sofa_id_idx on "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} "
+        f"({getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID)})")
     try:
         dd.cur.execute(SQL_restore_index)
     except Exception:
-        pass # Sofa index is already present so OK if not able to remake it.")
+        pass  ## Sofa index is already present so OK if not able to remake it
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def restore_copy_tbl(orig_tblname):
@@ -137,56 +137,57 @@ def restore_copy_tbl(orig_tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_rename_tbl = u"ALTER TABLE %s RENAME TO %s" % (
-        (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2), 
-        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)))
+    SQL_rename_tbl = ("ALTER TABLE "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} RENAME TO "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
     dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_orig = (u"DROP TABLE IF EXISTS %s" %
-        getdata.tblname_qtr(mg.DBE_SQLITE, tblname))
+    SQL_drop_orig = ("DROP TABLE IF EXISTS "
+        f"{getdata.tblname_qtr(mg.DBE_SQLITE, tblname)}")
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
- 
+
 def make_strict_typing_tbl(orig_tblname, oth_name_types, fld_settings):
     """
     Make table for purpose of forcing all data into strict type fields. Not
-        necessary to check sofa_id field (autoincremented integer) so not 
-        included.
-    Will be dropped when making redesigned table. If not, will not be possible 
-        to interact with database using tools like SQLite Database Browser.
-    Make table with all the fields apart from the sofa_id. The fields
-        should be set with strict check constraints so that, even though the
-        table is SQLite, it cannot accept inappropriate data.
-    Try to insert into strict table all fields in original table (apart from 
-        the sofa_id which will be autoincremented from scratch).
-    oth_name_types - name, type tuples excluding sofa_id.
-    fld_settings -- dict with TBL_FLDNAME, TBL_FLDNAME_ORIG, TBL_FLDTYPE,
-        TBL_FLDTYPE_ORIG. Includes row with sofa_id.
+    necessary to check sofa_id field (autoincremented integer) so not included.
+
+    Will be dropped when making redesigned table. If not, will not be possible
+    to interact with database using tools like SQLite Database Browser.
+
+    Make table with all the fields apart from the sofa_id. The fields should be
+    set with strict check constraints so that, even though the table is SQLite,
+    it cannot accept inappropriate data.
+
+    Try to insert into strict table all fields in original table (apart from the
+    sofa_id which will be autoincremented from scratch).
+
+    :param list oth_name_types: name, type tuples excluding sofa_id
+    :param dict fld_settings: dict with keys TBL_FLDNAME, TBL_FLDNAME_ORIG,
+     TBL_FLDTYPE, TBL_FLDTYPE_ORIG. Includes row with sofa_id.
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if debug: print(u"DBE in make_strict_typing_tbl is: ", dd.dbe)
-    reset_default_dd(tbl=orig_tblname, add_checks=True) # Can't deactivate the 
-    # user-defined functions until the tmp table has been deleted.
+    if debug: print(f"DBE in make_strict_typing_tbl is: {dd.dbe}")
+    reset_default_dd(tbl=orig_tblname, add_checks=True)  ## Can't deactivate the
+    ## user-defined functions until the tmp table has been deleted.
     wipe_tbl(mg.STRICT_TMP_TBL)
-    # create table with strictly-typed fields
+    ## create table with strictly-typed fields
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
         strict_typing=True, inc_sofa_id=False)
     qtd_tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
-    SQL_make_tmp_tbl = u"CREATE TABLE %s (%s) " % (qtd_tmp_name, 
-        create_fld_clause)
+    SQL_make_tmp_tbl = f"CREATE TABLE {qtd_tmp_name} ({create_fld_clause}) "
     if debug: print(SQL_make_tmp_tbl)
     dd.cur.execute(SQL_make_tmp_tbl)
-    # unable to use CREATE ... AS SELECT at same time as defining table.
-    # attempt to insert data into strictly-typed fields.
+    ## unable to use CREATE ... AS SELECT at same time as defining table.
+    ## attempt to insert data into strictly-typed fields.
     select_fld_clause = getdata.make_flds_clause(fld_settings)
-    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (
-        qtd_tmp_name, select_fld_clause, 
-        getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname))
+    SQL_insert_all = (f"INSERT INTO {qtd_tmp_name} SELECT {select_fld_clause} "
+        f"FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
@@ -198,8 +199,8 @@ def strict_cleanup(restore_tblname):
     debug = False
     dd = mg.DATADETS_OBJ
     if debug:
-        print(u"About to drop %s" % mg.STRICT_TMP_TBL)
-        SQL_get_tbls = u"""SELECT name 
+        print(f"About to drop {mg.STRICT_TMP_TBL}")
+        SQL_get_tbls = """SELECT name
             FROM sqlite_master 
             WHERE type = 'table'
             ORDER BY name"""
@@ -209,29 +210,30 @@ def strict_cleanup(restore_tblname):
         print(tbls)
     wipe_tbl(mg.STRICT_TMP_TBL)
     if debug:
-        print(u"Supposedly just dropped %s" % mg.STRICT_TMP_TBL)
-        SQL_get_tbls = u"""SELECT name 
-            FROM sqlite_master 
+        print(f"Supposedly just dropped {mg.STRICT_TMP_TBL}")
+        SQL_get_tbls = """SELECT name
+            FROM sqlite_master
             WHERE type = 'table'
             ORDER BY name"""
         dd.cur.execute(SQL_get_tbls)
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    reset_default_dd(tbl=restore_tblname, add_checks=False) # Should be OK now
-                                                        # strict tmp table gone.
+    reset_default_dd(tbl=restore_tblname, add_checks=False)  ## Should be OK now
+                                                    ## strict tmp table gone.
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def make_redesigned_tbl(final_name, oth_name_types):
     """
-    Make new table with all the fields from the tmp table (which doesn't 
-        have the sofa_id field) plus the sofa_id field.
-    Don't want new table to have any constraints which rely on user-defined 
-        functions.
+    Make new table with all the fields from the tmp table (which doesn't have
+    the sofa_id field) plus the sofa_id field.
+
+    Don't want new table to have any constraints which rely on user-defined
+    functions.
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if debug: print(u"DBE in make_redesigned_tbl is: ", dd.dbe)
+    if debug: print(f"DBE in make_redesigned_tbl is: {dd.dbe}")
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
     unquoted_final_name = final_name
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
@@ -240,9 +242,9 @@ def make_redesigned_tbl(final_name, oth_name_types):
     if debug: print(create_fld_clause)
     dd.con.commit()
     if debug:
-        print(u"About to drop %s" % final_name)
-        SQL_get_tbls = u"""SELECT name 
-            FROM sqlite_master 
+        print(f"About to drop {final_name}")
+        SQL_get_tbls = """SELECT name
+            FROM sqlite_master
             WHERE type = 'table'
             ORDER BY name"""
         dd.cur.execute(SQL_get_tbls)
@@ -251,29 +253,28 @@ def make_redesigned_tbl(final_name, oth_name_types):
         print(tbls)
     wipe_tbl(unquoted_final_name)
     if debug:
-        print(u"Supposedly just dropped %s" % final_name)
-        SQL_get_tbls = u"""SELECT name 
-            FROM sqlite_master 
+        print(f"Supposedly just dropped {final_name}")
+        SQL_get_tbls = """SELECT name
+            FROM sqlite_master
             WHERE type = 'table'
             ORDER BY name"""
         dd.cur.execute(SQL_get_tbls)
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    SQL_make_redesigned_tbl = u"CREATE TABLE %s (%s)" % (final_name, 
-        create_fld_clause)
+    SQL_make_redesigned_tbl = f"CREATE TABLE {final_name} ({create_fld_clause})"
     dd.cur.execute(SQL_make_redesigned_tbl)
     dd.con.commit()
     oth_names = [objqtr(x[0]) for x in oth_name_types]
-    null_plus_oth_flds = u" NULL, " + u", ".join(oth_names)
-    SQL_insert_all = u"INSERT INTO %s SELECT %s FROM %s""" % (final_name, 
-        null_plus_oth_flds, tmp_name)
+    null_plus_oth_flds = " NULL, " + ", ".join(oth_names)
+    SQL_insert_all = (f"INSERT INTO {final_name} SELECT {null_plus_oth_flds} "
+        f"FROM {tmp_name}")
     if debug: print(SQL_insert_all)
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
 
-def insert_data(row_idx, grid_data):
+def insert_data(grid_data):
     """
     Return list of values to display in inserted row.
 
@@ -285,18 +286,18 @@ def insert_data(row_idx, grid_data):
     row_data = [next_fldname, mg.FLDTYPE_NUMERIC_LBL]  ## display label for type
     return row_data
 
-def cell_invalidation(frame, val, row, col, grid, col_dets):
+def cell_invalidation(_frame, _val, row, col, grid, _col_dets):
     """
-    The first column text must be either empty, or 
-        alphanumeric (and underscores), and unique (field name) 
-        and the second must be empty or from mg.CONF_... e.g. "numeric"
+    The first column text must be either empty, or alphanumeric (and
+    underscores), and unique (field name) and the second must be empty or from
+    mg.CONF_... e.g. "numeric"
     """
     if col == 0:
         return _invalid_fldname(row, grid)
     elif col == 1:
         return _invalid_fldtype(row, grid)
     else:
-        raise Exception(u"Two many columns for default cell invalidation test")
+        raise Exception("Two many columns for default cell invalidation test")
 
 def cell_response(self, val, row, col, grid, col_dets):
     pass
@@ -309,7 +310,7 @@ def _invalid_fldname(row, grid):
             continue
         other_fldnames.append(grid.GetCellValue(row=i, col=0))
     field_name = grid.GetCellValue(row=row, col=0)
-    if field_name.strip() == u"":
+    if field_name.strip() == '':
         return False, ""
     valid, err = dbe_sqlite.valid_fldname(field_name)
     if not valid:
@@ -319,7 +320,7 @@ def _invalid_fldname(row, grid):
     if field_name in other_fldnames:
         msg = _("%s has already been used as a field name") % field_name
         return True, msg
-    return False, u""
+    return False, ''
 
 def _invalid_fldtype(row, grid):
     """
@@ -328,13 +329,13 @@ def _invalid_fldtype(row, grid):
     References field type label and not key because label is what is in grid.
     """
     field_type = grid.GetCellValue(row=row, col=1)
-    if field_type.strip() == u"":
-        return False, ""
+    if field_type.strip() == '':
+        return False, ''
     if field_type not in [mg.FLDTYPE_NUMERIC_LBL, 
             mg.FLDTYPE_STRING_LBL, mg.FLDTYPE_DATE_LBL]:
         msg = _("%s is not a valid field type") % field_type
         return True, msg
-    return False, u""
+    return False, ''
 
 def validate_tblname(tblname, existing_name):
     "Returns boolean plus string message"
@@ -353,30 +354,30 @@ def validate_tblname(tblname, existing_name):
         msg = _("Cannot use this name. A table named \"%s\" already exists in"
             " the default SOFA database") % tblname
         return False, msg
-    return True, u""
+    return True, ''
 
 
 class SafeTblNameValidator(wx.PyValidator):
     def __init__(self):
         """
-        Not ok to duplicate an existing name unless it is the same table i.e.
-            a name ok to reuse. None if a new table.
+        Not ok to duplicate an existing name unless it is the same table i.e. a
+        name ok to reuse. None if a new table.
         """
         wx.PyValidator.__init__(self)
         self.Bind(wx.EVT_CHAR, self.on_char)
-    
+
     def Clone(self):
-        # wxPython
+        ## wxPython
         new_SafeTblNameValidatory = SafeTblNameValidator()
         new_SafeTblNameValidatory.existing_name = self.existing_name
         return new_SafeTblNameValidatory
-        
-    def Validate(self, win):
+
+    def Validate(self, _win):
         # wxPython
         # Handle any messages here and here alone
         text_ctrl = self.GetWindow()
         text = text_ctrl.GetValue()
-        valid, msg = validate_tblname(text, self.existing_name) # existing_name set externally, not passed into object, so we can change it again externally
+        valid, msg = validate_tblname(text, self.existing_name)  ## existing_name set externally, not passed into object, so we can change it again externally
         if not valid:
             wx.MessageBox(msg)
             text_ctrl.SetFocus()
@@ -385,9 +386,9 @@ class SafeTblNameValidator(wx.PyValidator):
         else:
             text_ctrl.Refresh()
             return True
-    
+
     def on_char(self, event):
-        # allow backspace and delete (both) etc
+        ## allow backspace and delete (both) etc
         if event.GetKeyCode() in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE, 
                 wx.WXK_BACK, wx.WXK_LEFT, wx.WXK_RIGHT]:
             event.Skip()
@@ -396,26 +397,26 @@ class SafeTblNameValidator(wx.PyValidator):
             keycode = chr(event.GetKeyCode())
         except Exception:
             return
-        # allow alphanumeric and underscore
+        ## allow alphanumeric and underscore
         if (keycode not in string.ascii_letters
                 and keycode not in string.digits
-                and keycode != "_"):
+                and keycode != '_'):
             return
         event.Skip()
     
     def TransferToWindow(self):
-        # wxPython
+        ## wxPython
         return True
     
     def TransferFromWindow(self):
-        # wxPython
+        ## wxPython
         return True
 
-    
+
 class DlgConfigTable(settings_grid.DlgSettingsEntry):
-    
+
     debug = False
-    styles = u"""
+    styles = """
         table {
             border-collapse: collapse;
         }
@@ -439,15 +440,15 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             color: #5f5f5f; # more clearly just demo data
         }"""
     
-    def __init__(self, var_labels, val_dics, tblname_lst, init_fld_settings, 
-            fld_settings, readonly=False, new=False, insert_data_func=None, 
+    def __init__(self, var_labels, val_dics, tblname_lst, init_fld_settings,
+            fld_settings, *, readonly=False, new=False, insert_data_func=None,
             cell_invalidation_func=None, cell_response_func=None):
         """
-        tblname_lst -- passed in as a list so changes can be made without 
-            having to return anything. 
-        init_fld_settings -- list of tuples (tuples must have at least one 
-            item, even if only a "rename me").  Empty list ok.
-        fld_settings -- add details to it in form of a list of dicts.
+        :param list tblname_lst: passed in as a list so changes can be made
+         without having to return anything.
+        :param list init_fld_settings: list of tuples (tuples must have at least
+         one item, even if only a "rename me"). Empty list ok.
+        :param list fld_settings: add details to it in form of a list of dicts
         """
         self.exiting = False
         self.new = new
@@ -455,7 +456,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.readonly = readonly
         self.exiting = False
         if self.new and self.readonly:
-            raise Exception(u"If new, should never be read only")
+            raise Exception("If new, should never be read only")
         self.var_labels = var_labels
         self.val_dics = val_dics
         if tblname_lst:
@@ -463,14 +464,14 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         else:
             existing_name = None
         self.tblname_lst = tblname_lst
-        # set up new grid data based on data
-        self.settings_data = fld_settings # settings_data is more generic and is
-            # needed in code which called this.  Don't rename ;-)
+        ## set up new grid data based on data
+        self.settings_data = fld_settings  ## settings_data is more generic and
+            ## is needed in code which called this.  Don't rename ;-)
         if fld_settings:
-            raise Exception(u"fld_settings should always start off empty ready "
-                u"to received values")
-        self.init_settings_data = init_fld_settings[:] # can check if end 
-            # result changed
+            raise Exception("fld_settings should always start off empty ready "
+                "to receive values")
+        self.init_settings_data = init_fld_settings[:]  ## can check if end
+            ## result changed
         self.setup_settings_data(init_fld_settings)
         if not insert_data_func:
             insert_data_func = insert_data
@@ -478,17 +479,17 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             cell_invalidation_func = cell_invalidation
         if not cell_response_func:
             cell_response_func = cell_response
-        # col_dets - See under settings_grid.SettingsEntry
-        col_dets = [{"col_label": _("Field Name"), 
-             "coltype": settings_grid.COL_STR, 
-             "colwidth": 100}, 
-            {"col_label": _("Data Type"), 
-             "coltype": settings_grid.COL_DROPDOWN, 
-             "colwidth": 100,
-             "dropdown_vals": [mg.FLDTYPE_NUMERIC_LBL, mg.FLDTYPE_STRING_LBL, 
+        ## col_dets - See under settings_grid.SettingsEntry
+        col_dets = [{'col_label': _("Field Name"),
+             'coltype': settings_grid.COL_STR,
+             'colwidth': 100},
+            {'col_label': _("Data Type"),
+             'coltype': settings_grid.COL_DROPDOWN,
+             'colwidth': 100,
+             'dropdown_vals': [mg.FLDTYPE_NUMERIC_LBL, mg.FLDTYPE_STRING_LBL,
                 mg.FLDTYPE_DATE_LBL]},
         ]
-        grid_size = (300,250)
+        grid_size = (300, 250)
         title = _("Configure Data Table")
         if self.readonly:
             title += _(" (Read Only)")
@@ -498,7 +499,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         # New controls
         lbl_tbl_label = wx.StaticText(self.panel, -1, _("Table Name:"))
         lbl_tbl_label.SetFont(mg.LABEL_FONT)
-        self.tblname = tblname_lst[0] if tblname_lst else _("table") + u"001"
+        self.tblname = tblname_lst[0] if tblname_lst else _("table") + '001'
         self.txt_tblname = wx.TextCtrl(self.panel, -1, self.tblname, 
             size=(450,-1))
         self.txt_tblname.Enable(not self.readonly)
@@ -508,7 +509,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         if not self.readonly:
             btn_recode = wx.Button(self.panel, -1, _("Recode"))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
-            btn_recode.SetToolTipString(_("Recode values from one field into a "
+            btn_recode.SetToolTip(_("Recode values from one field into a "
                 "new field"))
         # sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)

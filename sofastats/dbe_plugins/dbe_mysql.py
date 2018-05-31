@@ -421,7 +421,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mysql_default_tbl = wx.TextCtrl(
         scroll, -1, mysql_default_tbl, size=(200, -1))
     parent.txt_mysql_default_tbl.Enable(not readonly)
-    parent.txt_mysql_default_tbl.SetToolTipString(_("Default table (optional)"))
+    parent.txt_mysql_default_tbl.SetToolTip(_("Default table (optional)"))
     ## host
     parent.lbl_mysql_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_mysql_host.SetFont(lblfont)
@@ -435,7 +435,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     mysql_user = parent.mysql_user if parent.mysql_user else ""
     parent.txt_mysql_user = wx.TextCtrl(scroll, -1, mysql_user, size=(100, -1))
     parent.txt_mysql_user.Enable(not readonly)
-    parent.txt_mysql_user.SetToolTipString(_("User e.g. root"))
+    parent.txt_mysql_user.SetToolTip(_("User e.g. root"))
     ## password
     parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lbl_mysql_pwd.SetFont(lblfont)
@@ -443,7 +443,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.txt_mysql_pwd = wx.TextCtrl(
         scroll, -1, mysql_pwd, size=(300, -1), style=wx.TE_PASSWORD)
     parent.txt_mysql_pwd.Enable(not readonly)
-    parent.txt_mysql_pwd.SetToolTipString(_('Password'))
+    parent.txt_mysql_pwd.SetToolTip(_('Password'))
     ## 2 MYSQL
     parent.szr_mysql = wx.StaticBoxSizer(bx_mysql, wx.VERTICAL)
     ## 3 MYSQL INNER
