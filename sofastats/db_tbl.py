@@ -31,7 +31,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.idx_id, self.must_quote = self.get_index_col()
         self.id_col_name = self.fldnames[self.idx_id]
         self.set_row_ids_lst()
-        self.row_vals_dic = {} # key = row, val = list of values
+        self.row_vals_dic = {}  ## key = row, val = list of values
         if self.debug:
             pprint.pprint(self.fldnames)
             pprint.pprint(self.fldlbls)
@@ -40,15 +40,13 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.bol_attempt_cell_update = False
         self.sql_cell_to_update = None
         self.val_of_cell_to_update = None
-        self.new_buffer = {} # where new values are stored until 
-            #ready to be saved
-        self.new_is_dirty = False # db_grid can set to True.  Is reset to 
-            # False when adding a new record
+        self.new_buffer = {}  ## where new values are stored until ready to be saved
+        self.new_is_dirty = False  ## db_grid can set to True. Is reset to False when adding a new record
 
     def set_row_ids_lst(self):
         """
         Row number and the value of the primary key will not always be the same.
-        Need quick way of translating from row e.g. 0 to value of the id field 
+        Need quick way of translating from row e.g. 0 to value of the id field
         e.g. "ABC123" or 128797 or even 0 ;-).
 
         Using a list makes it easy to delete items and insert them.
@@ -58,7 +56,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         dd = mg.DATADETS_OBJ
         unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
         where_filt, unused = lib.FiltLib.get_tbl_filts(tbl_filt)
-        SQL_get_id_vals = (u"SELECT %s FROM %s %s ORDER BY %s" %
+        SQL_get_id_vals = (f"SELECT %s FROM %s %s ORDER BY %s" %
             (self.objqtr(self.id_col_name), getdata.tblname_qtr(self.dd.dbe,
                 self.dd.tbl),
             where_filt, self.objqtr(self.id_col_name)))
@@ -148,15 +146,15 @@ class DbTbl(wx.grid.PyGridTableBase):
         return final_row 
 
     def GetRowLabelValue(self, row):
-        # wxPython
-        new_row = row > self.idx_final_data_row
+        ## wxPython
+        new_row = (row > self.idx_final_data_row)
         if new_row:
             if self.new_is_dirty:
                 return mg.NEW_IS_DIRTY
             else:
                 return mg.NEW_IS_READY
         else:
-            return row + 1
+            return str(row + 1)
 
     def GetColLabelValue(self, col):
         # wxPython

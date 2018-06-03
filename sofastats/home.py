@@ -53,7 +53,6 @@ if platform.system() == u"Windows":
 from sofastats import setup_sofastats   #@UnresolvedImport # if any modules are going to fail, it will be when this imported
 LOCAL_PATH_SETUP_NEEDED = setup_sofastats.setup_folders()
 if show_early_steps: print(u"Completed setup_folders successfully.")
-import codecs
 import datetime
 import gettext
 import glob

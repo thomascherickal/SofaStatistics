@@ -551,6 +551,14 @@ class UniLib(object):
 
         Also handles smart quotes etc (which are multibyte) and commonly used ;-).
         """
+        
+        
+        
+        return text
+        
+        
+        
+        
         import re  # easier to transplant for testing if everything here
         debug = False
         if not isinstance(text, str):

@@ -14,16 +14,12 @@ show_early_steps = True
 force_error = False
 debug = False
 
-WXPYTHON_VERSION = '3.0'  # 2.8
-
-INIT_DEBUG_MSG = (u"Please note the messages above (e.g. with a screen-shot)"
-    u" and press any key to close")
+INIT_DEBUG_MSG = ("Please note the messages above (e.g. with a screen-shot)"
+    " and press any key to close")
 import warnings
 if show_early_steps: print(u"Just imported warnings")
 warnings.simplefilter('ignore', DeprecationWarning)
 warnings.simplefilter('ignore', UserWarning)
-import codecs
-if show_early_steps: print(u"Just imported codecs")
 import datetime #@UnusedImport
 if show_early_steps: print(u"Just imported datetime")
 import gettext
@@ -50,34 +46,34 @@ if show_early_steps: print(u"Just imported wx.html2")
 # http://wiki.wxpython.org/RecipesI18n
 # Install gettext.  Now all strings enclosed in "_()" will automatically be
 # translated.
-localedir = u"./locale" # fall back
+localedir = "./locale"  ## fall back
 try:
     localedir = os.path.join(os.path.dirname(__file__), u"locale")
     if debug: print(__file__)
 except NameError as e:
     for path in sys.path:
-        if u"sofastats" in path.lower(): # if user hasn't used sofastats, 
-            # use default
-            localedir = os.path.join(path, u"locale")
+        if "sofastats" in path.lower():  ## if user hasn't used sofastats, 
+            ## use default
+            localedir = os.path.join(path, "locale")
             break
-if show_early_steps: 
-    print(u"Just identified locale folder")
+if show_early_steps:
+    print("Just identified locale folder")
 gettext.install(domain='sofastats', localedir=localedir)
-if show_early_steps: print(u"Just installed gettext")
+if show_early_steps: print("Just installed gettext")
 try:
     from sofastats import basic_lib as b #@UnresolvedImport
 except Exception as e:
-    msg = (u"Problem importing basic_lib. %s" % traceback.format_exc())
+    msg = (f"Problem importing basic_lib. {traceback.format_exc()}")
     if show_early_steps: 
         print(msg)
-        input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
-            # to user.  Unlike when a GUI msg possible later on. In those cases
-            # just let that step happen.
+        input(INIT_DEBUG_MSG)  ## Not holding up any other way of getting msg
+            ## to user. Unlike when a GUI msg possible later on. In those cases
+            ## just let that step happen.
     raise Exception(msg)
 try:
-    from sofastats import my_globals as mg  #@UnresolvedImport # has translated text
+    from sofastats import my_globals as mg  #@UnresolvedImport  ## has translated text
 except Exception as e:
-    msg = u"Problem with importing my_globals. %s" % traceback.format_exc()
+    msg = f"Problem with importing my_globals. {traceback.format_exc()}"
     if show_early_steps: 
         print(msg)
         input(INIT_DEBUG_MSG)
@@ -88,63 +84,61 @@ try:
     from sofastats import config_globals  #@UnresolvedImport
     from sofastats import lib #@UnresolvedImport
 except Exception as e:
-    msg = (u"Problem with first round of local importing. %s" %
-        traceback.format_exc())
-    if show_early_steps: 
+    msg = f"Problem with first round of local importing. {traceback.format_exc()}"
+    if show_early_steps:
         print(msg)
-        input(INIT_DEBUG_MSG) # not holding up any other way of getting msg 
-            # to user.  Unlike when a GUI msg possible later on. In those cases
-            # just let that step happen.
+        input(INIT_DEBUG_MSG)  ## not holding up any other way of getting msg
+            ## to user. Unlike when a GUI msg possible later on. In those cases
+            ## just let that step happen.
     raise Exception(msg)
 try:
     config_globals.set_SCRIPT_PATH()
     config_globals.set_ok_date_formats()
     config_globals.set_DEFAULT_DETAILS()
-    config_globals.import_dbe_plugins() # as late as possible because uses local 
-        # modules e.g. my_exceptions, lib
+    config_globals.import_dbe_plugins() ## as late as possible because uses
+        ## local modules e.g. my_exceptions, lib
 except Exception as e:
-    msg = (u"Problem with configuring globals. %s" % traceback.format_exc())
+    msg = (f"Problem with configuring globals. {traceback.format_exc()}")
     if show_early_steps: 
         print(msg)
         input(INIT_DEBUG_MSG)
     raise Exception(msg)
 
-# Give the user something if the program fails at an early stage before anything
-# appears on the screen. Can only guarantee this from here onwards because I 
-# need lib etc.
+## Give the user something if the program fails at an early stage before
+## anything appears on the screen. Can only guarantee this from here onwards
+## because I need lib etc.
 class ErrMsgFrame(wx.Frame):
     def __init__(self, e, raw_error_msg):
         """
-        raw_error_msg -- boolean. If not to be used as is (raw), wrap in Oops! 
+        :param bool raw_error_msg: if not to be used as is (raw), wrap in Oops!
         etc, version number etc.
         """
         wx.Frame.__init__(self, None, title=_("SOFA Error"))
         error_msg = b.ue(e)
-        mybreak = u"\n" + u"*"*30 + u"\n"
-        err_msg_fname = u"sofastats_error_details.txt"
+        mybreak = '\n' + '*'*30 + '\n'
+        err_msg_fname = "sofastats_error_details.txt"
         if not raw_error_msg:
-            error_msg = (u"Oops! Something went wrong running SOFA Statistics "
-                u"version %(version)s.\n\nHelp is available at "
-                u"http://www.sofastatistics.com/userguide.php under "
-                u"\"SOFA won't start - solutions\". You can also email "
-                u"lead developer %(contact)s for help (usually "
-                u"reasonably prompt).\n\nSOFA is about to make an error file "
-                u"on your desktop. Please include that file "
-                u"(\"%(err_msg_fname)s\") in your email."
-                u"\n%(mybreak)s\nCaused by error: %(error_msg)s""" % 
-                {"version": mg.VERSION, "err_msg_fname": err_msg_fname, 
-                 "error_msg": error_msg, "mybreak": mybreak, 
-                 u"contact": mg.CONTACT})
+            error_msg = ("Oops! Something went wrong running SOFA Statistics "
+                "version %(version)s.\n\nHelp is available at "
+                "http://www.sofastatistics.com/userguide.php under "
+                "\"SOFA won't start - solutions\". You can also email "
+                "lead developer %(contact)s for help (usually "
+                "reasonably prompt).\n\nSOFA is about to make an error file "
+                "on your desktop. Please include that file "
+                "(\"%(err_msg_fname)s\") in your email."
+                "\n%(mybreak)s\nCaused by error: %(error_msg)s"""
+                % {"version": mg.VERSION, "err_msg_fname": err_msg_fname,
+                 "error_msg": error_msg, "mybreak": mybreak,
+                 "contact": mg.CONTACT})
         wx.MessageBox(error_msg)
-        f = open(os.path.join(mg.HOME_PATH, u"Desktop", err_msg_fname), 
-            "w", encoding="utf-8")
-        f.write(error_msg)
-        f.write(mybreak)
-        f.write(traceback.format_exc())
-        f.close()
+        fpath = os.path.join(mg.HOME_PATH, 'Desktop', err_msg_fname)
+        with open(fpath, 'w', encoding='utf-8') as f:
+            f.write(error_msg)
+            f.write(mybreak)
+            f.write(traceback.format_exc())
         self.Destroy()
         sys.exit()
-        
+
 
 class ErrMsgApp(wx.App):
 

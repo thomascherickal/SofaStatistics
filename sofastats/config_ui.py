@@ -249,40 +249,40 @@ class ConfigUI(object):
         try:
             self.drop_tbls_sel_evt
         except AttributeError:
-            raise Exception(u"Must define self.drop_tbls_sel_evt first")
+            raise Exception("Must define self.drop_tbls_sel_evt first")
         bx_data = wx.StaticBox(panel, -1, _("Data Source"))
-        # 1) Databases
+        ## 1) Databases
         lbl_databases = wx.StaticText(panel, -1, _("Database:"))
         lbl_databases.SetFont(mg.LABEL_FONT)
-        # get various db settings
-        # set up self.drop_dbs and self.drop_tbls
+        ## get various db settings
+        ## set up self.drop_dbs and self.drop_tbls
         dd = mg.DATADETS_OBJ
         (self.drop_dbs, self.drop_tbls, 
          self.db_choice_items, 
          self.selected_dbe_db_idx) = getdata.get_data_dropdowns(self, panel, 
             dd.default_dbs)
-        # 2) Tables
-        # not wanted in all cases when dropdowns used e.g. data select
+        ## 2) Tables
+        ## not wanted in all cases when dropdowns used e.g. data select
         self.drop_tbls.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_tables)
         self.drop_tbls.SetToolTip(_("Right click to add/remove filter"))
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(mg.LABEL_FONT)
-        # 3) Readonly
+        ## 3) Readonly
         self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
         self.chk_readonly.SetFont(mg.GEN_FONT)
         readonly_settings = getdata.get_readonly_settings()
         self.chk_readonly.SetValue(readonly_settings.readonly)
         self.chk_readonly.Enable(readonly_settings.enabled)
-        # 4) Open
+        ## 4) Open
         btn_size = (70,-1)
         self.btn_open = wx.Button(panel, wx.ID_OPEN, size=btn_size)
         self.btn_open.SetFont(mg.BTN_FONT)
         self.btn_open.Bind(wx.EVT_BUTTON, self.on_open)
-        # 5) Filtering
-        btn_filter = self.get_btn_filter(panel) # also needed by data table but not as part of bundle
-        # 6) Var config
-        btn_var_config = self.get_btn_var_config(panel) # also needed by projects and data table but not as part of bundle
-        # 7) assemble
+        ## 5) Filtering
+        btn_filter = self.get_btn_filter(panel)  ## also needed by data table but not as part of bundle
+        ## 6) Var config
+        btn_var_config = self.get_btn_var_config(panel)  ## also needed by projects and data table but not as part of bundle
+        ## 7) assemble
         self.szr_data = wx.StaticBoxSizer(bx_data, wx.HORIZONTAL)
         if not hide_db:
             self.szr_data.Add(lbl_databases, 0, wx.LEFT|wx.RIGHT, 5)
@@ -307,14 +307,14 @@ class ConfigUI(object):
         Widgets include textboxes plus Browse buttons for output and style.
         Each widget has a set of events ready to go as well.
         Sets defaults to current stored values in global cc.
-        report_file -- usually just want what is stored to global but when in 
+        report_file -- usually just want what is stored to global but when in
             project dialog need to have option of taking from proj file.
         """
         self.panel_with_add2report = panel
         cc = output.get_cc()
         bx_report_config = wx.StaticBox(panel, -1, _("Output"))
         if show_run_btn:
-            self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(170,-1))
+            self.btn_run = wx.Button(panel, -1, RUN_LBL, size=(170, -1))
             self.btn_run.SetFont(mg.BTN_FONT)
             self.btn_run.Bind(wx.EVT_BUTTON, self.on_btn_run)
             self.btn_run.SetToolTip(_("Run report and show results"))
@@ -325,7 +325,7 @@ class ConfigUI(object):
             self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, 
                 self.on_chk_add_to_report)
         self.readonly = readonly
-        browse = _("Browse")
+        browse = _('Browse')
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
         szr_html_report = wx.BoxSizer(wx.HORIZONTAL)
@@ -335,7 +335,7 @@ class ConfigUI(object):
         self.txt_report_file.SetFont(mg.GEN_FONT)
         if mg.PLATFORM != mg.MAC:
             self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
-                self.on_report_file_lost_focus) # doesn't work with Mac
+                self.on_report_file_lost_focus)  ## doesn't work with Mac
         else:
             self.txt_report_file.Bind(wx.EVT_TEXT, 
                 self.on_report_file_text_change)
@@ -344,21 +344,21 @@ class ConfigUI(object):
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
         self.btn_report_path.Enable(not self.readonly)
-        self.btn_report_path.SetToolTip(_("Select or create an HTML "
-            "output file"))
+        self.btn_report_path.SetToolTip(
+            _("Select or create an HTML output file"))
         if show_view_btn:
             self.btn_view = wx.Button(panel, -1, _("View Report"), size=(-1,25))
             self.btn_view.SetFont(mg.BTN_FONT)
             self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
             self.btn_view.Enable(not self.readonly)
-            self.btn_view.SetToolTip(_("View selected HTML output file "
-                "in your default browser"))
+            self.btn_view.SetToolTip(
+                _("View selected HTML output file in your default browser"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
         if show_run_btn:
             szr_output_config.Add(self.btn_run, 0, wx.GROW)
         if show_add_btn:
-            szr_output_config.Add(self.chk_add_to_report, 0, 
-                wx.LEFT|wx.RIGHT, 10)
+            szr_output_config.Add(
+                self.chk_add_to_report, 0, wx.LEFT|wx.RIGHT, 10)
         szr_html_report_left.Add(self.txt_report_file, 0, wx.GROW)
         if show_view_btn:
             szr_html_report_left.Add(self.btn_view, 0, wx.ALIGN_RIGHT)
@@ -367,19 +367,19 @@ class ConfigUI(object):
         szr_output_config.Add(szr_html_report, 3)
         if show_export_options:
             export_choice_items = [
-                _("Current Output"), 
+                _("Current Output"),
                 _("Copy current output ready to paste"),
-                _("Entire Report"), 
+                _("Entire Report"),
             ]
             self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
             self.drop_export.Enable(not self.readonly)
-            self.drop_export.SetToolTip(_(u"Export report as PDF, images,"
-                u" or to spreadsheet ready for reports, slideshows etc"))
+            self.drop_export.SetToolTip(_("Export report as PDF, images, "
+                "or to spreadsheet ready for reports, slideshows etc"))
             self.drop_export.SetSelection(0)
             lbl_export = wx.StaticText(panel, -1, _("Export:"))
             lbl_export.SetFont(mg.LABEL_FONT)
             vln = wx.StaticLine(panel, -1, style=wx.LI_VERTICAL)
-            vln.SetSize((30,30))
+            vln.SetSize((30, 30))
             szr_export = wx.BoxSizer(wx.VERTICAL)
             szr_export_upper = wx.BoxSizer(wx.HORIZONTAL)
             self.btn_export = wx.Button(panel, -1, _("Export"), size=(-1,25))
@@ -395,13 +395,12 @@ class ConfigUI(object):
         return szr_output_config
 
     def get_szr_output_display(self, panel, inc_clear=True, idx_style=2):
-        # main
+        ## main
         self.style_selector = self.get_style_selector(panel)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
         self.btn_expand.SetFont(mg.BTN_FONT)
         self.btn_expand.Bind(wx.EVT_BUTTON, self.on_btn_expand)
-        self.btn_expand.SetToolTip(_(u"Open displayed output in own "
-            u"window"))
+        self.btn_expand.SetToolTip(_("Open displayed output in own window"))
         self.btn_expand.Enable(False)
         if inc_clear:
             self.btn_clear = wx.Button(panel, -1, _("Clear"))
@@ -451,12 +450,11 @@ class ConfigUI(object):
         return style_selector
 
     def get_dp_spinner(self, panel, dp_val):
-        dp_spinner = wx.SpinCtrl(panel, -1, value=str(dp_val), size=(60, -1))
+        dp_spinner = wx.SpinCtrl(panel, -1, value=str(dp_val), size=(120, -1))  ## needs to be wide enough otherwise can't display properly (wider than old control required)
         dp_spinner.SetRange(0, mg.MAX_DISPLAY_DP)
         dp_spinner.Bind(wx.EVT_SPINCTRL, self.on_dp_spin)
         dp_spinner.SetFont(mg.GEN_FONT)
-        dp_spinner.SetToolTip(_(u"Maximum number of decimal places to "
-            u"show"))
+        dp_spinner.SetToolTip(_("Maximum number of decimal places to show"))
         return dp_spinner
 
     def get_btn_var_config(self, panel):
@@ -464,8 +462,7 @@ class ConfigUI(object):
         btn_var_config.SetFont(mg.BTN_FONT)
         btn_var_config.Bind(wx.EVT_BUTTON, self.on_btn_var_config)
         btn_var_config.Enable(not self.readonly)
-        btn_var_config.SetToolTip(_(u"Configure variable details e.g. "
-            u"labels"))
+        btn_var_config.SetToolTip(_("Configure variable details e.g. labels"))
         return btn_var_config
 
     def get_btn_filter(self, panel):
@@ -477,7 +474,7 @@ class ConfigUI(object):
     def set_extra_dets(self, vdt_file, script_file):          
         self.vdt_file = vdt_file
         self.script_file = script_file
-        
+
     def on_btn_var_config(self, unused_event):
         """
         Return the settings selected

@@ -625,9 +625,9 @@ GEN2SQLITE_DIC = {
 RET_NUMERIC = 2010 # anything OK as long as no collision with wx.ID_CANCEL
 RET_DATE = 2011
 RET_TEXT = 2012
-# grids
-NEW_IS_DIRTY = u"..."
-NEW_IS_READY = u"*"
+## grids
+NEW_IS_DIRTY = '...'
+NEW_IS_READY = '*'
 # move directions
 MOVE_LEFT = u"move left"
 MOVE_RIGHT = u"move right"

@@ -1,7 +1,7 @@
 
 import locale
 import wx #@UnusedImport
-import wx.gizmos
+import wx.lib.agw.hypertreelist as HTL
 import wx.html2
 
 from sofastats import basic_lib as b
@@ -199,40 +199,40 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         cc = output.get_cc()
         self.title = _("Make Report Table")
         wx.Dialog.__init__(self, parent=None, id=-1, title=self.title,
-            pos=(mg.HORIZ_OFFSET, 0), # -1 positions too low on 768v
+            pos=(mg.HORIZ_OFFSET, 0),  ## -1 positions too low on 768v
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
-        config_ui.ConfigUI.__init__(self, autoupdate=True,
-            multi_page_items=True)
+        config_ui.ConfigUI.__init__(self,
+            autoupdate=True, multi_page_items=True)
         self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
-        self.output_modules = [(None, "my_globals as mg"),
-            ("tables", "dimtables"), ("tables", "rawtables"), (None, "output"),
-            (None, "getdata"), ]
+        self.output_modules = [(None, 'my_globals as mg'),
+            ('tables', 'dimtables'), ('tables', 'rawtables'), (None, 'output'),
+            (None, 'getdata'), ]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
-        self.url_load = True # btn_expand
+        self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes,
          self.var_types,
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.col_no_vars_item = None #  needed if no variable in columns.  Must
-            # reset to None if deleted all vars
-        # set up panel for frame
+        self.col_no_vars_item = None  ## needed if no variable in columns.  Must
+            ## reset to None if deleted all vars
+        ## set up panel for frame
         self.panel = wx.Panel(self)
         config_output.add_icon(frame=self)
-        # sizers
+        ## sizers
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
-        # key settings
+        ## key settings
         self.drop_tbls_panel = self.panel
         self.drop_tbls_system_font_size = False
         self.drop_tbls_sel_evt = self.on_table_sel
         hide_db = projects.get_hide_db()
-        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1  ## the 2 database items are missing)
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
         (self.szr_data,
          self.szr_output_config) = self.get_gen_config_szrs(self.panel,
-            hide_db=hide_db) # mixin
+            hide_db=hide_db)  ## mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         szr_tab_type = wx.BoxSizer(wx.HORIZONTAL)
@@ -246,10 +246,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_html = wx.BoxSizer(wx.VERTICAL)
         self.szr_output_display = self.get_szr_output_display(self.panel,
-            idx_style=2) # mixin
+            idx_style=2)  ## mixin
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
-        # title details
+        ## title details
         lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
@@ -261,10 +261,10 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.txt_subtitles = wx.TextCtrl(self.panel, -1,size=(250,title_height), 
             style=wx.TE_MULTILINE)
         self.txt_subtitles.Bind(wx.EVT_TEXT, self.on_subtitle_change)
-        # table type. NB max indiv width sets width for all items in Win or OSX
+        ## table type. NB max indiv width sets width for all items in Win or OSX
         self.rad_opts = RptTypeOpts(parent=self, panel=self.panel)
         self.tab_type = self.rad_opts.GetSelection()
-        # option checkboxs
+        ## option checkboxs
         self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
         self.chk_totals_row.SetFont(mg.GEN_FONT)
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
@@ -281,19 +281,19 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             self.on_chk_show_perc_symbol)
         has_perc = not mg.RPT_CONFIG[self.tab_type][mg.VAR_SUMMARISED_KEY]
         self.enable_show_perc_symbol_opt(enable=has_perc)
-        self.chk_show_perc_symbol.SetValue(True) # True is default
+        self.chk_show_perc_symbol.SetValue(True)  ## True is default
         ## dp spinner
         self.lbl_dp_spinner = wx.StaticText(self.panel, -1,
             _(u"Max dec points"))
         self.dp_spinner = self.get_dp_spinner(self.panel,
             dp_val=mg.DEFAULT_REPORT_DP)
-        #text labels
+        ## text labels
         lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
         lbl_rows.SetFont(mg.LABEL_FONT)
         lbl_cols = wx.StaticText(self.panel, -1, _("Columns:"))
         lbl_cols.SetFont(mg.LABEL_FONT)
-        #buttons
-        #rows
+        ## buttons
+        ## rows
         self.btn_row_add = wx.Button(self.panel, -1, _("Add"))
         self.btn_row_add.SetFont(mg.BTN_FONT)
         self.btn_row_add.Bind(wx.EVT_BUTTON, self.on_row_add)
@@ -306,7 +306,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.btn_row_conf = wx.Button(self.panel, -1, _("Config"))
         self.btn_row_conf.SetFont(mg.BTN_FONT)
         self.btn_row_conf.Bind(wx.EVT_BUTTON, self.on_row_config)
-        #cols
+        ## cols
         self.btn_col_add = wx.Button(self.panel, -1, _("Add"))
         self.btn_col_add.SetFont(mg.BTN_FONT)
         self.btn_col_add.Bind(wx.EVT_BUTTON, self.on_col_add)
@@ -319,36 +319,34 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.btn_col_conf = wx.Button(self.panel, -1, _("Config"))
         self.btn_col_conf.SetFont(mg.BTN_FONT)
         self.btn_col_conf.Bind(wx.EVT_BUTTON, self.on_col_config)
-        #trees
-        self.rowtree = wx.gizmos.TreeListCtrl(self.panel, -1,
-              style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
+        ## trees
+        self.rowtree = HTL.HyperTreeList(self.panel, -1,
+              agwStyle=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
             self.on_row_item_activated)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_row_item_rclick)
-        self.rowtree.SetToolTip(_("Right click variables to view/edit "
-            "details"))
+        self.rowtree.SetToolTip(_("Right click variables to view/edit details"))
         self.rowroot = self.setup_dim_tree(self.rowtree)
-        self.coltree = wx.gizmos.TreeListCtrl(self.panel, -1,
-              style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
+        self.coltree = HTL.HyperTreeList(self.panel, -1,
+              agwStyle=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED,
             self.on_col_item_activated)
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
-        self.coltree.SetToolTip(_("Right click variables to view/edit "
-            "details"))
+        self.coltree.SetToolTip(_("Right click variables to view/edit details"))
         self.colroot = self.setup_dim_tree(self.coltree)
-        # setup demo table type
+        ## setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
         self.prev_demo = None
         self.demo_tab = demotables.DemoDimTable(txt_titles=self.txt_titles,
-            txt_subtitles=self.txt_subtitles, tab_type=mg.FREQS, # the default
+            txt_subtitles=self.txt_subtitles, tab_type=mg.FREQS,  ## the default
             colroot=self.colroot, rowroot=self.rowroot, rowtree=self.rowtree,
             coltree=self.coltree, col_no_vars_item=self.col_no_vars_item,
             var_labels=self.var_labels, val_dics=self.val_dics)
-        # freqs tbl is default
+        ## freqs tbl is default
         self.setup_row_btns()
         self.setup_col_btns()
-        self.add_default_column_config() # must set up after coltree and demo
-        # html (esp height)
+        self.add_default_column_config()  ## must set up after coltree and demo
+        ## html (esp height)
         if mg.PLATFORM == mg.MAC:
             min_height = 80
             grow_from = 768
@@ -707,13 +705,13 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
              col_sorting) = lib.GuiLib.get_col_dets(self.coltree, self.colroot, 
                                                     self.var_labels)
             # pprint.pformat() fails on non-ascii - a shame
-            script_lst.append(u"col_names = " + str(col_names))
-            script_lst.append(u"col_labels = " + str(col_labels))
-            script_lst.append(u"col_sorting = " + str(col_sorting))
-            script_lst.append(u"flds = " + lib.UniLib.dic2unicode(dd.flds))
-            script_lst.append(u"var_labels = "
+            script_lst.append("col_names = " + str(col_names))
+            script_lst.append("col_labels = " + str(col_labels))
+            script_lst.append("col_sorting = " + str(col_sorting))
+            script_lst.append("flds = " + lib.UniLib.dic2unicode(dd.flds))
+            script_lst.append("var_labels = "
                 + lib.UniLib.dic2unicode(self.var_labels))
-            script_lst.append(u"val_dics = "
+            script_lst.append("val_dics = "
                 + lib.UniLib.dic2unicode(self.val_dics))
         # process title dets
         titles, subtitles = self.get_titles()
@@ -721,32 +719,32 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             dd.tbl))
         # NB the following text is all going to be run
         if self.tab_type in (mg.FREQS, mg.CROSSTAB):
-            show_perc = (u"True" if self.chk_show_perc_symbol.IsChecked() 
-                else u"False")
-            script_lst.append(u"tab_test = dimtables.GenTable("
-                + u"titles=%s," % str(titles)
-                + u"\n    subtitles=%s," % str(subtitles)
-                + u"\n    tab_type=%s," % self.tab_type
-                + u"\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
-                + u"tbl=u\"%s\", " % dd.tbl 
-                + u"tbl_filt=tbl_filt," 
-                + u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
-                + u"tree_cols=tree_cols, show_perc=%s)" % show_perc)
+            show_perc = ("True" if self.chk_show_perc_symbol.IsChecked() 
+                else "False")
+            script_lst.append("tab_test = dimtables.GenTable("
+                + "titles=%s," % str(titles)
+                + "\n    subtitles=%s," % str(subtitles)
+                + "\n    tab_type=%s," % self.tab_type
+                + "\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
+                + "tbl=\"%s\", " % dd.tbl 
+                + "tbl_filt=tbl_filt," 
+                + "\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
+                + "tree_cols=tree_cols, show_perc=%s)" % show_perc)
         elif self.tab_type == mg.ROW_STATS:
-            script_lst.append(u"tab_test = dimtables.SummTable(" 
-                + u"titles=%s," % str(titles) 
-                + u"\n    subtitles=%s," % str(subtitles) 
-                + u"\n    tab_type=%s," % self.tab_type 
-                + u"\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
-                + u"tbl=u\"%s\", " % dd.tbl 
-                + u"tbl_filt=tbl_filt," 
-                + u"\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
-                + u"tree_cols=tree_cols)")
+            script_lst.append("tab_test = dimtables.SummTable(" 
+                + "titles=%s," % str(titles) 
+                + "\n    subtitles=%s," % str(subtitles) 
+                + "\n    tab_type=%s," % self.tab_type 
+                + "\n    dbe=mg.%s, " % mg.DBE_KEY2KEY_AS_STR[dd.dbe]
+                + "tbl=u\"%s\", " % dd.tbl 
+                + "tbl_filt=tbl_filt," 
+                + "\n    cur=cur, flds=flds, tree_rows=tree_rows, " 
+                + "tree_cols=tree_cols)")
         elif self.tab_type == mg.DATA_LIST:
-            tot_rows = u"True" if self.chk_totals_row.IsChecked() else u"False"
-            first_label = (u"True" if self.chk_first_as_label.IsChecked()
-                else u"False")
-            script_lst.append(u"""
+            tot_rows = "True" if self.chk_totals_row.IsChecked() else "False"
+            first_label = ("True" if self.chk_first_as_label.IsChecked()
+                else "False")
+            script_lst.append("""
 tab_test = rawtables.RawTable(titles=%(titles)s, 
     subtitles=%(subtitles)s, dbe=mg.%(dbe)s, col_names=col_names, 
     col_labels=col_labels, col_sorting=col_sorting, flds=flds, 

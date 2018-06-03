@@ -122,7 +122,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         ## dp spinner
         szr_dp = wx.BoxSizer(wx.HORIZONTAL)
         self.lbl_dp_spinner = wx.StaticText(self.panel_mid, -1,
-            _(u"Max dec\npoints"))
+            _("Max dec\npoints"))
         self.dp_spinner = self.get_dp_spinner(self.panel_mid,
             dp_val=mg.DEFAULT_REPORT_DP)
         szr_dp.Add(self.lbl_dp_spinner, 0)
@@ -558,8 +558,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.drop_var1.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_var1 = wx.Choice(self.panel_vars, -1, choices=items, 
-            size=(self.dropdown_width,-1))
+        drop_var1 = wx.Choice(
+            self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var1.SetFont(mg.GEN_FONT)
         drop_var1.SetSelection(idx_sel)
         drop_var1.Bind(wx.EVT_CHOICE, self.on_var1_sel)
@@ -576,8 +576,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.drop_var2.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_var2 = wx.Choice(self.panel_vars, -1, choices=items, 
-            size=(self.dropdown_width,-1))
+        drop_var2 = wx.Choice(
+            self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var2.SetFont(mg.GEN_FONT)
         drop_var2.SetSelection(idx_sel)
         drop_var2.Bind(wx.EVT_CHOICE, self.on_var2_sel)
@@ -594,8 +594,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.drop_var3.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_var3 = wx.Choice(self.panel_vars, -1, choices=items, 
-            size=(self.dropdown_width,-1))
+        drop_var3 = wx.Choice(
+            self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var3.SetFont(mg.GEN_FONT)
         drop_var3.SetSelection(idx_sel)
         drop_var3.Bind(wx.EVT_CHOICE, self.on_var3_sel)
@@ -612,8 +612,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.drop_var4.Destroy() # don't want more than one
         except Exception:
             pass
-        drop_var4 = wx.Choice(self.panel_vars, -1, choices=items, 
-            size=(self.dropdown_width,-1))
+        drop_var4 = wx.Choice(
+            self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var4.SetFont(mg.GEN_FONT)
         drop_var4.SetSelection(idx_sel)
         drop_var4.Bind(wx.EVT_CHOICE, self.on_var4_sel)
@@ -653,7 +653,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         varname1, varname2, varname3, varname4 = self.get_vars()
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
-        self.dropdown_width = self.get_dropdown_width(chart_config)
         ## time series special case - not easy to handle by simple config settings
         show_agg, unused = self.get_agg_dets()
         time_series = (
@@ -803,10 +802,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
             self.var_labels, default)
         return var_choice_items, idx_var
-
-    def get_dropdown_width(self, chart_config):
-        dropdown_width = mg.STD_DROP_WIDTH if len(chart_config) < 4 else 160
-        return dropdown_width
 
     def get_chk_rotate(self, panel):
         if mg.PLATFORM == mg.WINDOWS:

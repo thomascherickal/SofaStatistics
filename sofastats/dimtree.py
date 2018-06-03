@@ -1,6 +1,7 @@
 import copy
 
 import wx
+import wx.dataview
 
 from sofastats import my_globals as mg
 from sofastats import lib
@@ -219,14 +220,15 @@ class DimTree:
                                 "once")
                         wx.MessageBox(msg % {"text": text})
                         return
-            # they all passed the tests so proceed
+            ## they all passed the tests so proceed
             for idx in selected_idxs:
                 text = sorted_choices[idx]
-                new_id = tree.AppendItem(root, text)
+                item = tree.AppendItem(root, text)
+                tree.SetItemTextColour(item, wx.Colour('black'))
                 var_name = sorted_vars[idx]            
-                self.set_initial_config(tree, dim, new_id, var_name)
-            tree.UnselectAll() # multiple
-            tree.SelectItem(new_id)
+                self.set_initial_config(tree, dim, item, var_name)
+            tree.UnselectAll()  ## multiple
+            tree.SelectItem(item)
             if tree == self.rowtree:
                 self.setup_row_btns()
             else:
@@ -433,9 +435,9 @@ class DimTree:
                 item_conf.measures_lst = [self.demo_tab.default_measure]
             prev_sibling_id = tree.GetPrevSibling(first_selected_id)
             next_sibling_id = tree.GetNextSibling(first_selected_id)
-            if prev_sibling_id.IsOk():
+            if prev_sibling_id and prev_sibling_id.IsOk():
                 tree.SelectItem(prev_sibling_id)
-            elif next_sibling_id.IsOk():
+            elif next_sibling_id and next_sibling_id.IsOk():
                 tree.SelectItem(next_sibling_id)
             else:
                 tree.SelectItem(parent_id)
@@ -586,7 +588,7 @@ class DimTree:
             self.colroot, mg.COL_CONFIG_ITEM_LBL)
         self.set_initial_config(self.coltree, mg.COLDIM_KEY, self.col_no_vars_item)
         self.demo_tab.col_no_vars_item = self.col_no_vars_item
-        self.coltree.Expand(self.colroot)
+        #self.coltree.Expand(self.colroot)
         self.coltree.SelectItem(self.col_no_vars_item)
         self.btn_col_add.Disable()
         self.btn_col_add_under.Disable()
@@ -600,7 +602,8 @@ class DimTree:
         tree.SetColumnWidth(1, 500)
         #MinSize lets SetSizeHints make a more sensible guess for starting point
         tree.SetMinSize((70, 110))
-        return tree.AddRoot("root")
+        root = tree.AddRoot('My Root')
+        return root 
 
     def setup_row_btns(self):
         """

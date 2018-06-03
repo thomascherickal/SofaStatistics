@@ -378,7 +378,7 @@ def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, flds, quote_obj,
     debug = False
     quoted_obj = quote_obj(fldname)
     if debug: print(f"quoted_obj: {quoted_obj}")
-    quoted_val = quote_val(val, charset2try=flds[fldname][mg.FLD_CHARSET])
+    quoted_val = quote_val(val)
     if len(quoted_val) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:  ## can't do len of raw val when a datetime in Postgresql - datetime.datetime has no len()
         raise my_exceptions.CategoryTooLong(fldname)
     if debug: print(f"quoted_val: {quoted_val}")
@@ -661,8 +661,8 @@ def get_data_dropdowns(parent, panel, default_dbs):
     ## Databases list needs to be tuple including dbe so can get both from
     ## sequence alone e.g. when identifying selection.
     dd = mg.DATADETS_OBJ
-    ## Can't just use dbs list for dd - sqlite etc may have multiple dbs but only
-    ## one per con.
+    ## Can't just use dbs list for dd - sqlite etc may have multiple dbs but
+    ## only one per con.
     dbe_dbs_list = mg.DBE_MODULES[dd.dbe].get_dbs_list(dd.con_dets, default_dbs)
     db_choices = [(x, dd.dbe) for x in dbe_dbs_list]
     dbes = mg.DBES[:]
@@ -681,8 +681,8 @@ def get_data_dropdowns(parent, panel, default_dbs):
                 " provided.\nCaused by error: %(e)s") % {"oth_dbe": oth_dbe,
                 "e": b.ue(e)})
     db_choice_items = [get_db_item(x[0], x[1]) for x in db_choices]
-    drop_dbs = wx.Choice(panel, -1, choices=db_choice_items,
-        size=(mg.STD_DROP_WIDTH,-1))
+    drop_dbs = wx.Choice(
+        panel, -1, choices=db_choice_items, size=wx.DefaultSize)
     if not parent.drop_tbls_system_font_size:
         drop_dbs.SetFont(mg.GEN_FONT)
     drop_dbs.Bind(wx.EVT_CHOICE, parent.on_database_sel)
@@ -690,8 +690,8 @@ def get_data_dropdowns(parent, panel, default_dbs):
     selected_dbe_db_idx = dbs_lc.index(dd.db.lower())
     drop_dbs.SetSelection(selected_dbe_db_idx)
     tbls_with_filts, idx_tbl = get_tblnames_and_idx()
-    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts,
-        size=(mg.STD_DROP_WIDTH,-1))
+    drop_tbls = wx.Choice(
+        panel, -1, choices=tbls_with_filts, size=wx.DefaultSize)  #size=(mg.STD_DROP_WIDTH,-1))
     extra_drop_tbls_setup(parent, drop_tbls, idx_tbl)
     return drop_dbs, drop_tbls, db_choice_items, selected_dbe_db_idx
 
@@ -732,8 +732,8 @@ def get_fresh_drop_tbls(parent, szr, panel):
     szr.Remove(parent.drop_tbls_idx_in_szr)  ## remove from sizer before destroying
     parent.drop_tbls.Destroy()
     tbls_with_filts, idx_tbl = get_tblnames_and_idx()
-    drop_tbls = wx.Choice(panel, -1, choices=tbls_with_filts,
-        size=(mg.STD_DROP_WIDTH,-1))
+    drop_tbls = wx.Choice(
+        panel, -1, choices=tbls_with_filts, size=wx.DefaultSize)
     extra_drop_tbls_setup(parent, drop_tbls, idx_tbl)
     flag = wx.RIGHT
     if parent.drop_tbls_can_grow:
