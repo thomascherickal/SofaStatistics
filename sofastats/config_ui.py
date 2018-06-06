@@ -299,7 +299,7 @@ class ConfigUI(object):
         self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
 
-    def get_szr_output_config(self, panel, readonly=False, report_file=None,
+    def get_szr_output_config(self, panel, readonly=False, report_file=None, *,
             show_run_btn=True, show_add_btn=True, show_view_btn=True,
             show_export_options=True):
         """

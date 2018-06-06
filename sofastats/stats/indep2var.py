@@ -354,16 +354,11 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             wx.MessageBox(msg)
         return msg
 
-    def on_show(self, event):
+    def on_show(self, _event):
         if self.exiting:
             return
-        try:
-            self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass # need on Mac or exceptn survives
-        finally: # any initial content
-            html2show = _(u"<p>Waiting for an analysis to be run.</p>")
-            self.html.SetPage(html2show, mg.BASE_URL)
+        html2show = _("<p>Waiting for an analysis to be run.</p>")
+        self.html.SetPage(html2show, mg.BASE_URL)
             
     def add_other_var_opts(self, szr=None):
         "Used by ANOVA at least"

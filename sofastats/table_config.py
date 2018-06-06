@@ -562,17 +562,12 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.szr_main.SetSizeHints(self)
         self.Layout()
         self.txt_tblname.SetFocus()
-        
-    def on_show(self, event):
+
+    def on_show(self, _event):
         if self.exiting:
             return
-        try:
-            self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass # need on Mac or exceptn survives
-        finally: # any initial content
-            self.update_demo()
-            
+        self.update_demo()
+
     def get_demo_val(self, row_idx, col_label, lbl_type_key):
         """
         Get best possible demo value for display in absence of source data.
@@ -585,7 +580,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             except Exception:
                 val = lib.get_rand_val_of_type(lbl_type_key)
         return val
-    
+
     def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
             design_flds_types):
         """

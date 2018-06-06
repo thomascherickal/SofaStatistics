@@ -1,4 +1,3 @@
-
 import os
 import wx  #@UnusedImport
 import wx.html2
@@ -24,13 +23,13 @@ SLICES_SORTED_LBL = u"slices"
 GROUPS_SORTED_LBL = u"groups"
 
 """
-If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE_LBL and will 
+If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE_LBL and will
 thus be sorted by values not labels and order of values determined by GROUP BY
 in database engine used. See specifics in, for example, get_line_chart_script().
 
 Value dropdowns have to be built fresh each time the data source changes because
-in Linux the process of changing the values list dynamically is far too slow 
-when a non-system font is chosen. Much, much quicker to build a fresh one each 
+in Linux the process of changing the values list dynamically is far too slow
+when a non-system font is chosen. Much, much quicker to build a fresh one each
 time with the new list as the initial value.
 """
 
@@ -41,15 +40,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     range_gps = False
 
     def __init__(self, title):
-        # see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
+        ## see http://old.nabble.com/wx.StaticBoxSizer-td21662703.html
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
         elif mg.MAX_HEIGHT <= 870:
             myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
-        # can't use indep2var.DlgIndep2VarConfig - too many differences
-        # so must init everything manually here
+        ## Can't use indep2var.DlgIndep2VarConfig - too many differences
+        ## so must init everything manually here
         wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
@@ -64,42 +63,41 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.title = title
         self.SetFont(mg.GEN_FONT)
         cc = output.get_cc()
-        self.output_modules = [(None, "my_globals as mg"),
-            ("stats", "core_stats"), ("charting", "charting_output"),
-            (None, "output"), (None, "getdata")]
+        self.output_modules = [(None, 'my_globals as mg'),
+            ('stats', 'core_stats'), ('charting', 'charting_output'),
+            (None, 'output'), (None, 'getdata')]
         global CUR_DATA_OPT_LBL
         CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
-        self.min_data_type = None # not used in charting_dlg unlike most other dlgs - need fine-grained control of 
-        # up to 4 drop downs
+        self.min_data_type = None  ## not used in charting_dlg unlike most other dlgs - need fine-grained control of up to 4 drop downs
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
-        self.url_load = True # btn_expand
-        (self.var_labels, self.var_notes, 
-         self.var_types, 
+        self.url_load = True  ## btn_expand
+        (self.var_labels, self.var_notes,
+         self.var_types,
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         self.variables_rc_msg = _("Right click variables to view/edit details")
         config_output.add_icon(frame=self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        # top panel
+        ## top panel
         self.panel_data = wx.Panel(self)
         self.szr_help_data = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_vars = wx.Panel(self)
-        # key settings
+        ## key settings
         hide_db = projects.get_hide_db()
         self.drop_tbls_panel = self.panel_data
         self.drop_tbls_system_font_size = False
         self.drop_tbls_sel_evt = self.on_table_sel
-        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # 2 fewer items
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1  ## 2 fewer items
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db)  ## mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        # variables
+        ## variables
         bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
         self.szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
-        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTip(self.variables_rc_msg)
-        # misc
+        ## misc
         self.btn_help = wx.Button(self.panel_data, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
@@ -107,33 +105,33 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_var_dropdowns()
         self.panel_vars.SetSizer(self.szr_vars)
         self.szr_vars.SetSizeHints(self.panel_vars)
-        # layout
+        ## layout
         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
         self.szr_help_data.Add(self.btn_help, 0, wx.TOP, help_down_by)
         self.szr_help_data.Add(self.szr_data, 1, wx.LEFT, 5)
-        # assemble sizer for help_data panel
+        ## assemble sizer for help_data panel
         self.panel_data.SetSizer(self.szr_help_data)
         self.szr_help_data.SetSizeHints(self.panel_data)
-        # chart buttons
+        ## chart buttons
         self.panel_mid = wx.Panel(self)
         bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Details"))
         self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
         self.setup_chart_btns(szr_chart_btns)
         ## dp spinner
         szr_dp = wx.BoxSizer(wx.HORIZONTAL)
-        self.lbl_dp_spinner = wx.StaticText(self.panel_mid, -1,
-            _("Max dec\npoints"))
-        self.dp_spinner = self.get_dp_spinner(self.panel_mid,
-            dp_val=mg.DEFAULT_REPORT_DP)
+        self.lbl_dp_spinner = wx.StaticText(
+            self.panel_mid, -1, _("Max dec\npoints"))
+        self.dp_spinner = self.get_dp_spinner(
+            self.panel_mid, dp_val=mg.DEFAULT_REPORT_DP)
         szr_dp.Add(self.lbl_dp_spinner, 0)
         szr_dp.Add(self.dp_spinner, 0, wx.LEFT, 10)
         szr_chart_btns.Add(szr_dp, 0, wx.TOP|wx.LEFT, 15)
         self.szr_mid.Add(szr_chart_btns, 0, wx.GROW)
-        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_charts.SetToolTip(_("Chart details"))
-        # Chart Settings
+        ## Chart Settings
         if mg.PLATFORM == mg.WINDOWS:
-            self.tickbox_down_by = 10 # to line up with a combo
+            self.tickbox_down_by = 10  ## to line up with a combo
             self.tickbox_splitline_down_by = self.tickbox_down_by  ## Windows too dumb to split
         elif mg.PLATFORM == mg.LINUX:
             self.tickbox_down_by = 9
@@ -141,7 +139,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         else:
             self.tickbox_down_by = 9
             self.tickbox_splitline_down_by = 5
-        # setup charts
+        ## setup charts
         self.setup_simple_bar()
         self.setup_clust_bar()
         self.setup_pie()
@@ -150,10 +148,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.setup_histogram()
         self.setup_scatterplot()
         self.setup_boxplot()
-        # Hide all panels except default. Display and layout then hide.
-        # Prevents flicker on change later.
+        ## Hide all panels except default. Display and layout then hide.
+        ## Prevents flicker on change later.
         panels2hide = [self.panel_clust_bar, self.panel_pie_chart,
-            self.panel_line_chart, self.panel_area_chart, self.panel_histogram, 
+            self.panel_line_chart, self.panel_area_chart, self.panel_histogram,
             self.panel_scatterplot, self.panel_boxplot]
         check = True
         for panel2hide in panels2hide:
@@ -163,110 +161,109 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 self.szr_mid.SetSizeHints(self.panel_mid)
                 check = False
             panel2hide.Show(True)
-            self.panel_mid.Layout() # self.Layout() doesn't work in Windows
+            self.panel_mid.Layout()  ## self.Layout() doesn't work in Windows
             panel2hide.Show(False)
             self.szr_mid.Detach(panel2hide)
-        # default chart type (bar chart)
+        ## default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
         self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
         self.panel_bar_chart.Show(True)
         self.panel_mid.SetSizer(self.szr_mid)
         self.szr_mid.SetSizeHints(self.panel_mid)
-        # Bottom panel
+        ## Bottom panel
         self.panel_bottom = wx.Panel(self)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         szr_titles = wx.BoxSizer(wx.HORIZONTAL)
-        self.szr_output_config = self.get_szr_output_config(self.panel_bottom) # mixin
+        self.szr_output_config = self.get_szr_output_config(self.panel_bottom)  ## mixin
         szr_lower = wx.BoxSizer(wx.HORIZONTAL)
-        # titles, subtitles
+        ## titles, subtitles
         lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
-        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1, 
+        self.txt_titles = wx.TextCtrl(self.panel_bottom, -1,
             size=(250,title_height), style=wx.TE_MULTILINE)
         lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
-        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1, 
+        self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1,
             size=(250,title_height), style=wx.TE_MULTILINE)
         szr_titles.Add(lbl_titles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_titles, 1, wx.RIGHT, 10)
         szr_titles.Add(lbl_subtitles, 0, wx.RIGHT, 5)
         szr_titles.Add(self.txt_subtitles, 1)
-        self.szr_output_display = self.get_szr_output_display(self.panel_bottom,
-            inc_clear=False, idx_style=1) # mixin
+        self.szr_output_display = self.get_szr_output_display(
+            self.panel_bottom, inc_clear=False, idx_style=1)  ## mixin
         self.html = wx.html2.WebView.New(self.panel_bottom, -1,
             size=wx.Size(200, 150))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
-        self.szr_bottom.Add(szr_titles, 0, wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|
-            wx.BOTTOM, 10)
-        self.szr_bottom.Add(self.szr_output_config, 0,
-            wx.GROW|wx.LEFT|wx.RIGHT, 10)
+        self.szr_bottom.Add(szr_titles, 0,
+            wx.GROW|wx.LEFT|wx.TOP|wx.RIGHT|wx.BOTTOM, 10)
+        self.szr_bottom.Add(
+            self.szr_output_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_lower.Add(self.html, 1, wx.GROW)
         szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
-        self.szr_bottom.Add(szr_lower, 2, wx.GROW|wx.LEFT|wx.RIGHT|
-            wx.BOTTOM|wx.TOP, 10)
+        self.szr_bottom.Add(szr_lower, 2,
+            wx.GROW|wx.LEFT|wx.RIGHT|wx.BOTTOM|wx.TOP, 10)
         self.add_other_var_opts()
         self.panel_bottom.SetSizer(self.szr_bottom)
         self.szr_bottom.SetSizeHints(self.panel_bottom)
-        # assemble entire frame
+        ## assemble entire frame
         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 5
         if static_box_gap:
-            self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP,
-                static_box_gap)
+            self.szr_main.Add(
+                wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         self.szr_main.Add(self.panel_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
-            self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP,
-                static_box_gap)
+            self.szr_main.Add(
+                wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         self.szr_main.Add(self.panel_mid, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         if static_box_gap:
-            self.szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP,
-                static_box_gap)
+            self.szr_main.Add(
+                wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
         self.szr_main.Add(self.panel_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.panel_bottom, 1, wx.GROW)
         self.SetAutoLayout(True)
         self.SetSizer(self.szr_main)
-        szr_lst = [self.szr_help_data, self.szr_vars, self.szr_mid,
-            self.szr_bottom] # each has a panel of its own
+        szr_lst = [
+            self.szr_help_data, self.szr_vars, self.szr_mid, self.szr_bottom]  ## each has a panel of its own
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024,
             height_init=myheight)
-    
+
     def get_drop_val_opts(self, panel):
-        drop_opts = wx.Choice(panel, -1, choices=mg.DATA_SHOW_OPT_LBLS,
-            size=(90,-1))
+        drop_opts = wx.Choice(
+            panel, -1, choices=mg.DATA_SHOW_OPT_LBLS, size=(90, -1))
         drop_opts.SetFont(mg.GEN_FONT)
         idx_data_opt = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         drop_opts.SetSelection(idx_data_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_val)
-        drop_opts.SetToolTip(u"Report count(frequency), percentage, "
-            u"average, or sum?")
+        drop_opts.SetToolTip(
+            "Report count(frequency), percentage, average, or sum?")
         return drop_opts
-    
+
     def get_drop_sort_opts(self, panel, choices=mg.STD_SORT_OPT_LBLS):
-        drop_opts = wx.Choice(panel, -1, choices=choices, size=(100,-1))
+        drop_opts = wx.Choice(panel, -1, choices=choices, size=(100, -1))
         drop_opts.SetFont(mg.GEN_FONT)
         idx_current_sort_opt = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         drop_opts.SetSelection(idx_current_sort_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_sort)
-        drop_opts.SetToolTip(_(u"Sort order for categories"))
+        drop_opts.SetToolTip(_("Sort order for categories"))
         return drop_opts
 
     def setup_simple_bar(self):
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_bar_chart, -1,
-            _(u"Data\nreported:"))
+        lbl_val = wx.StaticText(self.panel_bar_chart, -1, _("Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_bar_val = self.get_drop_val_opts(self.panel_bar_chart)
-        lbl_sort = wx.StaticText(self.panel_bar_chart, -1,
-            _(u"Sort order\nof %s:") % BARS_SORTED_LBL)
+        lbl_sort = wx.StaticText(
+            self.panel_bar_chart, -1, _("Sort order\nof %s:") % BARS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_bar_sort = self.get_drop_sort_opts(self.panel_bar_chart)
         self.chk_simple_bar_rotate = self.get_chk_rotate(self.panel_bar_chart)
-        self.chk_bar_borders = wx.CheckBox(self.panel_bar_chart, -1, 
-            _("Bar borders?"))
+        self.chk_bar_borders = wx.CheckBox(
+            self.panel_bar_chart, -1, _("Bar borders?"))
         self.chk_bar_borders.SetFont(mg.GEN_FONT)
         self.chk_bar_borders.SetValue(False)
         self.chk_bar_borders.SetToolTip(_("Show borders around bars?"))
@@ -291,18 +288,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_clust_bar(self):
         self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_clust_bar = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_clust_bar, -1,
-            _(u"Data\nreported:"))
+        lbl_val = wx.StaticText(self.panel_clust_bar, -1, _("Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_clust_val = self.get_drop_val_opts(self.panel_clust_bar)
         lbl_sort = wx.StaticText(self.panel_clust_bar, -1,
-            _(u"Sort order\nof %s:") % CLUSTERS_SORTED_LBL)
+            _("Sort order\nof %s:") % CLUSTERS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_clust_sort = self.get_drop_sort_opts(self.panel_clust_bar,
             choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_clust_bar_rotate = self.get_chk_rotate(self.panel_clust_bar)
-        self.chk_clust_borders = wx.CheckBox(self.panel_clust_bar, -1,
-            _("Bar borders?"))
+        self.chk_clust_borders = wx.CheckBox(
+            self.panel_clust_bar, -1, _("Bar borders?"))
         self.chk_clust_borders.SetFont(mg.GEN_FONT)
         self.chk_clust_borders.SetValue(False)
         self.chk_clust_borders.SetToolTip(_("Show borders around bars?"))
@@ -315,8 +311,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP,
             self.tickbox_splitline_down_by)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_borders, 0, wx.TOP,
-            self.tickbox_down_by)
+        self.szr_clust_bar_chart.Add(
+            self.chk_clust_borders, 0, wx.TOP, self.tickbox_down_by)
         self.szr_clust_bar_chart.AddSpacer(10)
         self.chk_clust_bar_show_n = self.get_chk_show_n(self.panel_clust_bar)
         self.szr_clust_bar_chart.Add(self.chk_clust_bar_show_n, 0, wx.TOP,
@@ -328,12 +324,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         lbl_sort = wx.StaticText(self.panel_pie_chart, -1,
-            _(u"Sort order\nof %s:") % SLICES_SORTED_LBL)
+            _("Sort order\nof %s:") % SLICES_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_pie_sort = self.get_drop_sort_opts(self.panel_pie_chart)
         ## count
-        self.chk_show_count = wx.CheckBox(self.panel_pie_chart, -1,
-            _("Show Count?"))
+        self.chk_show_count = wx.CheckBox(
+            self.panel_pie_chart, -1, _("Show Count?"))
         self.chk_show_count.SetFont(mg.GEN_FONT)
         self.chk_show_count.SetValue(False)
         self.chk_show_count.SetToolTip(_("Show Count?"))
@@ -345,48 +341,47 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_pie_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_pie_chart.Add(self.drop_pie_sort, 0, wx.TOP|wx.RIGHT, 5)
         self.szr_pie_chart.AddSpacer(10)
-        self.szr_pie_chart.Add(self.chk_show_count, 0, wx.TOP,
-            self.tickbox_down_by)
-        self.szr_pie_chart.Add(self.chk_show_pct, 0, wx.TOP,
-            self.tickbox_down_by)
+        self.szr_pie_chart.Add(
+            self.chk_show_count, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_pie_chart.Add(
+            self.chk_show_pct, 0, wx.TOP, self.tickbox_down_by)
         self.szr_pie_chart.AddSpacer(10)
         self.chk_pie_show_n = self.get_chk_show_n(self.panel_pie_chart)
-        self.szr_pie_chart.Add(self.chk_pie_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_pie_chart.Add(
+            self.chk_pie_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
-    
+
     def setup_line(self):
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_line_chart, -1,
-            _(u"Data\nreported:"))
+        lbl_val = wx.StaticText(self.panel_line_chart, -1, _("Data\nreported:"))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_line_val = self.get_drop_val_opts(self.panel_line_chart)
         lbl_sort = wx.StaticText(self.panel_line_chart, -1,
-            _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
+            _("Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_line_sort = self.get_drop_sort_opts(self.panel_line_chart,
-            choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
+        self.drop_line_sort = self.get_drop_sort_opts(
+            self.panel_line_chart, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_line_time_series = self.get_chk_time_series(
             self.panel_line_chart, line=True)
         if mg.PLATFORM == mg.WINDOWS:
-            smooth2use = _("Smooth line?")
-            trend2use = _("Trend line?")
+            smooth2use = _('Smooth line?')
+            trend2use = _('Trend line?')
         else:
-            smooth2use = _("Smooth\nline?")
-            trend2use = _("Trend\nline?")
+            smooth2use = _('Smooth\nline?')
+            trend2use = _('Trend\nline?')
         self.chk_line_rotate = self.get_chk_rotate(self.panel_line_chart)
         self.chk_line_hide_markers = self.get_chk_hide_markers(
             self.panel_line_chart)
-        self.chk_line_trend = self.checkbox2use(self.panel_line_chart, -1,
-            trend2use)
+        self.chk_line_trend = self.checkbox2use(
+            self.panel_line_chart, -1, trend2use)
         self.chk_line_trend.SetFont(mg.GEN_FONT)
-        self.chk_line_trend.SetToolTip(_(u"Show trend line?"))
-        self.chk_line_smooth = self.checkbox2use(self.panel_line_chart, -1,
-            smooth2use)
+        self.chk_line_trend.SetToolTip(_('Show trend line?'))
+        self.chk_line_smooth = self.checkbox2use(
+            self.panel_line_chart, -1, smooth2use)
         self.chk_line_smooth.SetFont(mg.GEN_FONT)
-        self.chk_line_smooth.SetToolTip(_(u"Show smoothed data line?"))
+        self.chk_line_smooth.SetToolTip(_('Show smoothed data line?'))
         self.chk_line_major_ticks = self.get_chk_major_ticks(
             self.panel_line_chart)
         self.szr_line_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
@@ -415,20 +410,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
         self.chk_line_show_n = self.get_chk_show_n(self.panel_line_chart)
-        self.szr_line_chart.Add(self.chk_line_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(
+            self.chk_line_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
 
     def setup_area(self):
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_area_chart, -1,
-            _(u"Data\nreported:"))
+        lbl_val = wx.StaticText(self.panel_area_chart, -1, _('Data\nreported:'))
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_area_val = self.get_drop_val_opts(self.panel_area_chart)
-        lbl_sort = wx.StaticText(self.panel_area_chart, -1, 
-            _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
+        lbl_sort = wx.StaticText(self.panel_area_chart, -1,
+            _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_area_sort = self.get_drop_sort_opts(self.panel_area_chart)
         self.chk_area_time_series = self.get_chk_time_series(
@@ -465,21 +459,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_histogram(self):
         self.szr_histogram = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_histogram = wx.Panel(self.panel_mid)
-        self.chk_show_normal = wx.CheckBox(self.panel_histogram, -1, 
-                                           _("Show normal curve?"))
+        self.chk_show_normal = wx.CheckBox(
+            self.panel_histogram, -1, _('Show normal curve?'))
         self.chk_show_normal.SetFont(mg.GEN_FONT)
         self.chk_show_normal.SetValue(False)
-        self.chk_show_normal.SetToolTip(_(u"Show normal curve?"))
-        self.chk_hist_borders = wx.CheckBox(self.panel_histogram, -1, 
-                                             _("Bar borders?"))
+        self.chk_show_normal.SetToolTip(_('Show normal curve?'))
+        self.chk_hist_borders = wx.CheckBox(
+            self.panel_histogram, -1, _('Bar borders?'))
         self.chk_hist_borders.SetFont(mg.GEN_FONT)
         self.chk_hist_borders.SetValue(True)
-        self.chk_hist_borders.SetToolTip(_("Show borders around bars?"))
-        self.szr_histogram.Add(self.chk_show_normal, 0, wx.TOP,
-            self.tickbox_down_by)
+        self.chk_hist_borders.SetToolTip(_('Show borders around bars?'))
+        self.szr_histogram.Add(
+            self.chk_show_normal, 0, wx.TOP, self.tickbox_down_by)
         self.szr_histogram.AddSpacer(10)
-        self.szr_histogram.Add(self.chk_hist_borders, 0, wx.TOP,
-            self.tickbox_down_by)
+        self.szr_histogram.Add(
+            self.chk_hist_borders, 0, wx.TOP, self.tickbox_down_by)
         self.szr_histogram.AddSpacer(10)
         self.chk_histogram_show_n = self.get_chk_show_n(self.panel_histogram)
         self.szr_histogram.Add(self.chk_histogram_show_n, 0, wx.TOP,
@@ -490,21 +484,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def setup_scatterplot(self):
         self.szr_scatterplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_scatterplot = wx.Panel(self.panel_mid)
-        self.chk_dot_borders = wx.CheckBox(self.panel_scatterplot, -1, 
-            _("Dot borders?"))
+        self.chk_dot_borders = wx.CheckBox(
+            self.panel_scatterplot, -1, _('Dot borders?'))
         self.chk_dot_borders.SetFont(mg.GEN_FONT)
         self.chk_dot_borders.SetValue(True)
-        self.chk_dot_borders.SetToolTip(_("Show borders around "
-            "scatterplot dots?"))
-        self.chk_regression = wx.CheckBox(self.panel_scatterplot, -1, 
-            _("Show regression line?"))
+        self.chk_dot_borders.SetToolTip(
+            _('Show borders around scatterplot dots?'))
+        self.chk_regression = wx.CheckBox(
+            self.panel_scatterplot, -1, _('Show regression line?'))
         self.chk_regression.SetFont(mg.GEN_FONT)
         self.chk_regression.SetValue(False)
-        self.chk_regression.SetToolTip(_("Show regression line?"))
-        self.szr_scatterplot.Add(self.chk_dot_borders, 0, wx.TOP,
-            self.tickbox_down_by)
-        self.szr_scatterplot.Add(self.chk_regression, 0, wx.TOP,
-            self.tickbox_down_by)
+        self.chk_regression.SetToolTip(_('Show regression line?'))
+        self.szr_scatterplot.Add(
+            self.chk_dot_borders, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_scatterplot.Add(
+            self.chk_regression, 0, wx.TOP, self.tickbox_down_by)
         self.szr_scatterplot.AddSpacer(10)
         self.chk_scatterplot_show_n = self.get_chk_show_n(
             self.panel_scatterplot)
@@ -517,19 +511,19 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_boxplot = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_boxplot = wx.Panel(self.panel_mid)
         ## sort order
-        lbl_sort = wx.StaticText(self.panel_boxplot, -1, 
-                                 _(u"Sort order\nof %s:") % GROUPS_SORTED_LBL)
+        lbl_sort = wx.StaticText(
+            self.panel_boxplot, -1, _("Sort order\nof %s:") % GROUPS_SORTED_LBL)
         lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_box_sort = self.get_drop_sort_opts(self.panel_boxplot, 
-            choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
+        self.drop_box_sort = self.get_drop_sort_opts(
+            self.panel_boxplot, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         ## boxplot options
-        lbl_box_opts = wx.StaticText(self.panel_boxplot, -1, _(u"Display:"))
+        lbl_box_opts = wx.StaticText(self.panel_boxplot, -1, _('Display:'))
         lbl_box_opts.SetFont(mg.LABEL_FONT)
         self.drop_box_opts = wx.Choice(self.panel_boxplot, -1,
             choices=mg.CHART_BOXPLOT_OPTIONS, size=(200,-1))
         self.drop_box_opts.SetFont(mg.GEN_FONT)
-        self.drop_box_opts.SetToolTip(_(u"Display options for whiskers "
-            u"and outliers"))
+        self.drop_box_opts.SetToolTip(
+            _('Display options for whiskers and outliers'))
         self.drop_box_opts.SetSelection(0)
         ## rotate
         self.chk_boxplot_rotate = self.get_chk_rotate(self.panel_boxplot)
@@ -544,8 +538,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.tickbox_splitline_down_by)
         self.szr_boxplot.AddSpacer(10)
         self.chk_boxplot_show_n = self.get_chk_show_n(self.panel_boxplot)
-        self.szr_boxplot.Add(self.chk_boxplot_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_boxplot.Add(
+            self.chk_boxplot_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
 
@@ -555,7 +549,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         non-system font on Linux.
         """
         try:
-            self.drop_var1.Destroy() # don't want more than one
+            self.drop_var1.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_var1 = wx.Choice(
@@ -566,14 +560,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         drop_var1.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var1)
         drop_var1.SetToolTip(self.variables_rc_msg)
         return drop_var1
-    
+
     def get_fresh_drop_var2(self, items, idx_sel):
         """
         Must make fresh to get performant display even with lots of items in a
         non-system font on Linux.
         """
         try:
-            self.drop_var2.Destroy() # don't want more than one
+            self.drop_var2.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_var2 = wx.Choice(
@@ -591,7 +585,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         non-system font on Linux.
         """
         try:
-            self.drop_var3.Destroy() # don't want more than one
+            self.drop_var3.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_var3 = wx.Choice(
@@ -602,14 +596,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         drop_var3.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_var3)
         drop_var3.SetToolTip(self.variables_rc_msg)
         return drop_var3
-    
+
     def get_fresh_drop_var4(self, items, idx_sel):
         """
         Must make fresh to get performant display even with lots of items in a
         non-system font on Linux.
         """
         try:
-            self.drop_var4.Destroy() # don't want more than one
+            self.drop_var4.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_var4 = wx.Choice(
@@ -623,7 +617,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def _update_lbl_var1(self, chart_config1, lbl1_override=None):
         """
-        Used by all chart types, not just those with an aggregate option. So 
+        Used by all chart types, not just those with an aggregate option. So
         CUR_DATA_OPT may have been set by another chart type. Need to check this
         chart type has an aggregate option as well to know how to get var lbl.
         """
@@ -635,9 +629,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 rawlbl1 = chart_config1[mg.LBL_KEY][CUR_DATA_OPT_LBL]
             else:
                 rawlbl1 = chart_config1[mg.LBL_KEY]
-        lbl1 = u"%s:" % rawlbl1
+        lbl1 = f"{rawlbl1}:"
         try:
-            self.lbl_var1.SetLabel(lbl1) # if not already made, make it (this also means we only make it if not already made)
+            self.lbl_var1.SetLabel(lbl1)  ## if not already made, make it (this also means we only make it if not already made)
         except Exception:
             self.lbl_var1 = wx.StaticText(self.panel_vars, -1, lbl1)
             self.lbl_var1.SetFont(mg.LABEL_FONT)
@@ -661,14 +655,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             or
             (self.chart_type == mg.AREA_CHART
                 and self.chk_area_time_series.IsChecked()))
-        # var 1
+        ## var 1
         chart_config1 = chart_config[0]
         min_data_type1 = chart_config1[mg.MIN_DATA_TYPE_KEY]
         inc_drop_select1 = chart_config1[mg.EMPTY_VAL_OK]
-        kwargs = {u"chart_config1": chart_config1}
+        kwargs = {'chart_config1': chart_config1}
         if time_series:
             if not show_agg:
-                kwargs[u"lbl1_override"] = mg.CHART_DATETIMES_LBL
+                kwargs['lbl1_override'] = mg.CHART_DATETIMES_LBL
         self._update_lbl_var1(**kwargs)
         self.sorted_var_names1 = []
         items1, idx_sel1 = self.get_items_and_sel_idx(mg.VAR_1_DEFAULT,
@@ -676,34 +670,34 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_drop_select=inc_drop_select1,
             override_min_data_type=min_data_type1)
         self.drop_var1 = self.get_fresh_drop_var1(items1, idx_sel1)
-        # var 2
+        ## var 2
         chart_config2 = chart_config[1]
         min_data_type2 = chart_config2[mg.MIN_DATA_TYPE_KEY]
         inc_drop_select2 = chart_config2[mg.EMPTY_VAL_OK]
         rawlbl = chart_config2[mg.LBL_KEY]
         if time_series and show_agg:
             rawlbl = mg.CHART_DATETIMES_LBL
-        lbl2 = u"%s:" % rawlbl
+        lbl2 = f"{rawlbl}:"
         try:
             self.lbl_var2.SetLabel(lbl2)
         except Exception:
             self.lbl_var2 = wx.StaticText(self.panel_vars, -1, lbl2)
             self.lbl_var2.SetFont(mg.LABEL_FONT)
         self.sorted_var_names2 = []
-        items2, idx_sel2 = self.get_items_and_sel_idx(mg.VAR_2_DEFAULT, 
+        items2, idx_sel2 = self.get_items_and_sel_idx(mg.VAR_2_DEFAULT,
             sorted_var_names=self.sorted_var_names2, var_name=varname2,
             inc_drop_select=inc_drop_select2,
             override_min_data_type=min_data_type2)
         self.drop_var2 = self.get_fresh_drop_var2(items2, idx_sel2)
-        # var 3
+        ## var 3
         try:
             chart_config3 = chart_config[2]
-            lbl3 = u"%s:" % chart_config3[mg.LBL_KEY]
+            lbl3 = f"{chart_config3[mg.LBL_KEY]}:"
             min_data_type3 = chart_config3[mg.MIN_DATA_TYPE_KEY]
             inc_drop_select3 = chart_config3[mg.EMPTY_VAL_OK]
         except Exception:
-            # OK if not a third drop down for chart
-            lbl3 = u"%s:" % mg.CHARTS_CHART_BY_LBL
+            ## OK if not a third drop down for chart
+            lbl3 = f"{mg.CHARTS_CHART_BY_LBL}:"
             min_data_type3 = mg.VAR_TYPE_CAT_KEY
             inc_drop_select3 = True
         try:
@@ -717,7 +711,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_drop_select=inc_drop_select3,
             override_min_data_type=min_data_type3)
         self.drop_var3 = self.get_fresh_drop_var3(items3, idx_sel3)
-        # var 3 visibility
+        ## var 3 visibility
         try:
             chart_config[2]
             show3 = True
@@ -725,15 +719,15 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.lbl_var3.Hide()
             self.drop_var3.Hide()
             show3 = False
-        # var 4
+        ## var 4
         try:
             chart_config4 = chart_config[3]
-            lbl4 = u"%s:" % chart_config4[mg.LBL_KEY]
+            lbl4 = f"{chart_config4[mg.LBL_KEY]}:"
             min_data_type4 = chart_config4[mg.MIN_DATA_TYPE_KEY]
             inc_drop_select4 = chart_config4[mg.EMPTY_VAL_OK]
         except Exception:
-            # OK if not a third drop down for chart
-            lbl4 = u"%s:" % mg.CHARTS_CHART_BY_LBL
+            ## OK if not a third drop down for chart
+            lbl4 = f"{mg.CHARTS_CHART_BY_LBL}:"
             min_data_type4 = mg.VAR_TYPE_CAT_KEY
             inc_drop_select4 = True
         try:
@@ -747,7 +741,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             inc_drop_select=inc_drop_select4,
             override_min_data_type=min_data_type4)
         self.drop_var4 = self.get_fresh_drop_var4(items4, idx_sel4)
-        # var 4 visibility
+        ## var 4 visibility
         try:
             chart_config[3]
             show4 = True
@@ -767,27 +761,28 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except Exception:
             pass
         self.szr_vars.Add(self.lbl_var1, 0,wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var1, 0,
-            wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(
+            self.drop_var1, 0, wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
         self.szr_vars.Add(self.lbl_var2, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var2, 0,
-            wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(
+            self.drop_var2, 0, wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
         self.szr_vars.Add(self.lbl_var3, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var3, 0,
-            wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(
+            self.drop_var3, 0, wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
         self.szr_vars.Add(self.lbl_var4, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_vars.Add(self.drop_var4, 0,
-            wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
+        self.szr_vars.Add(
+            self.drop_var4, 0, wx.FIXED_MINSIZE|wx.RIGHT|wx.TOP, 5)
         self.panel_vars.Layout()
 
-    def get_items_and_sel_idx(self, default, sorted_var_names, var_name=None,
+    def get_items_and_sel_idx(self, default,
+            sorted_var_names, var_name=None, *,
             inc_drop_select=False, override_min_data_type=None):
         debug = False
         min_data_type = (override_min_data_type if override_min_data_type
             else self.min_data_type)
         if debug: print(var_name, self.min_data_type, override_min_data_type)
-        var_names = projects.get_approp_var_names(self.var_types,
-            min_data_type)
+        var_names = projects.get_approp_var_names(
+            self.var_types, min_data_type)
         (var_choice_items, 
          sorted_vals) = lib.GuiLib.get_sorted_choice_items(
              dic_labels=self.var_labels, vals=var_names,
@@ -798,57 +793,57 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             except IndexError:
                 break
         sorted_var_names.extend(sorted_vals)
-        # set selection
-        idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
-            self.var_labels, default)
+        ## set selection
+        idx_var = projects.get_idx_to_select(
+            var_choice_items, var_name, self.var_labels, default)
         return var_choice_items, idx_var
 
     def get_chk_rotate(self, panel):
         if mg.PLATFORM == mg.WINDOWS:
-            rotate2use = _("Rotate labels?")
+            rotate2use = _('Rotate labels?')
         else:
-            rotate2use = _("Rotate\nlabels?")
+            rotate2use = _('Rotate\nlabels?')
         chk = self.checkbox2use(panel, -1, rotate2use)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(ROTATE)
-        chk.SetToolTip(_(u"Rotate x-axis labels?"))
+        chk.SetToolTip(_('Rotate x-axis labels?'))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_rotate)
         return chk
-        # var 1
+        ## var 1
 
     def get_chk_major_ticks(self, panel):
         if mg.PLATFORM == mg.WINDOWS:
-            major2use = _("Major labels only?")
+            major2use = _('Major labels only?')
         else:
-            major2use = _("Major\nlabels only?")
+            major2use = _('Major\nlabels only?')
         chk = self.checkbox2use(panel, -1, major2use, wrap=15)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(MAJOR)
-        chk.SetToolTip(_(u"Show major labels only?"))
+        chk.SetToolTip(_('Show major labels only?'))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_major_ticks)
         return chk
 
     def get_chk_hide_markers(self, panel):
         if mg.PLATFORM == mg.WINDOWS:
-            hide2use = _("Hide markers?")
+            hide2use = _('Hide markers?')
         else:
-            hide2use = _("Hide\nmarkers?")
+            hide2use = _('Hide\nmarkers?')
         chk = self.checkbox2use(panel, -1, hide2use, wrap=15)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(HIDE_MARKERS)
-        chk.SetToolTip(_(u"Hide markers?"))
+        chk.SetToolTip(_('Hide markers?'))
         chk.Bind(wx.EVT_CHECKBOX, self.on_chk_hide_markers)
         return chk
 
     def get_chk_time_series(self, panel, line=True):
         if mg.PLATFORM == mg.WINDOWS:
-            dates2use = _("Time series?")
+            dates2use = _('Time series?')
         else:
-            dates2use = _("Time\nseries?")
+            dates2use = _('Time\nseries?')
         chk = self.checkbox2use(panel, -1, dates2use)
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(MAJOR)
-        chk.SetToolTip(_(u"Time series i.e. spread over x-axis by date?"))
+        chk.SetToolTip(_('Time series i.e. spread over x-axis by date?'))
         event_func = (self.on_chk_line_time_series if line
             else self.on_chk_area_time_series)
         chk.Bind(wx.EVT_CHECKBOX, event_func)
@@ -856,12 +851,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def get_chk_show_n(self, panel):
         if mg.PLATFORM == mg.WINDOWS:
-            show_n2use = _("Show chart N?")
+            show_n2use = _('Show chart N?')
         else:
-            show_n2use = _("Show\nchart N?")
+            show_n2use = _('Show\nchart N?')
         chk_show_n = wx.CheckBox(panel, -1, show_n2use)
         chk_show_n.Bind(wx.EVT_CHECKBOX, self.on_chk_show_n)
-        chk_show_n.SetToolTip(_(u"Show chart N"))
+        chk_show_n.SetToolTip(_('Show chart N'))
         chk_show_n.SetValue(SHOW_N)
         return chk_show_n
 
@@ -875,14 +870,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except IndexError:
             pass
         except AttributeError:
-            CUR_SORT_OPT_LBL = drop.GetLabel() # label is what we want to store e.g. mg.SORT_VALUE_LBL
-        if debug: print(u"Current sort option: %s" % CUR_SORT_OPT_LBL)
+            CUR_SORT_OPT_LBL = drop.GetLabel()  ## label is what we want to store e.g. mg.SORT_VALUE_LBL
+        if debug: print(f"Current sort option: {CUR_SORT_OPT_LBL}")
 
     def on_drop_val(self, event):
         debug = False
         global CUR_DATA_OPT_LBL
-        # http://www.blog.pythonlibrary.org/2011/09/20/...
-        # ... wxpython-binding-multiple-widgets-to-the-same-handler/
+        ## http://www.blog.pythonlibrary.org/2011/09/20/wxpython-binding-multiple-widgets-to-the-same-handler/
         drop = event.GetEventObject()
         try:
             idx_sel = drop.GetSelection()
@@ -890,27 +884,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except IndexError:
             pass
         except AttributeError:
-            CUR_DATA_OPT = drop.GetLabel() # label is what we want to store e.g. mg.SHOW_FREQ_LBL
-        if debug: print(u"Current data option: %s" % CUR_DATA_OPT)
-        self.setup_var_dropdowns() # e.g. if we select mean we now need an extra var and the 1st has to be numeric
+            CUR_DATA_OPT = drop.GetLabel()  ## label is what we want to store e.g. mg.SHOW_FREQ_LBL
+        if debug: print(f"Current data option: {CUR_DATA_OPT}")
+        self.setup_var_dropdowns()  ## e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
 
     def on_show(self, unused_event):
         if self.exiting:
             return
-        try:
-            self.html.pizza_magic() # must happen after Show
-        except Exception:
-            pass # need on Mac or exception survives
-        finally:
-            # any initial content
-            html2show = _(u"<p>Waiting for a chart to be run.</p>")
-            self.html.SetPage(html2show, mg.BASE_URL)
+        html2show = _("<p>Waiting for a chart to be run.</p>")
+        self.html.SetPage(html2show, mg.BASE_URL)
 
     def on_btn_help(self, event):
         import webbrowser
-        url = (u"http://www.sofastatistics.com/wiki/doku.php"
-               u"?id=help:charts")
+        url = ("http://www.sofastatistics.com/wiki/doku.php?id=help:charts")
         webbrowser.open_new_tab(url)
         event.Skip()
 
@@ -918,79 +905,82 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         "Set maximum decimal places to display"
         mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
 
-    def setup_chart_btns(self, szr_chart_btns):
-        btn_gap = 10 if mg.PLATFORM == mg.WINDOWS else 2
-        # bar charts
+    def _setup_bar_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"bar_chart.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            'images', 'bar_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.bmp_btn_bar_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"bar_chart_sel.xpm"),
+            'images', 'bar_chart_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_bar_chart_sel, style=wx.NO_BORDER)
         self.btn_bar_chart.Bind(wx.EVT_BUTTON, self.on_btn_bar_chart)
-        self.btn_bar_chart.SetToolTip(_("Make Bar Chart"))
+        self.btn_bar_chart.SetToolTip(_('Make Bar Chart'))
         self.btn_bar_chart.SetDefault()
         self.btn_bar_chart.SetFocus()
         szr_chart_btns.Add(self.btn_bar_chart, 0, wx.RIGHT, btn_gap)
-        # clustered bar charts
-        self.bmp_btn_clust_bar = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"clustered_bar_chart.xpm"),
+
+    def _setup_clust_bar_chart_btns(self, szr_chart_btns, btn_gap):
+        self.bmp_btn_clust_bar = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', 'clustered_bar_chart.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_clust_bar_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"clustered_bar_chart_sel.xpm"), 
+        self.bmp_btn_clust_bar_sel = wx.Image(os.path.join(
+            mg.SCRIPT_PATH, 'images', 'clustered_bar_chart_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_clust_bar = wx.BitmapButton(self.panel_mid, -1,
-            self.bmp_btn_clust_bar, style=wx.NO_BORDER)
-        self.btn_clust_bar.Bind(wx.EVT_BUTTON, 
-            self.on_btn_clustered_bar_chart)
-        self.btn_clust_bar.SetToolTip(_("Make Clustered Bar Chart"))
+        self.btn_clust_bar = wx.BitmapButton(
+            self.panel_mid, -1, self.bmp_btn_clust_bar, style=wx.NO_BORDER)
+        self.btn_clust_bar.Bind(wx.EVT_BUTTON, self.on_btn_clustered_bar_chart)
+        self.btn_clust_bar.SetToolTip(_('Make Clustered Bar Chart'))
         szr_chart_btns.Add(self.btn_clust_bar, 0, wx.RIGHT, btn_gap)
-        # pie charts
+
+    def _setup_pie_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"pie_chart.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_pie_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"pie_chart_sel.xpm"),
+            'images', 'pie_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_pie_chart_sel = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', 'pie_chart_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap() 
-        self.btn_pie_chart = wx.BitmapButton(self.panel_mid, -1,
-            self.bmp_btn_pie_chart, style=wx.NO_BORDER)
+        self.btn_pie_chart = wx.BitmapButton(
+            self.panel_mid, -1, self.bmp_btn_pie_chart, style=wx.NO_BORDER)
         self.btn_pie_chart.Bind(wx.EVT_BUTTON, self.on_btn_pie_chart)
-        self.btn_pie_chart.SetToolTip(_("Make Pie Chart"))
+        self.btn_pie_chart.SetToolTip(_('Make Pie Chart'))
         szr_chart_btns.Add(self.btn_pie_chart, 0, wx.RIGHT, btn_gap)
-        # line charts
+
+    def _setup_line_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"line_chart.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_line_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"line_chart_sel.xpm"), 
+            'images', 'line_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_line_chart_sel = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', 'line_chart_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_line_chart = wx.BitmapButton(self.panel_mid, -1,
-            self.bmp_btn_line_chart, style=wx.NO_BORDER)
+        self.btn_line_chart = wx.BitmapButton(
+            self.panel_mid, -1, self.bmp_btn_line_chart, style=wx.NO_BORDER)
         self.btn_line_chart.Bind(wx.EVT_BUTTON, self.on_btn_line_chart)
-        self.btn_line_chart.SetToolTip(_("Make Line Chart"))
+        self.btn_line_chart.SetToolTip(_('Make Line Chart'))
         szr_chart_btns.Add(self.btn_line_chart, 0, wx.RIGHT, btn_gap)
-        # area charts
+
+    def _setup_area_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"area_chart.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_area_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"area_chart_sel.xpm"),
+            'images', 'area_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_area_chart_sel = wx.Image(os.path.join(
+            mg.SCRIPT_PATH, 'images', 'area_chart_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_area_chart = wx.BitmapButton(self.panel_mid, -1,
-            self.bmp_btn_area_chart, style=wx.NO_BORDER)
+        self.btn_area_chart = wx.BitmapButton(
+            self.panel_mid, -1, self.bmp_btn_area_chart, style=wx.NO_BORDER)
         self.btn_area_chart.Bind(wx.EVT_BUTTON, self.on_btn_area_chart)
-        self.btn_area_chart.SetToolTip(_("Make Area Chart"))
+        self.btn_area_chart.SetToolTip(_('Make Area Chart'))
         szr_chart_btns.Add(self.btn_area_chart, 0, wx.RIGHT, btn_gap)
-        # histograms
+
+    def _setup_histo_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"histogram.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_histogram_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"histogram_sel.xpm"),
+            'images', 'histogram.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_histogram_sel = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', 'histogram_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.btn_histogram = wx.BitmapButton(self.panel_mid, -1,
-            self.bmp_btn_histogram, style=wx.NO_BORDER)
+        self.btn_histogram = wx.BitmapButton(
+            self.panel_mid, -1, self.bmp_btn_histogram, style=wx.NO_BORDER)
         self.btn_histogram.Bind(wx.EVT_BUTTON, self.on_btn_histogram)
-        self.btn_histogram.SetToolTip(_("Make Histogram"))
+        self.btn_histogram.SetToolTip(_('Make Histogram'))
         szr_chart_btns.Add(self.btn_histogram, 0, wx.RIGHT, btn_gap)
-        # scatterplots
+
+    def _setup_scatter_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
             u"images", u"scatterplot.xpm"),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
@@ -1002,7 +992,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_scatterplot.Bind(wx.EVT_BUTTON, self.on_btn_scatterplot)
         self.btn_scatterplot.SetToolTip(_("Make Scatterplot"))
         szr_chart_btns.Add(self.btn_scatterplot, 0, wx.RIGHT, btn_gap)
-        # boxplots
+
+    def _setup_box_chart_btns(self, szr_chart_btns):
         self.bmp_btn_boxplot = wx.Image(os.path.join(mg.SCRIPT_PATH,
             u"images", u"boxplot.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.bmp_btn_boxplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
@@ -1013,6 +1004,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_boxplot.Bind(wx.EVT_BUTTON, self.on_btn_boxplot)
         self.btn_boxplot.SetToolTip(_("Make Box and Whisker Plot"))
         szr_chart_btns.Add(self.btn_boxplot)
+
+    def setup_chart_btns(self, szr_chart_btns):
+        btn_gap = 10 if mg.PLATFORM == mg.WINDOWS else 2
+        self._setup_bar_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_clust_bar_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_pie_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_line_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_area_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_histo_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_scatter_chart_btns(szr_chart_btns, btn_gap)
+        self._setup_box_chart_btns(szr_chart_btns)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.Cursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
@@ -1040,7 +1042,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def refresh_vars(self):
         self.setup_var_dropdowns()
         self.update_defaults()
-        
+
     def on_chk_rotate(self, event):
         global ROTATE
         chk = event.GetEventObject()
@@ -1053,17 +1055,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.chk_area_major_ticks.Enable(show_major_area)
         self.panel_line_chart.Refresh()
         self.panel_area_chart.Refresh()
-        
+
     def on_chk_major_ticks(self, event):
         global MAJOR
         chk = event.GetEventObject()
         MAJOR = chk.IsChecked()
-        
+
     def on_chk_hide_markers(self, event):
         global HIDE_MARKERS
         chk = event.GetEventObject()
         HIDE_MARKERS = chk.IsChecked()
-    
+
     @staticmethod
     def _get_show_major(time_series, rotate):
         if not time_series:
@@ -1074,7 +1076,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             else:
                 show_major = False
         return show_major         
-    
+
     def on_chk_line_time_series(self, event):
         debug = False
         chk = event.GetEventObject()
@@ -1083,12 +1085,13 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         rotate = self.chk_line_rotate.IsChecked()
         show_major = self._get_show_major(time_series, rotate)
         if debug:
-            print("time_series: {}; rotate: {}; show_major: {}".format(
-                chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
+            print(f"time_series: {chk.IsChecked()}; "
+                f"rotate: {self.chk_line_rotate.IsChecked()}; "
+                f"show_major: {show_major}")
         self.chk_line_major_ticks.Enable(show_major)
         self.setup_var_dropdowns()
         self.panel_line_chart.Refresh()
-        
+
     def on_chk_area_time_series(self, event):
         debug = False
         chk = event.GetEventObject()
@@ -1097,8 +1100,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         rotate = self.chk_area_rotate.IsChecked()
         show_major = self._get_show_major(time_series, rotate)
         if debug:
-            print("time_series: {}; rotate: {}; show_major: {}".format(
-                chk.IsChecked(), self.chk_line_rotate.IsChecked(), show_major))
+            print(f"time_series: {chk.IsChecked()}; "
+                f"rotate: {self.chk_line_rotate.IsChecked()}; "
+                f"show_major: {show_major}")
         self.chk_area_major_ticks.Enable(show_major)
         self.setup_var_dropdowns()
         self.panel_area_chart.Refresh()
@@ -1125,11 +1129,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         btn.SetBitmapLabel(btn_sel_bmp)
         event.Skip()
         if self.panel_displayed == panel:
-            return # just reclicking on same one
+            return  ## just reclicking on same one
         self.panel_displayed.Show(False)
         self.panel_displayed = panel
         panel.Show(True)
-        self.panel_mid.Layout() # self.Layout() doesn't work in Windows
+        self.panel_mid.Layout()  ## self.Layout() doesn't work in Windows
         self.setup_var_dropdowns()
 
     def on_btn_bar_chart(self, event):
@@ -1155,7 +1159,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_val = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         try:
             idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
-        except ValueError: # doesn't have increasing, or decreasing
+        except ValueError:  ## doesn't have increasing, or decreasing
             CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
             idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_clust_val.SetSelection(idx_val)
@@ -1183,7 +1187,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         idx_val = mg.DATA_SHOW_OPT_LBLS.index(CUR_DATA_OPT_LBL)
         try:
             idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
-        except ValueError: # doesn't have increasing, or decreasing
+        except ValueError:  ## doesn't have increasing, or decreasing
             CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
             idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_line_val.SetSelection(idx_val)
@@ -1234,7 +1238,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         panel = self.panel_boxplot
         try:
             idx_sort = mg.SORT_VAL_AND_LABEL_OPT_LBLS.index(CUR_SORT_OPT_LBL)
-        except ValueError: # doesn't have increasing, or decreasing
+        except ValueError:  ## doesn't have increasing, or decreasing
             CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
             idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_box_sort.SetSelection(idx_sort)
@@ -1242,33 +1246,30 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_chart(event, btn, btn_bmp, btn_bmp_sel, panel)
 
     def on_btn_run(self, event):
-        # get settings
+        ## get settings
         cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             ## css_idx is supplied at the time
-            get_script_args={u'css_fil': cc[mg.CURRENT_CSS_PATH], 
-                u"report_name": cc[mg.CURRENT_REPORT_PATH], }
-            config_ui.ConfigUI.on_btn_run(self, event, get_script_args, 
-                new_has_dojo=True)
-
-    def on_btn_script(self, unused_event):
-        # TODO NB will have new_has_dojo=True
-        wx.MessageBox(u"This version does not support exporting chart code yet")
+            get_script_args={
+                'css_fil': cc[mg.CURRENT_CSS_PATH],
+                'report_name': cc[mg.CURRENT_REPORT_PATH]}
+            config_ui.ConfigUI.on_btn_run(
+                self, event, get_script_args, new_has_dojo=True)
 
     def on_var1_sel(self, unused_event):
         self.update_defaults()
 
     def setup_line_extras(self):
         """
-        Only enable trendlines and smooth line if chart type is line and a 
-            single line chart.
+        Only enable trendlines and smooth line if chart type is line and a
+        single line chart.
         """
         show_agg, unused = self.get_agg_dets()
         show_line_extras = (self.chart_type == mg.LINE_CHART and (
-                (not show_agg # normal and dropdown2 is nothing
+                (not show_agg  ## normal and dropdown2 is nothing
                      and self.drop_var2.GetStringSelection() == mg.DROP_SELECT)
-                 or (show_agg # aggregate and dropdown3 is nothing
+                 or (show_agg  ## aggregate and dropdown3 is nothing
                      and self.drop_var3.GetStringSelection() == mg.DROP_SELECT)
             ))
         self.chk_line_trend.Enable(show_line_extras)
@@ -1315,24 +1316,24 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_database_sel(self, event):
         """
-        Reset dbe, database, cursor, tables, table, tables dropdown, 
-            fields, has_unique, and idxs after a database selection.
+        Reset dbe, database, cursor, tables, table, tables dropdown,
+        fields, has_unique, and idxs after a database selection.
         """
         if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_var_dropdowns()
-     
+
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_ui.ConfigUI.on_table_sel(self, event)
-        # now update var dropdowns
+        ## now update var dropdowns
         output.update_var_dets(dlg=self)
         self.setup_var_dropdowns()
-       
+
     def on_btn_var_config(self, event):
         """
-        Want to retain already selected item - even though label and even 
-            position may have changed.
+        Want to retain already selected item - even though label and even
+        position may have changed.
         """
         config_ui.ConfigUI.on_btn_var_config(self, event)
         self.setup_var_dropdowns()
@@ -1367,7 +1368,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except Exception:
             varname4 = None
         return varname1, varname2, varname3, varname4
-    
+
     def update_defaults(self):
         """
         Should run this after any change or else might revert to the previous
@@ -1380,11 +1381,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         mg.VAR_2_DEFAULT = self.drop_var2.GetStringSelection()
         try:
             mg.VAR_3_DEFAULT = self.drop_var3.GetStringSelection()
-        except Exception: # not visible
+        except Exception:  ## not visible
             mg.VAR_3_DEFAULT = None
         try:
             mg.VAR_4_DEFAULT = self.drop_var4.GetStringSelection()
-        except Exception: # not visible
+        except Exception:  ## not visible
             mg.VAR_4_DEFAULT = None
         if debug:
             print(mg.VAR_1_DEFAULT, mg.VAR_2_DEFAULT, mg.VAR_3_DEFAULT,
@@ -1406,69 +1407,71 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         variables = self.get_vars()
         if debug: print(variables)
         if len(lblctrls) != len(variables):
-            raise Exception(u"Mismatch in number of lbls and variables in "
-                u"charting dlg.")
+            raise Exception(
+                "Mismatch in number of lbls and variables in charting dlg.")
         lblctrl_vars = zip(lblctrls, variables)
         idx_lblctrl_in_lblctrl_vars = 0
         idx_variable_in_lblctrl_vars = 1
         shown_lblctrl_vars = [x for x in lblctrl_vars
             if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
-        # 1) Required field empty
+        ## 1) Required field empty
         for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
             chart_subtype_key = self.get_chart_subtype_key()
             chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
             allows_missing = chart_config[var_idx][mg.EMPTY_VAL_OK]
             lblctrl, variable = shown_lblctrl_var
-            varlbl = lblctrl.GetLabel().rstrip(u":")
+            varlbl = lblctrl.GetLabel().rstrip(':')
             role_missing = variable is None
             if role_missing and not allows_missing:
-                wx.MessageBox(u"The required field %s is missing for the %s "
-                    u"chart type." % (varlbl, self.chart_type))
+                wx.MessageBox(
+                    f"The required field {varlbl} is missing for "
+                    f"the {self.chart_type} chart type.")
                 return False
-        # 2) Variable selected but an earlier one has not (No Selection instead)
+        ## 2) Variable selected but an earlier one has not (No Selection instead)
         """
         Line charts and Scatterplots have one exception - can select chart by
         without series by
         """
         has_no_select_selected = False
-        lbl_with_no_select = u""
+        lbl_with_no_select = ''
         for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
             lblctrl, variable = shown_lblctrl_var
             if variable == mg.DROP_SELECT:
-                lbl_with_no_select = lblctrl.GetLabel().rstrip(u":")
+                lbl_with_no_select = lblctrl.GetLabel().rstrip(':')
                 has_no_select_selected = True
             else:
-                if has_no_select_selected: # already
-                    # OK only if a line chart or scatterplot and we are in the chart by var 
+                if has_no_select_selected:  ## already
+                    ## OK only if a line chart or scatterplot and we are in the chart by var
                     if self.chart_type in (mg.LINE_CHART, mg.SCATTERPLOT):
                         chart_subtype_key = self.get_chart_subtype_key()
-                        chart_config = mg.CHART_CONFIG[self.chart_type]\
-                                                            [chart_subtype_key]
+                        chart_config = mg.CHART_CONFIG\
+                            [self.chart_type][chart_subtype_key]
                         var_role = chart_config[var_idx][mg.VAR_ROLE_KEY]                         
                         if var_role == mg.VAR_ROLE_CHARTS:
                             continue
-                    varlbl = lblctrl.GetLabel().rstrip(u":")
-                    wx.MessageBox(_(u"\"%(varlbl)s\" has a variable selected "
-                        u"but the previous drop down list "
-                        u"\"%(lbl_with_no_select)s\" does not.") % 
-                                  {u"varlbl": varlbl, 
-                                   u"lbl_with_no_select": lbl_with_no_select})
+                    varlbl = lblctrl.GetLabel().rstrip(':')
+                    wx.MessageBox(_('"%(varlbl)s" has a variable selected '
+                        'but the previous drop down list '
+                        '"%(lbl_with_no_select)s" does not.')
+                        % {'varlbl': varlbl,
+                         'lbl_with_no_select': lbl_with_no_select})
                     return False
-        # 3) Excluding No Selections, we have duplicate selections
-        selected_lblctrl_vars = [x for x in shown_lblctrl_vars 
+        ## 3) Excluding No Selections, we have duplicate selections
+        selected_lblctrl_vars = [x for x in shown_lblctrl_vars
             if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
-        selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x 
+        selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x
             in selected_lblctrl_vars]
-        selected_lbls = [x.GetLabel().rstrip(u":") for x in selected_lblctrls]
-        selected_vars = [x[idx_variable_in_lblctrl_vars] for x 
+        selected_lbls = [x.GetLabel().rstrip(':') for x in selected_lblctrls]
+        selected_vars = [x[idx_variable_in_lblctrl_vars] for x
             in selected_lblctrl_vars]
         unique_selected_vars = set(selected_vars)
         if len(unique_selected_vars) < len(selected_vars):
-                final_comma = u"" if len(selected_vars) < 3 else u","
-                varlbls = (u'"' + u'", "'.join(selected_lbls[:-1]) + u'"' 
-                    + final_comma + u" and \"%s\"" % selected_lbls[-1])
-                wx.MessageBox(_(u"The variables selected for %s must be "
-                    u"different.") % varlbls)
+                final_comma = '' if len(selected_vars) < 3 else ','
+                varlbls = ('"' + '", "'.join(selected_lbls[:-1]) + '"'
+                    + final_comma + ' and "%s"' % selected_lbls[-1])
+                wx.MessageBox(
+                    _("The variables selected for %s must be different.")
+                    % varlbls)
                 return False
         return True
 
@@ -1476,105 +1479,102 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         Build script from inputs.
 
-        For each dropdown identify the variable role (according to CHART_CONFIG, 
-        chart type, and whether data is averaged or not). Not all dropdowns will 
-        have a variable selected (i.e. 'Not Selected' is the selection) but for 
-        those that do identify the field name, field label, and the value labels 
+        For each dropdown identify the variable role (according to CHART_CONFIG,
+        chart type, and whether data is averaged or not). Not all dropdowns will
+        have a variable selected (i.e. 'Not Selected' is the selection) but for
+        those that do identify the field name, field label, and the value labels
         ready to pass to the appropriate data collection function.
         """
         debug = False
         dd = mg.DATADETS_OBJ
-        rotate = u"True" if ROTATE else u"False"
-        major = u"True" if MAJOR else u"False"
-        hide_markers = u"True" if HIDE_MARKERS else u"False"
-        show_n = u"True" if SHOW_N else u"False"
+        rotate = 'True' if ROTATE else 'False'
+        major = 'True' if MAJOR else 'False'
+        hide_markers = 'True' if HIDE_MARKERS else 'False'
+        show_n = 'True' if SHOW_N else 'False'
         line_time_series = self.chk_line_time_series.IsChecked()
         area_time_series = self.chk_area_time_series.IsChecked()
         script_lst = []
         titles, subtitles = self.get_titles()
-        script_lst.append(u"titles=%s" % str(titles))
-        script_lst.append(u"subtitles=%s" % str(subtitles))
-        script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
-            dd.tbl))
+        script_lst.append(f'titles={titles}')
+        script_lst.append(f"subtitles={subtitles}")
+        script_lst.append(lib.FiltLib.get_tbl_filt_clause(
+            dd.dbe, dd.db, dd.tbl))
         myvars = self.get_vars()
         if debug: print(myvars)
-        # other variables to set up
-        script_lst.append(u"add_to_report = %s" % ("True" if mg.ADD2RPT
-            else "False"))
+        ## other variables to set up
+        add2report = "True" if mg.ADD2RPT else "False"
+        script_lst.append(f"add_to_report = {add2report}")
         rptname = lib.escape_pre_write(report_name)
-        script_lst.append(u"report_name = u\"%s\"" % rptname)
+        script_lst.append(f'report_name = "{rptname}"')
         agg_fldlbl = None
         category_fldname = None
         chart_subtype_key = self.get_chart_subtype_key()
         chart_config = mg.CHART_CONFIG[self.chart_type][chart_subtype_key]
         var_roles_used = set()
-        script_lst.append(u"var_role_dic = {}")
+        script_lst.append("var_role_dic = {}")
         for var_val, var_dets in zip(myvars, chart_config):
             var_role = var_dets[mg.VAR_ROLE_KEY]
             role_not_sel = (var_val == mg.DROP_SELECT)
             var_roles_used.add(var_role)
             if role_not_sel:
-                script_lst.append(u"var_role_dic['%s'] = None" % var_role)
-                script_lst.append(u"var_role_dic['%s_name'] = None" % var_role)
-                script_lst.append(u"var_role_dic['%s_lbls'] = None" % var_role)
+                script_lst.append(f"var_role_dic['{var_role}'] = None")
+                script_lst.append(f"var_role_dic['{var_role}_name'] = None")
+                script_lst.append(f"var_role_dic['{var_role}_lbls'] = None")
             else:
-                script_lst.append(u"var_role_dic['%s'] = u\"%s\"" % (var_role,
-                    var_val)) # e.g. var_role_agg = "age"
+                script_lst.append(f'var_role_dic["{var_role}"] = "{var_val}"')  ## e.g. var_role_agg = "age"
                 var_name = lib.GuiLib.get_item_label(self.var_labels, var_val)
-                script_lst.append(u"var_role_dic['%s_name'] = u\"%s\""
-                    % (var_role, var_name)) # e.g. var_role_agg_name = "Age"
+                script_lst.append(
+                    f'var_role_dic["{var_role}_name"] = "{var_name}"')  ## e.g. var_role_agg_name = "Age"
                 val_lbls = self.val_dics.get(var_val, {})
-                script_lst.append(u"var_role_dic['%s_lbls'] = %s"
-                    % (var_role, val_lbls)) # e.g. var_role_agg_lbls = {}
+                script_lst.append(
+                    f"var_role_dic['{var_role}_lbls'] = {val_lbls}")  ## e.g. var_role_agg_lbls = {}
             if var_role == mg.VAR_ROLE_AGG:
                 agg_fldlbl = var_name
             if var_role == mg.VAR_ROLE_CATEGORY:
                 category_fldname = var_val
         for expected_var_role in mg.EXPECTED_VAR_ROLE_KEYS:
             if expected_var_role not in var_roles_used:
-                # Needed even if not supplied by dropdown so we can have a
-                # single api for get_gen_chart_dets()
-                script_lst.append(u"var_role_dic['%s'] = None"
-                    % expected_var_role)
-                script_lst.append(u"var_role_dic['%s_name'] = None"
-                    % expected_var_role)
-                script_lst.append(u"var_role_dic['%s_lbls'] = None"
-                    % expected_var_role)
+                ## Needed even if not supplied by dropdown so we can have a
+                ## single api for get_gen_chart_dets()
+                script_lst.append(f"var_role_dic['{expected_var_role}'] = None")
+                script_lst.append(
+                    f"var_role_dic['{expected_var_role}_name'] = None")
+                script_lst.append(
+                    f"var_role_dic['{expected_var_role}_lbls'] = None")
         if self.chart_type in mg.GEN_CHARTS:
             if category_fldname is None:
-                raise Exception(u"Cannot generate %s script if category field "
-                    u"hasn't been set." % self.chart_type)
+                raise Exception(
+                    f"Cannot generate {self.chart_type} script if category "
+                    "field hasn't been set.")
         if self.chart_type in mg.CHARTS_WITH_YTITLE_OPTIONS:
             if CUR_DATA_OPT_LBL == mg.SHOW_FREQ_LBL:
-                ytitle2use = u"mg.Y_AXIS_FREQ_LBL"
+                ytitle2use = 'mg.Y_AXIS_FREQ_LBL'
             elif CUR_DATA_OPT_LBL == mg.SHOW_PERC_LBL:
-                ytitle2use = u"mg.Y_AXIS_PERC_LBL"
+                ytitle2use = 'mg.Y_AXIS_PERC_LBL'
             elif CUR_DATA_OPT_LBL in (mg.SHOW_AVG_LBL, mg.SHOW_SUM_LBL):
                 if agg_fldlbl is None:
-                    raise Exception(u"Aggregated variable label not supplied.")
-                ytitle2use = (u'u"Mean %s"' % agg_fldlbl 
-                    if CUR_DATA_OPT_LBL == mg.SHOW_AVG_LBL
-                    else u'u"Sum of %s"' % agg_fldlbl)
+                    raise Exception('Aggregated variable label not supplied.')
+                ytitle2use = (
+                    f'"Mean {agg_fldlbl}"' if CUR_DATA_OPT_LBL == mg.SHOW_AVG_LBL
+                    else f'"Sum of {agg_fldlbl}"')
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(get_simple_barchart_script(ytitle2use, rotate,
                 show_n, show_borders=self.chk_bar_borders.IsChecked(),
                 css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
-            script_lst.append(get_clustered_barchart_script(ytitle2use, rotate, 
-                show_n, show_borders=self.chk_clust_borders.IsChecked(), 
+            script_lst.append(get_clustered_barchart_script(ytitle2use, rotate,
+                show_n, show_borders=self.chk_clust_borders.IsChecked(),
                 css_fil=css_fil, css_idx=css_idx))
         elif self.chart_type == mg.PIE_CHART:
-            inc_count = (u"True" if self.chk_show_count.IsChecked()
-                else u"False")
-            inc_pct = (u"True" if self.chk_show_pct.IsChecked()
-                else u"False")
-            script_lst.append(get_pie_chart_script(css_fil, css_idx, 
-                inc_count, inc_pct, show_n))
+            inc_count = ('True' if self.chk_show_count.IsChecked() else 'False')
+            inc_pct = ('True' if self.chk_show_pct.IsChecked() else 'False')
+            script_lst.append(get_pie_chart_script(
+                css_fil, css_idx, inc_count, inc_pct, show_n))
         elif self.chart_type == mg.LINE_CHART:
-            inc_trend = (u"True" if self.chk_line_trend.IsChecked()
-                and self.chk_line_trend.Enabled else u"False")
-            inc_smooth = (u"True" if self.chk_line_smooth.IsChecked()
-                and self.chk_line_smooth.Enabled else u"False")
+            inc_trend = ('True' if self.chk_line_trend.IsChecked()
+                and self.chk_line_trend.Enabled else 'False')
+            inc_smooth = ('True' if self.chk_line_smooth.IsChecked()
+                and self.chk_line_smooth.Enabled else 'False')
             script_lst.append(get_line_chart_script(ytitle2use,
                 line_time_series, rotate, show_n, major, inc_trend, inc_smooth,
                 hide_markers, css_fil, css_idx))
@@ -1583,187 +1583,159 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 area_time_series, rotate, show_n, major, hide_markers, css_fil,
                 css_idx))
         elif self.chart_type == mg.HISTOGRAM:
-            inc_normal = (u"True" if self.chk_show_normal.IsChecked()
-                else u"False")
+            inc_normal = (
+                'True' if self.chk_show_normal.IsChecked() else 'False')
             script_lst.append(get_histogram_script(inc_normal, show_n,
-                show_borders=self.chk_hist_borders.IsChecked(), css_fil=css_fil, 
+                show_borders=self.chk_hist_borders.IsChecked(), css_fil=css_fil,
                 css_idx=css_idx))
         elif self.chart_type == mg.SCATTERPLOT:
-            script_lst.append(get_scatterplot_script(css_fil, css_idx, 
+            script_lst.append(get_scatterplot_script(css_fil, css_idx,
                 show_n, show_borders=self.chk_dot_borders.IsChecked(),
                 inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             boxplot_opt = mg.CHART_BOXPLOT_OPTIONS[self.drop_box_opts.GetSelection()]
             script_lst.append(get_boxplot_script(rotate, boxplot_opt,
                 css_fil, css_idx, show_n))
-        script_lst.append(u"fil.write(chart_output)")
-        return u"\n".join(script_lst)
+        script_lst.append("fil.write(chart_output)")
+        return '\n'.join(script_lst)
 
 def get_simple_barchart_script(ytitle2use, rotate, show_n, show_borders,
         css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = (u"""
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
+    script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(
     mg.SIMPLE_BARCHART, dbe, cur, tbl, tbl_filt, var_role_dic,
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, data_show=mg.%(data_show)s)
+    sort_opt=mg.{sort_opt}, rotate={rotate}, data_show=mg.{data_show})
 x_title = var_role_dic['cat_name']
-y_title = %(ytitle2use)s
+y_title = {ytitle2use}
 chart_output = charting_output.BarChart.simple_barchart_output(titles,
-    subtitles, x_title, y_title, chart_output_dets, rotate=%(rotate)s,
-    show_n=%(show_n)s, show_borders=%(show_borders)s, css_fil=u"%(css_fil)s", 
-    css_idx=%(css_idx)s, page_break_after=False)""" % 
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL], 
-           u"ytitle2use": ytitle2use, u"rotate": rotate, u"show_n": show_n,
-           u"show_borders": show_borders, u"css_fil": esc_css_fil, 
-           u"css_idx": css_idx})
+    subtitles, x_title, y_title, chart_output_dets, rotate={rotate},
+    show_n={show_n}, show_borders={show_borders}, css_fil="{esc_css_fil}",
+    css_idx={css_idx}, page_break_after=False)""")
     return script
 
 def get_clustered_barchart_script(ytitle2use, rotate, show_n, show_borders,
         css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = (u"""
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
+    script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(
     mg.CLUSTERED_BARCHART, dbe, cur, tbl, tbl_filt, var_role_dic,
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s, data_show=mg.%(data_show)s)
+    sort_opt=mg.{sort_opt}, rotate={rotate}, data_show=mg.{data_show})
 x_title = var_role_dic['cat_name']
-y_title = %(ytitle2use)s
+y_title = {ytitle2use}
 chart_output = charting_output.BarChart.clustered_barchart_output(
     titles, subtitles,
-    x_title, y_title, chart_output_dets, rotate=%(rotate)s, show_n=%(show_n)s,
-    show_borders=%(show_borders)s, css_fil=u"%(css_fil)s",
-    css_idx=%(css_idx)s, page_break_after=False)""" %
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL],
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-           u"ytitle2use": ytitle2use, u"rotate": rotate, u"show_n": show_n,
-           u"show_borders": show_borders, u"css_fil": esc_css_fil,
-           u"css_idx": css_idx})
+    x_title, y_title, chart_output_dets, rotate={rotate}, show_n={show_n},
+    show_borders={show_borders}, css_fil="{esc_css_fil}",
+    css_idx={css_idx}, page_break_after=False)""")
     return script
 
 def get_pie_chart_script(css_fil, css_idx, inc_count, inc_pct, show_n):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    script = (u"""
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
     dbe, cur, tbl, tbl_filt, var_role_dic,
-    sort_opt=mg.%(sort_opt)s)
+    sort_opt=mg.{sort_opt})
 chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
-    chart_output_dets, inc_count=%(inc_count)s, inc_pct=%(inc_pct)s,
-    show_n=%(show_n)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
-    page_break_after=False)""" %
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"css_fil": esc_css_fil,
-    u"css_idx": css_idx, u"inc_count": inc_count, u"inc_pct": inc_pct,
-    u"show_n": show_n})
+    chart_output_dets, inc_count={inc_count}, inc_pct={inc_pct},
+    show_n={show_n}, css_fil="{esc_css_fil}", css_idx={css_idx},
+    page_break_after=False)""")
     return script
 
 def get_line_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
         inc_trend, inc_smooth, hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    xy_titles = (u"""
+    data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    xy_titles = (f"""\
 x_title = var_role_dic['cat_name']
-y_title = %(ytitle2use)s""" % {u"ytitle2use": ytitle2use})
-    script = (u"""
+y_title = {ytitle2use}""")
+    script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     dbe, cur, tbl, tbl_filt, var_role_dic,
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
-    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s,
-    time_series=%(time_series)s)
-%(xy_titles)s
+    sort_opt=mg.{sort_opt}, rotate={rotate},
+    data_show=mg.{data_show}, major_ticks={major_ticks},
+    time_series={time_series})
+{xy_titles}
 chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, time_series=%(time_series)s,
-    rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
-    inc_trend=%(inc_trend)s, inc_smooth=%(inc_smooth)s,
-    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s", css_idx=%(css_idx)s,
-    page_break_after=False)""" %
-    {u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], 
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
-    u"major_ticks": major_ticks, u"xy_titles": xy_titles,
-    u"inc_trend": inc_trend, u"inc_smooth": inc_smooth,
-    u"hide_markers": hide_markers, u"css_fil": esc_css_fil,
-    u"css_idx": css_idx})
+    x_title, y_title, chart_output_dets, time_series={time_series},
+    rotate={rotate}, show_n={show_n}, major_ticks={major_ticks},
+    inc_trend={inc_trend}, inc_smooth={inc_smooth},
+    hide_markers={hide_markers}, css_fil="{esc_css_fil}", css_idx={css_idx},
+    page_break_after=False)""")
     return script
 
 def get_area_chart_script(ytitle2use, time_series, rotate, show_n, major_ticks,
         hide_markers, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    dd = mg.DATADETS_OBJ
-    script = (u"""
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
+    script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
     dbe, cur, tbl, tbl_filt, var_role_dic,
-    sort_opt=mg.%(sort_opt)s, rotate=%(rotate)s,
-    data_show=mg.%(data_show)s, major_ticks=%(major_ticks)s,
-    time_series=%(time_series)s)
+    sort_opt=mg.{sort_opt}, rotate={rotate},
+    data_show=mg.{data_show}, major_ticks={major_ticks},
+    time_series={time_series})
 x_title = var_role_dic['cat_name']
-y_title = %(ytitle2use)s
+y_title = {ytitle2use}
 chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, time_series=%(time_series)s,
-    rotate=%(rotate)s, show_n=%(show_n)s, major_ticks=%(major_ticks)s,
-    hide_markers=%(hide_markers)s, css_fil=u"%(css_fil)s",
-    css_idx=%(css_idx)s, page_break_after=False)""" % {u"dbe": dd.dbe,
-    u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL],
-    u"data_show": mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL],
-    u"time_series": time_series, u"rotate": rotate, u"show_n": show_n,
-    u"major_ticks": major_ticks,
-    u"hide_markers": hide_markers, u"ytitle2use": ytitle2use,
-    u"css_fil": esc_css_fil, u"css_idx": css_idx})
+    x_title, y_title, chart_output_dets, time_series={time_series},
+    rotate={rotate}, show_n={show_n}, major_ticks={major_ticks},
+    hide_markers={hide_markers}, css_fil="{esc_css_fil}",
+    css_idx={css_idx}, page_break_after=False)""")
     return script
 
 def get_histogram_script(inc_normal, show_n, show_borders, css_fil, css_idx):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    dd = mg.DATADETS_OBJ
-    script = (u"""
+    script = (f"""\
 (overall_title, 
 chart_dets) = charting_output.Histo.get_histo_dets(dbe, cur, tbl, tbl_filt,
-    flds, var_role_dic, inc_normal=%(inc_normal)s)
+    flds, var_role_dic, inc_normal={inc_normal})
 chart_output = charting_output.Histo.histogram_output(titles, subtitles,
     var_role_dic['bin_name'], overall_title, chart_dets,
-    inc_normal=%(inc_normal)s, show_n=%(show_n)s, show_borders=%(show_borders)s,
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)"""
-    % {u"dbe": dd.dbe, u"inc_normal": inc_normal, u"show_borders": show_borders, 
-        u"css_fil": esc_css_fil, u"css_idx": css_idx, u"show_n": show_n})
+    inc_normal={inc_normal}, show_n={show_n}, show_borders={show_borders},
+    css_fil="{esc_css_fil}", css_idx={css_idx}, page_break_after=False)""")
     return script
 
 def get_scatterplot_script(css_fil, css_idx, show_n, show_borders,
         inc_regression):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    dd = mg.DATADETS_OBJ
-    regression = "True" if inc_regression else "False"
-    script = (u"""
+    regression = 'True' if inc_regression else 'False'
+    script = (f"""\
 (overall_title,
  scatterplot_dets) = charting_output.ScatterPlot.get_scatterplot_dets(
     dbe, cur, tbl, tbl_filt, var_role_dic, unique=True,
-    inc_regression=%(regression)s)
+    inc_regression={regression})
 chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
     overall_title, scatterplot_dets, var_role_dic['x_axis_name'],
     var_role_dic['y_axis_name'], add_to_report, report_name,
-    show_n=%(show_n)s, show_borders=%(show_borders)s,
-    css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"css_idx": css_idx,
-        u"show_borders": show_borders, u"regression": regression,
-        u"show_n": show_n})
+    show_n={show_n}, show_borders={show_borders},
+    css_fil="{esc_css_fil}", css_idx={css_idx}, page_break_after=False)""")
     return script
 
 def get_boxplot_script(rotate, boxplot_opt, css_fil, css_idx, show_n):
     esc_css_fil = lib.escape_pre_write(css_fil)
-    dd = mg.DATADETS_OBJ
-    script = (u"""
+    sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
+    script = (f"""\
 (n_chart, xaxis_dets, xmin, xmax, ymin, ymax, 
  max_label_len, max_lbl_lines, 
  overall_title, chart_dets, 
  any_missing_boxes) = charting_output.BoxPlot.get_boxplot_dets(dbe, cur, tbl,
     tbl_filt, flds, var_role_dic,
-    sort_opt="%(sort_opt)s", rotate=%(rotate)s,
-    boxplot_opt="%(boxplot_opt)s")
+    sort_opt="{sort_opt}", rotate={rotate},
+    boxplot_opt="{boxplot_opt}")
 x_title = (var_role_dic['cat_name']
-    if var_role_dic['cat_name'] else u"")
+    if var_role_dic['cat_name'] else "")
 y_title = var_role_dic['desc_name'] 
 chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
     any_missing_boxes, x_title, y_title, var_role_dic['series_name'],
     n_chart, xaxis_dets, max_label_len, max_lbl_lines, overall_title,
-    chart_dets, xmin, xmax, ymin, ymax, rotate=%(rotate)s, show_n=%(show_n)s,
-    boxplot_opt="%(boxplot_opt)s", css_fil=u"%(css_fil)s",
-    css_idx=%(css_idx)s, page_break_after=False)
-    """ % {u"dbe": dd.dbe, u"css_fil": esc_css_fil, u"show_n": show_n,
-        u"sort_opt": mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL], u"rotate": rotate,
-        u"boxplot_opt": boxplot_opt, u"css_idx": css_idx})
+    chart_dets, xmin, xmax, ymin, ymax, rotate={rotate}, show_n={show_n},
+    boxplot_opt="{boxplot_opt}", css_fil="{esc_css_fil}",
+    css_idx={css_idx}, page_break_after=False)""")
     return script
