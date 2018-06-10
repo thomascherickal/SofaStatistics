@@ -17,14 +17,14 @@ class DbTbl(wx.grid.PyGridTableBase):
     """
     row and col idxs are zero-based.
     """
-    def __init__(self, grid, var_labels, readonly):
-        wx.grid.PyGridTableBase.__init__(self)
+    def __init__(self, grid, var_labels, *, read_only):
+        wx.grid.GridTableBase.__init__(self)
         self.debug = False
         self.dd = mg.DATADETS_OBJ
         self.grid = grid
         self.objqtr = getdata.get_obj_quoter_func(self.dd.dbe)
         self.quote_val = getdata.get_val_quoter_func(self.dd.dbe)
-        self.readonly = readonly        
+        self.read_only = read_only        
         self.set_num_rows()
         self.fldnames = getdata.fldsdic_to_fldnames_lst(fldsdic=self.dd.flds)
         self.fldlbls = [var_labels.get(x, x.title()) for x in self.fldnames]
@@ -123,7 +123,7 @@ class DbTbl(wx.grid.PyGridTableBase):
         self.dd.cur.execute(SQL_rows_n)
         self.rows_n = self.dd.cur.fetchone()[0]
         self.idx_final_data_row = self.rows_n - 1
-        if not self.readonly:
+        if not self.read_only:
             self.rows_n += 1  ## An extra row for data entry
         if self.debug or debug:
             print(u"N rows: %s" % self.rows_n)

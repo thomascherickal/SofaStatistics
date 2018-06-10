@@ -402,8 +402,8 @@ def get_index_dets(cur, db, tbl):
         print(has_unique)
     return idxs, has_unique
 
-def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
-    bx_cubrid= wx.StaticBox(scroll, -1, "CUBRID")
+def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
+    bx_cubrid= wx.StaticBox(scroll, -1, 'CUBRID')
     ## default database
     parent.lbl_cubrid_default_db = wx.StaticText(
         scroll, -1, _("Default Database (name only):"))
@@ -412,7 +412,7 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
         parent.cubrid_default_db if parent.cubrid_default_db else '')
     parent.txt_cubrid_default_db = wx.TextCtrl(
         scroll, -1, cubrid_default_db, size=(200, -1))
-    parent.txt_cubrid_default_db.Enable(not readonly)
+    parent.txt_cubrid_default_db.Enable(not read_only)
     parent.txt_cubrid_default_db.SetToolTip(_("Default database"))
     ## default table
     parent.lbl_cubrid_default_tbl = wx.StaticText(
@@ -422,14 +422,14 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
         parent.cubrid_default_tbl if parent.cubrid_default_tbl else '')
     parent.txt_cubrid_default_tbl = wx.TextCtrl(
         scroll, -1, cubrid_default_tbl, size=(200, -1))
-    parent.txt_cubrid_default_tbl.Enable(not readonly)
+    parent.txt_cubrid_default_tbl.Enable(not read_only)
     parent.txt_cubrid_default_tbl.SetToolTip(_("Default table (optional)"))
     ## host
     parent.lbl_cubrid_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_cubrid_host.SetFont(lblfont)
     cubrid_host = parent.cubrid_host if parent.cubrid_host else ''
     parent.txt_cubrid_host = wx.TextCtrl(scroll, -1, cubrid_host, size=(100,-1))
-    parent.txt_cubrid_host.Enable(not readonly)
+    parent.txt_cubrid_host.Enable(not read_only)
     parent.txt_cubrid_host.SetToolTip(
         _("Host e.g. localhost, or localhost:%s" % DEFAULT_PORT))
     ## user
@@ -437,15 +437,15 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     parent.lbl_cubrid_user.SetFont(lblfont)
     cubrid_user = parent.cubrid_user if parent.cubrid_user else ""
     parent.txt_cubrid_user = wx.TextCtrl(scroll, -1, cubrid_user, size=(100,-1))
-    parent.txt_cubrid_user.Enable(not readonly)
+    parent.txt_cubrid_user.Enable(not read_only)
     parent.txt_cubrid_user.SetToolTip(_("User e.g. dba"))
     ## password
     parent.lbl_cubrid_pwd = wx.StaticText(scroll, -1, _("Password:"))
     parent.lbl_cubrid_pwd.SetFont(lblfont)
-    cubrid_pwd = parent.cubrid_pwd if parent.cubrid_pwd else u""
+    cubrid_pwd = parent.cubrid_pwd if parent.cubrid_pwd else ''
     parent.txt_cubrid_pwd = wx.TextCtrl(
         scroll, -1, cubrid_pwd, size=(300,-1), style=wx.TE_PASSWORD)
-    parent.txt_cubrid_pwd.Enable(not readonly)
+    parent.txt_cubrid_pwd.Enable(not read_only)
     parent.txt_cubrid_pwd.SetToolTip(_("Password"))
     ## 2 CUBRID
     parent.szr_cubrid = wx.StaticBoxSizer(bx_cubrid, wx.VERTICAL)

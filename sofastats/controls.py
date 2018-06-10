@@ -52,17 +52,17 @@ class TextBrowse(wx.PyControl):
         self.SetSizer(szr)
         self.Layout()
         
-    def on_size(self, event):
+    def on_size(self, _event):
         overall_width = self.GetSize()[0]
         btn_width, btn_height = self.btn_browse.GetSize()
         inner_padding = (2*self.txt_margins) + self.btn_margin
         txt_width = overall_width - (btn_width + inner_padding)
         self.txt.SetSize(wx.Size(txt_width, btn_height-2))
-        self.txt.SetDimensions(-1, 3, txt_width, -1)
+        self.txt.SetSize(-1, 3, txt_width, -1)
         btn_x_pos = overall_width - (btn_width + self.btn_margin)        
-        self.btn_browse.SetDimensions(btn_x_pos, 2, btn_width, btn_height)
+        self.btn_browse.SetSize(btn_x_pos, 2, btn_width, btn_height)
         #event.Skip() # otherwise, resizing sets infinite number of EndEdits!    
-    
+
     def on_txt_key_down(self, event):
         """
         http://wiki.wxpython.org/AnotherTutorial ...
@@ -123,25 +123,25 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
     """
     def __init__(self, grid, file_phrase, wildcard):
         self.debug = False
-        wx.grid.PyGridCellEditor.__init__(self)
+        wx.grid.GridCellEditor.__init__(self)
         self.grid = grid
         self.file_phrase = file_phrase
         self.wildcard = wildcard
     
-    def Create(self, parent, id, evt_handler):
-        # wxPython
-        self.text_browse = TextBrowse(parent, -1, self.grid, self.file_phrase, 
-                                      self.wildcard)
+    def Create(self, parent, _id, evt_handler):
+        ## wxPython
+        self.text_browse = TextBrowse(
+            parent, -1, self.grid, self.file_phrase, self.wildcard)
         self.SetControl(self.text_browse)
         if evt_handler:
             self.text_browse.PushEventHandler(evt_handler)
-    
+
     def BeginEdit(self, row, col, grid):
         # wxPython
         if self.debug: print("Beginning edit")
         self.text_browse.set_text(grid.GetCellValue(row, col))
         self.text_browse.set_focus()
-    
+
     def StartingKey(self, event):
         # wxPython
         if event.GetKeyCode() <= 255:
@@ -149,12 +149,13 @@ class GridCellTextBrowseEditor(wx.grid.PyGridCellEditor):
             self.text_browse.set_insertion_point(1)
         else:
             event.Skip()
-    
+
     def SetSize(self, rect):
-        # wxPython
-        self.text_browse.SetDimensions(rect.x, rect.y-2, rect.width, 
-                                       rect.height+5, wx.SIZE_ALLOW_MINUS_ONE)
-       
+        ## wxPython
+        self.text_browse.SetSize(
+            rect.x, rect.y-2, rect.width,
+            rect.height+5, wx.SIZE_ALLOW_MINUS_ONE)
+
     def EndEdit(self, row, col, grid):
         # wxPython
         "TODO - if resized while editing, infinite cycling of this!"

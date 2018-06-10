@@ -98,41 +98,41 @@ class DlgProjSelect(wx.Dialog):
             wx.MessageBox(_("Please check %s for errors. Use the default "
                 "project file for reference.") % fil_proj)
             raise
-    
+
     def on_proj_select(self, event):
         proj_sel_id = self.drop_projs.GetSelection()
         self.set_notes(proj_sel_id)
         event.Skip()
-    
+
     def set_notes(self, proj_sel_id):
         proj_sel_id = self.drop_projs.GetSelection()
         self.get_notes(self.projs[proj_sel_id])
         self.txt_proj_notes.SetValue(self.proj_notes)
-        
-    def on_edit(self,event):
+
+    def on_edit(self, _event):
         proj_sel_id = self.drop_projs.GetSelection()
-        readonly = (self.projs[proj_sel_id] == mg.DEFAULT_PROJ)
+        read_only = (self.projs[proj_sel_id] == mg.DEFAULT_PROJ)
         fil_proj = self.projs[self.drop_projs.GetSelection()]
         try:
-            dlgProj = projects_gui.DlgProject(parent=self, readonly=readonly,
-                fil_proj=fil_proj)
+            dlgProj = projects_gui.DlgProject(
+                parent=self, fil_proj=fil_proj, readonly=read_only)
         except Exception as e:
-            wx.MessageBox(u"Unable to open project dialog for %s. "
-                u"Orig error: %s" % (fil_proj, b.ue(e)))
+            wx.MessageBox(f"Unable to open project dialog for {fil_proj}. "
+                f"Orig error: {b.ue(e)}")
             return
-        # refresh projects list and display accordingly
+        ## refresh projects list and display accordingly
         ret = dlgProj.ShowModal()
         if ret == wx.ID_DELETE:
-            # redo and pick 1st
+            ## redo and pick 1st
             self.projs = projects.get_projs()
             self.drop_projs.SetItems(self.projs)
             self.drop_projs.SetSelection(0)
             self.set_notes(0)
         elif ret == wx.ID_OK:
             self.set_to_name_from_ok()
-          
-    def on_new_click(self, event):
-        dlg_proj = projects_gui.DlgProject(parent=self, readonly=False)
+
+    def on_new_click(self, _event):
+        dlg_proj = projects_gui.DlgProject(parent=self, read_only=False)
         ret = dlg_proj.ShowModal()
         if ret == wx.ID_OK:
             self.set_to_name_from_ok()

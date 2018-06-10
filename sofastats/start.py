@@ -26,7 +26,7 @@ show_early_steps = True  ## same in setup and start
 def main():
     try:
         if show_early_steps:
-            print("About to load Sofastats app")
+            print('About to load Sofastats app')
         app = home.SofaApp()
         app.MainLoop()
     except Exception as e:

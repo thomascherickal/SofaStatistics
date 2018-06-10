@@ -98,7 +98,7 @@ def get_display_dims(maxheight, iswindows):
     return mywidth, myheight
 
 def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
-        readonly):
+        read_only):
     debug = False
     dd = mg.DATADETS_OBJ
     if not dd.has_unique:
@@ -128,14 +128,14 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
         wx.BeginBusyCursor()
         need_colwidths_set = (rows_n < 1000)
         dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
-            readonly, need_colwidths_set=need_colwidths_set)
+            read_only, need_colwidths_set=need_colwidths_set)
         lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
 
 def open_database(parent, event):
-    readonly = parent.chk_readonly.IsChecked()
+    read_only = parent.chk_read_only.IsChecked()
     open_data_table(parent, parent.var_labels, parent.var_notes,
-        parent.var_types, parent.val_dics, readonly)
+        parent.var_types, parent.val_dics, read_only)
     event.Skip()
     
     
@@ -145,13 +145,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     see https://www.ianlewis.org/en/mixins-and-python
     """
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics,
-                 readonly=True, need_colwidths_set=True):
+                 read_only=True, need_colwidths_set=True):
         self.debug = False
         self.need_colwidths_set = need_colwidths_set
         self.dd = mg.DATADETS_OBJ
-        self.readonly = readonly
+        self.read_only = read_only
         title = _("Data from ") + "%s.%s" % (self.dd.db, self.dd.tbl)
-        if self.readonly:
+        if self.read_only:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX\
@@ -168,7 +168,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         width_grid = 500
         height_grid = 500
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
-        self.grid.EnableEditing(not self.readonly)
+        self.grid.EnableEditing(not self.read_only)
         self.init_tbl()
         self.grid.GetGridColLabelWindow().SetToolTip(
             _("Right click variable to view/edit details"))
@@ -230,9 +230,9 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.grid.SetFocus()
 
     def init_tbl(self):
-        self.dbtbl = db_tbl.DbTbl(self.grid, self.var_labels, self.readonly)
+        self.dbtbl = db_tbl.DbTbl(self.grid, self.var_labels, self.read_only)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
-        self.readonly_cols = []
+        self.read_only_cols = []
         # set col rendering (string is default)
         for col_idx in range(len(self.dd.flds)):
             fld_dic = self.dbtbl.get_fld_dic(col_idx)
@@ -247,14 +247,14 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                     self.grid.SetColFormatFloat(col_idx, width, precision)
                 else: # int
                     self.grid.SetColFormatNumber(col_idx)
-        if self.readonly:
+        if self.read_only:
             col2select = 0
             self.grid.SetGridCursor(0, col2select)
             self.current_row_idx = 0
             self.current_col_idx = col2select
             for col_idx in range(len(self.dd.flds)):
                 attr = wx.grid.GridCellAttr()
-                attr.SetBackgroundColour(mg.READONLY_COLOUR)
+                attr.SetBackgroundColour(mg.read_only_COLOUR)
                 self.grid.SetColAttr(col_idx, attr)
         else:
             # disable any columns which do not allow data entry and set colour
@@ -262,10 +262,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             for col_idx in range(len(self.dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(col_idx)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
-                    self.readonly_cols.append(col_idx)
+                    self.read_only_cols.append(col_idx)
                     attr = wx.grid.GridCellAttr()
-                    attr.SetReadOnly(True)
-                    attr.SetBackgroundColour(mg.READONLY_COLOUR)
+                    attr.Setread_only(True)
+                    attr.SetBackgroundColour(mg.read_only_COLOUR)
                     self.grid.SetColAttr(col_idx, attr)
                 elif col2select is None: # set once
                     col2select = col_idx
@@ -366,7 +366,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         keycode = event.GetKeyCode()
         if self.debug or debug: 
             print("on_grid_key_down - keycode %s pressed" % keycode)
-        if not self.dbtbl.readonly and keycode in [wx.WXK_DELETE, 
+        if not self.dbtbl.read_only and keycode in [wx.WXK_DELETE, 
                                                    wx.WXK_NUMPAD_DELETE]:
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
@@ -705,13 +705,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         existing row).
 
         Will not move if cell data not OK to save
-        OR readonly table and in final row and column and moving right or down.
+        OR read_only table and in final row and column and moving right or down.
         Will update a cell if there is changed data and if it is valid.
         Return move_to_dest.
         """
         debug = False
         if self.debug or debug: print("Was in existing, ordinary row")
-        if self.dbtbl.readonly:
+        if self.dbtbl.read_only:
             move_to_dest = not (was_final_row and was_final_col
                 and direction in(mg.MOVE_RIGHT, mg.MOVE_DOWN))
         else:
@@ -1200,10 +1200,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 tip = _("Missing value")
             elif raw_val is None:
-                tip = u""
+                tip = ''
             else:
                 tip = self.get_cell_tooltip(col, raw_val)
-                if self.readonly or col in self.readonly_cols:
+                if self.read_only or col in self.read_only_cols:
                     tip = _(u"%s (Read only column)") % tip
             self.grid.GetGridWindow().SetToolTip(tip)
         event.Skip()

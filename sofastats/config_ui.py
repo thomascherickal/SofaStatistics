@@ -15,34 +15,34 @@ from sofastats import showhtml
 import traceback
 import webbrowser
 
-"Import hyperlink"
+## Import hyperlink
 try:
     from agw import hyperlink as hl
 except ImportError: # if it's not there locally, try the wxPython lib.
     try:
         import wx.lib.agw.hyperlink as hl #@UnusedImport
     except ImportError:
-        msg = (u"There seems to be a problem related to your wxPython "
-            u"package. %s" % traceback.format_exc())
+        msg = ('There seems to be a problem related to your wxPython package '
+            f"{traceback.format_exc()}")
         raise Exception(msg)
 
 debug = False
 PRETEND_IS_MAC = debug
-IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC 
+IS_MAC = ((mg.PLATFORM != mg.MAC) if PRETEND_IS_MAC
     else (mg.PLATFORM == mg.MAC))
 
-label_divider = " " if mg.PLATFORM == mg.WINDOWS else "\n"
+label_divider = ' ' if mg.PLATFORM == mg.WINDOWS else '\n'
 ADD2_RPT_LBL = _("Also add%sto report") % label_divider
-RUN_LBL = _("Show Results")
-NO_OUTPUT_YET_MSG = (_(u"No output yet. Click \"%(run)s\" (with "
-    u"\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
-    {u"run": RUN_LBL, u"add2rpt_lbl": ADD2_RPT_LBL}).replace(u"\n", u" ")
-ADD_EXPECTED_SUBFOLDER_MSG = _(u"You need to add the "
-    u"\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
-    u"so your charts and themes can display properly.\n\nCopy the "
-    u"\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
+RUN_LBL = _('Show Results')
+NO_OUTPUT_YET_MSG = (_("No output yet. Click \"%(run)s\" (with "
+    "\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
+    {"run": RUN_LBL, "add2rpt_lbl": ADD2_RPT_LBL}).replace("\n", " ")
+ADD_EXPECTED_SUBFOLDER_MSG = _("You need to add the "
+    "\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
+    "so your charts and themes can display properly.\n\nCopy the "
+    "\"%(report_extras_folder)s\" folder from \"%(reports_path)s\".")
 
-# explanation level
+## explanation level
 def get_szr_details(parent, panel):
     """
     Get self.szr_details with checkbox. 
@@ -59,10 +59,10 @@ def get_szr_details(parent, panel):
 
 class DlgVarConfig(wx.Dialog):
     """
-    Shouldn't set variable details globally - it may not be appropriate to 
-        autoupdate. Leave that for the parent dialog this returns to.
+    Shouldn't set variable details globally - it may not be appropriate to
+    autoupdate. Leave that for the parent dialog this returns to.
     """
-    def __init__(self, parent, readonly, ret_dic, vdt_file=None):
+    def __init__(self, parent, ret_dic, vdt_file=None, *, read_only=False):
         cc = output.get_cc()
         wx.Dialog.__init__(self, parent=parent, title=_(u"Select variable "
             u"details file with labels etc appropriate to your data"), 
@@ -75,12 +75,12 @@ class DlgVarConfig(wx.Dialog):
         self.initial_vdt = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
         self.txt_var_dets_file = wx.TextCtrl(self.panel, -1, self.initial_vdt, 
             size=(500,-1))
-        self.txt_var_dets_file.Enable(not readonly)
+        self.txt_var_dets_file.Enable(not read_only)
         # Data config details
         browse = _("Browse")
         self.btn_var_dets_path = wx.Button(self.panel, -1, browse)
         self.btn_var_dets_path.Bind(wx.EVT_BUTTON, self.on_btn_var_dets_path)
-        self.btn_var_dets_path.Enable(not readonly)
+        self.btn_var_dets_path.Enable(not read_only)
         self.btn_var_dets_path.SetToolTip(_("Select an existing variable "
             "config file"))
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -198,16 +198,18 @@ class DlgVarConfig(wx.Dialog):
 class ConfigUI(object):
     """
     The standard interface for choosing data, styles etc.
+
     Can get sizers ready to use complete with widgets, event methods, and even
-        properties e.g. dd.con, dd.cur etc.
-    Used mixin because of large number of properties set and needing to be 
-        shared. The downside is that not always clear where something got set
-        when looking from the class that inherits from this mixin.
+    properties e.g. dd.con, dd.cur etc.
+
+    Used mixin because of large number of properties set and needing to be
+    shared. The downside is that not always clear where something got set when
+    looking from the class that inherits from this mixin.
     """
-    
-    def __init__(self, autoupdate, multi_page_items=True):
+
+    def __init__(self, *, autoupdate, multi_page_items=True):
         """
-        This interface is used in two cases - where we want changes to be 
+        This interface is used in two cases - where we want changes to be
         automatically shared across all subsequent operations e.g. selecting a
         different style; and where we don't e.g. when modifying a project file.
         In the latter case, we only want changes to become global when a project
@@ -218,7 +220,7 @@ class ConfigUI(object):
         debug = False
         if debug: print("autoupdate got set")
         self.autoupdate = autoupdate
-        # init
+        ## init
         self.vdt_file = None
         self.script_file = None
         self.rows_n = self.get_rows_n()
@@ -226,26 +228,31 @@ class ConfigUI(object):
         self.copy_output_enabled = False
         self.multi_page_items = multi_page_items
 
-    def get_gen_config_szrs(self, panel, readonly=False, hide_db=True):
+    def get_gen_config_szrs(self, panel, read_only=False, hide_db=True):
         """
-        Returns self.szr_data, self.szr_output_config (reports and css) complete 
-            with widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
-        Widgets include dropdowns for database and tables, and textboxes plus 
-            Browse buttons for output and style.
+        Returns self.szr_data, self.szr_output_config (reports and css) complete
+        with widgets.  mg.DATADETS_OBJ as dd is set up ready to use.
+
+        Widgets include dropdowns for database and tables, and textboxes plus
+        Browse buttons for output and style.
+
         Each widget has a set of events ready to go as well.
         """
-        self.szr_data = self.get_szr_data(panel, readonly, hide_db)
-        self.szr_output_config = self.get_szr_output_config(panel, readonly)
+        self.szr_data = self.get_szr_data(panel, read_only, hide_db)
+        self.szr_output_config = self.get_szr_output_config(panel, read_only)
         return self.szr_data, self.szr_output_config
 
-    def get_szr_data(self, panel, readonly=False, hide_db=True):
+    def get_szr_data(self, panel, *, read_only=False, hide_db=True):
         """
         Returns self.szr_data complete with widgets. dd is updated.
+
         Widgets include dropdowns for database and tables.
+
         Each widget has a set of events ready to go as well.
+
         Assumes self has quite a few properties already set.
         """
-        self.readonly = readonly
+        self.read_only = read_only
         try:
             self.drop_tbls_sel_evt
         except AttributeError:
@@ -267,12 +274,12 @@ class ConfigUI(object):
         self.drop_tbls.SetToolTip(_("Right click to add/remove filter"))
         lbl_tables = wx.StaticText(panel, -1, _("Table:"))
         lbl_tables.SetFont(mg.LABEL_FONT)
-        ## 3) Readonly
-        self.chk_readonly = wx.CheckBox(panel, -1, _("Read Only"))
-        self.chk_readonly.SetFont(mg.GEN_FONT)
-        readonly_settings = getdata.get_readonly_settings()
-        self.chk_readonly.SetValue(readonly_settings.readonly)
-        self.chk_readonly.Enable(readonly_settings.enabled)
+        ## 3) read_only
+        self.chk_read_only = wx.CheckBox(panel, -1, _("Read Only"))
+        self.chk_read_only.SetFont(mg.GEN_FONT)
+        read_only_settings = getdata.get_read_only_settings()
+        self.chk_read_only.SetValue(read_only_settings.read_only)
+        self.chk_read_only.Enable(read_only_settings.enabled)
         ## 4) Open
         btn_size = (70,-1)
         self.btn_open = wx.Button(panel, wx.ID_OPEN, size=btn_size)
@@ -293,22 +300,26 @@ class ConfigUI(object):
             self.drop_dbs.Hide()
             self.szr_data.Add(lbl_tables, 0, wx.LEFT|wx.RIGHT, 5)
         self.szr_data.Add(self.drop_tbls, 0, wx.RIGHT, 10)
-        self.szr_data.Add(self.chk_readonly, 0, wx.RIGHT, 10)
+        self.szr_data.Add(self.chk_read_only, 0, wx.RIGHT, 10)
         self.szr_data.Add(self.btn_open, 0, wx.RIGHT, 10)
         self.szr_data.Add(btn_filter, 0, wx.RIGHT, 10)
         self.szr_data.Add(btn_var_config, 0)
         return self.szr_data
 
-    def get_szr_output_config(self, panel, readonly=False, report_file=None, *,
+    def get_szr_output_config(self, panel, report_file=None, *,
             show_run_btn=True, show_add_btn=True, show_view_btn=True,
-            show_export_options=True):
+            show_export_options=True, read_only=False):
         """
         Returns self.szr_output_config (reports and css) complete with widgets.
+
         Widgets include textboxes plus Browse buttons for output and style.
+
         Each widget has a set of events ready to go as well.
+
         Sets defaults to current stored values in global cc.
+
         report_file -- usually just want what is stored to global but when in
-            project dialog need to have option of taking from proj file.
+        project dialog need to have option of taking from proj file.
         """
         self.panel_with_add2report = panel
         cc = output.get_cc()
@@ -324,7 +335,7 @@ class ConfigUI(object):
             self.chk_add_to_report.SetValue(mg.ADD2RPT)
             self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, 
                 self.on_chk_add_to_report)
-        self.readonly = readonly
+        self.read_only = read_only
         browse = _('Browse')
         if not report_file:
             report_file = cc[mg.CURRENT_REPORT_PATH]
@@ -339,18 +350,18 @@ class ConfigUI(object):
         else:
             self.txt_report_file.Bind(wx.EVT_TEXT, 
                 self.on_report_file_text_change)
-        self.txt_report_file.Enable(not self.readonly)
+        self.txt_report_file.Enable(not self.read_only)
         self.btn_report_path = wx.Button(panel, -1, browse)
         self.btn_report_path.SetFont(mg.BTN_FONT)
         self.btn_report_path.Bind(wx.EVT_BUTTON, self.on_btn_report_path)
-        self.btn_report_path.Enable(not self.readonly)
+        self.btn_report_path.Enable(not self.read_only)
         self.btn_report_path.SetToolTip(
             _("Select or create an HTML output file"))
         if show_view_btn:
             self.btn_view = wx.Button(panel, -1, _("View Report"), size=(-1,25))
             self.btn_view.SetFont(mg.BTN_FONT)
             self.btn_view.Bind(wx.EVT_BUTTON, self.on_btn_view)
-            self.btn_view.Enable(not self.readonly)
+            self.btn_view.Enable(not self.read_only)
             self.btn_view.SetToolTip(
                 _("View selected HTML output file in your default browser"))
         szr_output_config = wx.StaticBoxSizer(bx_report_config, wx.HORIZONTAL)
@@ -372,7 +383,7 @@ class ConfigUI(object):
                 _("Entire Report"),
             ]
             self.drop_export = wx.Choice(panel, -1, choices=export_choice_items)
-            self.drop_export.Enable(not self.readonly)
+            self.drop_export.Enable(not self.read_only)
             self.drop_export.SetToolTip(_("Export report as PDF, images, "
                 "or to spreadsheet ready for reports, slideshows etc"))
             self.drop_export.SetSelection(0)
@@ -382,7 +393,7 @@ class ConfigUI(object):
             vln.SetSize((30, 30))
             szr_export = wx.BoxSizer(wx.VERTICAL)
             szr_export_upper = wx.BoxSizer(wx.HORIZONTAL)
-            self.btn_export = wx.Button(panel, -1, _("Export"), size=(-1,25))
+            self.btn_export = wx.Button(panel, -1, _("Export"), size=(-1, 25))
             self.btn_export.SetFont(mg.BTN_FONT)
             self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
             self.btn_export.SetToolTip(_("Export output as per selection"))
@@ -394,7 +405,7 @@ class ConfigUI(object):
             szr_output_config.Add(szr_export, 0)
         return szr_output_config
 
-    def get_szr_output_display(self, panel, inc_clear=True, idx_style=2):
+    def get_szr_output_display(self, panel, *, inc_clear=True, idx_style=2):
         ## main
         self.style_selector = self.get_style_selector(panel)
         self.btn_expand = wx.Button(panel, -1, _("Expand"))
@@ -445,7 +456,7 @@ class ConfigUI(object):
             else lib.OutputLib.path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
-        style_selector.Enable(not self.readonly)
+        style_selector.Enable(not self.read_only)
         style_selector.SetToolTip(_("Select an existing css style file"))
         return style_selector
 
@@ -461,7 +472,7 @@ class ConfigUI(object):
         btn_var_config = wx.Button(panel, -1, _("Config Vars"))
         btn_var_config.SetFont(mg.BTN_FONT)
         btn_var_config.Bind(wx.EVT_BUTTON, self.on_btn_var_config)
-        btn_var_config.Enable(not self.readonly)
+        btn_var_config.Enable(not self.read_only)
         btn_var_config.SetToolTip(_("Configure variable details e.g. labels"))
         return btn_var_config
 
@@ -481,7 +492,8 @@ class ConfigUI(object):
         """
         cc = output.get_cc()
         ret_dic = {}
-        dlg = DlgVarConfig(self, self.readonly, ret_dic, self.vdt_file)
+        dlg = DlgVarConfig(self, ret_dic, self.vdt_file,
+            read_only=self.read_only)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
             cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET] # main place this gets set
@@ -551,9 +563,9 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_database_sel called")
         if getdata.refresh_db_dets(self):
-            readonly_settings = getdata.get_readonly_settings()
-            self.chk_readonly.SetValue(readonly_settings.readonly)
-            self.chk_readonly.Enable(readonly_settings.enabled)
+            read_only_settings = getdata.get_read_only_settings()
+            self.chk_read_only.SetValue(read_only_settings.read_only)
+            self.chk_read_only.Enable(read_only_settings.enabled)
             self.rows_n = self.get_rows_n()
             return True
         return False
@@ -563,9 +575,9 @@ class ConfigUI(object):
         debug = False
         if debug: print(u"on_table_sel called")     
         getdata.refresh_tbl_dets(self)
-        readonly_settings = getdata.get_readonly_settings()
-        self.chk_readonly.SetValue(readonly_settings.readonly)
-        self.chk_readonly.Enable(readonly_settings.enabled)
+        read_only_settings = getdata.get_read_only_settings()
+        self.chk_read_only.SetValue(read_only_settings.read_only)
+        self.chk_read_only.Enable(read_only_settings.enabled)
         self.rows_n = self.get_rows_n()
 
     def filters(self):
@@ -736,7 +748,7 @@ class ConfigUI(object):
         self.export_output_enabled = enable_btns
         self.copy_output_enabled = enable_btns
 
-    def on_btn_run(self, event, get_script_args, new_has_dojo=False):
+    def on_btn_run(self, event, get_script_args, *, new_has_dojo=False):
         try:
             self.run_report(get_script_args, new_has_dojo)
         except my_exceptions.MissingCss as e:    
@@ -745,7 +757,7 @@ class ConfigUI(object):
                   "error: %s") % b.ue(e), wrap_text=True)
             lib.GuiLib.safe_end_cursor()
         event.Skip()
-        
+
     def on_btn_view(self, event):
         """
         Open report in user's default web browser.
@@ -755,14 +767,14 @@ class ConfigUI(object):
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
             try:
-                self.can_run_report # False for Project dialog - can't make a report so no point letting them know they can make one if they want to view something
+                self.can_run_report  ## False for Project dialog - can't make a report so no point letting them know they can make one if they want to view something
             except AttributeError:
                 self.can_run_report = True
             if self.can_run_report:
                 msg = NO_OUTPUT_YET_MSG
             else:
-                msg = _("The output file has not been created yet. Nothing to "
-                    "view") # not in a position to make one
+                msg = _(
+                    "The output file has not been created yet. Nothing to view")  ## not in a position to make one
             wx.MessageBox(msg)
         else:
             url = output.path2url(cc[mg.CURRENT_REPORT_PATH])
@@ -776,40 +788,39 @@ class ConfigUI(object):
             cc = output.get_cc()
             cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
-    
+
     def on_report_file_text_change(self, event):
         "Reset report output file"
         if self.autoupdate:
             cc = output.get_cc()
             cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
         event.Skip()
-    
-    # table style
-    def on_style_sel(self, unused_event):
+
+    ## table style
+    def on_style_sel(self, _event):
         """
-        Change style. Note - when a listbox, fires on exit from form too - but 
-            no GetStringSelection possible at that point (returns empty string)
-            even if there was a selection previously before the close was 
-            initiated.
+        Change style. Note - when a listbox, fires on exit from form too - but
+        no GetStringSelection possible at that point (returns empty string) even
+        if there was a selection previously before the close was initiated.
         """
         if self.style_selector.GetSelection() != wx.NOT_FOUND:
             self.update_css()
-    
+
     def update_css(self):
         "Update css, including for demo table"
         debug = False
         if self.autoupdate:
             cc = output.get_cc()
             style = self.style_selector.GetStringSelection()
-            if style == u"":
+            if style == '':
                 return
-            if debug: print(u"Selected style is: %s" % style)
+            if debug: print(f'Selected style is: {style}')
             cc[mg.CURRENT_CSS_PATH] = lib.OutputLib.style2path(style)
 
     def on_btn_expand(self, event):
         showhtml.display_report(self, self.content2expand, self.url_load)
         event.Skip()
-            
+
     def on_btn_close(self, event):
         self.Destroy()
         event.Skip()

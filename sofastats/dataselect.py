@@ -31,8 +31,8 @@ class DlgDataSelect(wx.Dialog):
         proj_dic = config_globals.get_settings_dic(subfolder=mg.PROJS_FOLDER, 
             fil_name=proj_name)
         output.update_var_dets(dlg=self)
-        self.chk_readonly = wx.CheckBox(self.panel, -1, _("Read Only"))
-        self.chk_readonly.SetValue(True)
+        self.chk_read_only = wx.CheckBox(self.panel, -1, _("Read Only"))
+        self.chk_read_only.SetValue(True)
         self.btn_delete = wx.Button(self.panel, -1, _("Delete"))
         self.btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
         self.btn_design = wx.Button(self.panel, -1, _("Design"))
@@ -73,7 +73,7 @@ class DlgDataSelect(wx.Dialog):
         szr_existing_bottom.AddGrowableCol(2,2) # idx, propn
         szr_existing_bottom.Add(self.btn_delete, 0, wx.RIGHT, 10)
         szr_existing_bottom.Add(self.btn_design, 0)
-        szr_existing_bottom.Add(self.chk_readonly, 0, wx.ALIGN_RIGHT)
+        szr_existing_bottom.Add(self.chk_read_only, 0, wx.ALIGN_RIGHT)
         szr_existing_bottom.Add(btn_open, 0, wx.ALIGN_RIGHT)
         szr_existing = wx.StaticBoxSizer(bx_existing, wx.VERTICAL)
         szr_existing.Add(self.szr_data, 0, wx.GROW|wx.ALL, 10)
@@ -108,7 +108,7 @@ class DlgDataSelect(wx.Dialog):
     def add_feedback(self, feedback):
         self.lbl_feedback.SetLabel(feedback)
         wx.Yield()
-    
+
     def ctrl_enablement(self):
         """
         Can only design tables in the default SOFA database.
@@ -119,21 +119,21 @@ class DlgDataSelect(wx.Dialog):
         self.btn_design.Enable(sofa_default_db)
         delete_enable = (sofa_default_db and dd.tbl != mg.DEMO_TBL)
         self.btn_delete.Enable(delete_enable)
-        readonly_settings = getdata.get_readonly_settings()
-        self.chk_readonly.SetValue(readonly_settings.readonly)
-        self.chk_readonly.Enable(readonly_settings.enabled)
-        
+        read_only_settings = getdata.get_read_only_settings()
+        self.chk_read_only.SetValue(read_only_settings.read_only)
+        self.chk_read_only.Enable(read_only_settings.enabled)
+
     def on_database_sel(self, _event):
         if getdata.refresh_db_dets(self):
             self.reset_tbl_dropdown()
             self.ctrl_enablement()
-        
+
     def reset_tbl_dropdown(self):
         "Set tables dropdown items and select item according to dd.tbl"
         parent = self
-        parent.drop_tbls = getdata.get_fresh_drop_tbls(parent, 
-            parent.drop_tbls_szr, parent.drop_tbls_panel)
-    
+        parent.drop_tbls = getdata.get_fresh_drop_tbls(
+            parent, parent.drop_tbls_szr, parent.drop_tbls_panel)
+
     def on_table_sel(self, _event):
         "Reset key data details after table selection."       
         getdata.refresh_tbl_dets(self)
@@ -141,7 +141,7 @@ class DlgDataSelect(wx.Dialog):
 
     def on_open(self, event):
         db_grid.open_database(self, event)
-    
+
     def on_delete(self, event):
         """
         Delete selected table (giving user choice to back out).
@@ -171,14 +171,14 @@ class DlgDataSelect(wx.Dialog):
         """
         debug = False
         dd = mg.DATADETS_OBJ
-        readonly = False # only read only if the demo table
+        read_only = False # only read only if the demo table
         sofa_demo_tbl = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB 
                          and dd.tbl == mg.DEMO_TBL)
-        if sofa_demo_tbl and not readonly:
-            wx.MessageBox(_("The design of the default SOFA table cannot be "
-                            "changed"))
-            self.chk_readonly.SetValue(True)
-            readonly = True
+        if sofa_demo_tbl and not read_only:
+            wx.MessageBox(
+                _("The design of the default SOFA table cannot be changed"))
+            self.chk_read_only.SetValue(True)
+            read_only = True
         # table config dialog
         tblname_lst = [dd.tbl,]
         init_fld_settings = getdata.get_init_settings_data(dd, dd.tbl)
@@ -187,17 +187,17 @@ class DlgDataSelect(wx.Dialog):
         dlg_config = table_config.DlgConfigTable(
             self.var_labels, self.val_dics,
             tblname_lst, init_fld_settings, fld_settings,
-            readonly=readonly, new=False)
+            read_only=read_only, new=False)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
-        if ret == mg.RET_CHANGED_DESIGN and not readonly:
+        if ret == mg.RET_CHANGED_DESIGN and not read_only:
             if debug: print(f"Flds before: {dd.flds}")
             returned_tblname = tblname_lst[0]
             dd.set_dbe(dbe=mg.DBE_SQLITE, db=mg.SOFA_DB, tbl=returned_tblname)
             if debug: print(f"Flds after: {dd.flds}")
             self.reset_tbl_dropdown()
             output.update_var_dets(dlg=self)
-    
+
     def on_new(self, event):
         """
         Get table name (must be unique etc), create empty table in SOFA Default
@@ -231,7 +231,7 @@ class DlgDataSelect(wx.Dialog):
         if debug: print(mg.DATADETS_OBJ)
         dlg_config = table_config.DlgConfigTable(self.var_labels, self.val_dics,
             tblname_lst, init_fld_settings, fld_settings,
-            readonly=False, new=True)
+            read_only=False, new=True)
         ret = dlg_config.ShowModal()
         if debug: pprint.pprint(fld_settings)
         if ret != mg.RET_CHANGED_DESIGN:
@@ -243,16 +243,15 @@ class DlgDataSelect(wx.Dialog):
             self.reset_tbl_dropdown()  ## won't be affected otherwise
         ## open data
         wx.BeginBusyCursor()
-        readonly = False
         dlg = db_grid.TblEditor(self, self.var_labels, self.var_notes,
-                                self.var_types, self.val_dics, readonly)
+            self.var_types, self.val_dics, read_only=False)
         lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
-        # restore dd to original if necessary
+        ## restore dd to original if necessary
         if not sofa_default_db:
             dd.set_dbe(dbe=dbe2restore, db=db2restore, tbl=tbl2restore)
         self.ctrl_enablement()
         event.Skip()
-    
+
     def on_close(self, _event):
         self.Destroy()         

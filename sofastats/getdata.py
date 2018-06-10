@@ -13,7 +13,7 @@ from sofastats.dbe_plugins import dbe_sqlite
 
 debug = False
 
-ReadonlyDets = namedtuple('ReadonlyDets', 'readonly, enabled')
+ReadonlyDets = namedtuple('ReadonlyDets', 'read_only, enabled')
 
 ## data resources
 
@@ -442,11 +442,11 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
     if debug: print(clause)
     return clause
 
-def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     ""
     for dbe in mg.DBES:
-        mg.DBE_MODULES[dbe].set_data_con_gui(parent, readonly, scroll, szr, 
-            lblfont)
+        mg.DBE_MODULES[dbe].set_data_con_gui(parent, scroll, szr, 
+            lblfont, read_only=read_only)
 
 def get_proj_con_settings(parent, proj_dic):
     "Get project connection settings"
@@ -475,8 +475,8 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     because want unicode strings and will sometimes encounter \U within such
     string e.g. Vista and Win 7 C:\Users\...
 
-    Returns any_incomplete (partially completed connection details), any_cons 
-    (any of them set completely), and completed_dbes. Completed_dbes is so we 
+    Returns any_incomplete (partially completed connection details), any_cons
+    (any of them set completely), and completed_dbes. Completed_dbes is so we
     can ensure the default dbe has con details set for it.
 
     NB If any incomplete, stop processing and return None for any_cons.
@@ -514,16 +514,16 @@ def prep_val(dbe, val, fld_dic):
 
     Any non-missing/null values in numeric fields are simply passed through.
 
-    Values in datetime fields are returned as datetime strings (if valid) ready 
-    to include in SQL.  If not valid, the faulty value is returned as is in the 
-    knowledge that it will fail validation later (cell_invalid) and not actually 
+    Values in datetime fields are returned as datetime strings (if valid) ready
+    to include in SQL.  If not valid, the faulty value is returned as is in the
+    knowledge that it will fail validation later (cell_invalid) and not actually
     be saved to a database (in db_grid.update_cell()).
 
-    Why is a faulty datetime allowed through?  Because we don't want to have to 
-    handle exceptions at this point (things can happen in a different order 
-    depending on whether a mouse click or tabbing occurred). It is cleaner to 
-    just rely on the validation step which occurs to all data (numbers etc), 
-    which not only prevents faulty data being entered, but also gives the user 
+    Why is a faulty datetime allowed through?  Because we don't want to have to
+    handle exceptions at this point (things can happen in a different order
+    depending on whether a mouse click or tabbing occurred). It is cleaner to
+    just rely on the validation step which occurs to all data (numbers etc),
+    which not only prevents faulty data being entered, but also gives the user
     helpful feedback in an orderly way.
     """
     debug = False
@@ -623,7 +623,7 @@ def delete_row(id_fld, row_id):
                 + f"\n\nOriginal error: {b.ue(e)}")
         return False, b.ue(e)
 
-def get_readonly_settings():
+def get_read_only_settings():
     """
     Can always edit the default database (apart from demo_tbl) so disabled and
     True.
@@ -631,10 +631,10 @@ def get_readonly_settings():
     dd = mg.DATADETS_OBJ
     sofa_default_db = (dd.dbe == mg.DBE_SQLITE and dd.db == mg.SOFA_DB)
     enabled = not sofa_default_db
-    readonly = True
+    read_only = True
     if sofa_default_db:
-        readonly = (dd.tbl == mg.DEMO_TBL)
-    return ReadonlyDets(readonly, enabled)
+        read_only = (dd.tbl == mg.DEMO_TBL)
+    return ReadonlyDets(read_only, enabled)
 
 ## Assumption - drop_tbls is always named as such
 def data_dropdown_settings_correct(parent):

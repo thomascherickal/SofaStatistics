@@ -12,51 +12,51 @@ from sofastats import projects
 
 class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
     """
-    ConfigUI -- provides reusable interface for data selection, setting labels, 
-        exporting scripts buttons etc.  Sets values for db, default_tbl etc and 
-        responds to selections etc.
+    ConfigUI -- provides reusable interface for data selection, setting labels,
+    exporting scripts buttons etc.  Sets values for db, default_tbl etc and
+    responds to selections etc.
     """
     
     def __init__(self, title):
         cc = output.get_cc()
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-            pos=(mg.HORIZ_OFFSET,0), style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|\
-            wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|wx.CAPTION|\
-            wx.CLIP_CHILDREN)
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title,
+            pos=(mg.HORIZ_OFFSET,0),
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX\
+            |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.title = title
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
-        self.output_modules = [(None, "my_globals as mg"),
-            ("stats", "core_stats"), (None, "getdata"), (None, "output"),
-            (None, "stats_output"), ]
+        self.output_modules = [
+            (None, 'my_globals as mg'), ('stats', 'core_stats'),
+            (None, 'getdata'), (None, 'output'), (None, 'stats_output'), ]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
-        self.url_load = True # btn_expand
+        self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.variables_rc_msg = _("Right click variables to view/edit details")
-        # set up panel for frame
+        self.variables_rc_msg = _('Right click variables to view/edit details')
+        ## set up panel for frame
         self.panel = wx.Panel(self)
-        bx_desc = wx.StaticBox(self.panel, -1, _("Purpose"))
-        bx_vars = wx.StaticBox(self.panel, -1, _("Variables"))
+        bx_desc = wx.StaticBox(self.panel, -1, _('Purpose'))
+        bx_vars = wx.StaticBox(self.panel, -1, _('Variables'))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
-        # key settings
+        ## key settings
         self.drop_tbls_panel = self.panel
         self.drop_tbls_system_font_size = False
         hide_db = projects.get_hide_db()
-        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1  ## the 2 database items are missing)
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
         (self.szr_data, 
          self.szr_output_config) = self.get_gen_config_szrs(self.panel, 
-                                                hide_db=hide_db) # mixin
+                                                hide_db=hide_db)  ## mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        self.szr_output_display = self.get_szr_output_display(self.panel,
-                                                inc_clear=False, idx_style=1)
+        self.szr_output_display = self.get_szr_output_display(
+            self.panel, inc_clear=False, idx_style=1)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
@@ -73,7 +73,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.SetFont(mg.BTN_FONT)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
-        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTip(self.variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
         #szr_vars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
@@ -81,15 +81,15 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_vars.Add(self.szr_vars_top, 1, wx.LEFT, 5)
         szr_vars.Add(szr_vars_bottom, 0, wx.LEFT, 5)
-        # groups
-        self.lbl_group_a = wx.StaticText(self.panel, -1, _("Group A:"))
+        ## groups
+        self.lbl_group_a = wx.StaticText(self.panel, -1, _('Group A:'))
         self.lbl_group_a.SetFont(mg.LABEL_FONT)
-        self.lbl_group_b = wx.StaticText(self.panel, -1, _("Group B:"))
+        self.lbl_group_b = wx.StaticText(self.panel, -1, _('Group B:'))
         self.lbl_group_b.SetFont(mg.LABEL_FONT)
         self.setup_var_dropdowns()
-        # phrase
-        self.lbl_phrase = wx.StaticText(self.panel, -1, 
-                                       _("Start making your selections"))
+        ## phrase
+        self.lbl_phrase = wx.StaticText(
+            self.panel, -1, _("Start making your selections"))
         szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         if mg.MAX_HEIGHT <= 620:
@@ -100,9 +100,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
             myheight = 350
         if mg.PLATFORM == mg.MAC:
             myheight = myheight*0.3
-
-        self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(200, myheight))
-        
+        self.html = wx.html2.WebView.New(
+            self.panel, -1, size=wx.Size(200, myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:

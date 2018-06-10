@@ -197,7 +197,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         debug = False
         self.exiting = False
         cc = output.get_cc()
-        self.title = _("Make Report Table")
+        self.title = _('Make Report Table')
         wx.Dialog.__init__(self, parent=None, id=-1, title=self.title,
             pos=(mg.HORIZ_OFFSET, 0),  ## -1 positions too low on 768v
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
@@ -206,9 +206,9 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             autoupdate=True, multi_page_items=True)
         self.SetFont(mg.GEN_FONT)
         dimtree.DimTree.__init__(self)
-        self.output_modules = [(None, 'my_globals as mg'),
-            ('tables', 'dimtables'), ('tables', 'rawtables'), (None, 'output'),
-            (None, 'getdata'), ]
+        self.output_modules = [
+            (None, 'my_globals as mg'), ('tables', 'dimtables'),
+            ('tables', 'rawtables'), (None, 'output'), (None, 'getdata'), ]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes,
@@ -245,18 +245,18 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         szr_cols = wx.BoxSizer(wx.VERTICAL)
         szr_col_btns = wx.BoxSizer(wx.HORIZONTAL)
         szr_html = wx.BoxSizer(wx.VERTICAL)
-        self.szr_output_display = self.get_szr_output_display(self.panel,
-            idx_style=2)  ## mixin
+        self.szr_output_display = self.get_szr_output_display(
+            self.panel, idx_style=2)  ## mixin
         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         ## title details
-        lbl_titles = wx.StaticText(self.panel, -1, _("Title:"))
+        lbl_titles = wx.StaticText(self.panel, -1, _('Title:'))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
         self.txt_titles = wx.TextCtrl(self.panel, -1, size=(250,title_height),
             style=wx.TE_MULTILINE)
         self.txt_titles.Bind(wx.EVT_TEXT, self.on_title_change)
-        lbl_subtitles = wx.StaticText(self.panel, -1, _("Subtitle:"))
+        lbl_subtitles = wx.StaticText(self.panel, -1, _('Subtitle:'))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel, -1,size=(250,title_height), 
             style=wx.TE_MULTILINE)
@@ -265,17 +265,17 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.rad_opts = RptTypeOpts(parent=self, panel=self.panel)
         self.tab_type = self.rad_opts.GetSelection()
         ## option checkboxs
-        self.chk_totals_row = wx.CheckBox(self.panel, -1, _("Totals Row?"))
+        self.chk_totals_row = wx.CheckBox(self.panel, -1, _('Totals Row?'))
         self.chk_totals_row.SetFont(mg.GEN_FONT)
         self.chk_totals_row.Bind(wx.EVT_CHECKBOX, self.on_chk_totals_row)
         self.chk_first_as_label = wx.CheckBox(self.panel, -1,
-            _("First col as label?"))
+            _('First col as label?'))
         self.chk_first_as_label.SetFont(mg.GEN_FONT)
         self.chk_first_as_label.Bind(wx.EVT_CHECKBOX, 
             self.on_chk_first_as_label)
         self.enable_raw_display_opts(enable=False)
         self.chk_show_perc_symbol = wx.CheckBox(self.panel, -1,
-            _("Show percent symbol?"))
+            _('Show percent symbol?'))
         self.chk_show_perc_symbol.SetFont(mg.GEN_FONT)
         self.chk_show_perc_symbol.Bind(wx.EVT_CHECKBOX, 
             self.on_chk_show_perc_symbol)
@@ -283,40 +283,40 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.enable_show_perc_symbol_opt(enable=has_perc)
         self.chk_show_perc_symbol.SetValue(True)  ## True is default
         ## dp spinner
-        self.lbl_dp_spinner = wx.StaticText(self.panel, -1,
-            _(u"Max dec points"))
+        self.lbl_dp_spinner = wx.StaticText(
+            self.panel, -1, _('Max dec points'))
         self.dp_spinner = self.get_dp_spinner(self.panel,
             dp_val=mg.DEFAULT_REPORT_DP)
         ## text labels
-        lbl_rows = wx.StaticText(self.panel, -1, _("Rows:"))
+        lbl_rows = wx.StaticText(self.panel, -1, _('Rows:'))
         lbl_rows.SetFont(mg.LABEL_FONT)
-        lbl_cols = wx.StaticText(self.panel, -1, _("Columns:"))
+        lbl_cols = wx.StaticText(self.panel, -1, _('Columns:'))
         lbl_cols.SetFont(mg.LABEL_FONT)
         ## buttons
         ## rows
-        self.btn_row_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_row_add = wx.Button(self.panel, -1, _('Add'))
         self.btn_row_add.SetFont(mg.BTN_FONT)
         self.btn_row_add.Bind(wx.EVT_BUTTON, self.on_row_add)
-        self.btn_row_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_row_add_under = wx.Button(self.panel, -1, _('Add Under'))
         self.btn_row_add_under.SetFont(mg.BTN_FONT)
         self.btn_row_add_under.Bind(wx.EVT_BUTTON, self.on_row_add_under)
-        self.btn_row_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_row_del = wx.Button(self.panel, -1, _('Delete'))
         self.btn_row_del.SetFont(mg.BTN_FONT)
         self.btn_row_del.Bind(wx.EVT_BUTTON, self.on_row_delete)
-        self.btn_row_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_row_conf = wx.Button(self.panel, -1, _('Config'))
         self.btn_row_conf.SetFont(mg.BTN_FONT)
         self.btn_row_conf.Bind(wx.EVT_BUTTON, self.on_row_config)
         ## cols
-        self.btn_col_add = wx.Button(self.panel, -1, _("Add"))
+        self.btn_col_add = wx.Button(self.panel, -1, _('Add'))
         self.btn_col_add.SetFont(mg.BTN_FONT)
         self.btn_col_add.Bind(wx.EVT_BUTTON, self.on_col_add)
-        self.btn_col_add_under = wx.Button(self.panel, -1, _("Add Under"))
+        self.btn_col_add_under = wx.Button(self.panel, -1, _('Add Under'))
         self.btn_col_add_under.SetFont(mg.BTN_FONT)
         self.btn_col_add_under.Bind(wx.EVT_BUTTON, self.on_col_add_under)
-        self.btn_col_del = wx.Button(self.panel, -1, _("Delete"))
+        self.btn_col_del = wx.Button(self.panel, -1, _('Delete'))
         self.btn_col_del.SetFont(mg.BTN_FONT)
         self.btn_col_del.Bind(wx.EVT_BUTTON, self.on_col_delete)
-        self.btn_col_conf = wx.Button(self.panel, -1, _("Config"))
+        self.btn_col_conf = wx.Button(self.panel, -1, _('Config'))
         self.btn_col_conf.SetFont(mg.BTN_FONT)
         self.btn_col_conf.Bind(wx.EVT_BUTTON, self.on_col_config)
         ## trees
@@ -325,14 +325,14 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.rowtree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, 
             self.on_row_item_activated)
         self.rowtree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_row_item_rclick)
-        self.rowtree.SetToolTip(_("Right click variables to view/edit details"))
+        self.rowtree.SetToolTip(_('Right click variables to view/edit details'))
         self.rowroot = self.setup_dim_tree(self.rowtree)
         self.coltree = HTL.HyperTreeList(self.panel, -1,
               agwStyle=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT|wx.TR_MULTIPLE)
         self.coltree.Bind(wx.EVT_TREE_ITEM_ACTIVATED,
             self.on_col_item_activated)
         self.coltree.Bind(wx.EVT_TREE_ITEM_RIGHT_CLICK, self.on_col_item_rclick)
-        self.coltree.SetToolTip(_("Right click variables to view/edit details"))
+        self.coltree.SetToolTip(_('Right click variables to view/edit details'))
         self.colroot = self.setup_dim_tree(self.coltree)
         ## setup demo table type
         if debug: print(cc[mg.CURRENT_CSS_PATH])
@@ -358,14 +358,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         else:
             myheight = min_height + ((mg.MAX_HEIGHT-grow_from)*0.2)
         myheight = 350 if myheight > 350 else myheight
-
-
-
-        
-        self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(200, myheight))
-
-
-
+        self.html = wx.html2.WebView.New(
+            self.panel, -1, size=wx.Size(200, myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:

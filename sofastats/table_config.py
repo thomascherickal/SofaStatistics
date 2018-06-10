@@ -441,7 +441,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         }"""
     
     def __init__(self, var_labels, val_dics, tblname_lst, init_fld_settings,
-            fld_settings, *, readonly=False, new=False, insert_data_func=None,
+            fld_settings, *, read_only=False, new=False, insert_data_func=None,
             cell_invalidation_func=None, cell_response_func=None):
         """
         :param list tblname_lst: passed in as a list so changes can be made
@@ -453,9 +453,9 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.exiting = False
         self.new = new
         self.changes_made = False
-        self.readonly = readonly
+        self.read_only = read_only
         self.exiting = False
-        if self.new and self.readonly:
+        if self.new and self.read_only:
             raise Exception("If new, should never be read only")
         self.var_labels = var_labels
         self.val_dics = val_dics
@@ -491,7 +491,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         ]
         grid_size = (300, 250)
         title = _("Configure Data Table")
-        if self.readonly:
+        if self.read_only:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, None, title=title, size=(500, 400),
             style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
@@ -502,11 +502,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.tblname = tblname_lst[0] if tblname_lst else _('table') + '001'
         self.txt_tblname = wx.TextCtrl(
             self.panel, -1, self.tblname, size=(450, -1))
-        self.txt_tblname.Enable(not self.readonly)
+        self.txt_tblname.Enable(not self.read_only)
         self.tblname_validator = SafeTblNameValidator()
         self.tblname_validator.existing_name = existing_name  ## need to be able to change this class property from outside e.g. if we save the table when we recode it.
         self.txt_tblname.SetValidator(self.tblname_validator)
-        if not self.readonly:
+        if not self.read_only:
             btn_recode = wx.Button(self.panel, -1, _('Recode'))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
             btn_recode.SetToolTip(
@@ -519,12 +519,12 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         szr_design_right = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label.Add(lbl_tbl_label, 0, wx.RIGHT, 5)
         self.szr_tbl_label.Add(self.txt_tblname, 0)
-        design_here_lbl = (_('Design Here:') if not self.readonly
+        design_here_lbl = (_('Design Here:') if not self.read_only
             else _('Design:'))
         lbl_design_here = wx.StaticText(self.panel, -1, design_here_lbl)
         lbl_design_here.SetFont(mg.LABEL_FONT)
         see_result_lbl = (_('See Demonstration Result Here:')
-            if not self.readonly else _('Demonstration Result:'))
+            if not self.read_only else _('Demonstration Result:'))
         lbl_see_result = wx.StaticText(self.panel, -1, see_result_lbl)
         lbl_see_result.SetFont(mg.LABEL_FONT)
         self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(500, 200))
@@ -533,14 +533,14 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         else:
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_design_left.Add(lbl_design_here, 0)
-        if not self.readonly:
+        if not self.read_only:
             lbl_guidance = wx.StaticText(self.panel, -1,
                 _("If you're new to designing data structures,"
                 "\nit may help to look at the data structure "
                 "\npage of www.sofastatistics.com/userguide.php"
                 "\n\nNote - the sofa_id is required and cannot be edited."))
             szr_design_left.Add(lbl_guidance, 0)
-        self.tabentry = ConfigTableEntry(self, self.panel, self.readonly, 
+        self.tabentry = ConfigTableEntry(self, self.panel, self.read_only, 
             grid_size, col_dets, init_fld_settings, fld_settings,
             insert_data_func, cell_invalidation_func, cell_response_func)
         szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
@@ -548,11 +548,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
         szr_design.Add(szr_design_left, 0, wx.GROW)
         szr_design.Add(szr_design_right, 1, wx.GROW)
-        self.setup_btns(self.readonly)
+        self.setup_btns(self.read_only)
         self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
-        if not self.readonly:
+        if not self.read_only:
             self.szr_btns.Insert(2, btn_recode, 0, wx.LEFT, 10)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -862,7 +862,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         original name.
         """
         dd = mg.DATADETS_OBJ
-        if not self.readonly:
+        if not self.read_only:
             ## NB must run Validate on the panel because the objects are
             ## contained by that and not the dialog itself.
             ## http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
@@ -878,7 +878,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             self.make_new_tbl()
             dd.set_tbl(tbl=gui_tblname)
         else:
-            if not self.readonly:
+            if not self.read_only:
                 orig_tblname = self.tblname_lst[0]
                 del self.tblname_lst[0]  ## empty ready to repopulate
                 self.tblname_lst.append(gui_tblname)
@@ -952,7 +952,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
 
     def on_recode(self, _event):
         debug = False
-        if self.readonly:
+        if self.read_only:
             raise Exception(_("Can't recode a read only table"))
         self.tabentry.update_settings_data()
         if debug:
@@ -1020,7 +1020,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         Override so we can extend to include table name.
         """
         dd = mg.DATADETS_OBJ
-        if self.readonly:
+        if self.read_only:
             self.exiting = True
             self.Destroy()
         else:
@@ -1062,23 +1062,24 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     mg.TBL_FLDNAME, etc
     """
 
-    def __init__(self, frame, panel, readonly, grid_size, col_dets,
+    def __init__(self, frame, panel, grid_size, col_dets,
                  init_settings_data, settings_data, insert_data_func=None,
-                 cell_invalidation_func=None, cell_response_func=None):
+                 cell_invalidation_func=None, cell_response_func=None,
+                 *, read_only=False):
         cc = output.get_cc()
         self.frame = frame
-        self.readonly = readonly
-        force_focus = False
-        settings_grid.SettingsEntry.__init__(self, frame, panel, readonly,
-            grid_size, col_dets, init_settings_data, settings_data, force_focus,
-            insert_data_func, cell_invalidation_func, cell_response_func)
+        self.read_only = read_only
+        settings_grid.SettingsEntry.__init__(self, frame, panel,
+            grid_size, col_dets, init_settings_data, settings_data,
+            insert_data_func, cell_invalidation_func, cell_response_func,
+            read_only=read_only, force_focus=False)
         self.debug = False  ## otherwise set in the parent class ;-)
         (self.var_labels, self.var_notes, self.var_types,
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         ## disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
-        attr.SetReadOnly(True)
-        attr.SetBackgroundColour(mg.READONLY_COLOUR)
+        attr.Setread_only(True)
+        attr.SetBackgroundColour(mg.read_only_COLOUR)
         self.grid.SetRowAttr(0, attr)
         ## allow right click on variable names
         self.grid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_rclick_cell)
@@ -1105,7 +1106,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         (stayed_still,
          saved_new_row) = settings_grid.SettingsEntry.process_cell_move(self,
                     src_ctrl, src_row, src_col, dest_row, dest_col, direction)
-        if self.readonly or stayed_still:
+        if self.read_only or stayed_still:
             return
         fldname = self.grid.GetCellValue(src_row, 0)
         fldtype = self.grid.GetCellValue(src_row, 1)

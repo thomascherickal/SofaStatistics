@@ -130,8 +130,8 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     has_series = bool(var_role_series)
     has_cat = bool(var_role_cat)
     if not has_cat:
-        raise Exception(u"All general charts require a category variable to be "
-            u"identified")
+        raise Exception("All general charts require a category variable to be "
+            "identified")
     ## Get everything ready to use in queries by quoting and, if required,
     ## autofilling. tbl_quoted is already quoted and ready to go.
 
@@ -144,20 +144,20 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     var_role_cat = objqtr(var_role_cat)
     var_role_agg = objqtr(var_role_agg)
     is_agg = (data_show in mg.AGGREGATE_DATA_SHOW_OPT_KEYS)
-    agg_filt = u" AND %s IS NOT NULL " % var_role_agg if is_agg else u" "
-    sql_dic = {u"tbl": tbl_quoted,
-        u"var_role_charts": var_role_charts,
-        u"var_role_series": var_role_series,
-        u"var_role_cat": var_role_cat,
-        u"var_role_agg": var_role_agg,
-        u"where_tbl_filt": where_tbl_filt,
-        u"and_tbl_filt": and_tbl_filt,
-        u"and_agg_filt": agg_filt,
-        u"sofa_charts": SOFA_CHARTS,
-        u"sofa_series": SOFA_SERIES,
-        u"sofa_cat": SOFA_CAT,
-        u"sofa_val": SOFA_VAL,
-        u"sofa_val2show": SOFA_VAL2SHOW,
+    agg_filt = " AND %s IS NOT NULL " % var_role_agg if is_agg else ' '
+    sql_dic = {"tbl": tbl_quoted,
+        "var_role_charts": var_role_charts,
+        "var_role_series": var_role_series,
+        "var_role_cat": var_role_cat,
+        "var_role_agg": var_role_agg,
+        "where_tbl_filt": where_tbl_filt,
+        "and_tbl_filt": and_tbl_filt,
+        "and_agg_filt": agg_filt,
+        "sofa_charts": SOFA_CHARTS,
+        "sofa_series": SOFA_SERIES,
+        "sofa_cat": SOFA_CAT,
+        "sofa_val": SOFA_VAL,
+        "sofa_val2show": SOFA_VAL2SHOW,
     }
     ## 1) grouping variables
     ## Charts ***************************
@@ -175,7 +175,7 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     get count.
     """
     ## Keeping SQL_chart_ns and SQL_charts near to each other - so similar in logic
-    SQL_chart_ns = (u"""SELECT
+    SQL_chart_ns = ("""SELECT
         %(var_role_charts)s,
             COUNT(%(var_role_charts)s)
         AS chart_n
@@ -218,10 +218,10 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         GROUP BY %(var_role_series)s""" % sql_dic)
     else:
         if dbe == mg.DBE_MS_ACCESS:
-            SQL_series = (u"SELECT TOP 1 1 AS %(sofa_series)s FROM %(tbl)s"
+            SQL_series = ("SELECT TOP 1 1 AS %(sofa_series)s FROM %(tbl)s"
                 % sql_dic)
         else:
-            SQL_series = u"SELECT 1 AS %(sofa_series)s" % sql_dic
+            SQL_series = "SELECT 1 AS %(sofa_series)s" % sql_dic
     if debug: print("SQL_series:\n{0}".format(SQL_series))
     SQL_cat = ("""SELECT %(var_role_cat)s 
     AS %(sofa_cat)s
@@ -237,14 +237,14 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
         (%s) AS qryseries %s
         (%s) AS qrycat""" % (SQL_charts, cartesian_joiner, SQL_series, 
         cartesian_joiner, SQL_cat)
-    if debug: print(u"SQL_group_by_vars:\n{0}".format(SQL_group_by_vars))
+    if debug: print("SQL_group_by_vars:\n{0}".format(SQL_group_by_vars))
     # 2) Now get measures field with all grouping vars ready to join to full list
     if data_show not in mg.AGGREGATE_DATA_SHOW_OPT_KEYS:
-        sql_dic[u"val2show"] = u" COUNT(*) "
+        sql_dic["val2show"] = " COUNT(*) "
     elif data_show == mg.SHOW_AVG_KEY:
-        sql_dic[u"val2show"] = u" AVG(%(var_role_agg)s) " % sql_dic
+        sql_dic["val2show"] = " AVG(%(var_role_agg)s) " % sql_dic
     elif data_show == mg.SHOW_SUM_KEY:
-        sql_dic[u"val2show"] = u" SUM(%(var_role_agg)s) " % sql_dic
+        sql_dic["val2show"] = " SUM(%(var_role_agg)s) " % sql_dic
     else:
         raise Exception("get_SQL_raw_data() not expecting a data_show of %s" % 
             data_show)
@@ -252,9 +252,9 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     if has_charts: groupby_vars.append(var_role_charts)
     if has_series: groupby_vars.append(var_role_series)
     groupby_vars.append(var_role_cat)
-    sql_dic[u"groupby_charts_series_cats"] = (u" GROUP BY " 
-        + u", ".join(groupby_vars))
-    SQL_vals2show = u"""SELECT %(var_role_charts)s
+    sql_dic["groupby_charts_series_cats"] = (" GROUP BY " 
+        + ", ".join(groupby_vars))
+    SQL_vals2show = """SELECT %(var_role_charts)s
     AS %(sofa_charts)s,
         %(var_role_series)s
     AS %(sofa_series)s,
@@ -265,13 +265,13 @@ def get_gen_chart_SQL(dbe, tbl_quoted, where_tbl_filt, and_tbl_filt,
     FROM %(tbl)s
     %(where_tbl_filt)s
     %(groupby_charts_series_cats)s""" % sql_dic
-    if debug: print(u"SQL_vals2show:\n{0}".format(SQL_vals2show))
+    if debug: print("SQL_vals2show:\n{0}".format(SQL_vals2show))
     # 3) Put all group by vars on left side of join with measures by those 
     # grouping vars.
-    sql_dic[u"SQL_group_by_vars"] = SQL_group_by_vars
-    sql_dic[u"SQL_vals2show"] = SQL_vals2show
-    sql_dic[u"get_val2show"] = (mg.DBE_MODULES[dbe].if_clause % 
-        (u"%s IS NULL" % SOFA_VAL2SHOW, u"0", SOFA_VAL2SHOW))
+    sql_dic["SQL_group_by_vars"] = SQL_group_by_vars
+    sql_dic["SQL_vals2show"] = SQL_vals2show
+    sql_dic["get_val2show"] = (mg.DBE_MODULES[dbe].if_clause % 
+        ("%s IS NULL" % SOFA_VAL2SHOW, "0", SOFA_VAL2SHOW))
     SQL_raw_data = """SELECT qrygrouping_vars.%(sofa_charts)s, 
     qrygrouping_vars.%(sofa_series)s, 
     qrygrouping_vars.%(sofa_cat)s,
@@ -1400,7 +1400,8 @@ class BoxPlot(object):
 
     @staticmethod
     def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_dic, sort_opt,
-            rotate=False, boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
+            *, rotate=False,
+            boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
         """
         Desc, Category, Series correspond to dropdown 1-3 respectively. E.g. if
         the averaged variable is age, the split within the series is gender, and
@@ -1418,7 +1419,7 @@ class BoxPlot(object):
                                     mg.CHART_BOXPLOT_LWHISKER: 1.7,
                                     mg.CHART_BOXPLOT_LBOX: 3.2, ...},
                                {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
-    
+
         NB supply a boxdet even for an empty box. Put marker that it should be
         skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
 
@@ -1435,25 +1436,25 @@ class BoxPlot(object):
         where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
         boxplot_width = 0.25
         chart_dets = []
-        xaxis_dets = [] # (0, u"''", u"''")]
+        xaxis_dets = []  ## (0, u"''", u"''")]
         max_x_lbl_len = 0
         max_lbl_lines = 0
         sql_dic = {
-            u"var_role_cat": objqtr(var_role_dic['cat']),
-            u"var_role_series": objqtr(var_role_dic['series']),
-            u"var_role_desc": objqtr(var_role_dic['desc']),
-            u"where_tbl_filt": where_tbl_filt,
-            u"and_tbl_filt": and_tbl_filt,
-            u"tbl": getdata.tblname_qtr(dbe, tbl)}
-        # 1) What are our series to display? If there is no data for an entire
-        # series, we want to leave it out. E.g. if country = Palau has no skiing
-        # data it won't appear as a series. So get all series vals appearing in
-        # any rows where all fields are non-missing. If a series even has one
-        # value, we show the series and a box plot for every category that has a
-        # value to be averaged, even if only one value (resulting in a single
-        # line rather than a box as such).
+            "var_role_cat": objqtr(var_role_dic['cat']),
+            "var_role_series": objqtr(var_role_dic['series']),
+            "var_role_desc": objqtr(var_role_dic['desc']),
+            "where_tbl_filt": where_tbl_filt,
+            "and_tbl_filt": and_tbl_filt,
+            "tbl": getdata.tblname_qtr(dbe, tbl)}
+        ## 1) What are our series to display? If there is no data for an entire
+        ## series, we want to leave it out. E.g. if country = Palau has no skiing
+        ## data it won't appear as a series. So get all series vals appearing in
+        ## any rows where all fields are non-missing. If a series even has one
+        ## value, we show the series and a box plot for every category that has a
+        ## value to be averaged, even if only one value (resulting in a single
+        ## line rather than a box as such).
         if var_role_dic['series']:
-            SQL_series_vals = u"""SELECT %(var_role_series)s
+            SQL_series_vals = """SELECT %(var_role_series)s
                 FROM %(tbl)s
                 WHERE %(var_role_series)s IS NOT NULL
                 AND %(var_role_cat)s IS NOT NULL
@@ -1466,12 +1467,12 @@ class BoxPlot(object):
             if debug: print(series_vals)
             n_boxplot_series = len(series_vals)
             if n_boxplot_series > mg.MAX_SERIES_IN_BOXPLOT:
-                if wx.MessageBox(_(u"This chart will have %(n_boxplot_series)s "
-                        u"%(var_role_cat)s series and may not display properly."
-                        u" Do you wish to make it anyway?") %
+                if wx.MessageBox(_("This chart will have %(n_boxplot_series)s "
+                        "%(var_role_cat)s series and may not display properly."
+                        " Do you wish to make it anyway?") %
                         {"n_boxplot_series": n_boxplot_series,
                          "var_role_cat": var_role_dic['cat']},
-                        caption=_("HIGH NUMBER OF SERIES"),
+                        caption=_('HIGH NUMBER OF SERIES'),
                         style=wx.YES_NO) == wx.NO:
                     raise my_exceptions.TooManySeriesInChart(
                         mg.MAX_SERIES_IN_BOXPLOT)
@@ -1481,7 +1482,7 @@ class BoxPlot(object):
         # rows where all fields are non-missing.
         if var_role_dic['cat']: # might just be a single box e.g. a box for age overall
             and_series_filt = ('' if not var_role_dic['series']
-                else " AND var_role_dic['%(var_role_series)s'] IS NOT NULL "
+                else " AND %(var_role_series)s IS NOT NULL "
                 % sql_dic)
             sql_dic["and_series_filt"] = and_series_filt
             SQL_cat_vals = """SELECT %(var_role_cat)s
@@ -1532,11 +1533,11 @@ class BoxPlot(object):
                     str(series_val))
                 series_val_filt = getdata.make_fld_val_clause(dbe, flds,
                     fldname=var_role_dic['series'], val=series_val)
-                and_series_val_filt = u" AND %s" % series_val_filt
+                and_series_val_filt = " AND %s" % series_val_filt
             else:
                 legend_lbl = None
-                and_series_val_filt = u" "
-            sql_dic[u"and_series_val_filt"] = and_series_val_filt
+                and_series_val_filt = ' '
+            sql_dic["and_series_val_filt"] = and_series_val_filt
             # time to get the boxplot information for the series
             boxdet_series = []
             for i, cat_val in enumerate(sorted_cat_vals, 1): # e.g. "Mt Albert Grammar", 
@@ -1556,13 +1557,13 @@ class BoxPlot(object):
                             max_lbl_lines = n_lines
                         xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
                     # Now see if any desc values for particular series_val and cat_val
-                    and_cat_val_filt = u" AND %s" % getdata.make_fld_val_clause(
+                    and_cat_val_filt = " AND %s" % getdata.make_fld_val_clause(
                         dbe, flds, fldname=var_role_dic['cat'],
                         val=cat_val)
                 else:
-                    xaxis_dets.append((i, u"''", "''"))
+                    xaxis_dets.append((i, "''", "''"))
                     and_cat_val_filt = u""
-                sql_dic[u"and_cat_val_filt"] = and_cat_val_filt
+                sql_dic["and_cat_val_filt"] = and_cat_val_filt
                 SQL_vals2desc = """SELECT %(var_role_desc)s
                 FROM %(tbl)s 
                 WHERE %(var_role_desc)s IS NOT NULL
@@ -1579,7 +1580,7 @@ class BoxPlot(object):
                     lq, uq = core_stats.get_quartiles(vals2desc)
                     lbox = lq
                     ubox = uq
-                    if debug: print("%s %s %s" % (lbox, median, ubox))
+                    if debug: print(f"{lbox} {median} {ubox}")
                 boxplot_display = has_vals
                 if not boxplot_display:
                     any_missing_boxes = True
@@ -1662,10 +1663,10 @@ class BoxPlot(object):
                 boxdet_series.append(box_dic)
             title_bits = []
             title_bits.append(var_role_dic['desc_name'])
-            title_bits.append(u"By %s" % var_role_dic['cat_name'])
+            title_bits.append("By %s" % var_role_dic['cat_name'])
             if var_role_dic['series_name']:
-                title_bits.append(u"By %s" % var_role_dic['series_name'])
-            overall_title = u" ".join(title_bits)
+                title_bits.append("By %s" % var_role_dic['series_name'])
+            overall_title = ' '.join(title_bits)
             series_dic = {
                 mg.CHART_SERIES_LBL: legend_lbl,
                 mg.CHART_BOXDETS: boxdet_series}
@@ -1675,8 +1676,8 @@ class BoxPlot(object):
             raise my_exceptions.TooFewBoxplotsInSeries
         xmin = 0.5
         xmax = i+0.5
-        y_display_min, y_display_max = _get_optimal_min_max(y_display_min,
-            y_display_max)
+        y_display_min, y_display_max = _get_optimal_min_max(
+            y_display_min, y_display_max)
         #xaxis_dets.append((xmax, u"''", u"''"))
         if debug: print(xaxis_dets)
         n_chart = lib.formatnum(n_chart)

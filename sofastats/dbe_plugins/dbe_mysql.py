@@ -402,47 +402,49 @@ def get_index_dets(cur, db, tbl):
         print(has_unique)
     return idxs, has_unique
 
-def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_mysql= wx.StaticBox(scroll, -1, 'MySQL')
     # default database
     parent.lbl_mysql_default_db = wx.StaticText(
         scroll, -1, _("Default Database (name only):"))
     parent.lbl_mysql_default_db.SetFont(lblfont)
-    mysql_default_db = parent.mysql_default_db if parent.mysql_default_db else ''
+    mysql_default_db = (
+        parent.mysql_default_db if parent.mysql_default_db else '')
     parent.txt_mysql_default_db = wx.TextCtrl(
         scroll, -1, mysql_default_db, size=(200, -1))
-    parent.txt_mysql_default_db.Enable(not readonly)
+    parent.txt_mysql_default_db.Enable(not read_only)
     parent.txt_mysql_default_db.SetToolTip(_("Default database (optional)"))
     ## default table
-    parent.lbl_mysql_default_tbl = wx.StaticText(scroll, -1, _("Default Table:"))
+    parent.lbl_mysql_default_tbl = wx.StaticText(
+        scroll, -1, _('Default Table:'))
     parent.lbl_mysql_default_tbl.SetFont(lblfont)
-    mysql_default_tbl = (parent.mysql_default_tbl if parent.mysql_default_tbl
-        else '')
+    mysql_default_tbl = (
+        parent.mysql_default_tbl if parent.mysql_default_tbl else '')
     parent.txt_mysql_default_tbl = wx.TextCtrl(
         scroll, -1, mysql_default_tbl, size=(200, -1))
-    parent.txt_mysql_default_tbl.Enable(not readonly)
+    parent.txt_mysql_default_tbl.Enable(not read_only)
     parent.txt_mysql_default_tbl.SetToolTip(_("Default table (optional)"))
     ## host
     parent.lbl_mysql_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_mysql_host.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ''
     parent.txt_mysql_host = wx.TextCtrl(scroll, -1, mysql_host, size=(100, -1))
-    parent.txt_mysql_host.Enable(not readonly)
+    parent.txt_mysql_host.Enable(not read_only)
     parent.txt_mysql_host.SetToolTip(_("Host e.g. localhost, or remote:3307"))
     ## user
-    parent.lbl_mysql_user = wx.StaticText(scroll, -1, _("User:"))
+    parent.lbl_mysql_user = wx.StaticText(scroll, -1, _('User:'))
     parent.lbl_mysql_user.SetFont(lblfont)
-    mysql_user = parent.mysql_user if parent.mysql_user else ""
+    mysql_user = parent.mysql_user if parent.mysql_user else ''
     parent.txt_mysql_user = wx.TextCtrl(scroll, -1, mysql_user, size=(100, -1))
-    parent.txt_mysql_user.Enable(not readonly)
+    parent.txt_mysql_user.Enable(not read_only)
     parent.txt_mysql_user.SetToolTip(_("User e.g. root"))
     ## password
-    parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _("Password:"))
+    parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _('Password:'))
     parent.lbl_mysql_pwd.SetFont(lblfont)
-    mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else u""
+    mysql_pwd = parent.mysql_pwd if parent.mysql_pwd else ''
     parent.txt_mysql_pwd = wx.TextCtrl(
         scroll, -1, mysql_pwd, size=(300, -1), style=wx.TE_PASSWORD)
-    parent.txt_mysql_pwd.Enable(not readonly)
+    parent.txt_mysql_pwd.Enable(not read_only)
     parent.txt_mysql_pwd.SetToolTip(_('Password'))
     ## 2 MYSQL
     parent.szr_mysql = wx.StaticBoxSizer(bx_mysql, wx.VERTICAL)

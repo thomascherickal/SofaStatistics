@@ -80,21 +80,21 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
-        # key settings
+        ## key settings
         self.drop_tbls_panel = self.panel_data
         self.drop_tbls_system_font_size = False
         hide_db = projects.get_hide_db()
-        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1 # the 2 database items are missing)
+        self.drop_tbls_idx_in_szr = 3 if not hide_db else 1  ## the 2 database items are missing)
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db) # mixin
+        self.szr_data = self.get_szr_data(self.panel_data, hide_db=hide_db)  ## mixin
         self.panel_data.SetSizer(self.szr_data)
         self.szr_output_config = self.get_szr_output_config(self.panel_bottom) 
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
-        self.szr_output_display = self.get_szr_output_display(self.panel_bottom, 
-                                                inc_clear=False, idx_style=1)
+        self.szr_output_display = self.get_szr_output_display(
+            self.panel_bottom, inc_clear=False, idx_style=1)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
         self.btn_help = wx.Button(self.panel_top, wx.ID_HELP)
@@ -110,7 +110,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
-        if mg.PLATFORM == mg.LINUX: # http://trac.wxwidgets.org/ticket/9859
+        if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTip(self.variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
         szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -120,9 +120,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.szr_avg_vars = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_group_by_vars = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_vars_a_and_b = wx.BoxSizer(wx.HORIZONTAL)
-        # var averaged
-        self.lbl_avg = wx.StaticText(self.panel_vars, -1, u"%s:" % 
-                                     self.averaged)
+        ## var averaged
+        self.lbl_avg = wx.StaticText(self.panel_vars, -1, f"{self.averaged}:")
         self.lbl_avg.SetFont(mg.LABEL_FONT)
         self.setup_avg_dropdown()
         self.szr_vars_top_left.Add(self.szr_avg_vars, 0)

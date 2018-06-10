@@ -11,49 +11,49 @@ from sofastats import lib
 from sofastats import my_exceptions
 from sofastats import settings_grid
 
-Row = sqlite.Row # @UndefinedVariable - needed for making cursor return dicts
+Row = sqlite.Row  ## @UndefinedVariable - needed for making cursor return dicts
 
-DEFAULT_DB = "sqlite_default_db"
-DEFAULT_TBL = "sqlite_default_tbl"
-# http://www.sqlite.org/datatype3.html
-NUMERIC_TYPES = ["int", "integer", "tinyint", "smallint", "mediumint", "bigint",
-    "unsigned big int", "int2", "int8", "float", "numeric", "real", "double",
-    "double precision", "float real", "numeric"]
-DATE_TYPES = ["date", "datetime", "time", "timestamp"]
-DATABASE_KEY = "database"
-DATABASE_FLD_LABEL = _("Database(s)")
+DEFAULT_DB = 'sqlite_default_db'
+DEFAULT_TBL = 'sqlite_default_tbl'
+## http://www.sqlite.org/datatype3.html
+NUMERIC_TYPES = ['int', 'integer', 'tinyint', 'smallint', 'mediumint', 'bigint',
+    'unsigned big int', 'int2', 'int8', 'float', 'numeric', 'real', 'double',
+    'double precision', 'float real', 'numeric']
+DATE_TYPES = ['date', 'datetime', 'time', 'timestamp']
+DATABASE_KEY = 'database'
+DATABASE_FLD_LABEL = _('Database(s)')
 
-if_clause = "CASE WHEN %s THEN %s ELSE %s END"
-placeholder = "?"
-left_obj_quote = "`"
-right_obj_quote = "`"
-gte_not_equals = "!="
-cartesian_joiner = " JOIN "
+if_clause = 'CASE WHEN %s THEN %s ELSE %s END'
+placeholder = '?'
+left_obj_quote = '`'
+right_obj_quote = '`'
+gte_not_equals = '!='
+cartesian_joiner = ' JOIN '
 
-# http://www.sqlite.org/lang_keywords.html
-# The following is non-standard but will work
+## http://www.sqlite.org/lang_keywords.html
+## The following is non-standard but will work
 def quote_obj(raw_val):
-    return f"{left_obj_quote}{raw_val}{right_obj_quote}"
+    return f'{left_obj_quote}{raw_val}{right_obj_quote}'
 
 def quote_val(raw_val):
     """
-    Single quote is the literal delimiter and internal single quotes need 
+    Single quote is the literal delimiter and internal single quotes need
     escaping by repeating them.
     """
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'", 
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'",
         sql_esc_str_literal_quote="''", pystr_use_double_quotes=True)
 
 def get_summable(clause):
     return clause
 
 def get_syntax_elements():
-    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val,
         placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
     orderby = "ORDER BY %s" % quote_obj(order_val) if order_val else ''
     return f"SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}"
-        
+
 def add_funcs_to_con(con):
     con.create_function("is_numeric", 1, lib.TypeLib.is_numeric)
     con.create_function("is_std_datetime_str", 1,
@@ -203,7 +203,7 @@ def get_char_len(type_text):
 def get_flds(cur, db, tbl):
     "http://www.sqlite.org/pragma.html"
     ## get encoding
-    cur.execute(u"PRAGMA encoding")
+    cur.execute(u'PRAGMA encoding')
     encoding = cur.fetchone()[0]
     ## get field details
     cur.execute(f"PRAGMA table_info({quote_obj(tbl)})")
@@ -212,7 +212,7 @@ def get_flds(cur, db, tbl):
     for cid, fldname, fldtype, notnull, dflt_value, pk in fld_dets:
         bolnullable = (notnull == 0)
         bolnumeric = fldtype.lower() in NUMERIC_TYPES
-        bolautonum = (pk == 1 and fldtype.lower() == "integer")            
+        bolautonum = (pk == 1 and fldtype.lower() == 'integer')            
         boldata_entry_ok = not bolautonum
         boldatetime = fldtype.lower() in DATE_TYPES
         fld_txt = not (bolnumeric or boldatetime)
@@ -233,7 +233,7 @@ def get_flds(cur, db, tbl):
             mg.FLD_NUM_MIN_VAL: None,  ## not really applicable - no limit
             mg.FLD_NUM_MAX_VAL: None,  ## not really applicable - no limit
             mg.FLD_BOLDATETIME: boldatetime, 
-            }
+        }
         flds[fldname] = dets_dic
     return flds
 
@@ -273,26 +273,26 @@ def get_index_dets(cur, db, tbl):
         print(has_unique)
     return idxs, has_unique
 
-def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
+def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_sqlite = wx.StaticBox(scroll, -1, "SQLite")
     ## default database
     parent.lbl_sqlite_default_db = wx.StaticText(scroll, -1, 
-        _("Default Database (name only):"))
+        _('Default Database (name only):'))
     parent.lbl_sqlite_default_db.SetFont(lblfont)
     DEFAULT_DB = parent.sqlite_default_db if parent.sqlite_default_db else ''
     parent.txt_sqlite_default_db = wx.TextCtrl(
         scroll, -1, DEFAULT_DB, size=(250, -1))
-    parent.txt_sqlite_default_db.Enable(not readonly)
-    parent.txt_sqlite_default_db.SetToolTip(_("Default database (optional)"))
+    parent.txt_sqlite_default_db.Enable(not read_only)
+    parent.txt_sqlite_default_db.SetToolTip(_('Default database (optional)'))
     ## default table
     parent.lbl_sqlite_default_tbl = wx.StaticText(scroll, -1, 
-        _("Default Table (optional):"))
+        _('Default Table (optional):'))
     parent.lbl_sqlite_default_tbl.SetFont(lblfont)
     DEFAULT_TBL = parent.sqlite_default_tbl if parent.sqlite_default_tbl else ''
     parent.txt_sqlite_default_tbl = wx.TextCtrl(
         scroll, -1, DEFAULT_TBL, size=(250, -1))
-    parent.txt_sqlite_default_tbl.Enable(not readonly)
-    parent.txt_sqlite_default_tbl.SetToolTip(_("Default table (optional)"))
+    parent.txt_sqlite_default_tbl.Enable(not read_only)
+    parent.txt_sqlite_default_tbl.SetToolTip(_('Default table (optional)'))
     parent.szr_sqlite = wx.StaticBoxSizer(bx_sqlite, wx.VERTICAL)
     ## 3 SQLITE INNER
     szr_sqlite_inner = wx.BoxSizer(wx.HORIZONTAL)
@@ -301,16 +301,17 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
     szr_sqlite_inner.Add(parent.lbl_sqlite_default_tbl, 0, wx.LEFT|wx.RIGHT, 5)
     szr_sqlite_inner.Add(parent.txt_sqlite_default_tbl, 0, wx.RIGHT, 10)
     parent.szr_sqlite.Add(szr_sqlite_inner, 0, wx.GROW)
-    sqlite_col_dets = [{"col_label": DATABASE_FLD_LABEL, 
-        "coltype": settings_grid.COL_TEXT_BROWSE, "colwidth": 400, 
-        "file_phrase": _("Choose an SQLite database file")}]
+    sqlite_col_dets = [{'col_label': DATABASE_FLD_LABEL, 
+        'coltype': settings_grid.COL_TEXT_BROWSE, 'colwidth': 400, 
+        'file_phrase': _('Choose an SQLite database file')}]
     parent.sqlite_settings_data = []
     init_settings_data = parent.sqlite_data[:]
     init_settings_data.sort(key=lambda s: s[0])
-    parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent, 
-        panel=scroll, readonly=readonly, grid_size=(550,100), 
-        col_dets=sqlite_col_dets, init_settings_data=init_settings_data, 
-        settings_data=parent.sqlite_settings_data, force_focus=True)
+    parent.sqlite_grid = settings_grid.SettingsEntry(frame=parent,
+        panel=scroll, grid_size=(550,100),
+        col_dets=sqlite_col_dets, init_settings_data=init_settings_data,
+        settings_data=parent.sqlite_settings_data,
+        read_only=read_only, force_focus=True)
     """
     Make sofa_db stand out as special but allow users to edit it (it may have 
     changed location since the project was created).
@@ -330,12 +331,12 @@ def set_data_con_gui(parent, readonly, scroll, szr, lblfont):
 
 def db_is_default_sofa_db(db_name):
     """
-    Be generous in what counts as a default sofa database. The following should 
+    Be generous in what counts as a default sofa database. The following should
     all be OK: sofa_db (of course), original_sofa_db, sofa_db_testing etc.
 
-    The user may have made copies, shifted it around etc. The only fixed one is 
-    that created during installation. The default project references that and it 
-    cannot be changed. But if they make copies etc and put them somewhere else, 
+    The user may have made copies, shifted it around etc. The only fixed one is
+    that created during installation. The default project references that and it
+    cannot be changed. But if they make copies etc and put them somewhere else,
     those versions can be used just like a standard default.
 
     Of course, a user can mess things up by giving other unsuitable files names
@@ -426,7 +427,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
 
 ## unique to SQLite (because used to store tables for user-entered data plus 
 ## imported data)
-  
+
 def valid_tblname(tblname):
     return valid_name(tblname, is_tblname=True)
 
@@ -469,22 +470,22 @@ def valid_fldnames_block(block):
     valid = True
     err = ''
     try:
-        flds_clause = ", ".join(["`%s` TEXT" % x for x in block])
-        tblname = "safetblname"
+        flds_clause = ', '.join(['`%s` TEXT' % x for x in block])
+        tblname = 'safetblname'
         ## in case it survives somehow esp safetblname
         ## OK if this fails here
-        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
+        sql_drop = f'DROP TABLE IF EXISTS {tblname}'
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
         ## usable names in practice?
-        sql_make = f"CREATE TABLE {tblname} ({flds_clause})"
+        sql_make = f'CREATE TABLE {tblname} ({flds_clause})'
         if debug: print(sql_make)
         cur.execute(sql_make)
         con.commit()  ## otherwise when committing, no net change to commit and 
             ## no actual chance to succeed or fail
         ## clean up
-        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
+        sql_drop = f'DROP TABLE IF EXISTS {tblname}'
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
@@ -502,13 +503,13 @@ def valid_name(name, is_tblname=True):
     tbl -- True for tblname being tested, False if a fldname being tested.
 
     Bad name for SQLite? The best way is to find out for real (not too costly
-    and 100% valid by definition). Strangely, SQLite accepts '' as a table name 
+    and 100% valid by definition). Strangely, SQLite accepts '' as a table name
     but we won't ;-).
     """
     debug = False
     if name == '':
         return False
-    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, "sofa_tmp")
+    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, 'sofa_tmp')
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
@@ -517,24 +518,24 @@ def valid_name(name, is_tblname=True):
     try:
         if is_tblname:
             tblname = quote_obj(name)
-            fldname = "safefldname"
+            fldname = 'safefldname'
         else:
-            tblname = "safetblname"
+            tblname = 'safetblname'
             fldname = name
         ## in case it survives somehow esp safetblname
         ## OK if this fails here
-        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
+        sql_drop = f'DROP TABLE IF EXISTS {tblname}'
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()
         ## usable names in practice?
-        sql_make = f"CREATE TABLE {tblname} (`{fldname}` TEXT)"
+        sql_make = f'CREATE TABLE {tblname} (`{fldname}` TEXT)'
         if debug: print(sql_make)
         cur.execute(sql_make)
         con.commit()  ## otherwise when committing, no net change to commit and 
             ## no actual chance to succeed or fail
         ## clean up
-        sql_drop = f"DROP TABLE IF EXISTS {tblname}"
+        sql_drop = f'DROP TABLE IF EXISTS {tblname}'
         if debug: print(sql_drop)
         cur.execute(sql_drop)
         con.commit()

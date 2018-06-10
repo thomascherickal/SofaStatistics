@@ -169,9 +169,9 @@ class SofaApp(wx.App):
                 "to take screen-shots.")
         mg.OPEN_ON_START = proj_dic.get(mg.OPEN_ON_START_KEY, False)
         if mg.OPEN_ON_START:
-            readonly = getdata.get_readonly_settings().readonly
+            read_only = getdata.get_read_only_settings().read_only
             db_grid.open_data_table(frame, var_labels={}, var_notes={},
-                var_types={}, val_dics={}, readonly=readonly)
+                var_types={}, val_dics={}, read_only=read_only)
 
 
 def store_screen_dims():
@@ -1065,18 +1065,18 @@ class StartFrame(wx.Frame):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_tabs,
-            self.help_img_left+self.report_img_offset, self.help_img_top-10,
-            True)
+            self.help_img_left+self.report_img_offset,
+            self.help_img_top-10, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
-        txt1 = _(u"Make report tables e.g. Age vs Gender")
-        txt2 = _(u"Can make simple Frequency Tables, Crosstabs, Row Stats "
-            u"Tables (mean, median, standard deviation etc), and simple lists "
-            u"of data.")
-        txt2draw = (t2d(txt1, self.max_help_text_width) + u"\n\n"
+        txt1 = _("Make report tables e.g. Age vs Gender")
+        txt2 = _("Can make simple Frequency Tables, Crosstabs, Row Stats Tables"
+            " (mean, median, standard deviation etc), and simple lists of data.")
+        txt2draw = (t2d(txt1, self.max_help_text_width) + '\n\n'
             + t2d(txt2, self.max_help_text_width))
-        panel_dc.DrawLabel(txt2draw, wx.Rect(self.main_left, self.help_text_top,
-            self.help_text_width, 260))
+        panel_dc.DrawLabel(txt2draw,
+            wx.Rect(self.main_left, self.help_text_top,
+                self.help_text_width, 260))
         event.Skip()
 
     def get_script(self, cont, script):
@@ -1092,11 +1092,11 @@ class StartFrame(wx.Frame):
             lib.GuiLib.safe_end_cursor()
             dlg.ShowModal()
         except Exception as e:
-            msg = _(u"Unable to connect to data as defined in project %s.  "
-                u"Please check your settings") % self.active_proj
+            msg = _("Unable to connect to data as defined in project %s.  "
+                "Please check your settings") % self.active_proj
             wx.MessageBox(msg)
-            raise Exception(u"%s.\nCaused by errors:\n\n%s" %
-                (msg, traceback.format_exc()))
+            raise Exception("%s.\nCaused by errors:\n\n%s"
+                % (msg, traceback.format_exc()))
         finally:
             lib.GuiLib.safe_end_cursor()
             event.Skip()
@@ -1105,8 +1105,8 @@ class StartFrame(wx.Frame):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_chart,
-            self.help_img_left+self.chart_img_offset, self.help_img_top-20,
-            True)
+            self.help_img_left+self.chart_img_offset,
+            self.help_img_top-20, True)
         panel_dc.SetTextForeground(self.text_brown)
         panel_dc.SetFont(self.help_font)
         txt_charts = _("Make attractive charts with dynamic visual effects "

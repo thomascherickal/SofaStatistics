@@ -11,7 +11,7 @@ from sofastats import projects
 
 
 class DlgProject(wx.Dialog, config_ui.ConfigUI):
-    def __init__(self, parent, readonly=False, fil_proj=None):
+    def __init__(self, parent, fil_proj=None, *, read_only=False):
         config_ui.ConfigUI.__init__(self, autoupdate=False)
         self.can_run_report = False
         if mg.MAX_WIDTH <= 1024:
@@ -31,7 +31,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         self.szr = wx.BoxSizer(wx.VERTICAL)
         self.panel_top = wx.Panel(self)
         self.panel_top.SetBackgroundColour(wx.Colour(205, 217, 215))
-        self.scroll_con_dets = wx.PyScrolledWindow(self, size=(900, 350),  ## need for Windows
+        self.scroll_con_dets = wx.ScrolledWindow(self, size=(900, 350),  ## need for Windows
             style=wx.SUNKEN_BORDER|wx.TAB_TRAVERSAL)
         self.scroll_con_dets.SetScrollRate(10,10)  ## gives it the scroll bars
         self.panel_config = wx.Panel(self)
@@ -43,7 +43,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         self.szr_config_outer = wx.BoxSizer(wx.VERTICAL)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         ## get available settings
-        self.readonly = readonly
+        self.read_only = read_only
         self.new = (fil_proj is None)
         self.set_defaults(fil_proj)
         self.set_extra_dets(vdt_file=self.fil_var_dets, 
@@ -57,12 +57,12 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         lbl_name.SetFont(lblfont)
         self.txt_name = wx.TextCtrl(
             self.panel_top, -1, self.proj_name, size=(200, -1))
-        self.txt_name.Enable(not self.readonly)
+        self.txt_name.Enable(not self.read_only)
         lbl_proj_notes = wx.StaticText(self.panel_top, -1, _('Notes:'))
         lbl_proj_notes.SetFont(lblfont)
         self.txt_proj_notes = wx.TextCtrl(
             self.panel_top, -1, self.proj_notes, style=wx.TE_MULTILINE)
-        self.txt_proj_notes.Enable(not self.readonly)
+        self.txt_proj_notes.Enable(not self.read_only)
         szr_desc = wx.BoxSizer(wx.HORIZONTAL)
         szr_desc_left = wx.BoxSizer(wx.VERTICAL)
         szr_desc_mid = wx.BoxSizer(wx.VERTICAL)
@@ -91,7 +91,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         sel_dbe_id = mg.DBES.index(self.default_dbe)
         self.drop_default_dbe.SetSelection(sel_dbe_id)
         self.drop_default_dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
-        self.drop_default_dbe.Enable(not self.readonly)
+        self.drop_default_dbe.Enable(not self.read_only)
         lbl_scroll_down = wx.StaticText(self.scroll_con_dets, -1,
             _("(scroll down for details of all your database engines)"))
         ## default dbe
@@ -110,17 +110,18 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         self.szr_top.SetSizeHints(self.panel_top)
         ## CON DETS
         self.szr_con_dets.Add(szr_default_dbe, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
-        getdata.set_data_con_gui(parent=self, readonly=self.readonly,
-            scroll=self.scroll_con_dets, szr=self.szr_con_dets, lblfont=lblfont)
+        getdata.set_data_con_gui(parent=self,
+            scroll=self.scroll_con_dets, szr=self.szr_con_dets, lblfont=lblfont,
+            read_only=self.read_only)
         self.scroll_con_dets.SetSizer(self.szr_con_dets)
         ## NEVER SetSizeHints or else grows beyond size!!!!
         self.szr_con_dets.SetVirtualSizeHints(self.scroll_con_dets)
         ## CONFIG
         ## mixin supplying self.szr_output_config
         self.szr_output_config = self.get_szr_output_config(self.panel_config, 
-            readonly=self.readonly, report_file=self.fil_report,
+            report_file=self.fil_report,
             show_run_btn=False, show_add_btn=False, show_view_btn=False,
-            show_export_options=False)
+            show_export_options=False, read_only=self.read_only)
         btn_var_config = self.get_btn_var_config(self.panel_config)
         self.style_selector = self.get_style_selector(
             self.panel_config, as_list=False, css_file=self.fil_css)
@@ -267,7 +268,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         See http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605904
         and http://aspn.activestate.com/ASPN/Mail/Message/wxpython-users/3605432
         """
-        if self.readonly:
+        if self.read_only:
             btn_ok = wx.Button(self.panel_bottom, wx.ID_OK)
         else:
             if not self.new:
@@ -278,11 +279,11 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             btn_ok = wx.Button(self.panel_bottom, wx.ID_OK, _('Update'))
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         self.szr_btns = wx.StdDialogButtonSizer()
-        if not self.readonly:
+        if not self.read_only:
             self.szr_btns.AddButton(btn_cancel)
         self.szr_btns.AddButton(btn_ok)
         self.szr_btns.Realize()
-        if not self.readonly and not self.new:
+        if not self.read_only and not self.new:
             self.szr_btns.Insert(0, btn_delete, 0)
 
     def on_btn_var_config(self, event):
@@ -332,7 +333,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         """
         ## get the data (separated for easier debugging)
         proj_name = self.txt_name.GetValue()
-        if self.readonly:
+        if self.read_only:
             self.parent.store_proj_name(f"{proj_name}{mg.PROJ_EXT}")
         else:
             if proj_name == mg.EMPTY_PROJ_NAME:

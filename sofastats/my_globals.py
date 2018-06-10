@@ -691,12 +691,12 @@ PREFS_KEY = u"Prefs"
 PREFS_DEFAULT_DETAILS_KEY = u"OUTPUT_DETAILS"
 DEFAULT_DETAILS = False  ## gets reset by prefs being read during config_globals.set_DEFAULT_DETAILS()
 ## Charts
-CHART_VALUES_LBL = _(u"Values")
-CHART_DESCRIBED_LBL = _(u"Described")
+CHART_VALUES_LBL = _("Values")
+CHART_DESCRIBED_LBL = _("Described")
 
 CHART_BY = _(u"By")
 CHARTS_CHART_BY_LBL = _(u"Charts By")
-CHART_SERIES_BY_LBL = _(u"Series By")
+CHART_SERIES_BY_LBL = _("Series By")
 CHART_AVERAGED_LBL = _(u"Averaged")
 CHART_SUMMED_LBL = _(u"Summed")
 CHART_DATETIMES_LBL = _(u"Dates/\nTimes")

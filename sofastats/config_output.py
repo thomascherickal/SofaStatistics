@@ -145,10 +145,12 @@ class GetSettings(settings_grid.DlgSettingsEntry):
         szr_data_type.Add(self.rad_data_type, 0)  
         szr_data_type.Add(btn_type_help, 0, wx.LEFT|wx.TOP, 10)        
         self.szr_main.Add(szr_data_type, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
-        self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
-            grid_size, col_dets, init_settings_data, settings_data)
+        self.tabentry = settings_grid.SettingsEntry(self,
+            self.panel, grid_size, col_dets,
+            init_settings_data, settings_data,
+            read_only=False, force_focus=False)
         self.szr_main.Add(self.tabentry.grid, 2, wx.GROW|wx.ALL, 5)
-        self.setup_btns(readonly=False)
+        self.setup_btns(read_only=False)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
         self.panel.SetSizer(self.szr_main)
         self.szr_main.SetSizeHints(self)
@@ -168,7 +170,7 @@ class GetSettings(settings_grid.DlgSettingsEntry):
             "it as categorical because it isn't generally used in statistical "
             "tests as ordinal data."))
 
-    def on_ok(self, event):
+    def on_ok(self, _event):
         """
         Override so we can extend to include variable label, type, and notes.
         """

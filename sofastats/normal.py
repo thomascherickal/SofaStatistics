@@ -209,14 +209,11 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
         szr_vars.Add(self.drop_var_a, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
         szr_vars.Add(self.drop_var_b, 0, wx.ALIGN_BOTTOM|wx.LEFT, 10)
         myheight = 100 if mg.MAX_HEIGHT < 800 else 200
-        self.szr_output_config = self.get_szr_output_config(self.panel) # mixin
+        self.szr_output_config = self.get_szr_output_config(self.panel)  ## mixin
         self.szr_output_display = self.get_szr_output_display(self.panel, 
-            inc_clear=False, idx_style=1) # mixin
-
-        
-        self.html = wx.html2.WebView.New(self.panel, -1, size=wx.Size(200, myheight))
-        
-        
+            inc_clear=False, idx_style=1)  ## mixin
+        self.html = wx.html2.WebView.New(
+            self.panel, -1, size=wx.Size(200, myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:

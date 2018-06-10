@@ -1,58 +1,59 @@
-import wx
+import wx  #@UnusedImport
 import wx.grid
 
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats import controls
 
-COL_STR = u"col_string"
-COL_INT = u"col_integer"
-COL_FLOAT = u"col_float"
-COL_TEXT_BROWSE = u"col_button"
-COL_DROPDOWN = u"col_dropdown"
-COL_PWD = u"col_pwd"
+COL_STR = 'col_string'
+COL_INT = 'col_integer'
+COL_FLOAT = 'col_float'
+COL_TEXT_BROWSE = 'col_button'
+COL_DROPDOWN = 'col_dropdown'
+COL_PWD = 'col_pwd'
+
+EvtCellMove = wx.NewEventType()  ## event you can instantiate to post or append to an event handler
+EVT_CELL_MOVE = wx.PyEventBinder(EvtCellMove, 1)  ## event type you can bind a function handler to
 
 
 class CellMoveEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"
-    def __init__(self, evtType, id):
-        wx.PyCommandEvent.__init__(self, evtType, id)
-    
+    def __init__(self, _id):
+        wx.PyCommandEvent.__init__(self, EvtCellMove, _id)
+
     def add_dets(self, dest_row=None, dest_col=None, direction=None):
         self.dest_row = dest_row
         self.dest_col = dest_col
         self.direction = direction
-    
-# new event type to pass around
-myEVT_CELL_MOVE = wx.NewEventType()
-# event to bind to
-EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 
 class DlgSettingsEntry(wx.Dialog):
-    def __init__(self, title, grid_size, col_dets, init_settings_data, 
-                 settings_data, insert_data_func=None, 
-                 row_validation_func=None):
+    def __init__(self, title, grid_size, col_dets,
+            init_settings_data, settings_data,
+            insert_data_func=None, row_validation_func=None):
         """
-        col_dets -- see under SettingsEntry.
-        data -- list of tuples (tuples must have at least one item, even if only 
-            a "rename me").  Empty list ok.
-        settings_data -- is effectively "returned". Add details to it in form 
-            of a list of tuples.
-        insert_data_func -- what data do you want to see in a new inserted row 
-            (if any). Must take grid_data as argument.
+        :param list col_dets: list of dicts with keys col_label, coltype, and,
+         optionally, colwidth, file_phrase, file_wildcard, empty_ok, col_min_val,
+         col_max_val, col_precision. Also dropdown_vals which is a list of
+         values for the dropdown.
+        :param list init_settings_data: list of tuples (tuples must have at
+         least one item, even if only a "rename me"). Empty list OK.
+        :param list settings_data: is effectively "returned". Add details to it
+         in form of a list of tuples. E.g.
+         [('1', 'Japan'), ('2', 'Italy'), ('3', 'Germany')]
+        :param fn insert_data_func: what data do you want to see in a new
+         inserted row (if any). Must take grid_data as argument.
         """
-        wx.Dialog.__init__(self, None, title=title, size=(400,400), 
-                          style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU, 
-                          pos=(mg.HORIZ_OFFSET+100,0))
+        wx.Dialog.__init__(self, None, title=title, size=(400, 400),
+            style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU,
+            pos=(mg.HORIZ_OFFSET+100, 0))
         self.panel = wx.Panel(self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
-        force_focus = False
-        self.tabentry = SettingsEntry(self, self.panel, grid_size, col_dets, 
-                              init_settings_data, settings_data, force_focus, 
-                              insert_data_func, row_validation_func)
+        self.tabentry = SettingsEntry(self, self.panel, grid_size, col_dets,
+            init_settings_data, settings_data,
+            insert_data_func, row_validation_func, force_focus=False)
         self.szr_main.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
-        # Close only
+        ## Close only
         self.setup_btns()
         # sizers
         self.szr_main.Add(self.szr_btns, 0, wx.ALL, 10)
@@ -61,14 +62,14 @@ class DlgSettingsEntry(wx.Dialog):
         self.Layout()
         self.tabentry.grid.SetFocus()
         
-    def setup_btns(self, readonly=False):
+    def setup_btns(self, *, read_only=False):
         """
         Separated for text_browser reuse
         """
-        if not readonly:
+        if not read_only:
             btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
             btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
-        if readonly:
+        if read_only:
             btn_ok = wx.Button(self.panel, wx.ID_OK)
         else:
             btn_ok = wx.Button(self.panel, wx.ID_OK, _("Update")) # must have ID 
@@ -76,7 +77,7 @@ class DlgSettingsEntry(wx.Dialog):
             # for std dialog button layout
         btn_ok.Bind(wx.EVT_BUTTON, self.on_ok)
         btn_ok.SetDefault()
-        if not readonly:
+        if not read_only:
             btn_delete = wx.Button(self.panel, wx.ID_DELETE)
             btn_delete.Bind(wx.EVT_BUTTON, self.on_delete)
             btn_insert = wx.Button(self.panel, -1, _("Insert Before"))
@@ -84,20 +85,20 @@ class DlgSettingsEntry(wx.Dialog):
         # using the approach which will follow the platform convention 
         # for standard buttons
         self.szr_btns = wx.StdDialogButtonSizer()
-        if not readonly:
+        if not read_only:
             self.szr_btns.AddButton(btn_cancel)
         self.szr_btns.AddButton(btn_ok)
         self.szr_btns.Realize()
-        if not readonly:
+        if not read_only:
             self.szr_btns.Insert(0, btn_delete, 0)
             self.szr_btns.Insert(0, btn_insert, 0, wx.RIGHT, 10)
 
-    def on_cancel(self, event):
+    def on_cancel(self, _event):
         # no validation - just get out
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)
 
-    def on_ok(self, event):
+    def on_ok(self, _event):
         if not self.panel.Validate(): # runs validators on all assoc controls
             return True
         self.tabentry.update_settings_data()
@@ -120,7 +121,7 @@ class DlgSettingsEntry(wx.Dialog):
         pos = selected_rows[0]
         bolinserted, row_data = self.tabentry.insert_row_above(pos)
         return bolinserted, pos, row_data
-    
+
     def on_insert(self, event):
         """
         Insert before.
@@ -128,22 +129,23 @@ class DlgSettingsEntry(wx.Dialog):
         unused, unused, unused = self.insert_before()
         self.tabentry.grid.SetFocus()
         event.Skip()
-        
-    
+
+
 def cell_invalidation(frame, val, row, col, grid, col_dets):
     "Return boolean and string message"
-    return False, u""
+    return False, ''
 
 def cell_response(self, val, row, col, grid, col_dets):
     pass
 
 
 class SettingsEntry(object):
-    
-    def __init__(self, frame, panel, readonly, grid_size, col_dets, 
-                 init_settings_data, settings_data, force_focus=False, 
-                 insert_data_func=None, cell_invalidation_func=None, 
-                 cell_response_func=None):
+
+    def __init__(self, frame, panel, grid_size, col_dets, 
+            init_settings_data, settings_data, 
+            insert_data_func=None, cell_invalidation_func=None, 
+            cell_response_func=None,
+            *, force_focus=False, read_only=False):
         """
         col_dets - list of dic.  Keys = "col_label", "coltype", 
             and, optionally, "colwidth", "file_phrase", "file_wildcard", 
@@ -153,18 +155,18 @@ class SettingsEntry(object):
             if only a "rename me").
         settings_data - is effectively "returned" - add details to it in form 
             of a list of tuples.
-        force_focus -- force focus - needed sometimes and better without others.
         insert_data_func - return row_data and receive row_idx, grid_data
         cell_invalidation_func - return boolean, and string message 
             and receives row, col, grid, col_dets
         cell_response_func -- some code run when leaving a valid cell e.g. might
             tell user something about the value they just entered
+        force_focus -- force focus - needed sometimes and better without others.
         """
         self.debug = False
         self.new_is_dirty = False
         self.frame = frame
         self.panel = panel
-        self.readonly = readonly
+        self.read_only = read_only
         self.col_dets = col_dets
         self.force_focus = force_focus
         self.insert_data_func = insert_data_func
@@ -173,7 +175,7 @@ class SettingsEntry(object):
         self.cell_response_func = cell_response_func \
             if cell_response_func else cell_response
         # store any fixed min colwidths
-        self.colwidths = [None for x in range(len(self.col_dets))] # init
+        self.colwidths = [None for _x in range(len(self.col_dets))] # init
         for col_idx, col_det in enumerate(self.col_dets):
             if col_det.get("colwidth"):
                 self.colwidths[col_idx] = col_det["colwidth"]
@@ -185,7 +187,7 @@ class SettingsEntry(object):
         self.grid = wx.grid.Grid(self.panel, size=grid_size)        
         self.respond_to_select_cell = True      
         self.rows_n = len(self.init_settings_data)
-        if not readonly:
+        if not read_only:
             self.rows_n += 1
         self.cols_n = len(self.col_dets)
         if self.rows_n > 1:
@@ -196,7 +198,7 @@ class SettingsEntry(object):
                                 u" column of data (currently %s details for "
                                 u"%s columns)" % (self.cols_n, data_cols_n))
         self.grid.CreateGrid(numRows=self.rows_n, numCols=self.cols_n)
-        self.grid.EnableEditing(not self.readonly)
+        self.grid.EnableEditing(not self.read_only)
         # Set any col min widths specifically specified
         for col_idx in range(len(self.col_dets)):
             colwidth = self.colwidths[col_idx]
@@ -247,16 +249,16 @@ class SettingsEntry(object):
         # misc
         for col_idx, col_det in enumerate(self.col_dets):
             self.grid.SetColLabelValue(col_idx, col_det["col_label"])
-        self.rows_to_fill = self.rows_n if self.readonly else self.rows_n - 1
+        self.rows_to_fill = self.rows_n if self.read_only else self.rows_n - 1
         for i in range(self.rows_to_fill):
             for j in range(self.cols_n):
                 self.grid.SetCellValue(
                     row=i, col=j, 
                     s=str(self.init_settings_data[i][j]))
-        if not self.readonly:
+        if not self.read_only:
                 self.grid.SetRowLabelValue(self.rows_n - 1, mg.NEW_IS_READY)
         self.current_col_idx = 0
-        if self.readonly:
+        if self.read_only:
             self.current_row_idx = 0
             self.grid.SetGridCursor(0, 0)
         else:
@@ -336,7 +338,7 @@ class SettingsEntry(object):
         dest_col - column we are going to (as above).
         direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, etc
         """
-        evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
+        evt_cell_move = CellMoveEvent(self.grid.GetId())
         evt_cell_move.add_dets(dest_row, dest_col, direction)
         evt_cell_move.SetEventObject(self.grid)
         self.grid.GetEventHandler().AddPendingEvent(evt_cell_move)
@@ -416,7 +418,7 @@ class SettingsEntry(object):
         if self.debug or debug: 
             print(u"on_grid_key_down - keycode %s pressed" % keycode)
         if (keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE] 
-                and not self.readonly):
+                and not self.read_only):
             # None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
                 # don't skip. Smother event so delete not entered anywhere.
@@ -477,39 +479,46 @@ class SettingsEntry(object):
             self.grid.SetRowLabelValue(self.current_row_idx, mg.NEW_IS_DIRTY)
         else:
             self.grid.SetRowLabelValue(self.get_new_row_idx(), mg.NEW_IS_READY)
-    
+
     def on_text_browse_key_down(self, event):
         """
-        Text browser - hit enter from text box part of composite control OR 
-            clicked on Browse button.  
-            If the final col, will go to left of new line.  Otherwise, will just
-            move right.
-        NB we only get here if editing the text browser.  If in the cell 
-            otherwise, enter will move you down, which is consistent with all 
-            other controls.
+        Text browser - hit enter from text box part of composite control
+        OR clicked on Browse button.
+
+        If the final col, will go to left of new line. Otherwise, will just move
+        right.
+
+        NB we only get here if editing the text browser. If in the cell
+        otherwise, enter will move you down, which is consistent with all other
+        controls.
         """
-        keycode = event.get_key_code() # custom event class
-        if keycode in [controls.MY_KEY_TEXT_BROWSE_MOVE_NEXT, 
-                       controls.MY_KEY_TEXT_BROWSE_BROWSE_BTN]:
+        keycode = event.get_key_code()  ## custom event class
+        if keycode in [
+                controls.MY_KEY_TEXT_BROWSE_MOVE_NEXT,
+                controls.MY_KEY_TEXT_BROWSE_BROWSE_BTN]:
             self.grid.DisableCellEditControl()
             self.add_cell_move_evt(mg.MOVE_RIGHT)
         elif keycode == wx.WXK_ESCAPE:
             self.grid.DisableCellEditControl()
             self.grid.SetFocus()
-            
+
     def on_cell_move(self, event):
         """
         Response to custom event - used to start process of validating move and
-            allowing or disallowing.
+        allowing or disallowing.
+
         Must occur after steps like SetValue (in case of changing data) so that
-            enough information is available to validate data in cell.
+        enough information is available to validate data in cell.
+
         Only update self.current_row_idx and self.current_col_idx once decisions
-            have been made.
-        Should not get here from a key move left in the first column 
-            (not a cell move).
+        have been made.
+
+        Should not get here from a key move left in the first column (not a cell
+        move).
+
         NB must get the table to refresh itself and thus call SetValue(). Other-
-            wise we can't get the value just entered so we can evaluate it for
-            validation.
+        wise we can't get the value just entered so we can evaluate it for
+        validation.
         """
         debug = False
         src_ctrl = self.control
@@ -518,20 +527,22 @@ class SettingsEntry(object):
         dest_row = event.dest_row # row being moved towards
         dest_col = event.dest_col # col being moved towards
         direction = event.direction
-        if self.debug or debug: 
-            print(u"settings_grid.on_cell_move src_row: %s src_col %s " %
-                (src_row, src_col) + u"dest_row: %s dest_col: %s " %
-                (dest_row, dest_col) + u"direction %s" % direction)
-        # process_cell_move called from text editor as well so keep separate
-        self.process_cell_move(src_ctrl, src_row, src_col, dest_row, dest_col, 
-                               direction)
-        # only SetFocus if moving.  Otherwise if this is embedded, we can't set
-        # the focus anywhere else (because it triggers EVT_CELL_MOVE and then
-        # we grab the focus again below!).
+        if self.debug or debug:
+            print(f"settings_grid.on_cell_move src_row: {src_row} "
+                f"src_col {src_col} dest_row: {dest_row} dest_col: {dest_col} "
+                f"direction {direction}")
+        ## process_cell_move called from text editor as well so keep separate
+        self.process_cell_move(src_ctrl,
+            src_row, src_col,
+            dest_row, dest_col,
+            direction)
+        ## Only SetFocus if moving. Otherwise if this is embedded, we can't set
+        ## the focus anywhere else (because it triggers EVT_CELL_MOVE and then
+        ## we grab the focus again below!).
         moved = ((src_row, src_col) != (dest_row, dest_col))
         if self.force_focus and moved:
             self.grid.SetFocus()
-            # http://www.nabble.com/Setting-focus-to-grid-td17920756.html
+            ## http://www.nabble.com/Setting-focus-to-grid-td17920756.html
             for window in self.grid.GetChildren():
                 window.SetFocus()
         event.Skip()
@@ -1051,12 +1062,12 @@ class SettingsEntry(object):
     def get_grid_data(self):
         """
         Get data from grid.
-        If readonly, get all rows.
-        If not readonly, get all but final row (either empty or not saved).
+        If read_only, get all rows.
+        If not read_only, get all but final row (either empty or not saved).
         Only returns values - not types etc.
         """
         grid_data = []
-        data_rows_n = self.rows_n if self.readonly else self.rows_n - 1 
+        data_rows_n = self.rows_n if self.read_only else self.rows_n - 1 
         for row_idx in range(data_rows_n):
             row_data = []
             for col_idx in range(len(self.col_dets)):
