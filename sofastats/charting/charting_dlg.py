@@ -854,8 +854,8 @@ class SetupIndivChartType:
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_bar_val = ManageDropdowns.get_drop_val_opts(
             self, self.panel_bar_chart)
-        lbl_sort = wx.StaticText(
-            self.panel_bar_chart, -1, _('Sort order\nof %s:') % BARS_SORTED_LBL)
+        lbl_sort_str = _('Sort order\nof %s:') % BARS_SORTED_LBL
+        lbl_sort = wx.StaticText(self.panel_bar_chart, -1, lbl_sort_str)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_bar_sort = ManageDropdowns.get_drop_sort_opts(
             self, self.panel_bar_chart)
@@ -892,8 +892,8 @@ class SetupIndivChartType:
         lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_clust_val = ManageDropdowns.get_drop_val_opts(
             self, self.panel_clust_bar)
-        lbl_sort = wx.StaticText(self.panel_clust_bar, -1,
-            _("Sort order\nof %s:") % CLUSTERS_SORTED_LBL)
+        lbl_sort_str = _("Sort order\nof %s:") % CLUSTERS_SORTED_LBL
+        lbl_sort = wx.StaticText(self.panel_clust_bar, -1, lbl_sort_str)
         lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_clust_sort = ManageDropdowns.get_drop_sort_opts(
             self, self.panel_clust_bar,
@@ -1526,7 +1526,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_help_data.SetSizeHints(self.panel_data)
         ## chart buttons
         self.panel_mid = wx.Panel(self)
-        bx_charts = wx.StaticBox(self.panel_mid, -1, _("Chart Details"))
+        bx_charts = wx.StaticBox(self.panel_mid, -1, _('Chart Details'))
         self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
         ChartTypeBtns.setup_chart_btns(self, szr_chart_btns)
         ## dp spinner
@@ -1562,16 +1562,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         SetupIndivChartType.setup_boxplot(self)
         ## Hide all panels except default. Display and layout then hide.
         ## Prevents flicker on change later.
-        panels2hide = [self.panel_clust_bar, self.panel_pie_chart,
-            self.panel_line_chart, self.panel_area_chart, self.panel_histogram,
-            self.panel_scatterplot, self.panel_boxplot]
-        check = True
-        for panel2hide in panels2hide:
+        ## Start with widest one because seems to trim to the width of the first.
+        widest_panel = self.panel_line_chart
+        oth_panels2hide = [
+            self.panel_clust_bar,
+            self.panel_pie_chart,
+            self.panel_area_chart,
+            self.panel_histogram,
+            self.panel_scatterplot,
+            self.panel_boxplot]
+        for panel2hide in [widest_panel, ] + oth_panels2hide:
             self.szr_mid.Add(panel2hide, 0, wx.GROW)
-            if check:
+            if panel2hide == widest_panel:
                 self.panel_mid.SetSizer(self.szr_mid)
                 self.szr_mid.SetSizeHints(self.panel_mid)
-                check = False
             panel2hide.Show(True)
             self.panel_mid.Layout()  ## self.Layout() doesn't work in Windows
             panel2hide.Show(False)
@@ -1582,7 +1586,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_bar_chart.Show(True)
         self.panel_mid.SetSizer(self.szr_mid)
         self.szr_mid.SetSizeHints(self.panel_mid)
-        ## Bottom panel
+        ## bottom panel
         self.panel_bottom = wx.Panel(self)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
         szr_titles = wx.BoxSizer(wx.HORIZONTAL)
