@@ -67,24 +67,25 @@ debug_events = False
 
 class CellMoveEvent(wx.PyCommandEvent):
     "See 3.6.1 in wxPython in Action"
-    def __init__(self, evtType, id):
+    def __init__(self, evtType, _id):
         wx.PyCommandEvent.__init__(self, evtType, id)
     
     def add_dets(self, dest_row=None, dest_col=None, direction=None):
         self.dest_row = dest_row
         self.dest_col = dest_col
         self.direction = direction
-    
-# new event type to pass around
+
+
+## new event type to pass around
 myEVT_CELL_MOVE = wx.NewEventType()
-# event to bind to
+## event to bind to
 EVT_CELL_MOVE = wx.PyEventBinder(myEVT_CELL_MOVE, 1)
 
 def get_display_dims(maxheight, iswindows):
     mywidth = 900
     if iswindows:
         mid_height = 820
-        unavailable_height = 40 # 20 OK for normal height taskbars only
+        unavailable_height = 40  ## 20 OK for normal height taskbars only
     else:
         mid_height = 910
         unavailable_height = 110
@@ -97,7 +98,7 @@ def get_display_dims(maxheight, iswindows):
         myheight = 800
     return mywidth, myheight
 
-def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
+def open_data_table(parent, var_labels, var_notes, var_types, val_dics, *,
         read_only):
     debug = False
     dd = mg.DATADETS_OBJ
@@ -106,55 +107,55 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics,
             "index. You can still use it for analysis though.")
         wx.MessageBox(msg % dd.tbl)  ## needed for caching even if read only
     else:
-        SQL_get_count = (u"SELECT COUNT(*) FROM %s" % 
-            getdata.tblname_qtr(dd.dbe, dd.tbl))
+        tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
+        SQL_get_count = f'SELECT COUNT(*) FROM {tblname}'
         try:
             dd.cur.execute(SQL_get_count)
         except Exception as e:
-            wx.MessageBox(_(u"Problem opening selected table."
-                u"\nCaused by error: %s") % b.ue(e))
+            wx.MessageBox(_("Problem opening selected table."
+                "\nCaused by error: %s") % b.ue(e))
         res = dd.cur.fetchone()
         if res is None:
             rows_n = 0
-            if debug: print(u"Unable to get first item from %s." % 
-                SQL_get_count)
+            if debug: print(f'Unable to get first item from {SQL_get_count}.')
         else:
             rows_n = res[0]
-        if rows_n > 200000: # fast enough as long as column resizing is off
+        if rows_n > 200000:  ## fast enough as long as column resizing is off
             if wx.MessageBox(_("This table has %s rows. "
                     "Do you wish to open it?") % rows_n, 
-                    caption=_("LONG REPORT"), style=wx.YES_NO) == wx.NO:
+                    caption=_("LONG REPORT"),
+                    style=wx.YES_NO) == wx.NO:
                 return
         wx.BeginBusyCursor()
         need_colwidths_set = (rows_n < 1000)
         dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
-            read_only, need_colwidths_set=need_colwidths_set)
+            read_only=read_only, need_colwidths_set=need_colwidths_set)
         lib.GuiLib.safe_end_cursor()
         dlg.ShowModal()
 
 def open_database(parent, event):
     read_only = parent.chk_read_only.IsChecked()
     open_data_table(parent, parent.var_labels, parent.var_notes,
-        parent.var_types, parent.val_dics, read_only)
+        parent.var_types, parent.val_dics, read_only=read_only)
     event.Skip()
-    
-    
+
+
 class TblEditor(wx.Dialog, config_ui.ConfigUI):
     """
     It's right to left with mixin inheritance. Override with innermost (last) -
     see https://www.ianlewis.org/en/mixins-and-python
     """
-    def __init__(self, parent, var_labels, var_notes, var_types, val_dics,
-                 read_only=True, need_colwidths_set=True):
+    def __init__(self, parent, var_labels, var_notes, var_types, val_dics, *,
+            read_only=True, need_colwidths_set=True):
         self.debug = False
         self.need_colwidths_set = need_colwidths_set
         self.dd = mg.DATADETS_OBJ
         self.read_only = read_only
-        title = _("Data from ") + "%s.%s" % (self.dd.db, self.dd.tbl)
+        title = _("Data from ") + f'{self.dd.db}.{self.dd.tbl}'
         if self.read_only:
             title += _(" (Read Only)")
         wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
-            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX\
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.parent = parent
@@ -171,7 +172,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.grid.EnableEditing(not self.read_only)
         self.init_tbl()
         self.grid.GetGridColLabelWindow().SetToolTip(
-            _("Right click variable to view/edit details"))
+            _('Right click variable to view/edit details'))
         self.respond_to_select_cell = True
         self.control = None
         self.grid.Bind(wx.grid.EVT_GRID_CELL_CHANGING, self.on_cell_change)
@@ -183,26 +184,26 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.Bind(wx.grid.EVT_GRID_EDITOR_HIDDEN, self.on_editor_hidden)
         self.prev_row_col = (None, None)
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
-        self.grid.Bind(wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, 
-            self.on_label_rclick)
+        self.grid.Bind(
+            wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.on_label_rclick)
         szr_top = wx.FlexGridSizer(rows=1, cols=4, hgap=5, vgap=5)
-        szr_top.AddGrowableCol(2,2) # idx, propn
+        szr_top.AddGrowableCol(2, 2)  ## idx, propn
         szr_bottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szr_bottom.AddGrowableCol(0,2) # idx, propn
+        szr_bottom.AddGrowableCol(0,2)  ## idx, propn
 
-        self.btn_size_cols = wx.Button(self.panel, -1, _("Resize column widths"))
+        self.btn_size_cols = wx.Button(self.panel, -1, _('Resize column widths'))
         self.btn_size_cols.Bind(wx.EVT_BUTTON, self.on_size_cols)
         self.btn_size_cols.SetFont(mg.BTN_FONT)
 
         self.btn_filter = self.get_btn_filter(self.panel)
-        tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(self.dd.dbe,
-            self.dd.db, self.dd.tbl)
+        tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(
+            self.dd.dbe, self.dd.db, self.dd.tbl)
         filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
         self.lbl_filter = wx.StaticText(self.panel, -1, filt_msg)
 
         self.btn_var_config = self.get_btn_var_config(self.panel)
 
-        self.btn_export = wx.Button(self.panel, -1, _(u"Export as spreadsheet"))
+        self.btn_export = wx.Button(self.panel, -1, _('Export as spreadsheet'))
         self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         self.btn_export.SetFont(mg.BTN_FONT)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
@@ -223,17 +224,18 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.panel.SetSizer(self.szr_main)
         szr_lst = [szr_top, self.grid, szr_bottom]
         iswindows = (mg.PLATFORM == mg.WINDOWS)
-        mywidth, myheight = get_display_dims(maxheight=mg.MAX_HEIGHT,
-            iswindows=iswindows)
+        mywidth, myheight = get_display_dims(
+            maxheight=mg.MAX_HEIGHT, iswindows=iswindows)
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=mywidth,
             height_init=myheight)
         self.grid.SetFocus()
 
     def init_tbl(self):
-        self.dbtbl = db_tbl.DbTbl(self.grid, self.var_labels, self.read_only)
+        self.dbtbl = db_tbl.DbTbl(self.grid, self.var_labels,
+            read_only=self.read_only)
         self.grid.SetTable(self.dbtbl, takeOwnership=True)
         self.read_only_cols = []
-        # set col rendering (string is default)
+        ## set col rendering (string is default)
         for col_idx in range(len(self.dd.flds)):
             fld_dic = self.dbtbl.get_fld_dic(col_idx)
             if fld_dic[mg.FLD_BOLNUMERIC]:
@@ -241,11 +243,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                     width = 20
                     precision = 1
                     self.grid.SetColFormatFloat(col_idx, width, precision)
-                elif fld_dic[mg.FLD_DECPTS] > 0: # float
+                elif fld_dic[mg.FLD_DECPTS] > 0:  ## float
                     width = fld_dic[mg.FLD_NUM_WIDTH]
                     precision = fld_dic[mg.FLD_DECPTS]
                     self.grid.SetColFormatFloat(col_idx, width, precision)
-                else: # int
+                else:  ## int
                     self.grid.SetColFormatNumber(col_idx)
         if self.read_only:
             col2select = 0
@@ -254,44 +256,48 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.current_col_idx = col2select
             for col_idx in range(len(self.dd.flds)):
                 attr = wx.grid.GridCellAttr()
-                attr.SetBackgroundColour(mg.read_only_COLOUR)
+                attr.SetBackgroundColour(mg.READONLY_COLOUR)
                 self.grid.SetColAttr(col_idx, attr)
         else:
-            # disable any columns which do not allow data entry and set colour
-            col2select = None # first editable col
+            ## disable any columns which do not allow data entry and set colour
+            col2select = None  ## first editable col
             for col_idx in range(len(self.dd.flds)):
                 fld_dic = self.dbtbl.get_fld_dic(col_idx)
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     self.read_only_cols.append(col_idx)
                     attr = wx.grid.GridCellAttr()
                     attr.Setread_only(True)
-                    attr.SetBackgroundColour(mg.read_only_COLOUR)
+                    attr.SetBackgroundColour(mg.READONLY_COLOUR)
                     self.grid.SetColAttr(col_idx, attr)
-                elif col2select is None: # set once
+                elif col2select is None:  ## set once
                     col2select = col_idx
             col2select = 0 if col2select is None else col2select
-            # start at new line
+            ## start at new line
             new_row_idx = self.dbtbl.GetNumberRows() - 1
             self.focus_on_new_row(new_row_idx, col2select)
             self.current_row_idx = new_row_idx
             self.current_col_idx = col2select
             self.set_new_row_ed(new_row_idx)
-        self.col2select = col2select # used to determine where cursor should 
-            # land when moving from end of new row.
+        self.col2select = col2select  ## used to determine where cursor should
+            ## land when moving from end of new row.
         self.any_editor_shown = False
         if self.need_colwidths_set:
             self.set_colwidths()
 
-    # processing MOVEMENTS AWAY FROM CELLS e.g. saving values //////////////////
+    ## processing MOVEMENTS AWAY FROM CELLS e.g. saving values /////////////////
 
     def add_cell_move_evt(self, direction, dest_row=None, dest_col=None):
         """
         Add special cell move event.
-        src_row and src_col - wherever we were last (only updated if a move is 
-            validated and allowed).
-        dest_row - row we are going to (None if here by keystroke - 
-            yet to be determined).
+
+        src_row and src_col - wherever we were last (only updated if a move is
+        validated and allowed).
+
+        dest_row - row we are going to (None if here by keystroke - yet to be
+        determined).
+
         dest_col - column we are going to (as above).
+
         direction - MOVE_LEFT, MOVE_RIGHT, MOVE_UP, etc
         """
         evt_cell_move = CellMoveEvent(myEVT_CELL_MOVE, self.grid.GetId())
@@ -304,19 +310,19 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         Capture use of move away from a cell. May be result of mouse click
         or a keypress.
         """
-        if debug_events: print("on_select_cell")
+        if debug_events: print('on_select_cell')
         debug = False
         see_native_bvr = False
         if see_native_bvr:
-            print("SHOWING NATIVE BVR !!!!!!!")
+            print('SHOWING NATIVE BVR !!!!!!!')
             event.Skip()
             return
         if not self.respond_to_select_cell:
             self.respond_to_select_cell = True
             event.Skip()
             return
-        src_row = self.current_row_idx # row being moved from
-        src_col = self.current_col_idx # col being moved from
+        src_row = self.current_row_idx  ## row being moved from
+        src_col = self.current_col_idx  ## col being moved from
         dest_row = event.GetRow()
         dest_col = event.GetCol()
         if dest_row == src_row:
@@ -338,10 +344,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         elif dest_col < src_col and dest_row < src_row:
             direction = mg.MOVE_UP_LEFT
         else:
-            raise Exception(u"db_grid.on_select_cell - where is direction?")
+            raise Exception('db_grid.on_select_cell - where is direction?')
         if self.debug or debug: 
-            print("on_select_cell - selected row: %s, col: %s, direction: %s" %
-            (dest_row, dest_col, direction) + "*******************************") 
+            print(f'on_select_cell - selected row: {dest_row}, col: {dest_col},'
+                ' direction: {direction}' + '*******************************') 
         self.add_cell_move_evt(direction, dest_row, dest_col)
 
     def on_grid_key_down(self, event):
@@ -356,34 +362,34 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
 
         Must process here. NB dest row and col yet to be determined.
         """
-        if debug_events: print("on_grid_key_down")
+        if debug_events: print('on_grid_key_down')
         debug = False
         see_native_bvr = False
         if see_native_bvr:
-            print("SHOWING NATIVE BVR !!!!!!!")
+            print('SHOWING NATIVE BVR !!!!!!!')
             event.Skip()
             return
         keycode = event.GetKeyCode()
-        if self.debug or debug: 
-            print("on_grid_key_down - keycode %s pressed" % keycode)
-        if not self.dbtbl.read_only and keycode in [wx.WXK_DELETE, 
-                                                   wx.WXK_NUMPAD_DELETE]:
-            # None if no deletion occurs
+        if self.debug or debug:
+            print(f'on_grid_key_down - keycode {keycode} pressed')
+        delete_keycodes = (wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE)
+        if not self.dbtbl.read_only and keycode in delete_keycodes:
+            ## None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
-                # don't skip. Smother event so delete not entered anywhere.
+                ## don't skip. Smother event so delete not entered anywhere.
                 return
             else:
-                # set to missing value instead of empty string
+                ## set to missing value instead of empty string
                 row = self.current_row_idx
                 col = self.current_col_idx
                 self.dbtbl.SetValue(row, col, mg.MISSING_VAL_INDICATOR)
                 self.dbtbl.force_refresh()
-                try: # won't work if new row
+                try:  ## won't work if new row
                     self.dbtbl.row_vals_dic[row][col] = mg.MISSING_VAL_INDICATOR
                 except Exception:
                     pass
-                # Don't set self.dbtbl.new_is_dirty = True because of 
-                # a deletion only.
+                ## Don't set self.dbtbl.new_is_dirty = True because of 
+                ## a deletion only.
                 #new_row = self.dbtbl.is_new_row(row)
                 #if new_row:
                 #    self.dbtbl.new_is_dirty = True
@@ -394,54 +400,58 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 else:
                     direction = mg.MOVE_RIGHT
             elif keycode == wx.WXK_RETURN:
-                direction = mg.MOVE_DOWN # the native bvr
+                direction = mg.MOVE_DOWN  ## the native bvr
             src_row=self.current_row_idx
             src_col=self.current_col_idx
             if self.debug or debug: 
-                print("on_grid_key_down - keypress in row %s col %s"
-                      " ******************************" % (src_row, src_col))
+                print(f'on_grid_key_down - keypress in row'
+                    f' {src_row} col {src_col} ******************************')
             final_col = (src_col == len(self.dd.flds) - 1)
-            if final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
+            move_right_or_down = (mg.MOVE_RIGHT, mg.MOVE_DOWN)
+            if final_col and direction in move_right_or_down:
                 self.add_cell_move_evt(direction)
                 """
                 Do not Skip and send event on its way.
-                Smother the event here so our code can determine where the 
-                    selection goes next. Matters when a Return which will 
-                    otherwise natively appear in cell below and trigger other 
-                    responses.
+
+                Smother the event here so our code can determine where the
+                selection goes next. Matters when a Return which will otherwise
+                natively appear in cell below and trigger other responses.
                 """
             elif keycode == wx.WXK_RETURN:
-                # A return but not at the end - normally would go down but we 
-                # want to go right. Whether OK to or not will be decided when 
-                # event processed.
+                ## A return but not at the end - normally would go down but we
+                ## want to go right. Whether OK to or not will be decided when
+                ## event processed.
                 self.add_cell_move_evt(direction=mg.MOVE_RIGHT)
                 """
                 Do not Skip and send event on its way.
-                Smother the event here so our code can determine where the 
-                    selection goes next. Otherwise Return will cause us to 
-                    natively appear in cell below and trigger other responses.
+
+                Smother the event here so our code can determine where the
+                selection goes next. Otherwise Return will cause us to natively
+                appear in cell below and trigger other responses.
                 """
             else:
-                # For a TAB, will natively move right (or left with Shift) 
-                # stopping at either end.
+                ## For a TAB, will natively move right (or left with Shift)
+                ## stopping at either end.
                 event.Skip()
-        else: # presumably entering a value :-)
+        else:  ## presumably entering a value :-)
             event.Skip()
 
     def ok_to_delete_row(self, row):
         """
         Can delete any row except the new row.
+
         Cannot delete if in middle of editing a cell.
+
         Returns boolean and msg.
         """
         if self.is_new_row(row):
-            return False, _("Unable to delete new row")
+            return False, _('Unable to delete new row')
         elif self.dbtbl.new_is_dirty:
-            return False, _("Cannot delete a row while in the middle of making "
-                            "a new one")
+            return False, _('Cannot delete a row while in the middle of making '
+                'a new one')
         elif self.any_editor_shown:
-            return False, _("Cannot delete a row while in the middle of editing"
-                            " a cell")  
+            return False, _('Cannot delete a row while in the middle of editing'
+                ' a cell')  
         else:
             return True, None
 
@@ -450,14 +460,16 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.dbtbl.rows_n += change
         self.dbtbl.idx_final_data_row += change
 
-    def try_to_delete_row(self, assume_row_deletion_attempt=True):
+    def try_to_delete_row(self, *, assume_row_deletion_attempt=True):
         """
-        Delete row if a row selected and not the data entry row
-            and put focus on new line.
+        Delete row if a row selected and not the data entry row and put focus on
+        new line.
+
         Return row idx deleted (or None if deletion did not occur).
-        If it is assumed there was a row deletion attempt (e.g. clicked a delete 
-            button), then warn if no selection.  If no such assumption, silently
-            cope with situation where no selection.
+
+        If it is assumed there was a row deletion attempt (e.g. clicked a delete
+        button), then warn if no selection. If no such assumption, silently cope
+        with situation where no selection.
         """
         selected_rows = self.grid.GetSelectedRows()
         sel_rows_n = len(selected_rows)
@@ -469,8 +481,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 try:
                     row_id = self.dbtbl.row_ids_lst[row_idx]
                 except IndexError:
-                    wx.MessageBox(_("Unable to delete row - id not found in "
-                                    "list"))
+                    wx.MessageBox(
+                        _('Unable to delete row - id not found in list'))
                     return None
                 deleted, msg = getdata.delete_row(id_fld, row_id)
                 if deleted:
@@ -481,76 +493,85 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                     self.grid.HideCellEditControl()
                     self.grid.BeginBatch()
                     msg = wx.grid.GridTableMessage(self.dbtbl, 
-                            wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, row_idx, 1)
+                        wx.grid.GRIDTABLE_NOTIFY_ROWS_DELETED, row_idx, 1)
                     self.grid.ProcessTableMessage(msg)
                     msg = wx.grid.GridTableMessage(self.dbtbl, 
-                                    wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
+                        wx.grid.GRIDTABLE_REQUEST_VIEW_GET_VALUES)
                     self.grid.ProcessTableMessage(msg)
                     self.grid.EndBatch()
                     self.grid.ForceRefresh()
                     self.respond_to_select_cell = False
                     if row_idx < self.current_row_idx:
                         self.current_row_idx -= 1
-                        self.grid.SetGridCursor(self.current_row_idx, 
-                                                self.current_col_idx)
+                        self.grid.SetGridCursor(
+                            self.current_row_idx, self.current_col_idx)
                     self.grid.SetFocus()
                 else:
-                    wx.MessageBox(_("Unable to delete row - underlying table "
-                                    "did not approve the change"))
+                    wx.MessageBox(_('Unable to delete row - underlying table '
+                        'did not approve the change'))
                     return None
-                # reset anything relying on this row still existing
+                ## reset anything relying on this row still existing
                 del self.dbtbl.row_ids_lst[row_idx]
-                self.dbtbl.row_vals_dic = {} # wiped completely - need to 
-                    # rebuild again as needed.
+                self.dbtbl.row_vals_dic = {}  ## wiped completely - need to
+                    ## rebuild again as needed.
                 return row_idx
             else:
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
             if assume_row_deletion_attempt:
-                wx.MessageBox(_("Please select a row first (click to the left "
-                                "of the row)"))
+                wx.MessageBox(_('Please select a row first (click to the left '
+                                'of the row)'))
             else:
                 pass
         else:
-            wx.MessageBox(_("Can only delete one row at a time"))
+            wx.MessageBox(_('Can only delete one row at a time'))
         return None
-    
-    def DeleteRows(self, pos, numRows):
-        # wxPython
+
+    def DeleteRows(self, _pos, _numRows):
+        ## wxPython
         return True
-    
+
     def on_cell_move(self, event):
         """
         Response to custom event - used to start process of validating move and
-            allowing or disallowing.
+        allowing or disallowing.
+
         Must occur after steps like SetValue (in case of changing data) so that
-            enough information is available to validate data in cell.
+        enough information is available to validate data in cell.
+
         Only update self.current_row_idx and self.current_col_idx once decisions
-            have been made.
-        Should not get here from a key move left in the first column 
-            (not a cell move).
-        NB must get the table to refresh itself and thus call SetValue(). Other-
-            wise we can't get the value just entered so we can evaluate it for
-            validation.
+        have been made.
+
+        Should not get here from a key move left in the first column (not a cell
+        move).
+
+        NB must get the table to refresh itself and thus call SetValue().
+        Otherwise we can't get the value just entered so we can evaluate it for
+        validation.
         """
-        if debug_events: print("on_cell_move")
+        if debug_events: print('on_cell_move')
         debug = False
         src_ctrl = self.control
-        src_row=self.current_row_idx # row being moved from
-        src_col=self.current_col_idx # col being moved from
-        dest_row = event.dest_row # row being moved towards
-        dest_col = event.dest_col # col being moved towards
+        src_row=self.current_row_idx  ## row being moved from
+        src_col=self.current_col_idx  ## col being moved from
+        dest_row = event.dest_row  ## row being moved towards
+        dest_col = event.dest_col  ## col being moved towards
         direction = event.direction  ## is move down when filter removed
         if self.debug or debug:
-            print("settings_grid.on_cell_move src_row: %s src_col %s " %
-                (src_row, src_col) + "dest_row: %s dest_col: %s " %
-                (dest_row, dest_col) + "direction %s" % direction)
-        # process_cell_move called from text editor as well so keep separate
-        self.process_cell_move(src_ctrl, src_row, src_col, dest_row, dest_col, 
+            print('settings_grid.on_cell_move '
+                f'src_row: {src_row} src_col {src_col} '
+                f'dest_row: {dest_row} dest_col: {dest_col} '
+                f'direction {direction}')
+        ## process_cell_move called from text editor as well so keep separate
+        self.process_cell_move(src_ctrl,
+            src_row, src_col,
+            dest_row, dest_col,
             direction)
         event.Skip()
 
-    def process_cell_move(self, src_ctrl, src_row, src_col, dest_row, dest_col, 
+    def process_cell_move(self, src_ctrl,
+            src_row, src_col,
+            dest_row, dest_col,
             direction):
         """
         dest row and col still unknown if from a return or TAB keystroke.
@@ -559,39 +580,40 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         debug = False
         self.dbtbl.force_refresh()
         if self.debug or debug:
-            print("process_cell_move - " +
-                  "source row %s source col %s " % (src_row, src_col) +
-                  "dest row %s dest col %s " % (dest_row, dest_col) +
-                  "direction: %s" % direction)
-        (was_final_col, unused, 
-         was_final_row, move_type, 
-         dest_row, dest_col) = self.get_move_dets(src_row, src_col, dest_row,
-            dest_col, direction)
+            print(f'process_cell_move - '
+                f'source row {src_row} source col {src_col} '
+                f'dest row {dest_row} dest col {dest_col} '
+                f'direction: {direction}')
+        (was_final_col, unused,
+         was_final_row, move_type,
+         dest_row, dest_col) = self.get_move_dets(
+                            src_row, src_col, dest_row, dest_col, direction)
         if move_type in [mg.MOVING_IN_EXISTING, mg.LEAVING_EXISTING]:
-            move_to_dest = self.leaving_cell_in_existing_row(was_final_col,
-                was_final_row, direction)
+            move_to_dest = self.leaving_cell_in_existing_row(
+                was_final_col, was_final_row, direction)
         elif move_type == mg.MOVING_IN_NEW:
             move_to_dest = self.moving_in_new_row()
         elif move_type == mg.LEAVING_NEW:
             move_to_dest = self.leaving_new_row(dest_row, dest_col, direction)
         else:
-            raise Exception(u"process_cell_move - Unknown move_type")
+            raise Exception('process_cell_move - Unknown move_type')
         if self.debug or debug:
-            print("Move type: %s" % move_type)
-            print("OK to move to dest?: %s" % move_to_dest)
+            print(f'Move type: {move_type}')
+            print(f'OK to move to dest?: {move_to_dest}')
         if move_to_dest:
-            self.respond_to_select_cell = False # to prevent infinite loop!
+            self.respond_to_select_cell = False  ## to prevent infinite loop!
             self.grid.SetGridCursor(dest_row, dest_col)
             self.grid.MakeCellVisible(dest_row, dest_col)
             self.current_row_idx = dest_row
             self.current_col_idx = dest_col
         else:
-            if debug: print("Stay here at %s %s" % (src_row, src_col))
-            #self.respond_to_select_cell = False # to prevent infinite loop!
+            if debug: print(f'Stay here at {src_row} {src_col}')
+            #self.respond_to_select_cell = False  ## to prevent infinite loop!
             if src_ctrl:
                 if debug: 
-                    print("Last control was: %s" % src_ctrl)
-                    print("Control text: %s" % src_ctrl.GetValue())
+                    print(f'Last control was: {src_ctrl}')
+                    src_ctrl_val = src_ctrl.GetValue()
+                    print(f'Control text: {src_ctrl_val}')
                 self.grid.EnableCellEditControl(enable=True)
                 try:
                     src_ctrl.SetInsertionPointEnd()
@@ -601,36 +623,48 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def get_move_dets(self, src_row, src_col, dest_row, dest_col, direction):
         """
         Gets move details.
-        Returns (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
-                dest_col).
-        move_type - MOVING_IN_EXISTING, MOVING_IN_NEW, LEAVING_EXISTING, or 
-            LEAVING_NEW.
-        dest_row and dest_col are where we the selection should go unless there 
-            is a validation issue.
+
+        Returns (was_final_col, was_new_row, was_final_row, move_type, dest_row,
+        dest_col).
+
+        move_type - MOVING_IN_EXISTING, MOVING_IN_NEW, LEAVING_EXISTING, or
+        LEAVING_NEW.
+
+        dest_row and dest_col are where we the selection should go unless there
+        is a validation issue.
+
         dest_row and dest_col may need to be worked out e.g. if cell move caused
-            by a tab keypress.
+        by a tab keypress.
+
         Take into account whether a new row or not.
+
         If on new row, take into account if final column.
+
         Main task is to decide whether to allow the move.
+
         If not, set focus on source.
-        Decide based on validation of cell and, if a new row, the row as a 
-            whole.
+
+        Decide based on validation of cell and, if a new row, the row as a whole
+
         Don't allow to leave cell in invalid state.
+
         Overview of checks made:
             If jumping around within new row, cell cannot be invalid.
             If not in a new row (i.e. in existing), cell must be ok to save.
             If leaving new row, must be ready to save whole row unless a clean
                 row and moving up.
+
         If any rules are broken, put focus on source cell. Otherwise got to
-            cell at destination row and col.
+        cell at destination row and col.
         """
         debug = False
-        # 1) move type
+        ## 1) move type
         was_final_col = (src_col == len(self.dd.flds) - 1)
         was_new_row = self.is_new_row(self.current_row_idx)
         was_final_row = self.is_final_row(self.current_row_idx)
-        if debug: print("Current row idx: %s, src_row: %s, was_new_row: %s" %
-            (self.current_row_idx, src_row, was_new_row))
+        if debug:
+            print(f'Current row idx: {self.current_row_idx}, src_row: {src_row}'
+                f', was_new_row: {was_new_row}')
         dest_row_is_new = self.dest_row_is_current_new(
             src_row, direction, was_final_col)
         if was_new_row and dest_row_is_new:
@@ -642,59 +676,61 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         elif not was_new_row and dest_row_is_new:
             move_type = mg.LEAVING_EXISTING
         else:
-            raise Exception(u"db_grid.GetMoveDets().  Unknown move.")
-        # 2) dest row and dest col
-        if dest_row is None and dest_col is None: # known if from on_select_cell
-            if was_final_col and direction in [mg.MOVE_RIGHT, mg.MOVE_DOWN]:
+            raise Exception('db_grid.GetMoveDets(). Unknown move.')
+        ## 2) dest row and dest col
+        if dest_row is None and dest_col is None:  ## known if from on_select_cell
+            move_right_or_down = (mg.MOVE_RIGHT, mg.MOVE_DOWN)
+            if was_final_col and direction in move_right_or_down:
                 dest_row = src_row + 1
                 dest_col = self.col2select
             else:
                 if direction == mg.MOVE_RIGHT:
                     dest_row = src_row
                     dest_col = src_col + 1
-                elif direction == mg.MOVE_LEFT:                    
+                elif direction == mg.MOVE_LEFT:
                     dest_row = src_row
                     dest_col = src_col - 1 if src_col > 0 else 0
                 elif direction == mg.MOVE_DOWN:
                     dest_row = src_row + 1
                     dest_col = src_col
                 else:
-                    raise Exception(u"db_grid.GetMoveDets no destination (so "
-                                    u"from a TAB or Return) yet not a left, "
-                                    u"right, or down.")
-        return (was_final_col, was_new_row, was_final_row, move_type, dest_row, 
-                dest_col)
+                    raise Exception(
+                        'db_grid.GetMoveDets no destination (so from a TAB or '
+                        'Return) yet not a left, right, or down.')
+        return (was_final_col, was_new_row, was_final_row, move_type,
+            dest_row, dest_col)
 
     def dest_row_is_current_new(self, src_row, direction, final_col):
         """
-        Is the destination row (assuming no validation problems) the current 
-            new row?
-        If currently on the new row and leaving it, the destination row, even 
-            if it becomes a new row is not the current new row.
+        Is the destination row (assuming no validation problems) the current
+        new row?
+
+        If currently on the new row and leaving it, the destination row, even
+        if it becomes a new row is not the current new row.
         """
-        #organised for clarity not minimal lines of code ;-)
-        if self.is_new_row(src_row): # new row
+        ## organised for clarity not minimal lines of code ;-)
+        if self.is_new_row(src_row):  ## new row
             if final_col:
-                # only LEFT stays in _current_ new row
+                ## only LEFT stays in _current_ new row
                 if direction == mg.MOVE_LEFT:
                     dest_row_is_new = True
                 else:
                     dest_row_is_new = False
-            else: # only left and right stay in _current_ new row
+            else:  ## only left and right stay in _current_ new row
                 if direction in [mg.MOVE_LEFT, mg.MOVE_RIGHT]:
-                    dest_row_is_new = True # moving sideways within new
+                    dest_row_is_new = True  ## moving sideways within new
                 else:
                     dest_row_is_new = False
-        elif self.is_new_row(src_row + 1): # row just above the new row
-            # only down (inc down left and right), or right in final col, 
-            # take to new
-            if direction in [mg.MOVE_DOWN, mg.MOVE_DOWN_LEFT, 
-                             mg.MOVE_DOWN_RIGHT] or \
-                    (direction == mg.MOVE_RIGHT and final_col):
+        elif self.is_new_row(src_row + 1):  ## row just above the new row
+            ## only down (inc down left and right), or right in final col,
+            ## take to new
+            move_down = (mg.MOVE_DOWN, mg.MOVE_DOWN_LEFT, mg.MOVE_DOWN_RIGHT)
+            move_right_from_end = (direction == mg.MOVE_RIGHT and final_col)
+            if direction in move_down or move_right_from_end:
                 dest_row_is_new = True
             else:
                 dest_row_is_new = False
-        else: # more than one row away from new row
+        else:  ## more than one row away from new row
             dest_row_is_new = False
         return dest_row_is_new
 
@@ -704,27 +740,30 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         Process the attempt to leave an existing cell (whether or not leaving
         existing row).
 
-        Will not move if cell data not OK to save
+        Will not move if cell data not OK to save.
+
         OR read_only table and in final row and column and moving right or down.
+
         Will update a cell if there is changed data and if it is valid.
+
         Return move_to_dest.
         """
         debug = False
-        if self.debug or debug: print("Was in existing, ordinary row")
+        if self.debug or debug: print('Was in existing, ordinary row')
         if self.dbtbl.read_only:
             move_to_dest = not (was_final_row and was_final_col
-                and direction in(mg.MOVE_RIGHT, mg.MOVE_DOWN))
+                and direction in (mg.MOVE_RIGHT, mg.MOVE_DOWN))
         else:
-            if not self.cell_ok_to_save(self.current_row_idx,
-                    self.current_col_idx):
+            if not self.cell_ok_to_save(
+                self.current_row_idx, self.current_col_idx):
                 move_to_dest = False
             else:
                 if self.dbtbl.bol_attempt_cell_update:
-                    move_to_dest = self.update_cell(self.current_row_idx,
-                        self.current_col_idx)
+                    move_to_dest = self.update_cell(
+                        self.current_row_idx, self.current_col_idx)
                 else:
                     move_to_dest = True
-        # flush
+        ## flush
         self.dbtbl.bol_attempt_cell_update = False
         self.dbtbl.SQL_cell_to_update = None
         self.dbtbl.val_of_cell_to_update = None
@@ -738,7 +777,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         Return move_to_dest.
         """
         debug = False
-        if self.debug or debug: print("Moving within new row")
+        if self.debug or debug: print('Moving within new row')
         move_to_dest = not self.cell_invalid(self.current_row_idx, 
             self.current_col_idx)
         return move_to_dest

@@ -4,12 +4,12 @@ import subprocess
 import wx
 
 """
-Anything called here should rely as little as possible on modules other than 
+Anything called here should rely as little as possible on modules other than
 my_globals itself. The goal is to avoid circular importing.
-    
-This module is used immediately after my_globals is loaded and needs to complete 
-any config (of my_globals) before other local modules are loaded so they can be 
-assumed to be safe to start. Other modules need to be able to rely on the 
+
+This module is used immediately after my_globals is loaded and needs to complete
+any config (of my_globals) before other local modules are loaded so they can be
+assumed to be safe to start. Other modules need to be able to rely on the
 correctness of what is in my_globals at the time they are called.
 """
 
@@ -18,23 +18,23 @@ from sofastats import my_globals as mg
 
 def set_SCRIPT_PATH():
     """
-    Using __file__ on start.py doesn't work (it will show where the interpreter 
-        is) but it will on an imported module in same path, even if running 
-        from an interpreter e.g. IDLE.
+    Using __file__ on start.py doesn't work (it will show where the interpreter
+    is) but it will on an imported module in same path, even if running from an
+    interpreter e.g. IDLE.
     http://stackoverflow.com/questions/247770/retrieving-python-module-path
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
     rawpth = os.path.dirname(mg.__file__)
     mg.SCRIPT_PATH = rawpth
     if mg.SCRIPT_PATH == mg.LOCAL_PATH:
-        raise Exception(_(u"Oops - it looks like you've installed SOFA to your "
-            u"user directory rather than a program directory. Please uninstall "
-            u"SOFA and reinstall to a different location."))
-        
+        raise Exception(_("Oops - it looks like you've installed SOFA to your "
+            "user directory rather than a program directory. Please uninstall "
+            "SOFA and reinstall to a different location."))
+
 def import_dbe_plugin(dbe_plugin):
     """
-    Include database engine in system if in dbe_plugins folder and 
-        os-appropriate.
+    Include database engine in system if in dbe_plugins folder and
+    os-appropriate.
     """
     try:
         if dbe_plugin == mg.DBE_SQLITE:
@@ -56,10 +56,10 @@ def import_dbe_plugin(dbe_plugin):
             from sofastats.dbe_plugins import dbe_postgresql
             mod = dbe_postgresql
         else:
-            raise Exception(u"Unknown database engine plug-in type")
+            raise Exception('Unknown database engine plug-in type')
     except ImportError as e:
-        raise Exception(u"Import error with \"%s\". Caused by error: %s" % 
-            (dbe_plugin, b.ue(e)))
+        raise Exception(
+            f'Import error with "{dbe_plugin}". Caused by error: {b.ue(e)}')
     return mod
 
 def import_dbe_plugins():
@@ -70,22 +70,22 @@ def import_dbe_plugins():
     for dbe_plugin, dbe_mod_name in mg.DBE_PLUGINS:
         wrong_os = (dbe_plugin in [mg.DBE_MS_ACCESS, mg.DBE_MS_SQL] 
             and mg.PLATFORM != mg.WINDOWS)
-        dbe_plugin_mod = os.path.join(mg.SCRIPT_PATH, u"dbe_plugins", 
-            u"%s.py" % dbe_mod_name)
+        dbe_plugin_mod = os.path.join(
+            mg.SCRIPT_PATH, 'dbe_plugins', f'{dbe_mod_name}.py')
         if os.path.exists(dbe_plugin_mod):
             if wrong_os:
-                print(u"Not adding dbe plug-in '%s'. Wrong OS" % dbe_plugin)
+                print(f"Not adding dbe plug-in '{dbe_plugin}'. Wrong OS")
             else:
                 try:
                     dbe_mod = import_dbe_plugin(dbe_plugin)
                 except Exception as e:
-                    msg = (u"Not adding dbe plugin %s. " % dbe_plugin +
-                        u"\nReason: %s" % b.ue(e))
+                    msg = ("Not adding dbe plugin %s. " % dbe_plugin +
+                        "\nReason: %s" % b.ue(e))
                     print(msg)
                     mg.DBE_PROBLEM.append(msg)
-                    continue # skip bad module
+                    continue  ## skip bad module
                 else:
-                    print(u"Successfully added dbe plug-in '%s'" % dbe_plugin)
+                    print("Successfully added dbe plug-in '%s'" % dbe_plugin)
                     mg.DBES.append(dbe_plugin)
                     mg.DBE_MODULES[dbe_plugin] = dbe_mod
         else:
@@ -201,18 +201,18 @@ def get_settings_dic(subfolder, fil_name):
     try:
         exec(settings_cont, settings_dic)
     except SyntaxError as e:
-        err_msg = _(u"Syntax error in settings file \"%(fil_name)s\"."
-            u"\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
-            u"details": b.ue(e)}
+        err_msg = _("Syntax error in settings file \"%(fil_name)s\"."
+            "\n\nDetails: %(details)s") % {u"fil_name": fil_name,  
+            "details": b.ue(e)}
         try:
             wx.MessageBox(err_msg) # only works if wx.App up.
             raise
         except Exception as e:
             raise Exception(err_msg)
     except Exception as e:
-        err_msg = _(u"Error processing settings file \"%(fil_name)s\"."
-            u"\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
-            u"details": b.ue(e)}
+        err_msg = _("Error processing settings file \"%(fil_name)s\"."
+            "\n\nDetails: %(details)s") % {u"fil_name": fil_name, 
+            "details": b.ue(e)}
         try:
             wx.MessageBox(err_msg)
             raise

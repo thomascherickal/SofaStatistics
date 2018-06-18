@@ -10,18 +10,18 @@ class ClusteredBars(PlotInfo):
     A clustered bar chart consisting of multiple series of bars
     with the same X axis values.
     """
-    def __init__(self, attribution=u""): # SOFA
-        PlotInfo.__init__(self, "clustered bar")
+    def __init__(self, attribution=''): # SOFA
+        PlotInfo.__init__(self, 'clustered bar')
 
-        self.attribution = attribution # SOFA
-        self.grid_bg = "white" # SOFA
+        self.attribution = attribution  ## SOFA
+        self.grid_bg = 'white'  ## SOFA
         self.bars = []
         self.spacing = 0
         self.width = 0.8
 
     def add(self, bar):
         if not isinstance(bar, Bar):
-            print >>sys.stderr, "Can only add Bars to a ClusteredBars"
+            print >>sys.stderr, 'Can only add Bars to a ClusteredBars'
             sys.exit(1)
 
         self.bars.append(bar)
@@ -43,16 +43,16 @@ class ClusteredBars(PlotInfo):
             self.xTickLabelPoints = self.getXLabelLocations()
             if len(self.xTickLabelPoints) != len(self.xTickLabels):
                 print >>sys.stderr, "Number of clustered bar labels doesn't match number of points"
-                print >>sys.stderr, "Labels: %s" % (self.xTickLabels)
-                print >>sys.stderr, "Points: %s" % (self.xTickLabelPoints)
+                print >>sys.stderr, f"Labels: {self.xTickLabels}"
+                print >>sys.stderr, f"Points: {self.xTickLabelPoints}"
                 sys.exit(1)
 
         PlotInfo.draw(self, axis)
 
-        rect = axis.patch # SOFA
-        rect.set_facecolor(self.grid_bg) # SOFA
+        rect = axis.patch  ## SOFA
+        rect.set_facecolor(self.grid_bg)  ## SOFA
         axis.annotate(self.attribution, xy=(1,0.4), xycoords='axes fraction', 
-                          fontsize=7, rotation=270) # SOFA
+            fontsize=7, rotation=270)  ## SOFA
 
         numBars = len(self.bars)
 
@@ -82,7 +82,7 @@ class ClusteredBars(PlotInfo):
 
             currHandle = axis.bar(xVals, bar.yValues, **attrs)
 
-            # Only give handle to first rectangle in bar
+            ## Only give handle to first rectangle in bar
             plotHandles.append(currHandle[0])
             plotLabels.append(bar.label)
 

@@ -35,7 +35,7 @@ time with the new list as the initial value.
 """
 
 
-class ChartTypeBtns:
+class Btns:
 
     @staticmethod
     def _setup_bar_chart_btns(self, szr_chart_btns, btn_gap):
@@ -47,7 +47,7 @@ class ChartTypeBtns:
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_bar_chart_sel, style=wx.NO_BORDER)
         self.btn_bar_chart.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_bar_chart, self))
+            wx.EVT_BUTTON, partial(Btns.on_btn_bar_chart, self))
         self.btn_bar_chart.SetToolTip(_('Make Bar Chart'))
         self.btn_bar_chart.SetDefault()
         self.btn_bar_chart.SetFocus()
@@ -64,7 +64,7 @@ class ChartTypeBtns:
         self.btn_clust_bar = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_clust_bar, style=wx.NO_BORDER)
         self.btn_clust_bar.Bind(wx.EVT_BUTTON,
-            partial(ChartTypeBtns.on_btn_clustered_bar_chart, self))
+            partial(Btns.on_btn_clustered_bar_chart, self))
         self.btn_clust_bar.SetToolTip(_('Make Clustered Bar Chart'))
         szr_chart_btns.Add(self.btn_clust_bar, 0, wx.RIGHT, btn_gap)
 
@@ -78,7 +78,7 @@ class ChartTypeBtns:
         self.btn_pie_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_pie_chart, style=wx.NO_BORDER)
         self.btn_pie_chart.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_pie_chart, self))
+            wx.EVT_BUTTON, partial(Btns.on_btn_pie_chart, self))
         self.btn_pie_chart.SetToolTip(_('Make Pie Chart'))
         szr_chart_btns.Add(self.btn_pie_chart, 0, wx.RIGHT, btn_gap)
 
@@ -92,7 +92,7 @@ class ChartTypeBtns:
         self.btn_line_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_line_chart, style=wx.NO_BORDER)
         self.btn_line_chart.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_line_chart, self))
+            wx.EVT_BUTTON, partial(Btns.on_btn_line_chart, self))
         self.btn_line_chart.SetToolTip(_('Make Line Chart'))
         szr_chart_btns.Add(self.btn_line_chart, 0, wx.RIGHT, btn_gap)
 
@@ -106,7 +106,7 @@ class ChartTypeBtns:
         self.btn_area_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_area_chart, style=wx.NO_BORDER)
         self.btn_area_chart.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_area_chart, self))
+            wx.EVT_BUTTON, partial(Btns.on_btn_area_chart, self))
         self.btn_area_chart.SetToolTip(_('Make Area Chart'))
         szr_chart_btns.Add(self.btn_area_chart, 0, wx.RIGHT, btn_gap)
 
@@ -120,50 +120,50 @@ class ChartTypeBtns:
         self.btn_histogram = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_histogram, style=wx.NO_BORDER)
         self.btn_histogram.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_histogram, self))
+            wx.EVT_BUTTON, partial(Btns.on_btn_histogram, self))
         self.btn_histogram.SetToolTip(_('Make Histogram'))
         szr_chart_btns.Add(self.btn_histogram, 0, wx.RIGHT, btn_gap)
 
     @staticmethod
     def _setup_scatter_chart_btns(self, szr_chart_btns, btn_gap):
         self.bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"scatterplot.xpm"),
+            'images', 'scatterplot.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.bmp_btn_scatterplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            u"images", u"scatterplot_sel.xpm"),
+            'images', 'scatterplot_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_scatterplot, style=wx.NO_BORDER)
         self.btn_scatterplot.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_scatterplot, self))
-        self.btn_scatterplot.SetToolTip(_("Make Scatterplot"))
+            wx.EVT_BUTTON, partial(Btns.on_btn_scatterplot, self))
+        self.btn_scatterplot.SetToolTip(_('Make Scatterplot'))
         szr_chart_btns.Add(self.btn_scatterplot, 0, wx.RIGHT, btn_gap)
 
     @staticmethod
     def _setup_box_chart_btns(self, szr_chart_btns):
         self.bmp_btn_boxplot = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"boxplot.xpm"), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+            'images', 'boxplot.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.bmp_btn_boxplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            u"images", u"boxplot_sel.xpm"),
+            'images', 'boxplot_sel.xpm'),
             wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         self.btn_boxplot = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_boxplot, style=wx.NO_BORDER)
         self.btn_boxplot.Bind(
-            wx.EVT_BUTTON, partial(ChartTypeBtns.on_btn_boxplot, self))
-        self.btn_boxplot.SetToolTip(_("Make Box and Whisker Plot"))
+            wx.EVT_BUTTON, partial(Btns.on_btn_boxplot, self))
+        self.btn_boxplot.SetToolTip(_('Make Box and Whisker Plot'))
         szr_chart_btns.Add(self.btn_boxplot)
 
     @staticmethod
     def setup_chart_btns(self, szr_chart_btns):
         btn_gap = 10 if mg.PLATFORM == mg.WINDOWS else 2
-        ChartTypeBtns._setup_bar_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_clust_bar_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_pie_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_line_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_area_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_histo_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_scatter_chart_btns(self, szr_chart_btns, btn_gap)
-        ChartTypeBtns._setup_box_chart_btns(self, szr_chart_btns)
+        Btns._setup_bar_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_clust_bar_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_pie_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_line_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_area_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_histo_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_scatter_chart_btns(self, szr_chart_btns, btn_gap)
+        Btns._setup_box_chart_btns(self, szr_chart_btns)
         if mg.PLATFORM == mg.LINUX:
             hand = wx.Cursor(wx.CURSOR_HAND)
             self.btn_bar_chart.SetCursor(hand)
@@ -192,7 +192,7 @@ class ChartTypeBtns:
         self.panel_displayed = panel
         panel.Show(True)
         self.panel_mid.Layout()  ## self.Layout() doesn't work in Windows
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
 
     @staticmethod
     def on_btn_bar_chart(self, event):
@@ -206,7 +206,7 @@ class ChartTypeBtns:
         self.drop_bar_sort.SetSelection(
             mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL))
         self.chk_simple_bar_rotate.SetValue(ROTATE)
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_clustered_bar_chart(self, event):
@@ -225,7 +225,7 @@ class ChartTypeBtns:
         self.drop_clust_val.SetSelection(idx_val)
         self.drop_clust_sort.SetSelection(idx_sort)
         self.chk_clust_bar_rotate.SetValue(ROTATE)
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_pie_chart(self, event):
@@ -236,7 +236,7 @@ class ChartTypeBtns:
         panel = self.panel_pie_chart
         self.drop_pie_sort.SetSelection(mg.STD_SORT_OPT_LBLS.index(
             CUR_SORT_OPT_LBL))
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_line_chart(self, event):
@@ -257,7 +257,7 @@ class ChartTypeBtns:
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_hide_markers.SetValue(HIDE_MARKERS)
         self.chk_line_major_ticks.SetValue(MAJOR)
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
         self.setup_line_extras()
 
     @staticmethod
@@ -274,7 +274,7 @@ class ChartTypeBtns:
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_hide_markers.SetValue(HIDE_MARKERS)
         self.chk_area_major_ticks.SetValue(MAJOR)
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_histogram(self, event):
@@ -283,7 +283,7 @@ class ChartTypeBtns:
         btn_bmp = self.bmp_btn_histogram
         btn_bmp_sel = self.bmp_btn_histogram_sel
         panel = self.panel_histogram
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_scatterplot(self, event):
@@ -292,7 +292,7 @@ class ChartTypeBtns:
         btn_bmp = self.bmp_btn_scatterplot
         btn_bmp_sel = self.bmp_btn_scatterplot_sel
         panel = self.panel_scatterplot
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
     def on_btn_boxplot(self, event):
@@ -309,10 +309,10 @@ class ChartTypeBtns:
             idx_sort = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         self.drop_box_sort.SetSelection(idx_sort)
         self.chk_boxplot_rotate.SetValue(ROTATE)
-        ChartTypeBtns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
+        Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
 
-class ManageCheckboxes:
+class Checkboxes:
 
     @staticmethod
     def get_chk_rotate(self, panel):
@@ -324,7 +324,7 @@ class ManageCheckboxes:
         chk.SetFont(mg.GEN_FONT)
         chk.SetValue(ROTATE)
         chk.SetToolTip(_('Rotate x-axis labels?'))
-        chk.Bind(wx.EVT_CHECKBOX, partial(ManageCheckboxes.on_chk_rotate, self))
+        chk.Bind(wx.EVT_CHECKBOX, partial(Checkboxes.on_chk_rotate, self))
         return chk
 
     @staticmethod
@@ -338,7 +338,7 @@ class ManageCheckboxes:
         chk.SetValue(MAJOR)
         chk.SetToolTip(_('Show major labels only?'))
         chk.Bind(
-            wx.EVT_CHECKBOX, partial(ManageCheckboxes.on_chk_major_ticks, self))
+            wx.EVT_CHECKBOX, partial(Checkboxes.on_chk_major_ticks, self))
         return chk
 
     @staticmethod
@@ -352,7 +352,7 @@ class ManageCheckboxes:
         chk.SetValue(HIDE_MARKERS)
         chk.SetToolTip(_('Hide markers?'))
         chk.Bind(wx.EVT_CHECKBOX,
-            partial(ManageCheckboxes.on_chk_hide_markers, self))
+            partial(Checkboxes.on_chk_hide_markers, self))
         return chk
 
     @staticmethod
@@ -366,8 +366,8 @@ class ManageCheckboxes:
         chk.SetValue(MAJOR)
         chk.SetToolTip(_('Time series i.e. spread over x-axis by date?'))
         event_func = (
-            partial(ManageCheckboxes.on_chk_line_time_series, self) if line
-            else partial(ManageCheckboxes.on_chk_area_time_series, self))
+            partial(Checkboxes.on_chk_line_time_series, self) if line
+            else partial(Checkboxes.on_chk_area_time_series, self))
         chk.Bind(wx.EVT_CHECKBOX, event_func)
         return chk
 
@@ -379,7 +379,7 @@ class ManageCheckboxes:
             show_n2use = _('Show\nchart N?')
         chk_show_n = wx.CheckBox(panel, -1, show_n2use)
         chk_show_n.Bind(
-            wx.EVT_CHECKBOX, partial(ManageCheckboxes.on_chk_show_n, self))
+            wx.EVT_CHECKBOX, partial(Checkboxes.on_chk_show_n, self))
         chk_show_n.SetToolTip(_('Show chart N'))
         chk_show_n.SetValue(SHOW_N)
         return chk_show_n
@@ -437,7 +437,7 @@ class ManageCheckboxes:
                 f"rotate: {self.chk_line_rotate.IsChecked()}; "
                 f"show_major: {show_major}")
         self.chk_line_major_ticks.Enable(show_major)
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
         self.panel_line_chart.Refresh()
 
     @staticmethod
@@ -453,11 +453,11 @@ class ManageCheckboxes:
                 f"rotate: {self.chk_line_rotate.IsChecked()}; "
                 f"show_major: {show_major}")
         self.chk_area_major_ticks.Enable(show_major)
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
         self.panel_area_chart.Refresh()
 
 
-class ManageDropdowns:
+class Dropdowns:
 
     @staticmethod
     def get_drop_val_opts(self, panel):
@@ -468,7 +468,7 @@ class ManageDropdowns:
         drop_opts.SetSelection(idx_data_opt)
         drop_opts.Bind(wx.EVT_CHOICE, self.on_drop_val)
         drop_opts.SetToolTip(
-            "Report count(frequency), percentage, average, or sum?")
+            'Report count(frequency), percentage, average, or sum?')
         return drop_opts
 
     @staticmethod
@@ -477,9 +477,8 @@ class ManageDropdowns:
         drop_opts.SetFont(mg.GEN_FONT)
         idx_current_sort_opt = mg.STD_SORT_OPT_LBLS.index(CUR_SORT_OPT_LBL)
         drop_opts.SetSelection(idx_current_sort_opt)
-        drop_opts.Bind(
-            wx.EVT_CHOICE, partial(ManageDropdowns.on_drop_sort, self))
-        drop_opts.SetToolTip(_("Sort order for categories"))
+        drop_opts.Bind(wx.EVT_CHOICE, partial(Dropdowns.on_drop_sort, self))
+        drop_opts.SetToolTip(_('Sort order for categories'))
         return drop_opts
 
     def on_drop_sort(self, event):
@@ -509,10 +508,9 @@ class ManageDropdowns:
             self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var1.SetFont(mg.GEN_FONT)
         drop_var1.SetSelection(idx_sel)
+        drop_var1.Bind(wx.EVT_CHOICE, partial(Dropdowns.on_var1_sel, self))
         drop_var1.Bind(
-            wx.EVT_CHOICE, partial(ManageDropdowns.on_var1_sel, self))
-        drop_var1.Bind(
-            wx.EVT_CONTEXT_MENU, partial(ManageDropdowns.on_rclick_var1, self))
+            wx.EVT_CONTEXT_MENU, partial(Dropdowns.on_rclick_var1, self))
         drop_var1.SetToolTip(self.variables_rc_msg)
         return drop_var1
 
@@ -530,10 +528,9 @@ class ManageDropdowns:
             self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var2.SetFont(mg.GEN_FONT)
         drop_var2.SetSelection(idx_sel)
+        drop_var2.Bind(wx.EVT_CHOICE, partial(Dropdowns.on_var2_sel, self))
         drop_var2.Bind(
-            wx.EVT_CHOICE, partial(ManageDropdowns.on_var2_sel, self))
-        drop_var2.Bind(
-            wx.EVT_CONTEXT_MENU, partial(ManageDropdowns.on_rclick_var2, self))
+            wx.EVT_CONTEXT_MENU, partial(Dropdowns.on_rclick_var2, self))
         drop_var2.SetToolTip(self.variables_rc_msg)
         return drop_var2
 
@@ -551,10 +548,9 @@ class ManageDropdowns:
             self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var3.SetFont(mg.GEN_FONT)
         drop_var3.SetSelection(idx_sel)
+        drop_var3.Bind(wx.EVT_CHOICE, partial(Dropdowns.on_var3_sel, self))
         drop_var3.Bind(
-            wx.EVT_CHOICE, partial(ManageDropdowns.on_var3_sel, self))
-        drop_var3.Bind(
-            wx.EVT_CONTEXT_MENU, partial(ManageDropdowns.on_rclick_var3, self))
+            wx.EVT_CONTEXT_MENU, partial(Dropdowns.on_rclick_var3, self))
         drop_var3.SetToolTip(self.variables_rc_msg)
         return drop_var3
 
@@ -572,10 +568,9 @@ class ManageDropdowns:
             self.panel_vars, -1, choices=items, size=wx.DefaultSize)
         drop_var4.SetFont(mg.GEN_FONT)
         drop_var4.SetSelection(idx_sel)
+        drop_var4.Bind(wx.EVT_CHOICE, partial(Dropdowns.on_var4_sel, self))
         drop_var4.Bind(
-            wx.EVT_CHOICE, partial(ManageDropdowns.on_var4_sel, self))
-        drop_var4.Bind(
-            wx.EVT_CONTEXT_MENU, partial(ManageDropdowns.on_rclick_var4, self))
+            wx.EVT_CONTEXT_MENU, partial(Dropdowns.on_rclick_var4, self))
         drop_var4.SetToolTip(self.variables_rc_msg)
         return drop_var4
 
@@ -636,15 +631,14 @@ class ManageDropdowns:
         if time_series:
             if not show_agg:
                 kwargs['lbl1_override'] = mg.CHART_DATETIMES_LBL
-        ManageDropdowns._update_lbl_var1(self, **kwargs)
+        Dropdowns._update_lbl_var1(self, **kwargs)
         self.sorted_var_names1 = []
-        items1, idx_sel1 = ManageDropdowns.get_items_and_sel_idx(
+        items1, idx_sel1 = Dropdowns.get_items_and_sel_idx(
             self, mg.VAR_1_DEFAULT,
             sorted_var_names=self.sorted_var_names1, var_name=varname1,
             inc_drop_select=inc_drop_select1,
             override_min_data_type=min_data_type1)
-        self.drop_var1 = ManageDropdowns.get_fresh_drop_var1(
-            self, items1, idx_sel1)
+        self.drop_var1 = Dropdowns.get_fresh_drop_var1(self, items1, idx_sel1)
 
     @staticmethod
     def _setup_var_dropdown_2(self, varname2, chart_config, *,
@@ -662,13 +656,12 @@ class ManageDropdowns:
             self.lbl_var2 = wx.StaticText(self.panel_vars, -1, lbl2)
             self.lbl_var2.SetFont(mg.LABEL_FONT)
         self.sorted_var_names2 = []
-        items2, idx_sel2 = ManageDropdowns.get_items_and_sel_idx(
+        items2, idx_sel2 = Dropdowns.get_items_and_sel_idx(
             self, mg.VAR_2_DEFAULT,
             sorted_var_names=self.sorted_var_names2, var_name=varname2,
             inc_drop_select=inc_drop_select2,
             override_min_data_type=min_data_type2)
-        self.drop_var2 = ManageDropdowns.get_fresh_drop_var2(
-            self, items2, idx_sel2)
+        self.drop_var2 = Dropdowns.get_fresh_drop_var2(self, items2, idx_sel2)
 
     @staticmethod
     def _setup_var_dropdown_3(self, varname3, chart_config):
@@ -688,13 +681,12 @@ class ManageDropdowns:
             self.lbl_var3 = wx.StaticText(self.panel_vars, -1, lbl3)
             self.lbl_var3.SetFont(mg.LABEL_FONT)
         self.sorted_var_names3 = []
-        items3, idx_sel3 = ManageDropdowns.get_items_and_sel_idx(
+        items3, idx_sel3 = Dropdowns.get_items_and_sel_idx(
             self, mg.VAR_3_DEFAULT,
             sorted_var_names=self.sorted_var_names3, var_name=varname3,
             inc_drop_select=inc_drop_select3,
             override_min_data_type=min_data_type3)
-        self.drop_var3 = ManageDropdowns.get_fresh_drop_var3(
-            self, items3, idx_sel3)
+        self.drop_var3 = Dropdowns.get_fresh_drop_var3(self, items3, idx_sel3)
         ## var 3 visibility
         try:
             chart_config[2]
@@ -724,13 +716,12 @@ class ManageDropdowns:
             self.lbl_var4 = wx.StaticText(self.panel_vars, -1, lbl4)
             self.lbl_var4.SetFont(mg.LABEL_FONT)
         self.sorted_var_names4 = []
-        items4, idx_sel4 = ManageDropdowns.get_items_and_sel_idx(
+        items4, idx_sel4 = Dropdowns.get_items_and_sel_idx(
             self, mg.VAR_4_DEFAULT,
             sorted_var_names=self.sorted_var_names4, var_name=varname4,
             inc_drop_select=inc_drop_select4,
             override_min_data_type=min_data_type4)
-        self.drop_var4 = ManageDropdowns.get_fresh_drop_var4(
-            self, items4, idx_sel4)
+        self.drop_var4 = Dropdowns.get_fresh_drop_var4(self, items4, idx_sel4)
         ## var 4 visibility
         try:
             chart_config[3]
@@ -765,13 +756,12 @@ class ManageDropdowns:
             or
             (self.chart_type == mg.AREA_CHART
                 and self.chk_area_time_series.IsChecked()))
-        ManageDropdowns._setup_var_dropdown_1(self, varname1, chart_config,
+        Dropdowns._setup_var_dropdown_1(self, varname1, chart_config,
             time_series=time_series, show_agg=show_agg)
-        ManageDropdowns._setup_var_dropdown_2(self, varname2, chart_config,
+        Dropdowns._setup_var_dropdown_2(self, varname2, chart_config,
             time_series=time_series, show_agg=show_agg)
-        show_3 = ManageDropdowns._setup_var_dropdown_3(
-            self, varname3, chart_config)
-        show_4 = ManageDropdowns._setup_dropdown_4(self, varname4, chart_config)
+        show_3 = Dropdowns._setup_var_dropdown_3(self, varname3, chart_config)
+        show_4 = Dropdowns._setup_dropdown_4(self, varname4, chart_config)
         self.panel_vars.Layout()
         self.drop_var1.Show(True)
         self.drop_var2.Show(True)
@@ -840,87 +830,101 @@ class ManageDropdowns:
         updated = config_output.set_var_props(choice_item, var_name, var_label,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
-            ManageDropdowns.setup_var_dropdowns(self)
+            Dropdowns.setup_var_dropdowns(self)
             self.update_defaults()
 
 
-class SetupIndivChartType:
+class Setup:
+
+    custom_font = True
+    
+    flags_prop_zero = wx.SizerFlags(proportion=0)
+    ## Always aligned to the left and top
+    ## standard top and right border is 5
+    flags_aligned = flags_prop_zero.Align(wx.ALIGN_LEFT|wx.ALIGN_TOP).Expand()
+    flags_std = flags_aligned.Border(wx.TOP|wx.RIGHT, 5)
     
     @staticmethod
     def setup_simple_bar(self):
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_bar_chart, -1, _('Data\nreported:'))
-        lbl_val.SetFont(mg.LABEL_FONT)
-        self.drop_bar_val = ManageDropdowns.get_drop_val_opts(
+        lbl_val = wx.StaticText(self.panel_bar_chart, -1, _('Data reported:'))
+        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_bar_val = Dropdowns.get_drop_val_opts(
             self, self.panel_bar_chart)
         lbl_sort_str = _('Sort order\nof %s:') % BARS_SORTED_LBL
         lbl_sort = wx.StaticText(self.panel_bar_chart, -1, lbl_sort_str)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_bar_sort = ManageDropdowns.get_drop_sort_opts(
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_bar_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_bar_chart)
-        self.chk_simple_bar_rotate = ManageCheckboxes.get_chk_rotate(
+        self.chk_simple_bar_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_bar_chart)
         self.chk_bar_borders = wx.CheckBox(
             self.panel_bar_chart, -1, _('Bar borders?'))
-        self.chk_bar_borders.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_bar_borders.SetFont(mg.GEN_FONT)
         self.chk_bar_borders.SetValue(False)
         self.chk_bar_borders.SetToolTip(_('Show borders around bars?'))
-        self.szr_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.drop_bar_val, 0, wx.TOP, 5)
+        self.szr_bar_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_bar_chart.AddSpacer(5)
+        self.szr_bar_chart.Add(self.drop_bar_val, Setup.flags_std)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_bar_chart.Add(self.drop_bar_sort, 0, wx.TOP, 5)
+        self.szr_bar_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_bar_chart.AddSpacer(5)
+        self.szr_bar_chart.Add(self.drop_bar_sort, Setup.flags_std)
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(self.chk_simple_bar_rotate, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_bar_chart.Add(self.chk_simple_bar_rotate,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_bar_chart.AddSpacer(10)
-        self.szr_bar_chart.Add(
-            self.chk_bar_borders, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_bar_chart.Add(self.chk_bar_borders,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_bar_chart.AddSpacer(10)
-        self.chk_simple_bar_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_simple_bar_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_bar_chart)
-        self.szr_bar_chart.Add(self.chk_simple_bar_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_bar_chart.AddSpacer(5)
+        self.szr_bar_chart.Add(self.chk_simple_bar_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_bar_chart.SetSizer(self.szr_bar_chart)
         self.szr_bar_chart.SetSizeHints(self.panel_bar_chart)
 
     def setup_clust_bar(self):
         self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_clust_bar = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_clust_bar, -1, _("Data\nreported:"))
-        lbl_val.SetFont(mg.LABEL_FONT)
-        self.drop_clust_val = ManageDropdowns.get_drop_val_opts(
+        lbl_val = wx.StaticText(self.panel_clust_bar, -1, _('Data\nreported:'))
+        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_clust_val = Dropdowns.get_drop_val_opts(
             self, self.panel_clust_bar)
-        lbl_sort_str = _("Sort order\nof %s:") % CLUSTERS_SORTED_LBL
+        lbl_sort_str = _('Sort order\nof %s:') % CLUSTERS_SORTED_LBL
         lbl_sort = wx.StaticText(self.panel_clust_bar, -1, lbl_sort_str)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_clust_sort = ManageDropdowns.get_drop_sort_opts(
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_clust_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_clust_bar,
             choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
-        self.chk_clust_bar_rotate = ManageCheckboxes.get_chk_rotate(
+        self.chk_clust_bar_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_clust_bar)
         self.chk_clust_borders = wx.CheckBox(
-            self.panel_clust_bar, -1, _("Bar borders?"))
-        self.chk_clust_borders.SetFont(mg.GEN_FONT)
+            self.panel_clust_bar, -1, _('Bar borders?'))
+        if Setup.custom_font: self.chk_clust_borders.SetFont(mg.GEN_FONT)
         self.chk_clust_borders.SetValue(False)
-        self.chk_clust_borders.SetToolTip(_("Show borders around bars?"))
-        self.szr_clust_bar_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_clust_bar_chart.Add(self.drop_clust_val, 0, wx.TOP, 5)
+        self.chk_clust_borders.SetToolTip(_('Show borders around bars?'))
+        self.szr_clust_bar_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_clust_bar_chart.AddSpacer(5)
+        self.szr_clust_bar_chart.Add(self.drop_clust_val, Setup.flags_std)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_clust_bar_chart.Add(self.drop_clust_sort, 0, wx.TOP, 5)
+        self.szr_clust_bar_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_clust_bar_chart.AddSpacer(5)
+        self.szr_clust_bar_chart.Add(self.drop_clust_sort, Setup.flags_std)
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_rotate,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.szr_clust_bar_chart.Add(
-            self.chk_clust_borders, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_clust_bar_chart.Add(self.chk_clust_borders,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_clust_bar_chart.AddSpacer(10)
-        self.chk_clust_bar_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_clust_bar_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_clust_bar)
-        self.szr_clust_bar_chart.Add(self.chk_clust_bar_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_clust_bar_chart.AddSpacer(5)
+        self.szr_clust_bar_chart.Add(self.chk_clust_bar_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_clust_bar.SetSizer(self.szr_clust_bar_chart)
         self.szr_clust_bar_chart.SetSizeHints(self.panel_clust_bar)
 
@@ -928,49 +932,49 @@ class SetupIndivChartType:
         self.szr_pie_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         lbl_sort = wx.StaticText(self.panel_pie_chart, -1,
-            _("Sort order\nof %s:") % SLICES_SORTED_LBL)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_pie_sort = ManageDropdowns.get_drop_sort_opts(
+            _('Sort order\nof %s:') % SLICES_SORTED_LBL)
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_pie_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_pie_chart)
         ## count
         self.chk_show_count = wx.CheckBox(
-            self.panel_pie_chart, -1, _("Show Count?"))
-        self.chk_show_count.SetFont(mg.GEN_FONT)
+            self.panel_pie_chart, -1, _('Show Count?'))
+        if Setup.custom_font: self.chk_show_count.SetFont(mg.GEN_FONT)
         self.chk_show_count.SetValue(False)
-        self.chk_show_count.SetToolTip(_("Show Count?"))
+        self.chk_show_count.SetToolTip(_('Show Count?'))
         ## percentage
-        self.chk_show_pct = wx.CheckBox(self.panel_pie_chart, -1, _("Show %?"))
-        self.chk_show_pct.SetFont(mg.GEN_FONT)
+        self.chk_show_pct = wx.CheckBox(self.panel_pie_chart, -1, _('Show %?'))
+        if Setup.custom_font: self.chk_show_pct.SetFont(mg.GEN_FONT)
         self.chk_show_pct.SetValue(False)
-        self.chk_show_pct.SetToolTip(_("Show %?"))
-        self.szr_pie_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_pie_chart.Add(self.drop_pie_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.chk_show_pct.SetToolTip(_('Show %?'))
+        self.szr_pie_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_pie_chart.Add(self.drop_pie_sort, Setup.flags_std)
         self.szr_pie_chart.AddSpacer(10)
-        self.szr_pie_chart.Add(
-            self.chk_show_count, 0, wx.TOP, self.tickbox_down_by)
-        self.szr_pie_chart.Add(
-            self.chk_show_pct, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_pie_chart.Add(self.chk_show_count,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
+        self.szr_pie_chart.Add(self.chk_show_pct,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_pie_chart.AddSpacer(10)
-        self.chk_pie_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_pie_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_pie_chart)
-        self.szr_pie_chart.Add(
-            self.chk_pie_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
+        self.szr_pie_chart.Add(self.chk_pie_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_pie_chart.SetSizer(self.szr_pie_chart)
         self.szr_pie_chart.SetSizeHints(self.panel_pie_chart)
 
     def setup_line(self):
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_line_chart, -1, _("Data\nreported:"))
-        lbl_val.SetFont(mg.LABEL_FONT)
-        self.drop_line_val = ManageDropdowns.get_drop_val_opts(
+        lbl_val = wx.StaticText(self.panel_line_chart, -1, _('Data\nreported:'))
+        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_line_val = Dropdowns.get_drop_val_opts(
             self, self.panel_line_chart)
         lbl_sort = wx.StaticText(self.panel_line_chart, -1,
-            _("Sort order\nof %s:") % GROUPS_SORTED_LBL)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_line_sort = ManageDropdowns.get_drop_sort_opts(
+            _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_line_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_line_chart, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
-        self.chk_line_time_series = ManageCheckboxes.get_chk_time_series(
+        self.chk_line_time_series = Checkboxes.get_chk_time_series(
             self, self.panel_line_chart, line=True)
         if mg.PLATFORM == mg.WINDOWS:
             smooth2use = _('Smooth line?')
@@ -978,49 +982,49 @@ class SetupIndivChartType:
         else:
             smooth2use = _('Smooth\nline?')
             trend2use = _('Trend\nline?')
-        self.chk_line_rotate = ManageCheckboxes.get_chk_rotate(
+        self.chk_line_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_line_chart)
-        self.chk_line_hide_markers = ManageCheckboxes.get_chk_hide_markers(
+        self.chk_line_hide_markers = Checkboxes.get_chk_hide_markers(
             self, self.panel_line_chart)
         self.chk_line_trend = self.checkbox2use(
             self.panel_line_chart, -1, trend2use)
-        self.chk_line_trend.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetToolTip(_('Show trend line?'))
         self.chk_line_smooth = self.checkbox2use(
             self.panel_line_chart, -1, smooth2use)
-        self.chk_line_smooth.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTip(_('Show smoothed data line?'))
-        self.chk_line_major_ticks = ManageCheckboxes.get_chk_major_ticks(
+        self.chk_line_major_ticks = Checkboxes.get_chk_major_ticks(
             self, self.panel_line_chart)
-        self.szr_line_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_line_chart.Add(self.drop_line_val, 0, wx.TOP, 5)
+        self.szr_line_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_line_chart.Add(self.drop_line_val, Setup.flags_std)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_line_chart.Add(self.drop_line_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_line_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_line_chart.Add(self.drop_line_sort, Setup.flags_std)
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_time_series, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_time_series,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_trend, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_trend,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_smooth, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_smooth,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.setup_line_extras()
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_rotate, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_rotate,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_line_chart.AddSpacer(10)
-        self.szr_line_chart.Add(self.chk_line_hide_markers, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_hide_markers,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_major_ticks, 0, wx.TOP,
             self.tickbox_splitline_down_by)
         self.szr_line_chart.AddSpacer(10)
-        self.chk_line_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_line_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_line_chart)
-        self.szr_line_chart.Add(
-            self.chk_line_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
+        self.szr_line_chart.Add(self.chk_line_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_line_chart.SetSizer(self.szr_line_chart)
         self.szr_line_chart.SetSizeHints(self.panel_line_chart)
 
@@ -1028,44 +1032,44 @@ class SetupIndivChartType:
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
         lbl_val = wx.StaticText(self.panel_area_chart, -1, _('Data\nreported:'))
-        lbl_val.SetFont(mg.LABEL_FONT)
-        self.drop_area_val = ManageDropdowns.get_drop_val_opts(
+        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
+        self.drop_area_val = Dropdowns.get_drop_val_opts(
             self, self.panel_area_chart)
         lbl_sort = wx.StaticText(self.panel_area_chart, -1,
             _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_area_sort = ManageDropdowns.get_drop_sort_opts(
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_area_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_area_chart)
-        self.chk_area_time_series = ManageCheckboxes.get_chk_time_series(
+        self.chk_area_time_series = Checkboxes.get_chk_time_series(
             self, self.panel_area_chart, line=False)
-        self.chk_area_rotate = ManageCheckboxes.get_chk_rotate(
+        self.chk_area_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_area_chart)
-        self.chk_area_hide_markers = ManageCheckboxes.get_chk_hide_markers(
+        self.chk_area_hide_markers = Checkboxes.get_chk_hide_markers(
             self, self.panel_area_chart)
-        self.chk_area_major_ticks = ManageCheckboxes.get_chk_major_ticks(
+        self.chk_area_major_ticks = Checkboxes.get_chk_major_ticks(
             self, self.panel_area_chart)
-        self.szr_area_chart.Add(lbl_val, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_area_chart.Add(self.drop_area_val, 0, wx.TOP, 5)
+        self.szr_area_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_area_chart.Add(self.drop_area_val, Setup.flags_std)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_area_chart.Add(self.drop_area_sort, 0, wx.TOP|wx.RIGHT, 5)
+        self.szr_area_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_area_chart.Add(self.drop_area_sort, Setup.flags_std)
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_time_series, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_area_chart.Add(self.chk_area_time_series,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_rotate, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_area_chart.Add(self.chk_area_rotate,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_hide_markers, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_area_chart.Add(self.chk_area_hide_markers,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_area_chart.AddSpacer(10)
-        self.szr_area_chart.Add(self.chk_area_major_ticks, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_area_chart.Add(self.chk_area_major_ticks,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_area_chart.AddSpacer(10)
-        self.chk_area_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_area_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_area_chart)
-        self.szr_area_chart.Add(self.chk_area_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_area_chart.Add(self.chk_area_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_area_chart.SetSizer(self.szr_area_chart)
         self.szr_area_chart.SetSizeHints(self.panel_area_chart)
 
@@ -1074,24 +1078,24 @@ class SetupIndivChartType:
         self.panel_histogram = wx.Panel(self.panel_mid)
         self.chk_show_normal = wx.CheckBox(
             self.panel_histogram, -1, _('Show normal curve?'))
-        self.chk_show_normal.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_show_normal.SetFont(mg.GEN_FONT)
         self.chk_show_normal.SetValue(False)
         self.chk_show_normal.SetToolTip(_('Show normal curve?'))
         self.chk_hist_borders = wx.CheckBox(
             self.panel_histogram, -1, _('Bar borders?'))
-        self.chk_hist_borders.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_hist_borders.SetFont(mg.GEN_FONT)
         self.chk_hist_borders.SetValue(True)
         self.chk_hist_borders.SetToolTip(_('Show borders around bars?'))
-        self.szr_histogram.Add(
-            self.chk_show_normal, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_histogram.Add(self.chk_show_normal,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_histogram.AddSpacer(10)
-        self.szr_histogram.Add(
-            self.chk_hist_borders, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_histogram.Add(self.chk_hist_borders,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_histogram.AddSpacer(10)
-        self.chk_histogram_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_histogram_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_histogram)
-        self.szr_histogram.Add(self.chk_histogram_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_histogram.Add(self.chk_histogram_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_histogram.SetSizer(self.szr_histogram)
         self.szr_histogram.SetSizeHints(self.panel_histogram)
 
@@ -1100,24 +1104,24 @@ class SetupIndivChartType:
         self.panel_scatterplot = wx.Panel(self.panel_mid)
         self.chk_dot_borders = wx.CheckBox(
             self.panel_scatterplot, -1, _('Dot borders?'))
-        self.chk_dot_borders.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_dot_borders.SetFont(mg.GEN_FONT)
         self.chk_dot_borders.SetValue(True)
         self.chk_dot_borders.SetToolTip(
             _('Show borders around scatterplot dots?'))
         self.chk_regression = wx.CheckBox(
             self.panel_scatterplot, -1, _('Show regression line?'))
-        self.chk_regression.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.chk_regression.SetFont(mg.GEN_FONT)
         self.chk_regression.SetValue(False)
         self.chk_regression.SetToolTip(_('Show regression line?'))
-        self.szr_scatterplot.Add(
-            self.chk_dot_borders, 0, wx.TOP, self.tickbox_down_by)
-        self.szr_scatterplot.Add(
-            self.chk_regression, 0, wx.TOP, self.tickbox_down_by)
+        self.szr_scatterplot.Add(self.chk_dot_borders,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
+        self.szr_scatterplot.Add(self.chk_regression,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_down_by))
         self.szr_scatterplot.AddSpacer(10)
-        self.chk_scatterplot_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_scatterplot_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_scatterplot)
-        self.szr_scatterplot.Add(self.chk_scatterplot_show_n, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_scatterplot.Add(self.chk_scatterplot_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_scatterplot.SetSizer(self.szr_scatterplot)
         self.szr_scatterplot.SetSizeHints(self.panel_scatterplot)
 
@@ -1126,41 +1130,41 @@ class SetupIndivChartType:
         self.panel_boxplot = wx.Panel(self.panel_mid)
         ## sort order
         lbl_sort = wx.StaticText(
-            self.panel_boxplot, -1, _("Sort order\nof %s:") % GROUPS_SORTED_LBL)
-        lbl_sort.SetFont(mg.LABEL_FONT)
-        self.drop_box_sort = ManageDropdowns.get_drop_sort_opts(
+            self.panel_boxplot, -1, _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
+        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
+        self.drop_box_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_boxplot, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         ## boxplot options
         lbl_box_opts = wx.StaticText(self.panel_boxplot, -1, _('Display:'))
-        lbl_box_opts.SetFont(mg.LABEL_FONT)
+        if Setup.custom_font: lbl_box_opts.SetFont(mg.LABEL_FONT)
         self.drop_box_opts = wx.Choice(self.panel_boxplot, -1,
             choices=mg.CHART_BOXPLOT_OPTIONS, size=(200,-1))
-        self.drop_box_opts.SetFont(mg.GEN_FONT)
+        if Setup.custom_font: self.drop_box_opts.SetFont(mg.GEN_FONT)
         self.drop_box_opts.SetToolTip(
             _('Display options for whiskers and outliers'))
         self.drop_box_opts.SetSelection(0)
         ## rotate
-        self.chk_boxplot_rotate = ManageCheckboxes.get_chk_rotate(
+        self.chk_boxplot_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_boxplot)
         ## assemble
-        self.szr_boxplot.Add(lbl_sort, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_boxplot.Add(self.drop_box_sort, 0, wx.TOP, 5)
+        self.szr_boxplot.Add(lbl_sort, Setup.flags_std)
+        self.szr_boxplot.Add(self.drop_box_sort, Setup.flags_std)
         self.szr_boxplot.AddSpacer(10)
-        self.szr_boxplot.Add(lbl_box_opts, 0, wx.TOP|wx.RIGHT, 5)
-        self.szr_boxplot.Add(self.drop_box_opts, 0, wx.TOP, 5)
+        self.szr_boxplot.Add(lbl_box_opts, Setup.flags_std)
+        self.szr_boxplot.Add(self.drop_box_opts, Setup.flags_std)
         self.szr_boxplot.AddSpacer(10)
-        self.szr_boxplot.Add(self.chk_boxplot_rotate, 0, wx.TOP,
-            self.tickbox_splitline_down_by)
+        self.szr_boxplot.Add(self.chk_boxplot_rotate,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.szr_boxplot.AddSpacer(10)
-        self.chk_boxplot_show_n = ManageCheckboxes.get_chk_show_n(
+        self.chk_boxplot_show_n = Checkboxes.get_chk_show_n(
             self, self.panel_boxplot)
-        self.szr_boxplot.Add(
-            self.chk_boxplot_show_n, 0, wx.TOP, self.tickbox_splitline_down_by)
+        self.szr_boxplot.Add(self.chk_boxplot_show_n,
+            Setup.flags_aligned.Border(wx.TOP, self.tickbox_splitline_down_by))
         self.panel_boxplot.SetSizer(self.szr_boxplot)
         self.szr_boxplot.SetSizeHints(self.panel_boxplot)
 
 
-class ChartScripts:
+class Scripts:
 
     @staticmethod
     def get_simple_barchart_script(ytitle2use, css_fil, css_idx, *,
@@ -1174,10 +1178,12 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(
     sort_opt=mg.{sort_opt}, rotate={rotate}, data_show=mg.{data_show})
 x_title = var_role_dic['cat_name']
 y_title = {ytitle2use}
-chart_output = charting_output.BarChart.simple_barchart_output(titles,
-    subtitles, x_title, y_title, chart_output_dets, rotate={rotate},
-    show_n={show_n}, show_borders={show_borders}, css_fil="{esc_css_fil}",
-    css_idx={css_idx}, page_break_after=False)""")
+chart_output = charting_output.BarChart.simple_barchart_output(
+    titles, subtitles,
+    x_title, y_title,
+    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    rotate={rotate}, show_n={show_n},
+    show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1194,9 +1200,10 @@ x_title = var_role_dic['cat_name']
 y_title = {ytitle2use}
 chart_output = charting_output.BarChart.clustered_barchart_output(
     titles, subtitles,
-    x_title, y_title, chart_output_dets, rotate={rotate}, show_n={show_n},
-    show_borders={show_borders}, css_fil="{esc_css_fil}",
-    css_idx={css_idx}, page_break_after=False)""")
+    x_title, y_title,
+    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    rotate={rotate}, show_n={show_n},
+    show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1397,17 +1404,17 @@ chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
                 ytitle2use = (f'"Mean {agg_fldlbl}"' if show_avg
                     else f'"Sum of {agg_fldlbl}"')
         if self.chart_type == mg.SIMPLE_BARCHART:
-            script_lst.append(ChartScripts.get_simple_barchart_script(
+            script_lst.append(Scripts.get_simple_barchart_script(
                 ytitle2use, css_fil=css_fil, css_idx=css_idx, rotate=rotate,
                 show_n=show_n, show_borders=self.chk_bar_borders.IsChecked()))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
-            script_lst.append(ChartScripts.get_clustered_barchart_script(
+            script_lst.append(Scripts.get_clustered_barchart_script(
                 ytitle2use, css_fil=css_fil, css_idx=css_idx, rotate=rotate,
                 show_n=show_n, show_borders=self.chk_clust_borders.IsChecked()))
         elif self.chart_type == mg.PIE_CHART:
             inc_count = ('True' if self.chk_show_count.IsChecked() else 'False')
             inc_pct = ('True' if self.chk_show_pct.IsChecked() else 'False')
-            script_lst.append(ChartScripts.get_pie_chart_script(
+            script_lst.append(Scripts.get_pie_chart_script(
                 css_fil, css_idx,
                 inc_count=inc_count, inc_pct=inc_pct, show_n=show_n))
         elif self.chart_type == mg.LINE_CHART:
@@ -1415,32 +1422,32 @@ chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
                 and self.chk_line_trend.Enabled else 'False')
             inc_smooth = ('True' if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else 'False')
-            script_lst.append(ChartScripts.get_line_chart_script(
+            script_lst.append(Scripts.get_line_chart_script(
                 ytitle2use, css_fil, css_idx,
                 time_series=line_time_series, rotate=rotate, show_n=show_n,
                 major=major, inc_trend=inc_trend, inc_smooth=inc_smooth,
                 hide_markers=hide_markers))
         elif self.chart_type == mg.AREA_CHART:
-            script_lst.append(ChartScripts.get_area_chart_script(
+            script_lst.append(Scripts.get_area_chart_script(
                 ytitle2use, css_fil, css_idx,
                 time_series=area_time_series, rotate=rotate, show_n=show_n,
                 major=major, hide_markers=hide_markers))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (
                 'True' if self.chk_show_normal.IsChecked() else 'False')
-            script_lst.append(ChartScripts.get_histogram_script(css_fil=css_fil,
+            script_lst.append(Scripts.get_histogram_script(css_fil=css_fil,
                 css_idx=css_idx, inc_normal=inc_normal, show_n=show_n,
                 show_borders=self.chk_hist_borders.IsChecked()))
         elif self.chart_type == mg.SCATTERPLOT:
-            script_lst.append(ChartScripts.get_scatterplot_script(
+            script_lst.append(Scripts.get_scatterplot_script(
                 css_fil, css_idx,
                 show_n=show_n, show_borders=self.chk_dot_borders.IsChecked(),
                 inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             boxplot_opt = mg.CHART_BOXPLOT_OPTIONS[self.drop_box_opts.GetSelection()]
-            script_lst.append(ChartScripts.get_boxplot_script(boxplot_opt,
+            script_lst.append(Scripts.get_boxplot_script(boxplot_opt,
                 css_fil, css_idx, rotate=rotate, show_n=show_n))
-        script_lst.append("fil.write(chart_output)")
+        script_lst.append('fil.write(chart_output)')
         script = '\n'.join(script_lst)
         if debug: print(script)
         return script
@@ -1486,7 +1493,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         (self.var_labels, self.var_notes,
          self.var_types,
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.variables_rc_msg = _("Right click variables to view/edit details")
+        self.variables_rc_msg = _('Right click variables to view/edit details')
         config_output.add_icon(frame=self)
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         ## top panel
@@ -1505,7 +1512,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
         ## variables
-        bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
+        bx_vars = wx.StaticBox(self.panel_vars, -1, _('Variables'))
         self.szr_vars = wx.StaticBoxSizer(bx_vars, wx.HORIZONTAL)
         if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTip(self.variables_rc_msg)
@@ -1514,7 +1521,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
         szr_chart_btns = wx.BoxSizer(wx.HORIZONTAL)
         self.chart_type = mg.SIMPLE_BARCHART
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
         self.panel_vars.SetSizer(self.szr_vars)
         self.szr_vars.SetSizeHints(self.panel_vars)
         ## layout
@@ -1528,11 +1535,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.panel_mid = wx.Panel(self)
         bx_charts = wx.StaticBox(self.panel_mid, -1, _('Chart Details'))
         self.szr_mid = wx.StaticBoxSizer(bx_charts, wx.VERTICAL)
-        ChartTypeBtns.setup_chart_btns(self, szr_chart_btns)
+        Btns.setup_chart_btns(self, szr_chart_btns)
         ## dp spinner
         szr_dp = wx.BoxSizer(wx.HORIZONTAL)
         self.lbl_dp_spinner = wx.StaticText(
-            self.panel_mid, -1, _("Max dec\npoints"))
+            self.panel_mid, -1, _('Max dec\npoints'))
         self.dp_spinner = self.get_dp_spinner(
             self.panel_mid, dp_val=mg.DEFAULT_REPORT_DP)
         szr_dp.Add(self.lbl_dp_spinner, 0)
@@ -1540,7 +1547,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         szr_chart_btns.Add(szr_dp, 0, wx.TOP|wx.LEFT, 15)
         self.szr_mid.Add(szr_chart_btns, 0, wx.GROW)
         if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
-            bx_charts.SetToolTip(_("Chart details"))
+            bx_charts.SetToolTip(_('Chart details'))
         ## Chart Settings
         if mg.PLATFORM == mg.WINDOWS:
             self.tickbox_down_by = 10  ## to line up with a combo
@@ -1552,40 +1559,40 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.tickbox_down_by = 9
             self.tickbox_splitline_down_by = 5
         ## setup charts
-        SetupIndivChartType.setup_simple_bar(self)
-        SetupIndivChartType.setup_clust_bar(self)
-        SetupIndivChartType.setup_pie(self)
-        SetupIndivChartType.setup_line(self)
-        SetupIndivChartType.setup_area(self)
-        SetupIndivChartType.setup_histogram(self)
-        SetupIndivChartType.setup_scatterplot(self)
-        SetupIndivChartType.setup_boxplot(self)
-        ## Hide all panels except default. Display and layout then hide.
+        Setup.setup_simple_bar(self)
+        Setup.setup_clust_bar(self)
+        Setup.setup_pie(self)
+        Setup.setup_line(self)
+        Setup.setup_area(self)
+        Setup.setup_histogram(self)
+        Setup.setup_scatterplot(self)
+        Setup.setup_boxplot(self)
+        ## Hide all panels. Display and layout then hide.
         ## Prevents flicker on change later.
-        ## Start with widest one because seems to trim to the width of the first.
+        ## Start with widest one because the sizer seems to trim to the width of the first.
         widest_panel = self.panel_line_chart
-        oth_panels2hide = [
-            self.panel_clust_bar,
-            self.panel_pie_chart,
-            self.panel_area_chart,
-            self.panel_histogram,
-            self.panel_scatterplot,
-            self.panel_boxplot]
-        for panel2hide in [widest_panel, ] + oth_panels2hide:
-            self.szr_mid.Add(panel2hide, 0, wx.GROW)
-            if panel2hide == widest_panel:
+        oth_panels = [
+             self.panel_bar_chart,
+             self.panel_clust_bar,
+             self.panel_pie_chart,
+             #self.panel_line_chart,  ## used instead as widest panel
+             self.panel_area_chart,
+             self.panel_histogram,
+             self.panel_scatterplot,
+             self.panel_boxplot,
+        ]
+        for panel in [widest_panel, ] + oth_panels:
+            self.szr_mid.Add(panel, 0, wx.GROW)
+            if panel == widest_panel:
                 self.panel_mid.SetSizer(self.szr_mid)
                 self.szr_mid.SetSizeHints(self.panel_mid)
-            panel2hide.Show(True)
+            panel.Show(True)
             self.panel_mid.Layout()  ## self.Layout() doesn't work in Windows
-            panel2hide.Show(False)
-            self.szr_mid.Detach(panel2hide)
-        ## default chart type (bar chart)
+            panel.Show(False)
+            self.szr_mid.Detach(panel)
+        ## Unhide default chart type (bar chart)
         self.panel_displayed = self.panel_bar_chart
-        self.szr_mid.Add(self.panel_bar_chart, 0, wx.GROW)
         self.panel_bar_chart.Show(True)
-        self.panel_mid.SetSizer(self.szr_mid)
-        self.szr_mid.SetSizeHints(self.panel_mid)
         ## bottom panel
         self.panel_bottom = wx.Panel(self)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)
@@ -1593,12 +1600,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         self.szr_output_config = self.get_szr_output_config(self.panel_bottom)  ## mixin
         szr_lower = wx.BoxSizer(wx.HORIZONTAL)
         ## titles, subtitles
-        lbl_titles = wx.StaticText(self.panel_bottom, -1, _("Title:"))
+        lbl_titles = wx.StaticText(self.panel_bottom, -1, _('Title:'))
         lbl_titles.SetFont(mg.LABEL_FONT)
         title_height = 40 if mg.PLATFORM == mg.MAC else 20
         self.txt_titles = wx.TextCtrl(self.panel_bottom, -1,
             size=(250,title_height), style=wx.TE_MULTILINE)
-        lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _("Subtitle:"))
+        lbl_subtitles = wx.StaticText(self.panel_bottom, -1, _('Subtitle:'))
         lbl_subtitles.SetFont(mg.LABEL_FONT)
         self.txt_subtitles = wx.TextCtrl(self.panel_bottom, -1,
             size=(250,title_height), style=wx.TE_MULTILINE)
@@ -1660,7 +1667,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         except AttributeError:
             CUR_DATA_OPT = drop.GetLabel()  ## label is what we want to store e.g. mg.SHOW_FREQ_LBL
         if debug: print(f"Current data option: {CUR_DATA_OPT}")
-        ManageDropdowns.setup_var_dropdowns(self)  ## e.g. if we select mean we now need an extra var and the 1st has to be numeric
+        Dropdowns.setup_var_dropdowns(self)  ## e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
 
     def on_show(self, _event):
@@ -1671,7 +1678,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
 
     def on_btn_help(self, event):
         import webbrowser
-        url = ("http://www.sofastatistics.com/wiki/doku.php?id=help:charts")
+        url = ('http://www.sofastatistics.com/wiki/doku.php?id=help:charts')
         webbrowser.open_new_tab(url)
         event.Skip()
 
@@ -1691,7 +1698,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         return chart_subtype_key
 
     def refresh_vars(self):
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
         self.update_defaults()
 
     @staticmethod
@@ -1743,14 +1750,14 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
-            ManageDropdowns.setup_var_dropdowns(self)
+            Dropdowns.setup_var_dropdowns(self)
 
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_ui.ConfigUI.on_table_sel(self, event)
         ## now update var dropdowns
         output.update_var_dets(dlg=self)
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
 
     def on_btn_var_config(self, event):
         """
@@ -1758,7 +1765,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         position may have changed.
         """
         config_ui.ConfigUI.on_btn_var_config(self, event)
-        ManageDropdowns.setup_var_dropdowns(self)
+        Dropdowns.setup_var_dropdowns(self)
         self.update_defaults()
 
     def get_vars(self):
@@ -1830,7 +1837,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if debug: print(variables)
         if len(lblctrls) != len(variables):
             raise Exception(
-                "Mismatch in number of lbls and variables in charting dlg.")
+                'Mismatch in number of lbls and variables in charting dlg.')
         lblctrl_vars = zip(lblctrls, variables)
         idx_lblctrl_in_lblctrl_vars = 0
         idx_variable_in_lblctrl_vars = 1
@@ -1892,10 +1899,10 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 varlbls = ('"' + '", "'.join(selected_lbls[:-1]) + '"'
                     + final_comma + ' and "%s"' % selected_lbls[-1])
                 wx.MessageBox(
-                    _("The variables selected for %s must be different.")
+                    _('The variables selected for %s must be different.')
                     % varlbls)
                 return False
         return True
 
     def get_script(self, css_idx, css_fil, report_name):
-        return ChartScripts.get_script(self, css_idx, css_fil, report_name)
+        return Scripts.get_script(self, css_idx, css_fil, report_name)
