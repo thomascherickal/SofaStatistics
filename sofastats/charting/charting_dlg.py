@@ -16,12 +16,14 @@ CUR_SORT_OPT_LBL = mg.SORT_VALUE_LBL
 CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
 ROTATE = False
 SHOW_N = False
-MAJOR = False
+MAJOR_TICKS = False
 HIDE_MARKERS = False
 BARS_SORTED_LBL = 'bars'
 CLUSTERS_SORTED_LBL = 'clusters'
 SLICES_SORTED_LBL = 'slices'
 GROUPS_SORTED_LBL = 'groups'
+
+DROPDOWN_LABEL_WHEN_INACTIVE = ' '
 
 """
 If sorting of x-axis not explicit, will be sort_opt=mg.SORT_VALUE_LBL and will
@@ -256,7 +258,7 @@ class Btns:
         self.drop_line_sort.SetSelection(idx_sort)
         self.chk_line_rotate.SetValue(ROTATE)
         self.chk_line_hide_markers.SetValue(HIDE_MARKERS)
-        self.chk_line_major_ticks.SetValue(MAJOR)
+        self.chk_line_major_ticks.SetValue(MAJOR_TICKS)
         Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
         self.setup_line_extras()
 
@@ -273,7 +275,7 @@ class Btns:
         self.drop_area_sort.SetSelection(idx_sort)
         self.chk_area_rotate.SetValue(ROTATE)
         self.chk_area_hide_markers.SetValue(HIDE_MARKERS)
-        self.chk_area_major_ticks.SetValue(MAJOR)
+        self.chk_area_major_ticks.SetValue(MAJOR_TICKS)
         Btns.btn_chart(self, event, btn, btn_bmp, btn_bmp_sel, panel)
 
     @staticmethod
@@ -335,7 +337,7 @@ class Checkboxes:
             major2use = _('Major\nlabels only?')
         chk = self.checkbox2use(panel, -1, major2use, wrap=15)
         chk.SetFont(mg.GEN_FONT)
-        chk.SetValue(MAJOR)
+        chk.SetValue(MAJOR_TICKS)
         chk.SetToolTip(_('Show major labels only?'))
         chk.Bind(
             wx.EVT_CHECKBOX, partial(Checkboxes.on_chk_major_ticks, self))
@@ -363,7 +365,7 @@ class Checkboxes:
             dates2use = _('Time\nseries?')
         chk = self.checkbox2use(panel, -1, dates2use)
         chk.SetFont(mg.GEN_FONT)
-        chk.SetValue(MAJOR)
+        chk.SetValue(MAJOR_TICKS)
         chk.SetToolTip(_('Time series i.e. spread over x-axis by date?'))
         event_func = (
             partial(Checkboxes.on_chk_line_time_series, self) if line
@@ -400,9 +402,9 @@ class Checkboxes:
 
     @staticmethod
     def on_chk_major_ticks(self, event):
-        global MAJOR
+        global MAJOR_TICKS
         chk = event.GetEventObject()
-        MAJOR = chk.IsChecked()
+        MAJOR_TICKS = chk.IsChecked()
 
     @staticmethod
     def on_chk_hide_markers(self, event):
@@ -780,10 +782,10 @@ class Dropdowns:
         self.szr_vars.Add(self.drop_var4, 0, wx.FIXED_MINSIZE|top_right, 5)
         self.panel_vars.Layout()
         if not show_3:
-            self.lbl_var3.SetLabel(' ')  ## If you hide it, you can't see it later when you change the label and show it - Grrrrrr
+            self.lbl_var3.SetLabel(DROPDOWN_LABEL_WHEN_INACTIVE)  ## If you hide it, you can't see it later when you change the label and show it - Grrrrrr
             self.drop_var3.Hide()
         if not show_4:
-            self.lbl_var4.SetLabel(' ')
+            self.lbl_var4.SetLabel(DROPDOWN_LABEL_WHEN_INACTIVE)
             self.drop_var4.Hide()
 
     @staticmethod
@@ -1215,8 +1217,8 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
     dbe, cur, tbl, tbl_filt, var_role_dic,
     sort_opt=mg.{sort_opt})
 chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
-    chart_output_dets, inc_count={inc_count}, inc_pct={inc_pct},
-    show_n={show_n}, css_fil="{esc_css_fil}", css_idx={css_idx},
+    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    inc_count={inc_count}, inc_pct={inc_pct}, show_n={show_n},
     page_break_after=False)""")
         return script
 
@@ -1238,11 +1240,12 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
     time_series={time_series})
 {xy_titles}
 chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, time_series={time_series},
-    rotate={rotate}, show_n={show_n}, major_ticks={major_ticks},
+    x_title, y_title, chart_output_dets,
+    css_fil="{esc_css_fil}", css_idx={css_idx},
+    time_series={time_series}, rotate={rotate},
+    show_n={show_n}, major_ticks={major_ticks},
     inc_trend={inc_trend}, inc_smooth={inc_smooth},
-    hide_markers={hide_markers}, css_fil="{esc_css_fil}", css_idx={css_idx},
-    page_break_after=False)""")
+    hide_markers={hide_markers}, page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1260,10 +1263,11 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.AREA_CHART,
 x_title = var_role_dic['cat_name']
 y_title = {ytitle2use}
 chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles,
-    x_title, y_title, chart_output_dets, time_series={time_series},
-    rotate={rotate}, show_n={show_n}, major_ticks={major_ticks},
-    hide_markers={hide_markers}, css_fil="{esc_css_fil}",
-    css_idx={css_idx}, page_break_after=False)""")
+    x_title, y_title, chart_output_dets,
+    css_fil="{esc_css_fil}", css_idx={css_idx},
+    time_series={time_series}, rotate={rotate}, show_n={show_n},
+    major_ticks={major_ticks}, hide_markers={hide_markers},
+    page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1276,8 +1280,9 @@ chart_dets) = charting_output.Histo.get_histo_dets(dbe, cur, tbl, tbl_filt,
     flds, var_role_dic, inc_normal={inc_normal})
 chart_output = charting_output.Histo.histogram_output(titles, subtitles,
     var_role_dic['bin_name'], overall_title, chart_dets,
-    inc_normal={inc_normal}, show_n={show_n}, show_borders={show_borders},
-    css_fil="{esc_css_fil}", css_idx={css_idx}, page_break_after=False)""")
+    css_fil="{esc_css_fil}", css_idx={css_idx}, 
+    inc_normal={inc_normal}, show_n={show_n},
+    show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1291,10 +1296,11 @@ chart_output = charting_output.Histo.histogram_output(titles, subtitles,
     dbe, cur, tbl, tbl_filt, var_role_dic, unique=True,
     inc_regression={regression})
 chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
-    overall_title, scatterplot_dets, var_role_dic['x_axis_name'],
-    var_role_dic['y_axis_name'], add_to_report, report_name,
-    show_n={show_n}, show_borders={show_borders},
-    css_fil="{esc_css_fil}", css_idx={css_idx}, page_break_after=False)""")
+    overall_title, var_role_dic['x_axis_name'], var_role_dic['y_axis_name'],
+    scatterplot_dets,
+    css_fil="{esc_css_fil}", css_idx={css_idx},
+    report_name=report_name, add_to_report=add_to_report,
+    show_n={show_n}, show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1312,12 +1318,15 @@ chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
 x_title = (var_role_dic['cat_name']
     if var_role_dic['cat_name'] else "")
 y_title = var_role_dic['desc_name'] 
-chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
-    any_missing_boxes, x_title, y_title, var_role_dic['series_name'],
-    n_chart, xaxis_dets, max_label_len, max_lbl_lines, overall_title,
-    chart_dets, xmin, xmax, ymin, ymax, rotate={rotate}, show_n={show_n},
-    boxplot_opt="{boxplot_opt}", css_fil="{esc_css_fil}",
-    css_idx={css_idx}, page_break_after=False)""")
+chart_output = charting_output.BoxPlot.boxplot_output(
+    titles, subtitles, x_title, y_title, overall_title,
+    var_role_dic['series_name'], n_chart,
+    xaxis_dets, max_label_len, max_lbl_lines,
+    chart_dets, boxplot_opt="{boxplot_opt}",
+    css_fil="{esc_css_fil}", css_idx={css_idx},
+    xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
+    any_missing_boxes=any_missing_boxes, rotate={rotate}, show_n={show_n},
+    page_break_after=False)""")
         return script
 
     @staticmethod
@@ -1334,7 +1343,7 @@ chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
         debug = False
         dd = mg.DATADETS_OBJ
         rotate = 'True' if ROTATE else 'False'
-        major = 'True' if MAJOR else 'False'
+        major_ticks = 'True' if MAJOR_TICKS else 'False'
         hide_markers = 'True' if HIDE_MARKERS else 'False'
         show_n = 'True' if SHOW_N else 'False'
         line_time_series = self.chk_line_time_series.IsChecked()
@@ -1425,13 +1434,13 @@ chart_output = charting_output.BoxPlot.boxplot_output(titles, subtitles,
             script_lst.append(Scripts.get_line_chart_script(
                 ytitle2use, css_fil, css_idx,
                 time_series=line_time_series, rotate=rotate, show_n=show_n,
-                major=major, inc_trend=inc_trend, inc_smooth=inc_smooth,
+                major_ticks=major_ticks, inc_trend=inc_trend, inc_smooth=inc_smooth,
                 hide_markers=hide_markers))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(Scripts.get_area_chart_script(
                 ytitle2use, css_fil, css_idx,
                 time_series=area_time_series, rotate=rotate, show_n=show_n,
-                major=major, hide_markers=hide_markers))
+                major_ticks=major_ticks, hide_markers=hide_markers))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (
                 'True' if self.chk_show_normal.IsChecked() else 'False')
@@ -1827,6 +1836,12 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         """
         Are the appropriate selections made to enable an analysis to be run?
 
+        There are up to four possible pairs of labels/dropdowns. We can check if
+        a pair is present just by looking at the lbl (which is a static text
+        ctrl). Used to see if it was visible (IsShown()) but I need them visible
+        always because of layout issues. Instead, it is not active if I set
+        label to ' ' so that's what we should test for.
+
         No longer possible to have a Select showing where Select is not
         acceptable. So the only issues are a No Selection followed by a variable
         selection or duplicate variable selections.
@@ -1839,10 +1854,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             raise Exception(
                 'Mismatch in number of lbls and variables in charting dlg.')
         lblctrl_vars = zip(lblctrls, variables)
-        idx_lblctrl_in_lblctrl_vars = 0
-        idx_variable_in_lblctrl_vars = 1
-        shown_lblctrl_vars = [x for x in lblctrl_vars
-            if x[idx_lblctrl_in_lblctrl_vars].IsShown()]
+        shown_lblctrl_vars = [
+            (ctrl, var_lbl) for ctrl, var_lbl in lblctrl_vars
+            if ctrl.Label != DROPDOWN_LABEL_WHEN_INACTIVE]
         ## 1) Required field empty
         for var_idx, shown_lblctrl_var in enumerate(shown_lblctrl_vars):
             chart_subtype_key = self.get_chart_subtype_key()
@@ -1879,20 +1893,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                         if var_role == mg.VAR_ROLE_CHARTS:
                             continue
                     varlbl = lblctrl.GetLabel().rstrip(':')
-                    wx.MessageBox(_('"%(varlbl)s" has a variable selected '
-                        'but the previous drop down list '
-                        '"%(lbl_with_no_select)s" does not.')
-                        % {'varlbl': varlbl,
-                         'lbl_with_no_select': lbl_with_no_select})
+                    wx.MessageBox(
+                        _('"%(varlbl)s" has a variable selected but '
+                        'the previous drop down list "%(lbl_with_no_select)s" '
+                        'does not.') % {'varlbl': varlbl,
+                        'lbl_with_no_select': lbl_with_no_select})
                     return False
         ## 3) Excluding No Selections, we have duplicate selections
-        selected_lblctrl_vars = [x for x in shown_lblctrl_vars
-            if x[idx_variable_in_lblctrl_vars] != mg.DROP_SELECT]
-        selected_lblctrls = [x[idx_lblctrl_in_lblctrl_vars] for x
-            in selected_lblctrl_vars]
-        selected_lbls = [x.GetLabel().rstrip(':') for x in selected_lblctrls]
-        selected_vars = [x[idx_variable_in_lblctrl_vars] for x
-            in selected_lblctrl_vars]
+        selected_lblctrl_vars = [(ctrl, var) for ctrl, var in shown_lblctrl_vars
+            if var != mg.DROP_SELECT]
+        selected_lblctrls = [
+            (ctrl, var_lbl) for ctrl, var_lbl in selected_lblctrl_vars]
+        selected_lbls = [ctrl.GetLabel().rstrip(':')
+            for ctrl, _var_lbl in selected_lblctrls]
+        selected_vars = [var_lbl for _ctrl, var_lbl in selected_lblctrl_vars]
         unique_selected_vars = set(selected_vars)
         if len(unique_selected_vars) < len(selected_vars):
                 final_comma = '' if len(selected_vars) < 3 else ','

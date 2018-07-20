@@ -291,10 +291,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         (var_gp_by_items, 
          self.sorted_var_names_by) = lib.GuiLib.get_sorted_choice_items(
              dic_labels, vals=var_names, inc_drop_select=self.inc_gp_by_select)
-        idx_gp_by = projects.get_idx_to_select(var_gp_by_items, var_gp, 
-                                           self.var_labels, mg.GROUP_BY_DEFAULT)
-        self.drop_group_by = self.get_fresh_drop_group_by(var_gp_by_items, 
-                                                          idx_gp_by)
+        idx_gp_by = projects.get_idx_to_select(
+            var_gp_by_items, var_gp, self.var_labels, mg.GROUP_BY_DEFAULT)
+        self.drop_group_by = self.get_fresh_drop_group_by(
+            var_gp_by_items, idx_gp_by)
         self.panel_vars.Layout()
         try:
             self.szr_group_by_vars.Clear()
@@ -305,18 +305,19 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.szr_group_by_vars.Add(self.lbl_chop_warning, 1, wx.RIGHT, 5)
         self.panel_vars.Layout()
 
-    def setup_a_and_b_dropdowns(self, val_a=None, val_b=None, 
-                                suppress_immediate_msg=False):
+    def setup_a_and_b_dropdowns(
+            self, val_a=None, val_b=None, *, suppress_immediate_msg=False):
         """
-        Makes fresh objects each time (and rebinds etc) because that is the only 
-            way (in Linux at least) to have a non-standard font-size for items
-            in a performant way e.g. if more than 10-20 items in a list. Very
-            slow if having to add items to dropdown if having to set font e.g.
-            using SetItems().
-        suppress_immediate_msg -- so doesn't show message during init before 
-            screen even displayed.
-        Returns msg (if we have suppress_immediate_msg we may want to do 
-            something manually later).
+        Makes fresh objects each time (and rebinds etc) because that is the only
+        way (in Linux at least) to have a non-standard font-size for items in a
+        performant way e.g. if more than 10-20 items in a list. Very slow if
+        having to add items to dropdown if having to set font e.g. using
+        SetItems().
+
+        :param bool suppress_immediate_msg: so doesn't show message during init
+         before screen even displayed.
+        :return: msg (if we have suppress_immediate_msg we may want to do
+         something manually later).
         """
         dd = mg.DATADETS_OBJ
         unused, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
@@ -358,7 +359,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             return
         html2show = _("<p>Waiting for an analysis to be run.</p>")
         self.html.SetPage(html2show, mg.BASE_URL)
-            
+
     def add_other_var_opts(self, szr=None):
         "Used by ANOVA at least"
         pass
@@ -371,7 +372,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.refresh_vals()
         # event.Skip() - don't use or will appear twice in Windows!
 
-    def on_rclick_group_by(self, event):
+    def on_rclick_group_by(self, _event):
         var_gp, choice_item = self.get_group_by()
         label_gp = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_gp)
@@ -380,7 +381,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if updated:
             self.refresh_vars()
 
-    def on_rclick_vars(self, event):
+    def on_rclick_vars(self, _event):
         var_name, choice_item = self.get_var_dets(self.drop_avg, 
                                                   self.sorted_var_names_avg)
         var_label = lib.GuiLib.get_item_label(item_labels=self.var_labels,
@@ -389,14 +390,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
-    
+
     def refresh_vars(self):
         self.setup_group_dropdown()
         self.setup_avg_dropdown()
         self.setup_a_and_b_dropdowns()
         self.update_defaults()
         self.update_phrase()
-        
+
     def on_paint(self, event):
         if self.show_chop_warning:
             wx.CallAfter(self.show_chop_warning)
@@ -404,15 +405,15 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_database_sel(self, event):
         """
-        Reset dbe, database, cursor, tables, table, tables dropdown, 
-            fields, has_unique, and idxs after a database selection.
+        Reset dbe, database, cursor, tables, table, tables dropdown, fields,
+        has_unique, and idxs after a database selection.
         """
         if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_group_dropdown()
             self.setup_avg_dropdown()
             self.setup_a_and_b_dropdowns()
-                
+
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_ui.ConfigUI.on_table_sel(self, event)
@@ -424,8 +425,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         
     def on_btn_var_config(self, event):
         """
-        Want to retain already selected item - even though label and even 
-            position may have changed.
+        Want to retain already selected item - even though label and even
+        position may have changed.
         """
         val_a, val_b = self.get_vals()
         config_ui.ConfigUI.on_btn_var_config(self, event)
@@ -434,39 +435,39 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.setup_a_and_b_dropdowns(val_a, val_b)
         self.update_defaults()
         self.update_phrase()
-    
+
     def get_group_by(self):
         idx_by = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[idx_by]
         var_gp_item = self.drop_group_by.GetStringSelection()
         return var_gp, var_gp_item
-    
+
     def get_var_dets(self, drop_var, sorted_var_names):
         idx_var = drop_var.GetSelection()
         var_name = sorted_var_names[idx_var]
         var_item = drop_var.GetStringSelection()
         return var_name, var_item
-    
+
     def get_vars(self):
         """
-        self.sorted_var_names_by and self.sorted_var_names_avg are set when 
-            dropdowns are set (and only changed when reset).
+        self.sorted_var_names_by and self.sorted_var_names_avg are set when
+        dropdowns are set (and only changed when reset).
         """
         try:
             var_gp, unused = self.get_group_by()
         except Exception:
             var_gp = None
         try:
-            var_avg, unused = self.get_var_dets(self.drop_avg, 
-                                                self.sorted_var_names_avg)
+            var_avg, _var_item = self.get_var_dets(
+                self.drop_avg, self.sorted_var_names_avg)
         except Exception:
             var_avg = None
         return var_gp, var_avg
-    
+
     def get_vals(self):
         """
-        self.gp_vals_sorted is set when dropdowns are set (and only changed when 
-            reset).
+        self.gp_vals_sorted is set when dropdowns are set (and only changed when
+        reset).
         """
         try:
             idx_a = self.drop_group_a.GetSelection()
@@ -483,16 +484,16 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             val_a = None
             val_b = None
         return val_a, val_b
-    
+
     def on_group_by_sel(self, event):
         self.refresh_vals()
         event.Skip()
-        
+
     def refresh_vals(self):
         self.setup_a_and_b_dropdowns()
         self.update_phrase()
         self.update_defaults()
-    
+
     def update_defaults(self):
         mg.GROUP_BY_DEFAULT = self.drop_group_by.GetStringSelection()
         mg.VAR_AVG_DEFAULT = self.drop_avg.GetStringSelection()

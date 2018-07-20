@@ -20,9 +20,9 @@ class ExcelImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tblname, headless, 
+    def __init__(self, parent, fpath, tblname, headless, 
             headless_has_header, force_quickcheck=False):
-        importer.FileImporter.__init__(self, parent, file_path, tblname,
+        importer.FileImporter.__init__(self, parent, fpath, tblname,
             headless, headless_has_header)
         self.ext = u"XLS/XLSX"
         self.force_quickcheck = force_quickcheck
@@ -58,7 +58,7 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            wkbook = xlrd.open_workbook(self.file_path) # , encoding_override="cp1252"
+            wkbook = xlrd.open_workbook(self.fpath) # , encoding_override="cp1252"
             wksheet = wkbook.sheet_by_index(0)
             strdata = []
             for rowx in range(wksheet.nrows):
@@ -222,7 +222,7 @@ class ExcelImporter(importer.FileImporter):
         if not self.headless:
             wx.BeginBusyCursor()
         try:
-            wkbook = xlrd.open_workbook(self.file_path,)
+            wkbook = xlrd.open_workbook(self.fpath,)
             wksheet = wkbook.sheet_by_index(0)
             n_datarows = wksheet.nrows -1 if self.has_header else wksheet.nrows
             # get field names
@@ -231,7 +231,7 @@ class ExcelImporter(importer.FileImporter):
         except OSError as e:
             lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to find file \"%s\" for importing."
-                % self.file_path)
+                % self.fpath)
         except Exception as e:
             lib.GuiLib.safe_end_cursor()
             raise Exception(u"Unable to read spreadsheet."
@@ -261,16 +261,17 @@ class ExcelImporter(importer.FileImporter):
             row_idx += 1
         gauge_start = steps_per_item*sample_n
         try:
-            feedback = {mg.NULLED_DOTS: False}
+            feedback = {mg.NULLED_DOTS_KEY: False}
             importer.add_to_tmp_tbl(
                 feedback, import_status,
                 default_dd.con, default_dd.cur,
-                self.tblname, self.has_header, ok_fldnames, fldtypes,
+                self.tblname, ok_fldnames, fldtypes,
                 faulty2missing_fld_list, data,
                 progbar, n_datarows, steps_per_item, gauge_start,
-                headless=self.headless)
+                has_header=self.has_header, headless=self.headless)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                self.tblname, progbar, feedback[mg.NULLED_DOTS], self.headless)
+                self.tblname, progbar, feedback[mg.NULLED_DOTS_KEY],
+                headless=self.headless)
         except Exception as e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

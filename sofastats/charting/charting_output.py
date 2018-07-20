@@ -869,7 +869,7 @@ class DataPrep:
                 (sorted_xaxis_dets, sorted_y_vals,
                     sorted_tooltips) = DataPrep.get_sorted_y_dets(
                         data_show, major_ticks, time_series, sort_opt,
-                        vals_etc_lst, dp_y, multiseries)
+                        vals_etc_lst, dp_y, multiseries=multiseries)
                 series_det = {
                     mg.CHARTS_SERIES_LBL_IN_LEGEND: legend_lbl,
                     mg.CHARTS_XAXIS_DETS: sorted_xaxis_dets,
@@ -1812,10 +1812,14 @@ class BoxPlot:
         return width, xfontsize, minor_ticks
 
     @staticmethod
-    def boxplot_output(titles, subtitles, any_missing_boxes, x_title, y_title,
-           var_role_series_name, n_chart, xaxis_dets, max_x_lbl_len,
-           max_lbl_lines, overall_title, chart_dets, xmin, xmax, ymin, ymax,
-           rotate, show_n, boxplot_opt, css_fil, css_idx, page_break_after):
+    def boxplot_output(
+            titles, subtitles, x_title, y_title, overall_title,
+            var_role_series_name, n_chart,
+            xaxis_dets, max_x_lbl_len, max_lbl_lines,
+            chart_dets, boxplot_opt,
+            css_fil, css_idx,
+            xmin, xmax, ymin, ymax, *,
+            any_missing_boxes, rotate, show_n, page_break_after):
         """
         titles -- list of title lines correct styles
         subtitles -- list of subtitle lines
@@ -2295,9 +2299,9 @@ class Histo:
         return overall_title, histo_dets
 
     @staticmethod
-    def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets, 
-            inc_normal, show_n, show_borders, css_fil, css_idx,
-            page_break_after=False):
+    def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
+            css_fil, css_idx, *,
+            inc_normal, show_n, show_borders, page_break_after=False):
         """
         See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this
         then.
@@ -2871,9 +2875,9 @@ class ScatterPlot:
         return overall_title, scatterplot_dets
 
     @staticmethod
-    def scatterplot_output(titles, subtitles, overall_title, scatterplot_dets, 
-            label_x, label_y, add_to_report, report_name, show_n, show_borders,
-            css_fil, css_idx, page_break_after=False):
+    def scatterplot_output(titles, subtitles, overall_title, label_x, label_y,
+            scatterplot_dets, css_fil, css_idx, report_name, *,
+            add_to_report, show_n, show_borders, page_break_after=False):
         """
         scatterplot_dets = {
             mg.CHARTS_OVERALL_LEGEND_LBL: "Age Group", # or None if only one series
@@ -3093,9 +3097,10 @@ class LineAreaChart:
         return smooth_y_vals
 
     @staticmethod
-    def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
-            time_series, rotate, show_n, major_ticks, hide_markers, css_fil,
-            css_idx, page_break_after):
+    def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
+            css_fil, css_idx, *,
+            time_series, rotate, show_n, major_ticks,
+            hide_markers, page_break_after):
         """
         titles -- list of title lines correct styles
         subtitles -- list of subtitle lines
@@ -3106,7 +3111,8 @@ class LineAreaChart:
         if time_series and not rotate:
             major_ticks = False
         ## arbitrary plot names added with addPlot in my js file - each has different settings re: tension and markers
-        plot_style = ", plot: 'unmarked'" if hide_markers else ", plot: 'default'"
+        plot_style = (", plot: 'unmarked'" if hide_markers
+            else ", plot: 'default'")
         axis_lbl_rotate = -90 if rotate else 0
         html = []
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_PAGE_BREAK_BEFORE, 
@@ -3240,9 +3246,10 @@ class LineAreaChart:
         return "".join(html)
 
     @staticmethod
-    def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets, 
+    def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
+            css_fil, css_idx, *,
             time_series, rotate, show_n, major_ticks, inc_trend, inc_smooth,
-            hide_markers, css_fil, css_idx, page_break_after):
+            hide_markers, page_break_after):
         """
         titles -- list of title lines correct styles
         subtitles -- list of subtitle lines
@@ -3550,8 +3557,8 @@ class PieChart:
         return cat_colours_by_lbl
 
     @staticmethod
-    def piechart_output(titles, subtitles, chart_output_dets, inc_count,
-            inc_pct, show_n, css_fil, css_idx, page_break_after):
+    def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
+            *, inc_count, inc_pct, show_n, page_break_after):
         """
         chart_output_dets -- see structure_gen_data()
         """

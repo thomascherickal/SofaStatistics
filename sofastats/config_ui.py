@@ -238,7 +238,8 @@ class ConfigUI(object):
 
         Each widget has a set of events ready to go as well.
         """
-        self.szr_data = self.get_szr_data(panel, read_only, hide_db)
+        self.szr_data = self.get_szr_data(
+            panel, read_only=read_only, hide_db=hide_db)
         self.szr_output_config = self.get_szr_output_config(panel, read_only)
         return self.szr_data, self.szr_output_config
 

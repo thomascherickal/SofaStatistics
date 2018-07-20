@@ -66,9 +66,8 @@ All data going in or out passes through fix_eols.
 debug_events = False
 
 class CellMoveEvent(wx.PyCommandEvent):
-    "See 3.6.1 in wxPython in Action"
     def __init__(self, evtType, _id):
-        wx.PyCommandEvent.__init__(self, evtType, id)
+        wx.PyCommandEvent.__init__(self, evtType, _id)
     
     def add_dets(self, dest_row=None, dest_col=None, direction=None):
         self.dest_row = dest_row
@@ -266,7 +265,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 if not fld_dic[mg.FLD_DATA_ENTRY_OK]:
                     self.read_only_cols.append(col_idx)
                     attr = wx.grid.GridCellAttr()
-                    attr.Setread_only(True)
+                    attr.SetReadOnly(True)
                     attr.SetBackgroundColour(mg.READONLY_COLOUR)
                     self.grid.SetColAttr(col_idx, attr)
                 elif col2select is None:  ## set once
@@ -786,10 +785,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         Process attempt to leave a new row.
 
-        Always OK to leave new row in an upwards direction if it has not been 
+        Always OK to leave new row in an upwards direction if it has not been
         altered (i.e. not dirty).
 
-        Otherwise, must see if row is OK to Save and successfully saved. If 
+        Otherwise, must see if row is OK to Save and successfully saved. If
         either is not the case e.g. faulty data, keep selection where it was.
         NB actual direction could be down_left instead of down if in final col.
 
@@ -804,10 +803,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         debug = False
         if self.debug or debug: 
-            print("leaving cell in new row - dest row %s dest col %s orig "
-                "direction %s" % (dest_row, dest_col, direction))
-        directions_not_indicating_new_row_save_attempt = [mg.MOVE_UP,
-            mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT]
+            print(f'leaving cell in new row - dest row {dest_row} '
+                f'dest col {dest_col} orig direction {direction}')
+        directions_not_indicating_new_row_save_attempt = [
+            mg.MOVE_UP, mg.MOVE_UP_RIGHT, mg.MOVE_UP_LEFT]
         not_attempting_to_save_new_row = (direction
             in directions_not_indicating_new_row_save_attempt)  ## when filtering happens it can create a move down event direction which can make it seem we are trying to save the new row (which might succeed if no constraints)
         new_row_clean = not self.dbtbl.new_is_dirty
@@ -815,8 +814,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             ## nothing to do - user isn't trying to trigger a save yet
             move_to_dest = True  ## always OK
         else: # must check OK to move
-            cannot_save_cell = not self.cell_ok_to_save(self.current_row_idx,
-                self.current_col_idx)
+            cannot_save_cell = not self.cell_ok_to_save(
+                self.current_row_idx, self.current_col_idx)
             if cannot_save_cell:  ## no need to waste time checking all other cells
                 move_to_dest = False
             else:  ## can save cell but what about entire row?
@@ -840,14 +839,14 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         if min_val is not None:
             if Decimal(raw_val) < Decimal(str(min_val)):
                 if self.debug: 
-                    print("%s is < the min_val of %s" % (raw_val, min_val))
+                    print(f'{raw_val} is < the min_val of {min_val}')
                 return False
         if max_val is not None:
             if Decimal(raw_val) > Decimal(str(max_val)):
                 if self.debug: 
-                    print("%s is > the max_val of %s" % (raw_val, max_val))
+                    print(f'{raw_val} is > the max_val of {max_val}')
                 return False
-        if self.debug: print("%s was accepted" % raw_val)
+        if self.debug: print(f'{raw_val} was accepted')
         return True
 
     def cell_invalid(self, row, col):
@@ -869,10 +868,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         debug = False
         if self.debug or debug: 
-            print(f"In cell_invalid for row {row} col {col}")
+            print(f'In cell_invalid for row {row} col {col}')
         if self.dbtbl.is_new_row(row):
             if self.debug or debug:
-                print(f"New buffer is {self.dbtbl.new_buffer}")
+                print(f'New buffer is {self.dbtbl.new_buffer}')
             raw_val = self.dbtbl.new_buffer.get(
                 (row, col), mg.MISSING_VAL_INDICATOR)
         else:
@@ -881,22 +880,22 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             if existing_row_data_lst:
                 prev_val = str(existing_row_data_lst[col])
                 if self.debug or debug:
-                    print(f"prev_val: {prev_val} raw_val: {raw_val}")
+                    print(f'prev_val: {prev_val} raw_val: {raw_val}')
                 if raw_val == prev_val:
-                    if self.debug or debug: print("Unchanged")
-                    return False # i.e. OK
-            if self.debug or debug: print(f"{raw_val} is changed!")
+                    if self.debug or debug: print('Unchanged')
+                    return False  ## i.e. OK
+            if self.debug or debug: print(f'{raw_val} is changed!')
         fld_dic = self.dbtbl.get_fld_dic(col)        
         if self.debug or debug: 
             print(f'"{raw_val}"')
-            print("Field dic is:")
+            print('Field dic is:')
             pprint.pprint(fld_dic)
         if raw_val == mg.MISSING_VAL_INDICATOR or raw_val is None:
             return False
         elif not fld_dic[mg.FLD_DATA_ENTRY_OK]: 
-            # i.e. not autonumber, timestamp etc
-            # and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
-            raise Exception(u"This field should have been read only")
+            ## i.e. not autonumber, timestamp etc
+            ## and raw_val != mg.MISSING_VAL_INDICATOR unnecessary
+            raise Exception('This field should have been read only')
         elif fld_dic[mg.FLD_BOLNUMERIC]:
             if not lib.TypeLib.is_numeric(raw_val):
                 wx.MessageBox(_("\"%s\" is not a valid number.\n\n"
@@ -923,18 +922,18 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             return False
         elif fld_dic[mg.FLD_BOLTEXT]:
             max_len = fld_dic[mg.FLD_TEXT_LENGTH]
-            if max_len is None: # SQLite returns None if TEXT
+            if max_len is None:  ## SQLite returns None if TEXT
                 return False
             if len(raw_val) > max_len:
-                wx.MessageBox(f'"{raw_val}" ' +
-                    _("is longer than the maximum of %s. Either enter a "
+                wx.MessageBox(f'"{raw_val}" '
+                    + _("is longer than the maximum of %s. Either enter a "
                     "shorter value or the missing value character (.)")
                     % max_len)
                 return True
             return False
         else:
             raise Exception("Field supposedly not numeric, datetime, or text")
-    
+
     def get_raw_val(self, row, col):
         """
         What was the value of a cell?
@@ -956,14 +955,14 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 cell_val_unhidden = self.grid.GetCellValue(row, col)
                 self.grid.DisableCellEditControl()
                 cell_val_hidden = self.grid.GetCellValue(row, col)
-                print(f"""val_of_cell_to_update: {raw_val}, "
+                print(f"""val_of_cell_to_update: {raw_val},
                     cell_val_unhidden: {cell_val_unhidden},
                     cell_val_hidden: {cell_val_hidden}""")
         else:
             self.grid.DisableCellEditControl()
             raw_val = self.grid.GetCellValue(row, col)
         if debug: print(raw_val)
-        raw_val = lib.fix_eols(raw_val) # everything coming out goes through here
+        raw_val = lib.fix_eols(raw_val)  ## everything coming out goes through here
         return raw_val
 
     def cell_ok_to_save(self, row, col):
@@ -973,18 +972,19 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         debug = False
         if self.debug or debug: 
-            print("cell_ok_to_save - row %s col %s" % (row, col))
+            print(f'cell_ok_to_save - row {row} col {col}')
         raw_val = self.get_raw_val(row, col)
         fld_dic = self.dbtbl.get_fld_dic(col)
-        missing_not_nullable_prob = (raw_val == mg.MISSING_VAL_INDICATOR
-                                     and not fld_dic[mg.FLD_BOLNULLABLE]
-                                     and fld_dic[mg.FLD_DATA_ENTRY_OK])
+        missing_not_nullable_prob = (
+            raw_val == mg.MISSING_VAL_INDICATOR
+            and not fld_dic[mg.FLD_BOLNULLABLE]
+            and fld_dic[mg.FLD_DATA_ENTRY_OK])
         if missing_not_nullable_prob:
             fldname = self.dbtbl.get_fldname(col)
             wx.MessageBox(_("%s will not allow missing values to "
                           "be stored") % fldname)
-        ok_to_save = (not self.cell_invalid(row, col) 
-                      and not missing_not_nullable_prob)
+        ok_to_save = (
+            not self.cell_invalid(row, col) and not missing_not_nullable_prob)
         return ok_to_save
 
     def row_ok_to_save(self, row, col2skip=None):
@@ -994,7 +994,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         strings ("Numeric", "Text", or "Date").
 
         col2skip -- so we can skip validating a cell that has just passed e.g.
-        in leaving_new_row 
+        in leaving_new_row
         """
         if self.debug: print("row_ok_to_save - row %s" % row)
         for col_idx in range(len(self.dd.flds)):
@@ -1020,22 +1020,22 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         """
         debug = False
         if self.debug or debug:
-            print(f"update_cell - row {row} col {col}")
+            print(f'update_cell - row {row} col {col}')
         bol_updated_cell = True
         try:
             self.dd.con.commit()
             self.dd.cur.execute(self.dbtbl.sql_cell_to_update)
             self.dd.con.commit()
         except Exception as e:
-            if self.debug or debug: 
-                print("update_cell failed to save %s. " %
-                    self.dbtbl.sql_cell_to_update + "\nCaused by error: %s"
-                    % b.ue(e))
+            if self.debug or debug:
+                cell2update = self.dbtbl.sql_cell_to_update
+                print(f'update_cell failed to save {cell2update}. '
+                    f'\nCaused by error: {b.ue(e)}')
             bol_updated_cell = False
-            wx.MessageBox(_("Unable to save change to database. %s") % 
-                b.ue(e))
+            wx.MessageBox(_("Unable to save change to database. %s")
+                % b.ue(e))
         if self.dbtbl.row_vals_dic.get(row):
-            del self.dbtbl.row_vals_dic[row] # force a fresh read
+            del self.dbtbl.row_vals_dic[row]  ## force a fresh read
         self.dbtbl.grid.ForceRefresh()
         return bol_updated_cell
 
@@ -1057,41 +1057,41 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             raw_val = self.dbtbl.new_buffer.get((row, col), None)
             if raw_val == mg.MISSING_VAL_INDICATOR:
                 raw_val = None
-            raw_val = lib.fix_eols(raw_val) # everything being saved goes through here
+            raw_val = lib.fix_eols(raw_val)  ## everything being saved goes through here
             data.append((raw_val, fldname, flddic))
         row_inserted, msg = getdata.insert_row(self.dd, data)
         if row_inserted:
-            if self.debug: print("save_row - Just inserted row")
+            if self.debug: print('save_row - Just inserted row')
         else:
-            if self.debug: print("save_row - Unable to insert row")
+            if self.debug: print('save_row - Unable to insert row')
             wx.MessageBox(_("Unable to insert row. %s") % msg)
             return False
         try:
             self.setup_new_row(data)
             return True
         except:
-            if self.debug: print("save_row - Unable to setup new row")
+            if self.debug: print('save_row - Unable to setup new row')
             return False
 
-    def setup_new_row(self, data):
+    def setup_new_row(self, _data):
         """
         Setup new row ready to receive new data.
         data = [(value as string (or None), fldname, flddets), ...]
         """
         self.dbtbl.set_row_ids_lst()
-        self.dbtbl.set_num_rows() # need to refresh
+        self.dbtbl.set_num_rows()  ## need to refresh
         new_row_idx = self.dbtbl.rows_n - 1
-        # do not add to row_vals_dic - force it to look it up from the db
-        # will thus show autocreated values e.g. timestamp, autoincrement etc
+        ## do not add to row_vals_dic - force it to look it up from the db
+        ## will thus show autocreated values e.g. timestamp, autoincrement etc
         self.display_new_row()
         self.reset_row_labels(new_row_idx)
         self.init_new_row_buffer()
         self.set_new_row_ed(new_row_idx)
-    
+
     def display_new_row(self):
         "Display a new entry row on end of grid"
         self.dbtbl.display_new_row()
-    
+
     def reset_row_labels(self, row):
         "Reset new row label and restore previous new row label to default"
         prev_row = row - 1
@@ -1121,12 +1121,12 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         If dirty we should block filtering no matter what. Need to save
         edits/additions before changing away to fresh data source.
         """
-        from sofastats import filtselect   #@UnresolvedImport by now, DLG will be available to inherit from
-        if debug_events: print("on_btn_filter")
+        from sofastats import filtselect  #@UnresolvedImport by now, DLG will be available to inherit from
+        if debug_events: print('on_btn_filter')
         debug = False
         if self.any_editor_shown or self.dbtbl.new_is_dirty:
-            wx.MessageBox(_(u"Unable to apply or remove filters while unsaved "
-                u"edits or data additions"))
+            wx.MessageBox(_("Unable to apply or remove filters while unsaved "
+                "edits or data additions"))
             event.Skip()
             return
         parent = self
@@ -1136,7 +1136,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         if retval != wx.ID_CANCEL:
             #self.dbtbl.force_refresh()  ## esp clear cache
             self.init_tbl()
-            if debug: print("Finished init_tbl")
+            if debug: print('Finished init_tbl')
             tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(self.dd.dbe,
                 self.dd.db, self.dd.tbl)
             filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
@@ -1146,23 +1146,23 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
 
     def on_grid_editor_created(self, event):
         """
-        Need to identify control just opened. Might need to return to it and
-            set insertion point.
+        Need to identify control just opened. Might need to return to it and set
+        insertion point.
         """
-        if debug_events: print("on_grid_editor_created")
+        if debug_events: print('on_grid_editor_created')
         debug = False
         self.control = event.GetControl()
-        if debug: print("Created editor: %s" % self.control)
+        if debug: print(f'Created editor: {self.control}')
         event.Skip()
 
     def on_label_rclick(self, event):
-        if debug_events: print("on_label_rclick")
+        if debug_events: print('on_label_rclick')
         debug = False
         col = event.GetCol()
         if col >= 0:
-            if debug: wx.MessageBox("Col %s was clicked" % col)
+            if debug: wx.MessageBox(f'Col {col} was clicked')
             var_name = self.dbtbl.fldnames[col]
-            var_label = self.var_labels.get(var_name, "")
+            var_label = self.var_labels.get(var_name, '')
             choice_item = lib.GuiLib.get_choice_item(self.var_labels, var_name)
             config_output.set_var_props(choice_item, var_name, var_label,
                 self.var_labels, self.var_notes, self.var_types, self.val_dics)
@@ -1170,15 +1170,16 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
     def get_cell_tooltip(self, col, raw_val):
         """
         Get tooltip for cell based on value dict if possible.
+
         raw_val is always a string - won't necessarily match vals dic e.g. "5"
-            won't match {5: "5's label"}.
+        won't match {5: "5's label"}.
         """
         debug = False
         if debug: 
             if type(raw_val) != str:
-                print("Non-unicode type: ", raw_val, type(raw_val))
+                print('Non-unicode type: ', raw_val, type(raw_val))
         if raw_val is None:
-            return u""
+            return ''
         fldname = self.dbtbl.fldnames[col]
         fld_val_dic = self.val_dics.get(fldname, {})
         tip = fld_val_dic.get(raw_val)
@@ -1208,13 +1209,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                 btn.Disable()
 
     def on_editor_shown(self, event):
-        if debug_events: print("on_editor_shown")
+        if debug_events: print('on_editor_shown')
         self.button_enablement(enable=False)
         self.any_editor_shown = True
         event.Skip()
 
     def on_editor_hidden(self, event):
-        if debug_events: print("on_editor_hidden")
+        if debug_events: print('on_editor_hidden')
         self.button_enablement(enable=True)
         self.any_editor_shown = False
         event.Skip()
@@ -1226,7 +1227,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         See http://wiki.wxpython.org/wxGrid%20ToolTips
         """
         show_mouse_moves = False
-        if debug_events and show_mouse_moves: print("on_mouse_move")
+        if debug_events and show_mouse_moves: print('on_mouse_move')
         if self.any_editor_shown:
             event.Skip()
             return
@@ -1237,13 +1238,13 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.prev_row_col = (row, col)
             raw_val = self.get_raw_val(row, col)
             if raw_val == mg.MISSING_VAL_INDICATOR:
-                tip = _("Missing value")
+                tip = _('Missing value')
             elif raw_val is None:
                 tip = ''
             else:
                 tip = self.get_cell_tooltip(col, raw_val)
                 if self.read_only or col in self.read_only_cols:
-                    tip = _(u"%s (Read only column)") % tip
+                    tip = _("%s (Read only column)") % tip
             self.grid.GetGridWindow().SetToolTip(tip)
         event.Skip()
 
@@ -1251,30 +1252,31 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         return len(self.dd.flds)
 
     def on_size_cols(self, event):
-        if debug_events: print("on_size_cols")
+        if debug_events: print('on_size_cols')
         n_data_rows = self.dbtbl.get_n_data_rows()
         if n_data_rows < 2000:
             self.set_colwidths()
         else:
-            ret = wx.MessageBox(_("This table has %(rows)s rows and "
-                                "%(cols)s columns. Do you wish to resize?") %
-                                {u"rows": n_data_rows, 
-                                 u"cols": self.get_cols_n()},
-                                _("Proceed with resizing columns"), 
-                                style=wx.YES_NO|wx.ICON_QUESTION)
+            ret = wx.MessageBox(
+                _("This table has %(rows)s rows and %(cols)s columns. Do you "
+                "wish to resize?")
+                % {"rows": n_data_rows, "cols": self.get_cols_n()},
+                _("Proceed with resizing columns"),
+                style=wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.YES:
                 self.set_colwidths()
         self.grid.SetFocus()
         event.Skip()
 
     def on_btn_export(self, event):
-        if debug_events: print("on_btn_export")
+        if debug_events: print('on_btn_export')
         n_rows = self.dbtbl.rows_n - 1
         if n_rows > 20000:
             strn = locale.format('%d', self.dbtbl.rows_n-1, True)
-            if wx.MessageBox(_("The underlying data table has %s rows. "
-                   "Do you wish to export it?") % strn, 
-                   caption=_("LARGE DATA TABLE"), 
+            if wx.MessageBox(
+                   _("The underlying data table has %s rows. Do you wish to "
+                   "export it?") % strn,
+                   caption=_("LARGE DATA TABLE"),
                    style=wx.YES_NO) == wx.NO:
                 return
         dlg = export_data.DlgExportData(n_rows)
@@ -1286,8 +1288,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         debug = False
         wx.BeginBusyCursor()
         try:
-            msg = ("Setting column widths (%s columns for %s rows)..." % 
-                                (self.dbtbl.GetNumberCols(), self.dbtbl.rows_n))
+            n_cols = self.dbtbl.GetNumberCols()
+            n_rows = self.dbtbl.rows_n
+            msg = (
+                f'Setting column widths ({n_cols} columns '
+                f'for {n_rows} rows)...')
             self.parent.add_feedback(msg)
         except Exception:
             pass
@@ -1298,35 +1303,36 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             colwidth = None
             if fld_dic[mg.FLD_BOLTEXT]:
                 txt_len = fld_dic[mg.FLD_TEXT_LENGTH]
-                colwidth = (txt_len*pix_per_char if txt_len is not None
-                            and txt_len < 25 else None) # leave for auto
+                colwidth = (txt_len*pix_per_char
+                    if txt_len is not None and txt_len < 25 else None)  ## leave for auto
             elif fld_dic[mg.FLD_BOLNUMERIC]:
                 num_len = fld_dic[mg.FLD_NUM_WIDTH]
-                colwidth = (num_len*pix_per_char if num_len is not None
-                            else None)
+                colwidth = (num_len*pix_per_char
+                    if num_len is not None else None)
             #elif fld_dic[mg.FLD_BOLDATETIME]:
             #    colwidth = 150
             visible_var_label = self.var_labels.get(fldname, fldname)
             fldname_width = len(visible_var_label)*pix_per_char
             if colwidth:
                 if debug or self.debug: 
-                    print("Width of %s set to %s" % (fldname, colwidth))
+                    print(f'Width of {fldname} set to {colwidth}')
                 colwidth2use = max(colwidth, fldname_width)
                 self.grid.SetColSize(col_idx, colwidth2use)
             else:
-                if debug or self.debug: print("Autosizing %s" % fldname)
+                if debug or self.debug: print(f'Autosizing {fldname}')
                 self.grid.AutoSizeColumn(col_idx, setAsMin=False)
-                # if actual column width is small and the label width is larger,
-                # use label width.
+                ## if actual column width is small and the label width is larger,
+                ## use label width.
                 self.grid.ForceRefresh()
                 actual_width = self.grid.GetColSize(col_idx)
                 if actual_width < 15*pix_per_char \
                         and actual_width < fldname_width:
                     self.grid.SetColSize(col_idx, fldname_width)
-            if debug or self.debug: 
-                print("%s %s" % (fldname, self.grid.GetColSize(col_idx)))
+            if debug or self.debug:
+                col_size = self.grid.GetColSize(col_idx)
+                print(f'{fldname} {col_size}')
         try:
-            self.parent.add_feedback(u"")
+            self.parent.add_feedback('')
         except Exception:
             pass
         lib.GuiLib.safe_end_cursor()
@@ -1340,17 +1346,17 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         return final_row
 
     def on_cell_change(self, event):
-        if debug_events: print("on_cell_change")
+        if debug_events: print('on_cell_change')
         debug = False
         row = event.GetRow()
         new_row = self.dbtbl.is_new_row(row)
         if new_row:
             self.dbtbl.new_is_dirty = True
-        if debug: print("Cell changed")
+        if debug: print('Cell changed')
         self.grid.ForceRefresh()
         event.Skip()
 
-    def on_close(self, event):
-        if debug_events: print("on_close")
+    def on_close(self, _event):
+        if debug_events: print('on_close')
         output.update_var_dets(dlg=self.parent)
         self.Destroy()

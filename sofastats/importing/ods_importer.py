@@ -24,9 +24,9 @@ class OdsImporter(importer.FileImporter):
     Adds unique index id so can identify unique records with certainty.
     """
     
-    def __init__(self, parent, file_path, tblname, headless, 
+    def __init__(self, parent, fpath, tblname, headless, 
             headless_has_header, force_quickcheck=False):
-        importer.FileImporter.__init__(self, parent, file_path, tblname,
+        importer.FileImporter.__init__(self, parent, fpath, tblname,
             headless, headless_has_header)
         self.ext = u"ODS"
         self.force_quickcheck = force_quickcheck
@@ -60,10 +60,10 @@ class OdsImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            if not os.path.exists(self.file_path):
+            if not os.path.exists(self.fpath):
                 raise Exception(u"Unable to find file \"%s\" for importing. "
-                    u"Please check that file exists." % self.file_path)
-            size = ods_reader.get_ods_xml_size(self.file_path)
+                    u"Please check that file exists." % self.fpath)
+            size = ods_reader.get_ods_xml_size(self.fpath)
             if size > mg.ODS_GETTING_LARGE:
                 ret = wx.MessageBox(_("This spreadsheet may take a while to "
                     "import.\n\nInstead of importing, it could be faster to "
@@ -75,17 +75,18 @@ class OdsImporter(importer.FileImporter):
                 return importer.FileImporter.get_params(self) # check for header
             else:
                 wx.BeginBusyCursor()
-                tree = ods_reader.get_contents_xml_tree(self.file_path)
+                tree = ods_reader.get_contents_xml_tree(self.fpath)
                 tbl = ods_reader.get_tbl(tree)
                 # much less efficient if no header supplied
-                ok_fldnames = ods_reader.get_ok_fldnames(tbl, has_header=False, 
-                    rows_to_sample=ROWS_TO_SAMPLE, headless=self.headless,
+                ok_fldnames = ods_reader.get_ok_fldnames(tbl,
+                    rows_to_sample=ROWS_TO_SAMPLE,
+                    has_header=False, headless=self.headless,
                     force_quickcheck=self.force_quickcheck)
                 if not ok_fldnames:
-                    raise Exception(_("Unable to extract or generate field "
-                        "names"))
-                rows = ods_reader.get_rows(tbl, inc_empty=False, 
-                    n=importer.ROWS_TO_SHOW_USER)
+                    raise Exception(
+                        _('Unable to extract or generate field names'))
+                rows = ods_reader.get_rows(
+                    tbl, inc_empty=False, n=importer.ROWS_TO_SHOW_USER)
                 lib.GuiLib.safe_end_cursor()
                 strdata = []
                 for i, row in enumerate(rows, 1):
@@ -98,8 +99,8 @@ class OdsImporter(importer.FileImporter):
                     prob_has_hdr = self.has_header_row(strdata)
                 except Exception:
                     prob_has_hdr = False
-                dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, 
-                    strdata, prob_has_hdr)
+                dlg = importer.DlgHasHeaderGivenData(
+                    self.parent, self.ext, strdata, prob_has_hdr)
                 ret = dlg.ShowModal()
                 if debug: print(str(ret))
                 if ret == wx.ID_CANCEL:
@@ -107,13 +108,13 @@ class OdsImporter(importer.FileImporter):
                 else:
                     self.has_header = (ret == mg.HAS_HEADER)
                     return True
-    
+
     def import_content(self,
             lbl_feedback=None, import_status=None, progbar=None):
         """
-        Get field types dict. Use it to test each and every item before they 
+        Get field types dict. Use it to test each and every item before they
         are added to database (after adding the records already tested).
-        
+
         Add to disposable table first and if completely successful, rename
         table to final name.
         """
@@ -126,45 +127,46 @@ class OdsImporter(importer.FileImporter):
         large = True
         if not self.headless:
             wx.BeginBusyCursor()
-        # Use up 2/3rds of the progress bar in initial step (parsing html and  
-        # then extracting data from it) and 1/3rd adding to the SQLite database.
+        ## Use up 2/3rds of the progress bar in initial step (parsing html and
+        ## then extracting data from it) and 1/3rd adding to the SQLite database.
         prog_steps_for_xml_steps = mg.IMPORT_GAUGE_STEPS*(2.0/3.0)
-        prog_step1 = prog_steps_for_xml_steps/5.0 # to encourage them ;-)
+        prog_step1 = prog_steps_for_xml_steps/5.0  ## to encourage them ;-)
         prog_step2 = prog_steps_for_xml_steps/2.0
-        tree = ods_reader.get_contents_xml_tree(self.file_path, lbl_feedback, 
+        tree = ods_reader.get_contents_xml_tree(self.fpath, lbl_feedback,
             progbar, prog_step1, prog_step2)
         tbl = ods_reader.get_tbl(tree)
-        ok_fldnames = ods_reader.get_ok_fldnames(tbl, self.has_header, 
-            ROWS_TO_SAMPLE, self.headless)
+        ok_fldnames = ods_reader.get_ok_fldnames(tbl, ROWS_TO_SAMPLE,
+            has_header=self.has_header, headless=self.headless)
         if not ok_fldnames:
-            raise Exception(_("Unable to extract or generate field names"))
-        # Will expect exactly the same number of fields as we have names for.
-        # Have to process twice as much before it will add another step on bar.
-        fldtypes, rows = ods_reader.get_ods_dets(lbl_feedback, progbar, tbl,
-            ok_fldnames, faulty2missing_fld_list, prog_steps_for_xml_steps, 
+            raise Exception(_('Unable to extract or generate field names'))
+        ## Will expect exactly the same number of fields as we have names for.
+        ## Have to process twice as much before it will add another step on bar.
+        fldtypes, rows = ods_reader.get_ods_dets(progbar, tbl,
+            ok_fldnames, faulty2missing_fld_list, prog_steps_for_xml_steps,
             next_prog_val=prog_step2, has_header=self.has_header,
             headless=self.headless)
         if debug:
             if large:
-                print("%s" % rows[:20])
+                print(f'{rows[:20]}')
             else:
-                print("%s" % rows)
+                print(f'{rows}')
         default_dd = getdata.get_default_db_dets()
         rows_n = len(rows)
-        items_n = rows_n*3 # pass through it all 3 times (parse, process, save)
+        items_n = rows_n*3  ## pass through it all 3 times (parse, process, save)
         steps_per_item = importer.get_steps_per_item(items_n)
         gauge_start = prog_steps_for_xml_steps
         try:
-            feedback = {mg.NULLED_DOTS: False}
+            feedback = {mg.NULLED_DOTS_KEY: False}
             importer.add_to_tmp_tbl(
                 feedback, import_status,
                 default_dd.con, default_dd.cur,
-                self.tblname, self.has_header, ok_fldnames, fldtypes,
+                self.tblname, ok_fldnames, fldtypes,
                 faulty2missing_fld_list, rows,
                 progbar, rows_n, steps_per_item, gauge_start,
-                headless=self.headless)
+                has_header=self.has_header, headless=self.headless)
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur, 
-                self.tblname, progbar, feedback[mg.NULLED_DOTS], self.headless)
+                self.tblname, progbar, feedback[mg.NULLED_DOTS_KEY],
+                headless=self.headless)
         except Exception:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise
