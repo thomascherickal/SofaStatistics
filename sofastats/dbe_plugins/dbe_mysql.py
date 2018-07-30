@@ -11,7 +11,7 @@ if mg.PLATFORM == mg.MAC:
             "advice on how to use SOFA with MySQL on a Mac.")
 elif mg.PLATFORM == mg.LINUX:
     try:
-        import MySQLdb as mysql #@ImportRedefinition @UnresolvedImport @UnusedImport - easier to get working on a Mac
+        import MySQLdb as mysql #@UnusedImport
     except Exception as e:
         raise Exception(f"Contact the developer ({mg.CONTACT}) for specific "
             "advice on how to use SOFA with MySQL on Linux.")
@@ -20,14 +20,14 @@ else:
 from sofastats import my_exceptions
 from sofastats import lib
 
-BIGINT = "bigint"
-DECIMAL = "decimal"
-DOUBLE = "double"
-FLOAT = "float"
-INT = "int"
-MEDIUMINT = "mediumint"
-SMALLINT = "smallint"
-TINYINT = "tinyint"
+BIGINT = 'bigint'
+DECIMAL = 'decimal'
+DOUBLE = 'double'
+FLOAT = 'float'
+INT = 'int'
+MEDIUMINT = 'mediumint'
+SMALLINT = 'smallint'
+TINYINT = 'tinyint'
 
 if_clause = 'IF(%s, %s, %s)'
 placeholder = '%s'
@@ -37,9 +37,9 @@ gte_not_equals = '!='
 cartesian_joiner = ' JOIN '
 
 def quote_obj(raw_val):
-    return f"{left_obj_quote}{raw_val}{right_obj_quote}"
+    return f'{left_obj_quote}{raw_val}{right_obj_quote}'
 
-def quote_val(raw_val, charset2try="iso-8859-1"):
+def quote_val(raw_val, charset2try='iso-8859-1'):
     return lib.DbLib.quote_val(raw_val, sql_str_literal_quote='"', 
         sql_esc_str_literal_quote='""', pystr_use_double_quotes=False,
         charset2try=charset2try)
@@ -48,16 +48,18 @@ def get_summable(clause):
     return clause
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
-    orderby = f"ORDER BY {quote_obj(order_val)}" if order_val else ''
-    return f"SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}"
+    orderby = f'ORDER BY {quote_obj(order_val)}' if order_val else ''
+    return f'SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}'
 
 def get_syntax_elements():
-    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+    return (if_clause,
+        left_obj_quote, right_obj_quote,
+        quote_obj, quote_val,
         placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_con_cur_for_db(con_dets_mysql, db):
     """
-    Could use charset="utf8") http://mysql-python.sourceforge.net/MySQLdb.html
+    Could use charset='utf8') http://mysql-python.sourceforge.net/MySQLdb.html
     """
     try:
         con_dets_mysql['use_unicode'] = True
@@ -65,8 +67,8 @@ def get_con_cur_for_db(con_dets_mysql, db):
             con_dets_mysql['db'] = db
         con = mysql.connect(**con_dets_mysql)
     except Exception as e:
-        raise Exception("Unable to connect to MySQL db. "
-            f"\nCaused by error: {b.ue(e)}")
+        raise Exception(
+            'Unable to connect to MySQL db. \nCaused by error: {b.ue(e)}')
     cur = con.cursor()  ## must return tuples not dics
     return con, cur
 
@@ -92,13 +94,10 @@ def get_con_resources(con_dets, default_dbs, db=None):
     if not con_dets_mysql:
         raise my_exceptions.MissingConDets(mg.DBE_MYSQL)
     con, cur = get_con_cur_for_db(con_dets_mysql, db)
-    #SQL_get_db_names = u"""SELECT SCHEMA_NAME 
-    #        FROM information_schema.SCHEMATA
-    #        WHERE SCHEMA_NAME <> 'information_schema'"""
-    SQL_get_db_names = "SHOW DATABASES"
+    SQL_get_db_names = 'SHOW DATABASES'
     cur.execute(SQL_get_db_names)
     ## only want dbs with at least one table.
-    all_dbs = [x[0] for x in cur.fetchall() if x[0] != "information_schema"]
+    all_dbs = [x[0] for x in cur.fetchall() if x[0] != 'information_schema']
     dbs = []
     for db4list in all_dbs:
         try:
@@ -110,8 +109,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur.close()
         con.close()
     if not dbs:
-        raise Exception(_("Unable to find any databases that have tables "
-                          "and you have permission to access."))
+        raise Exception(_('Unable to find any databases that have tables '
+            'and you have permission to access.'))
     dbs_lc = [x.lower() for x in dbs]
     con, cur = get_con_cur_for_db(con_dets_mysql, db)
     if not db:
@@ -142,13 +141,7 @@ def get_tbls(cur, db):
 
     SHOW TABLES works with older versions of MySQL than information_schema
     """
-    #SQL_get_tblnames = u"""SELECT TABLE_NAME 
-    #    FROM information_schema.TABLES
-    #    WHERE TABLE_SCHEMA = %s
-    #    UNION SELECT TABLE_NAME
-    #    FROM information_schema.VIEWS
-    #    WHERE TABLE_SCHEMA = %s """ % (quote_val(db), quote_val(db))
-    SQL_get_tblnames = f"SHOW TABLES FROM {quote_obj(db)} "
+    SQL_get_tblnames = f'SHOW TABLES FROM {quote_obj(db)} '
     cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
@@ -156,7 +149,7 @@ def get_tbls(cur, db):
 
 def has_tbls(cur, db):
     "Any non-system tables?  Cursor should match db"
-    SQL_get_tblnames = f"SHOW TABLES FROM {quote_obj(db)} "
+    SQL_get_tblnames = f'SHOW TABLES FROM {quote_obj(db)} '
     cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     if tbls:
@@ -174,70 +167,70 @@ def get_min_max(coltype, num_prec, dec_pts):
     than a certain level, such values will be accepted here. The database will
     store these as zero.
     """
-    if coltype.lower().startswith(TINYINT) \
-            and not coltype.lower().endswith("unsigned"):
+    if (coltype.lower().startswith(TINYINT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -(2**7)
         max_val = (2**7)-1
-    elif coltype.lower().startswith(TINYINT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(TINYINT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = (2**8)-1
-    elif coltype.lower().startswith(SMALLINT) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(SMALLINT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -(2**15)
         max_val = (2**15)-1
-    elif coltype.lower().startswith(SMALLINT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(SMALLINT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = (2**16)-1
-    elif coltype.lower().startswith(MEDIUMINT) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(MEDIUMINT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -(2**23)
         max_val = (2**23)-1
-    elif coltype.lower().startswith(MEDIUMINT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(MEDIUMINT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = (2**24)-1
-    elif coltype.lower().startswith(INT) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(INT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -(2**31)
         max_val = (2**31)-1
-    elif coltype.lower().startswith(INT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(INT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = (2**32)-1
-    elif coltype.lower().startswith(BIGINT) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(BIGINT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -(2**63)
         max_val = (2**63)-1
-    elif coltype.lower().startswith(BIGINT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(BIGINT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = (2**64)-1
-    elif coltype.lower().startswith(FLOAT) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(FLOAT)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -3.402823466E+38
         max_val = 3.402823466E+38
-    elif coltype.lower().startswith(FLOAT) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(FLOAT)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = 3.402823466E+38
-    elif coltype.lower().startswith(DOUBLE) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(DOUBLE)
+            and not coltype.lower().endswith('unsigned')):
         min_val = -1.7976931348623157E+308
         max_val = 1.7976931348623157E+308
-    elif coltype.lower().startswith(DOUBLE) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(DOUBLE)
+            and coltype.lower().endswith('unsigned')):
         min_val = 0
         max_val = 1.7976931348623157E+308
-    elif coltype.lower().startswith(DECIMAL) \
-            and not coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(DECIMAL)
+            and not coltype.lower().endswith('unsigned')):
         # e.g. 6,2 -> 9999.99
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
         min_val = -abs_max
         max_val = abs_max
-    elif coltype.lower().startswith(DECIMAL) \
-            and coltype.lower().endswith("unsigned"):
+    elif (coltype.lower().startswith(DECIMAL)
+            and coltype.lower().endswith('unsigned')):
         abs_max = ((10**(num_prec + 1))-1)/(10**dec_pts)
         min_val = 0
         max_val = abs_max
@@ -249,9 +242,12 @@ def get_min_max(coltype, num_prec, dec_pts):
 def get_flds(cur, db, tbl):
     """
     Returns details for set of fields given database, table, and cursor.
-    NUMERIC_SCALE - number of significant digits to right of decimal point.
-        Null if not numeric.
+
+    NUMERIC_SCALE - number of significant digits to right of decimal point. Null
+    if not numeric.
+
     NUMERIC_SCALE will be Null if not numeric.
+
     SHOW COLUMNS FROM tbl FROM db
     returns content like the following:
     Field      Type              Null    Key    Default    Extra
@@ -260,26 +256,26 @@ def get_flds(cur, db, tbl):
     lname      varchar(20)       YES
     age        int(11)           YES     MUL
     isdec      decimal(10,0)     YES
-    unsigned   int(10) unsigned  YES 
+    unsigned   int(10) unsigned  YES
     """
     debug = False
     numeric_lst = [
         BIGINT, DECIMAL, DOUBLE, FLOAT, INT, MEDIUMINT, SMALLINT, TINYINT]
     datetime_lst = ('date', 'time', 'datetime', 'timestamp', 'year')
 
-    SQL_get_create_tbl_dets = f"SHOW CREATE TABLE {quote_obj(tbl)}"
+    SQL_get_create_tbl_dets = f'SHOW CREATE TABLE {quote_obj(tbl)}'
     cur.execute(SQL_get_create_tbl_dets)
     create_tbl_dets = cur.fetchone()[1]
     if debug: print(create_tbl_dets)
     try:
-        start_idx = (create_tbl_dets.index("DEFAULT CHARSET=")
-            + len("DEFAULT CHARSET="))
+        start_idx = (create_tbl_dets.index('DEFAULT CHARSET=')
+            + len('DEFAULT CHARSET='))
         tbl_charset = create_tbl_dets[start_idx:].strip()
-    except ValueError: # e.g. if a view
-        tbl_charset = 'latin1'  ## but could be anything - need to use 
+    except ValueError:  ## e.g. if a view
+        tbl_charset = 'latin1'  ## but could be anything - need to use
             ## information_schema approach to determine but that doesn't work in
             ## older versions of MySQL
-    SQL_get_fld_dets = f"SHOW COLUMNS FROM {quote_obj(tbl)} FROM {quote_obj(db)}" 
+    SQL_get_fld_dets = f'SHOW COLUMNS FROM {quote_obj(tbl)} FROM {quote_obj(db)}' 
     cur.execute(SQL_get_fld_dets)
     flds = {}
     for i, row in enumerate(cur.fetchall()):
@@ -308,7 +304,7 @@ def get_flds(cur, db, tbl):
         dec_pts = None
         if (coltype.lower().startswith(DECIMAL)
                 or coltype.lower().startswith(FLOAT)):
-            ## e.g. get 10 and 0 from "(10,0)"
+            ## e.g. get 10 and 0 from '(10,0)'
             try:
                 num_prec, dec_pts = [int(x) for x in 
                     coltype[coltype.index('('):].strip()[1:-1].split(',')]
@@ -343,17 +339,18 @@ def get_flds(cur, db, tbl):
             mg.FLD_NUM_MIN_VAL: min_val,
             mg.FLD_NUM_MAX_VAL: max_val,
             mg.FLD_BOLDATETIME: boldatetime,
-            }
+        }
         flds[fldname] = dets_dic
-    if debug: print(f"flds: {flds}")
+    if debug: print(f'flds: {flds}')
     return flds
 
 def get_index_dets(cur, db, tbl):
     """
-    db -- needed by some dbes sharing interface.
-    has_unique -- boolean
-    idxs = [idx0, idx1, ...]
-    Each idx is a dict with name, is_unique, flds
+    :param str db: needed by some dbes sharing interface.
+    :return: idxs and has_unique
+     has_unique -- boolean
+     idxs = [idx0, idx1, ...] Each idx is a dict with name, is_unique, flds
+
     SHOW INDEX FROM tbl FROM db
     returns content like the following:
     Table  Non_unique  Key_name    Seq_in_index  Column_name ...
@@ -363,10 +360,10 @@ def get_index_dets(cur, db, tbl):
     tbltest    1       age_idx     1             age 
     """
     debug = False
-    SQL_get_idx_dets = f"SHOW INDEX FROM {quote_obj(tbl)} FROM {quote_obj(db)}"
+    SQL_get_idx_dets = f'SHOW INDEX FROM {quote_obj(tbl)} FROM {quote_obj(db)}'
     cur.execute(SQL_get_idx_dets)
     idx_dets = {}  ## key_name is the key
-    idx_seq = {}  ## e.g. {0: "fname", 1: "lname"}
+    idx_seq = {}  ## e.g. {0: 'fname', 1: 'lname'}
     next_seq = 0
     has_unique = False
     for row in cur.fetchall():
@@ -381,7 +378,7 @@ def get_index_dets(cur, db, tbl):
             ## set up dict and seed with initial values
             ## only change possible is adding additional flds if in idx
             idx_dets[key_name] = {
-                mg.IDX_NAME: key_name, 
+                mg.IDX_NAME: key_name,
                 mg.IDX_IS_UNIQUE: not non_unique,
                 mg.IDX_FLDS: [col_name,]}
             ## need to keep sort order of idx_dets 
@@ -391,7 +388,7 @@ def get_index_dets(cur, db, tbl):
             ## only need to add any additional flds
             idx_dets[key_name][mg.IDX_FLDS].append(col_name)
     ## get list of key_names sorted by idx sequence
-    ## idx_seq e.g. {0: "fname", 1: "lname"}
+    ## idx_seq e.g. {0: 'fname', 1: 'lname'}
     lst_key_names = [idx_seq[x] for x in sorted(idx_seq)]
     ## use sorted key_names to get sorted list of idx dicts
     idxs = []
@@ -404,16 +401,16 @@ def get_index_dets(cur, db, tbl):
 
 def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_mysql= wx.StaticBox(scroll, -1, 'MySQL')
-    # default database
+    ## default database
     parent.lbl_mysql_default_db = wx.StaticText(
-        scroll, -1, _("Default Database (name only):"))
+        scroll, -1, _('Default Database (name only):'))
     parent.lbl_mysql_default_db.SetFont(lblfont)
     mysql_default_db = (
         parent.mysql_default_db if parent.mysql_default_db else '')
     parent.txt_mysql_default_db = wx.TextCtrl(
         scroll, -1, mysql_default_db, size=(200, -1))
     parent.txt_mysql_default_db.Enable(not read_only)
-    parent.txt_mysql_default_db.SetToolTip(_("Default database (optional)"))
+    parent.txt_mysql_default_db.SetToolTip(_('Default database (optional)'))
     ## default table
     parent.lbl_mysql_default_tbl = wx.StaticText(
         scroll, -1, _('Default Table:'))
@@ -423,21 +420,21 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     parent.txt_mysql_default_tbl = wx.TextCtrl(
         scroll, -1, mysql_default_tbl, size=(200, -1))
     parent.txt_mysql_default_tbl.Enable(not read_only)
-    parent.txt_mysql_default_tbl.SetToolTip(_("Default table (optional)"))
+    parent.txt_mysql_default_tbl.SetToolTip(_('Default table (optional)'))
     ## host
     parent.lbl_mysql_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_mysql_host.SetFont(lblfont)
     mysql_host = parent.mysql_host if parent.mysql_host else ''
     parent.txt_mysql_host = wx.TextCtrl(scroll, -1, mysql_host, size=(100, -1))
     parent.txt_mysql_host.Enable(not read_only)
-    parent.txt_mysql_host.SetToolTip(_("Host e.g. localhost, or remote:3307"))
+    parent.txt_mysql_host.SetToolTip(_('Host e.g. localhost, or remote:3307'))
     ## user
     parent.lbl_mysql_user = wx.StaticText(scroll, -1, _('User:'))
     parent.lbl_mysql_user.SetFont(lblfont)
     mysql_user = parent.mysql_user if parent.mysql_user else ''
     parent.txt_mysql_user = wx.TextCtrl(scroll, -1, mysql_user, size=(100, -1))
     parent.txt_mysql_user.Enable(not read_only)
-    parent.txt_mysql_user.SetToolTip(_("User e.g. root"))
+    parent.txt_mysql_user.SetToolTip(_('User e.g. root'))
     ## password
     parent.lbl_mysql_pwd = wx.StaticText(scroll, -1, _('Password:'))
     parent.lbl_mysql_pwd.SetFont(lblfont)
@@ -489,7 +486,7 @@ def get_proj_settings(parent, proj_dic):
         raw_host = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL]['host']
         raw_port = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL].get('port', 3306)
         if raw_port != 3306:
-            parent.mysql_host = f"{raw_host}:{raw_port}"
+            parent.mysql_host = f'{raw_host}:{raw_port}'
         else:
             parent.mysql_host = raw_host
         parent.mysql_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_MYSQL]['user']
@@ -522,13 +519,14 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Can pass in port at end of host (separated by a colon e.g. remote:3007).
+
     Copes with missing default database and table. Will get the first available.
     """
     default_db = parent.txt_mysql_default_db.GetValue()
     mysql_default_db = default_db if default_db else None
     default_tbl = parent.txt_mysql_default_tbl.GetValue()
     mysql_default_tbl = default_tbl if default_tbl else None
-    # separate port out if present (separated by :)
+    ## separate port out if present (separated by :)
     raw_host = parent.txt_mysql_host.GetValue()
     if ':' in raw_host:
         mysql_host, raw_port = raw_host.split(':')
@@ -542,18 +540,22 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         mysql_port = 3306
     mysql_user = parent.txt_mysql_user.GetValue()
     mysql_pwd = parent.txt_mysql_pwd.GetValue()
-    has_mysql_con = mysql_host and mysql_user # allow blank password
-    dirty = (mysql_host or mysql_user or mysql_pwd or mysql_default_db 
-             or mysql_default_tbl)
+    has_mysql_con = mysql_host and mysql_user  ## allow blank password
+    dirty = (
+        mysql_host
+        or mysql_user
+        or mysql_pwd
+        or mysql_default_db 
+        or mysql_default_tbl)
     incomplete_mysql = dirty and not has_mysql_con
     if incomplete_mysql:
-        wx.MessageBox(_("The MySQL details are incomplete"))
+        wx.MessageBox(_('The MySQL details are incomplete'))
         parent.txt_mysql_default_db.SetFocus()
     default_dbs[mg.DBE_MYSQL] = mysql_default_db
     default_tbls[mg.DBE_MYSQL] = mysql_default_tbl
     if has_mysql_con:
         con_dets_mysql = {
-            'host': mysql_host, 'port': mysql_port, 
+            'host': mysql_host, 'port': mysql_port,
             'user': mysql_user, 'passwd': mysql_pwd}
         con_dets[mg.DBE_MYSQL] = con_dets_mysql
     return incomplete_mysql, has_mysql_con

@@ -341,8 +341,8 @@ class OutputLib(object):
         return css_dojo_dic
 
     @staticmethod
-    def update_local_display(html_ctrl, str_content, wrap_text=False):
-        str_content = f"<p>{str_content}</p>" if wrap_text else str_content 
+    def update_local_display(html_ctrl, str_content, *, wrap_text=False):
+        str_content = f"<p>{str_content}</p>" if wrap_text else str_content
         html_ctrl.SetPage(str_content, mg.BASE_URL)  ## allow footnotes
 
     @staticmethod

@@ -189,9 +189,9 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         try:
-            charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
+            charting_pylab.config_hist(fig, sample, label_avg, histlbl,
                 css_dojo_dic['plot_bg'], item_colours[0],
-                css_dojo_dic['major_gridline_colour'])
+                css_dojo_dic['major_gridline_colour'], thumbnail=False)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
             html.append(f"\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}")
@@ -353,9 +353,9 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         try:
-            charting_pylab.config_hist(fig, sample, label_avg, histlbl, False, 
+            charting_pylab.config_hist(fig, sample, label_avg, histlbl,
                 css_dojo_dic['plot_bg'], item_colours[0],
-                css_dojo_dic['major_gridline_colour'])
+                css_dojo_dic['major_gridline_colour'], thumbnail=False)
             img_src = charting_pylab.save_report_img(add_to_report, report_name, 
                 save_func=pylab.savefig, dpi=100)
             html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, 
@@ -375,9 +375,10 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
     html_str = u"\n".join(html)
     return html_str
 
-def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs, 
-        add_to_report, report_name, css_fil, css_idx=0, label_avg=u"",
-        dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
+def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
+        report_name, css_fil, css_idx=0, label_avg='',
+        dp=mg.DEFAULT_STATS_DP, details=None, *,
+        add_to_report, page_break_after=False):
     """
     Returns HTML table ready to display.
     dic_a = {"label": label_a, "n": n_a, "mean": mean_a, "sd": sd_a,
@@ -386,12 +387,13 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     html = []
     indep = False
     label_gp = None
-    title = ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a,
-        dic_b, df, label_avg, dp, indep, css_idx, html)
+    title = ttest_basic_results(sample_a, sample_b,
+        t, p, label_gp,
+        dic_a, dic_b, df, label_avg, dp, indep,
+        css_idx, html)
     output.append_divider(html, title, indiv_title=u"")
-    # histogram
-    histlbl = u"Differences between %s and %s" % (dic_a["label"], 
-        dic_b["label"])
+    ## histogram
+    histlbl = f"Differences between {dic_a['label']} and {dic_b['label']}"
     charting_pylab.gen_config(axes_labelsize=10, xtick_labelsize=8,
         ytick_labelsize=8)
     fig = pylab.figure()
@@ -400,9 +402,9 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     try:
-        charting_pylab.config_hist(fig, diffs, _("Differences"), histlbl, False,
+        charting_pylab.config_hist(fig, diffs, _("Differences"), histlbl,
             css_dojo_dic['plot_bg'], item_colours[0],
-            css_dojo_dic['major_gridline_colour'])
+            css_dojo_dic['major_gridline_colour'], thumbnail=False)
         img_src = charting_pylab.save_report_img(add_to_report, report_name,
             save_func=pylab.savefig, dpi=100)
         html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
@@ -1205,7 +1207,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
         print(val_labels_a_with_ref)
         print(val_labels_b)
         print(propns_as_in_bs_lst)
-    charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
+    charting_pylab.config_clustered_barchart(grid_bg, bar_colours,
         plot, var_label_a, y_label, val_labels_a_with_ref, val_labels_b,
         propns_as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
@@ -1224,7 +1226,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     plot.setXTickLabelSize(get_xaxis_fontsize(val_labels_a))
     plot.setLegendLabelSize(9)
     # only need 6 because program limits to that. See core_stats.get_obs_exp().
-    charting_pylab.config_clustered_barchart(grid_bg, bar_colours, line_colour, 
+    charting_pylab.config_clustered_barchart(grid_bg, bar_colours, 
         plot, var_label_a, y_label, val_labels_a, val_labels_b, as_in_bs_lst)
     img_src = charting_pylab.save_report_img(add_to_report, report_name, 
         save_func=plot.save, dpi=None)

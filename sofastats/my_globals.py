@@ -532,7 +532,7 @@ IDX_NAME = 'index name'
 IDX_IS_UNIQUE = 'index is unique'
 IDX_FLDS = 'index fields'
 ## misc data
-READONLY_COLOUR = wx.Colour(221,231,229)
+READ_ONLY_COLOUR = wx.Colour(221,231,229)
 NULLED_DOTS_KEY = 'dots_converted to null'
 CANCEL_IMPORT = 'cancel import'
 CANCEL_EXPORT = 'cancel export'

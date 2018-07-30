@@ -321,7 +321,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     """
     attr = wx.grid.GridCellAttr()
     #attr.SetReadOnly(True)
-    attr.SetBackgroundColour(mg.READONLY_COLOUR)
+    attr.SetBackgroundColour(mg.READ_ONLY_COLOUR)
     for row_idx, db_path in enumerate([x[0] for x in init_settings_data]):
         db_name = lib.get_file_name(db_path)  ## might not be unique
         if db_is_default_sofa_db(db_name):

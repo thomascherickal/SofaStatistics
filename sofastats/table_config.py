@@ -2,11 +2,11 @@
 When saving a table, a check is made that the table name is not a duplicate. But
 when saving an existing table, it is OK to save the table using that table name.
 So a table's existing name is stored in the validator object so we can check
-against it. The complication occurs if the user starts with a new table (in 
+against it. The complication occurs if the user starts with a new table (in
 which case existing_name is None) and chooses to recode. The table is saved with
-the name entered. It is important that the existing name property of the 
-validator is changed from None to this new name. After all, saving that table 
-again at the end of the recode is legitimately overriding an existing table of 
+the name entered. It is important that the existing name property of the
+validator is changed from None to this new name. After all, saving that table
+again at the end of the recode is legitimately overriding an existing table of
 that name.  
 """
 
@@ -37,7 +37,7 @@ def reset_default_dd(tbl=None, add_checks=False):
     debug = False
     dd = mg.DATADETS_OBJ
     if debug:
-        print(f"Resetting connection to default db. Add_checks: {add_checks}")
+        print(f'Resetting connection to default db. Add_checks: {add_checks}')
     try:
         dd.cur.close()
         dd.con.close()
@@ -45,24 +45,24 @@ def reset_default_dd(tbl=None, add_checks=False):
                 add_checks=add_checks)  ## Must reset entire dbe to change checks
         if debug:  ## check the connection is still working
             obj_qtr = getdata.get_obj_quoter_func(mg.DBE_SQLITE)
-            dd.cur.execute(f"SELECT * FROM {obj_qtr(dd.tbls[0])}")
+            dd.cur.execute(f'SELECT * FROM {obj_qtr(dd.tbls[0])}')
             print(dd.cur.fetchone())
     except Exception as e:
-        raise Exception(f"Problem resetting dd with tbl {tbl}."
-            f"\nCaused by error: {b.ue(e)}")
+        raise Exception(f'Problem resetting dd with tbl {tbl}.'
+            f'\nCaused by error: {b.ue(e)}')
 
-WAITING_MSG = _("<p>Waiting for at least one field to be configured.</p>")
+WAITING_MSG = _('<p>Waiting for at least one field to be configured.</p>')
 
 """
-New tables do not have user-defined functions added as part of data type 
-constraints. Data integrity is protected via the data entry grid and its 
-validation. Otherwise, only SOFA (or theoretically, any application providing 
+New tables do not have user-defined functions added as part of data type
+constraints. Data integrity is protected via the data entry grid and its
+validation. Otherwise, only SOFA (or theoretically, any application providing
 the same user-defined function names) would be able to open it.
 
-Modifying an existing table involves making a tmp table with all the data type 
-constraints added as per new design's field types. Then data is inserted into 
-table looking for errors. If no errors, drop orig table, make new table without 
-strict typing, and mass insert all the records from the temp table into it. Then 
+Modifying an existing table involves making a tmp table with all the data type
+constraints added as per new design's field types. Then data is inserted into
+table looking for errors. If no errors, drop orig table, make new table without
+strict typing, and mass insert all the records from the temp table into it. Then
 drop the temp table to clean up.
 """
 
@@ -70,7 +70,7 @@ drop the temp table to clean up.
 class FldMismatchException(Exception):
     def __init__(self):
         debug = False
-        if debug: print("A FldMismatchException")
+        if debug: print('A FldMismatchException')
 
 
 def has_data_changed(orig_data, final_data):
@@ -79,13 +79,13 @@ def has_data_changed(orig_data, final_data):
     name and type.
 
     The final data is a list of dicts, with keys for:
-        mg.TBL_FLDNAME, 
+        mg.TBL_FLDNAME,
         mg.TBL_FLDNAME_ORIG,
         mg.TBL_FLDTYPE,
         mg.TBL_FLDTYPE_ORIG.
     Different if TBL_FLDNAME != TBL_FLDNAME_ORIG
     Different if TBL_FLDTYPE != TBL_FLDTYPE_ORIG
-    Different if set of TBL_FLDNAMEs not same as set of field names. 
+    Different if set of TBL_FLDNAMEs not same as set of field names.
     NB Need first two checks in case names swapped.  Sets wouldn't change but
     data would have changed.
     """
@@ -98,13 +98,13 @@ def has_data_changed(orig_data, final_data):
         final_fldnames.add(final_dict[mg.TBL_FLDNAME])
         if (final_dict[mg.TBL_FLDNAME] != final_dict[mg.TBL_FLDNAME_ORIG] 
             or final_dict[mg.TBL_FLDTYPE] != final_dict[mg.TBL_FLDTYPE_ORIG]):
-            if debug: print("name or type changed")
+            if debug: print('name or type changed')
             data_changed = True
             break
     ## get fld names from orig_data for comparison
     orig_fldnames = set([x[0] for x in orig_data])
     if orig_fldnames != final_fldnames:
-        if debug: print("set of field names changed")
+        if debug: print('set of field names changed')
         data_changed = True
     return data_changed
 
@@ -112,18 +112,18 @@ def copy_orig_tbl(orig_tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_tmp2 = ("DROP TABLE IF EXISTS "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)}")
+    SQL_drop_tmp2 = ('DROP TABLE IF EXISTS '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)}')
     dd.cur.execute(SQL_drop_tmp2)
     dd.con.commit()
     ## In SQLite, CREATE TABLE AS drops all constraints, indexes etc.
-    SQL_make_copy = ("CREATE TABLE "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} "
-        f"AS SELECT * FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
+    SQL_make_copy = ('CREATE TABLE '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} '
+        f'AS SELECT * FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}')
     dd.cur.execute(SQL_make_copy)
-    SQL_restore_index = ("CREATE UNIQUE INDEX sofa_id_idx on "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} "
-        f"({getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID)})")
+    SQL_restore_index = ('CREATE UNIQUE INDEX sofa_id_idx on '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} '
+        f'({getdata.tblname_qtr(mg.DBE_SQLITE, mg.SOFA_ID)})')
     try:
         dd.cur.execute(SQL_restore_index)
     except Exception:
@@ -137,17 +137,17 @@ def restore_copy_tbl(orig_tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_rename_tbl = ("ALTER TABLE "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} RENAME TO "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
+    SQL_rename_tbl = ('ALTER TABLE '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME2)} RENAME TO '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}')
     dd.cur.execute(SQL_rename_tbl)
 
 def wipe_tbl(tblname):
     dd = mg.DATADETS_OBJ
     dd.con.commit()
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
-    SQL_drop_orig = ("DROP TABLE IF EXISTS "
-        f"{getdata.tblname_qtr(mg.DBE_SQLITE, tblname)}")
+    SQL_drop_orig = ('DROP TABLE IF EXISTS '
+        f'{getdata.tblname_qtr(mg.DBE_SQLITE, tblname)}')
     dd.cur.execute(SQL_drop_orig)
     dd.con.commit()
 
@@ -172,7 +172,7 @@ def make_strict_typing_tbl(orig_tblname, oth_name_types, fld_settings):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if debug: print(f"DBE in make_strict_typing_tbl is: {dd.dbe}")
+    if debug: print(f'DBE in make_strict_typing_tbl is: {dd.dbe}')
     reset_default_dd(tbl=orig_tblname, add_checks=True)  ## Can't deactivate the
     ## user-defined functions until the tmp table has been deleted.
     wipe_tbl(mg.STRICT_TMP_TBL)
@@ -180,14 +180,14 @@ def make_strict_typing_tbl(orig_tblname, oth_name_types, fld_settings):
     create_fld_clause = getdata.get_create_flds_txt(oth_name_types, 
         strict_typing=True, inc_sofa_id=False)
     qtd_tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
-    SQL_make_tmp_tbl = f"CREATE TABLE {qtd_tmp_name} ({create_fld_clause}) "
+    SQL_make_tmp_tbl = f'CREATE TABLE {qtd_tmp_name} ({create_fld_clause}) '
     if debug: print(SQL_make_tmp_tbl)
     dd.cur.execute(SQL_make_tmp_tbl)
     ## unable to use CREATE ... AS SELECT at same time as defining table.
     ## attempt to insert data into strictly-typed fields.
     select_fld_clause = getdata.make_flds_clause(fld_settings)
-    SQL_insert_all = (f"INSERT INTO {qtd_tmp_name} SELECT {select_fld_clause} "
-        f"FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}")
+    SQL_insert_all = (f'INSERT INTO {qtd_tmp_name} SELECT {select_fld_clause} '
+        f'FROM {getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)}')
     if debug: print(SQL_insert_all)
     dd.cur.execute(SQL_insert_all)
     dd.con.commit()
@@ -199,18 +199,7 @@ def strict_cleanup(restore_tblname):
     debug = False
     dd = mg.DATADETS_OBJ
     if debug:
-        print(f"About to drop {mg.STRICT_TMP_TBL}")
-        SQL_get_tbls = """SELECT name
-            FROM sqlite_master 
-            WHERE type = 'table'
-            ORDER BY name"""
-        dd.cur.execute(SQL_get_tbls)
-        tbls = [x[0] for x in dd.cur.fetchall()]
-        tbls.sort(key=lambda s: s.upper())
-        print(tbls)
-    wipe_tbl(mg.STRICT_TMP_TBL)
-    if debug:
-        print(f"Supposedly just dropped {mg.STRICT_TMP_TBL}")
+        print(f'About to drop {mg.STRICT_TMP_TBL}')
         SQL_get_tbls = """SELECT name
             FROM sqlite_master
             WHERE type = 'table'
@@ -219,8 +208,18 @@ def strict_cleanup(restore_tblname):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    reset_default_dd(tbl=restore_tblname, add_checks=False)  ## Should be OK now
-                                                    ## strict tmp table gone.
+    wipe_tbl(mg.STRICT_TMP_TBL)
+    if debug:
+        print(f'Supposedly just dropped {mg.STRICT_TMP_TBL}')
+        SQL_get_tbls = """SELECT name
+            FROM sqlite_master
+            WHERE type = 'table'
+            ORDER BY name"""
+        dd.cur.execute(SQL_get_tbls)
+        tbls = [x[0] for x in dd.cur.fetchall()]
+        tbls.sort(key=lambda s: s.upper())
+        print(tbls)
+    reset_default_dd(tbl=restore_tblname, add_checks=False)  ## Should be OK now strict tmp table gone.
     getdata.force_sofa_tbls_refresh(sofa_default_db_cur=dd.cur)
 
 def make_redesigned_tbl(final_name, oth_name_types):
@@ -233,7 +232,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
     """
     debug = False
     dd = mg.DATADETS_OBJ
-    if debug: print(f"DBE in make_redesigned_tbl is: {dd.dbe}")
+    if debug: print(f'DBE in make_redesigned_tbl is: {dd.dbe}')
     tmp_name = getdata.tblname_qtr(mg.DBE_SQLITE, mg.STRICT_TMP_TBL)
     unquoted_final_name = final_name
     final_name = getdata.tblname_qtr(mg.DBE_SQLITE, final_name)
@@ -242,7 +241,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
     if debug: print(create_fld_clause)
     dd.con.commit()
     if debug:
-        print(f"About to drop {final_name}")
+        print(f'About to drop {final_name}')
         SQL_get_tbls = """SELECT name
             FROM sqlite_master
             WHERE type = 'table'
@@ -253,7 +252,7 @@ def make_redesigned_tbl(final_name, oth_name_types):
         print(tbls)
     wipe_tbl(unquoted_final_name)
     if debug:
-        print(f"Supposedly just dropped {final_name}")
+        print(f'Supposedly just dropped {final_name}')
         SQL_get_tbls = """SELECT name
             FROM sqlite_master
             WHERE type = 'table'
@@ -262,13 +261,13 @@ def make_redesigned_tbl(final_name, oth_name_types):
         tbls = [x[0] for x in dd.cur.fetchall()]
         tbls.sort(key=lambda s: s.upper())
         print(tbls)
-    SQL_make_redesigned_tbl = f"CREATE TABLE {final_name} ({create_fld_clause})"
+    SQL_make_redesigned_tbl = f'CREATE TABLE {final_name} ({create_fld_clause})'
     dd.cur.execute(SQL_make_redesigned_tbl)
     dd.con.commit()
     oth_names = [objqtr(x[0]) for x in oth_name_types]
-    null_plus_oth_flds = " NULL, " + ", ".join(oth_names)
-    SQL_insert_all = (f"INSERT INTO {final_name} SELECT {null_plus_oth_flds} "
-        f"FROM {tmp_name}")
+    null_plus_oth_flds = ' NULL, ' + ', '.join(oth_names)
+    SQL_insert_all = (f'INSERT INTO {final_name} SELECT {null_plus_oth_flds} '
+        f'FROM {tmp_name}')
     if debug: print(SQL_insert_all)
     dd.con.commit()
     dd.cur.execute(SQL_insert_all)
@@ -278,7 +277,7 @@ def insert_data(grid_data):
     """
     Return list of values to display in inserted row.
 
-    Needs to know row index plus already used variable labels (to prevent 
+    Needs to know row index plus already used variable labels (to prevent
     collisions).
     """
     existing_var_names = [x[0] for x in grid_data]
@@ -297,7 +296,7 @@ def cell_invalidation(_frame, _val, row, col, grid, _col_dets):
     elif col == 1:
         return _invalid_fldtype(row, grid)
     else:
-        raise Exception("Two many columns for default cell invalidation test")
+        raise Exception('Two many columns for default cell invalidation test')
 
 def cell_response(self, val, row, col, grid, col_dets):
     pass
@@ -311,14 +310,14 @@ def _invalid_fldname(row, grid):
         other_fldnames.append(grid.GetCellValue(row=i, col=0))
     field_name = grid.GetCellValue(row=row, col=0)
     if field_name.strip() == '':
-        return False, ""
+        return False, ''
     valid, err = dbe_sqlite.valid_fldname(field_name)
     if not valid:
-        msg = _("Field names can only contain letters, numbers, and "
-              "underscores.\nOrig error: %s") % err
+        msg = _('Field names can only contain letters, numbers, and '
+              'underscores.\nOrig error: %s') % err
         return True, msg
     if field_name in other_fldnames:
-        msg = _("%s has already been used as a field name") % field_name
+        msg = _('%s has already been used as a field name') % field_name
         return True, msg
     return False, ''
 
@@ -333,20 +332,20 @@ def _invalid_fldtype(row, grid):
         return False, ''
     if field_type not in [mg.FLDTYPE_NUMERIC_LBL, 
             mg.FLDTYPE_STRING_LBL, mg.FLDTYPE_DATE_LBL]:
-        msg = _("%s is not a valid field type") % field_type
+        msg = _('%s is not a valid field type') % field_type
         return True, msg
     return False, ''
 
 def validate_tblname(tblname, existing_name):
     "Returns boolean plus string message"
     valid, unused = dbe_sqlite.valid_tblname(tblname)
-    if u" " in tblname:
-        valid = False # to be consistent with importing and direct data entry rules. Now can't sidestep through pasting.
+    if ' ' in tblname:
+        valid = False  ## to be consistent with importing and direct data entry rules. Now can't sidestep through pasting.
     if not valid:
-        msg = _("You can only use letters, numbers and underscores "
-            "in a SOFA name.  Use another name?")
+        msg = _('You can only use letters, numbers and underscores '
+            'in a SOFA name.  Use another name?')
         return False, msg
-    if tblname == existing_name: # we're just editing an existing table
+    if tblname == existing_name:  ## we're just editing an existing table
         duplicate = False
     else:
         duplicate = getdata.dup_tblname(tblname)
@@ -373,8 +372,8 @@ class SafeTblNameValidator(wx.PyValidator):
         return new_SafeTblNameValidatory
 
     def Validate(self, _win):
-        # wxPython
-        # Handle any messages here and here alone
+        ## wxPython
+        ## Handle any messages here and here alone
         text_ctrl = self.GetWindow()
         text = text_ctrl.GetValue()
         valid, msg = validate_tblname(text, self.existing_name)  ## existing_name set externally, not passed into object, so we can change it again externally
@@ -403,11 +402,11 @@ class SafeTblNameValidator(wx.PyValidator):
                 and keycode != '_'):
             return
         event.Skip()
-    
+
     def TransferToWindow(self):
         ## wxPython
         return True
-    
+
     def TransferFromWindow(self):
         ## wxPython
         return True
@@ -439,7 +438,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             font-size: 11px;
             color: #5f5f5f; # more clearly just demo data
         }"""
-    
+
     def __init__(self, var_labels, val_dics, tblname_lst, init_fld_settings,
             fld_settings, *, read_only=False, new=False, insert_data_func=None,
             cell_invalidation_func=None, cell_response_func=None):
@@ -456,7 +455,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.read_only = read_only
         self.exiting = False
         if self.new and self.read_only:
-            raise Exception("If new, should never be read only")
+            raise Exception('If new, should never be read only')
         self.var_labels = var_labels
         self.val_dics = val_dics
         if tblname_lst:
@@ -468,8 +467,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         self.settings_data = fld_settings  ## settings_data is more generic and
             ## is needed in code which called this.  Don't rename ;-)
         if fld_settings:
-            raise Exception("fld_settings should always start off empty ready "
-                "to receive values")
+            raise Exception('fld_settings should always start off empty ready '
+                'to receive values')
         self.init_settings_data = init_fld_settings[:]  ## can check if end
             ## result changed
         self.setup_settings_data(init_fld_settings)
@@ -480,19 +479,19 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         if not cell_response_func:
             cell_response_func = cell_response
         ## col_dets - See under settings_grid.SettingsEntry
-        col_dets = [{'col_label': _("Field Name"),
+        col_dets = [{'col_label': _('Field Name'),
              'coltype': settings_grid.COL_STR,
              'colwidth': 100},
-            {'col_label': _("Data Type"),
+            {'col_label': _('Data Type'),
              'coltype': settings_grid.COL_DROPDOWN,
              'colwidth': 100,
              'dropdown_vals': [mg.FLDTYPE_NUMERIC_LBL, mg.FLDTYPE_STRING_LBL,
                 mg.FLDTYPE_DATE_LBL]},
         ]
         grid_size = (300, 250)
-        title = _("Configure Data Table")
+        title = _('Configure Data Table')
         if self.read_only:
-            title += _(" (Read Only)")
+            title += _(' (Read Only)')
         wx.Dialog.__init__(self, None, title=title, size=(500, 400),
             style=wx.RESIZE_BORDER|wx.CAPTION|wx.SYSTEM_MENU)
         self.panel = wx.Panel(self)
@@ -510,7 +509,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             btn_recode = wx.Button(self.panel, -1, _('Recode'))
             btn_recode.Bind(wx.EVT_BUTTON, self.on_recode)
             btn_recode.SetToolTip(
-                _("Recode values from one field into a new field"))
+                _('Recode values from one field into a new field'))
         ## sizers
         self.szr_main = wx.BoxSizer(wx.VERTICAL)
         self.szr_tbl_label = wx.BoxSizer(wx.HORIZONTAL)
@@ -536,9 +535,9 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         if not self.read_only:
             lbl_guidance = wx.StaticText(self.panel, -1,
                 _("If you're new to designing data structures,"
-                "\nit may help to look at the data structure "
-                "\npage of www.sofastatistics.com/userguide.php"
-                "\n\nNote - the sofa_id is required and cannot be edited."))
+                '\nit may help to look at the data structure '
+                '\npage of www.sofastatistics.com/userguide.php'
+                '\n\nNote - the sofa_id is required and cannot be edited.'))
             szr_design_left.Add(lbl_guidance, 0)
         self.tabentry = ConfigTableEntry(self, self.panel, self.read_only, 
             grid_size, col_dets, init_fld_settings, fld_settings,
@@ -577,15 +576,15 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 val = lib.get_rand_val_of_type(lbl_type_key)
         return val
 
-    def get_demo_row_lst(self, row_idx, design_flds_col_labels, 
-            design_flds_types):
+    def get_demo_row_lst(self,
+            row_idx, design_flds_col_labels, design_flds_types):
         """
         Using label not key because displaying field type.
         """
         debug = False
         row_lst = []
         label_types = zip(design_flds_col_labels, design_flds_types)
-        if debug: print("Label types:\n%s" % label_types)
+        if debug: print(f'Label types:\n{label_types}')
         for col_label, lbl_type in label_types:
             lbl_type_key = mg.FLDTYPE_LBL2KEY[lbl_type]
             val2use = self.get_demo_val(row_idx, col_label, lbl_type_key)
@@ -597,19 +596,19 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             design_flds_col_labels, design_flds_types):
         """
         Add as many rows from orig data as possible up to the row limit.
+
         Fill in rest with demo data.
         """
         debug = False
         dd = mg.DATADETS_OBJ
         orig_tblname = self.tblname_lst[0]
-        flds_clause = u", ".join([objqtr(x) for x in db_flds_orig_names
+        flds_clause = ', '.join([objqtr(x) for x in db_flds_orig_names
             if x is not None])
-        if debug: print("flds_clause", flds_clause)
+        if debug: print('flds_clause', flds_clause)
         tblname = getdata.tblname_qtr(mg.DBE_SQLITE, orig_tblname)
-        SQL_get_data = f"SELECT {flds_clause} FROM {tblname} "
-        if debug: print("SQL_get_data", SQL_get_data)
-        dd.cur.execute(SQL_get_data)  ## NB won't contain any new
-            ## or inserted flds
+        SQL_get_data = f'SELECT {flds_clause} FROM {tblname} '
+        if debug: print('SQL_get_data', SQL_get_data)
+        dd.cur.execute(SQL_get_data)  ## NB won't contain any new or inserted flds
         rows = []
         row_idx = 0
         while True:
@@ -624,11 +623,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             row_dict = dict(zip(db_flds_orig_names, row_obj))
             if debug:
                 row_dict_str = lib.UniLib.dic2unicode(row_dict)
-                print(f"\nRow dicts is \n{row_dict_str}") 
+                print(f'\nRow dicts is \n{row_dict_str}') 
             row_lst = []
             row_dets = zip(design_flds_orig_names, design_flds_new_names,
                 design_flds_col_labels, design_flds_types)
-            if debug: print("Row dets:\n{}".format(pprint.pformat(row_dets)))
+            if debug: print(f'Row dets:\n{pprint.pformat(row_dets)}')
             for orig_fldname, new_fldname, col_label, lbl_type in row_dets:
                 if orig_fldname is None:  ## i.e. an inserted or added field
                     lbl_type_key = mg.FLDTYPE_LBL2KEY[lbl_type]
@@ -637,8 +636,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                     try:
                         rawval = row_dict[orig_fldname]
                     except KeyError:
-                        raise Exception(f"orig_fldname {orig_fldname} not in "
-                            f"row_dict {row_dict}")
+                        raise Exception(f'orig_fldname {orig_fldname} not in '
+                            f'row_dict {row_dict}')
                 if rawval is None:
                     rawval = mg.MISSING_VAL_INDICATOR
                 valdic = self.val_dics.get(new_fldname)
@@ -699,7 +698,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             print(design_flds_types)
         ## column names
         for col_label in design_flds_col_labels:
-            html.append(u"<th>%s</th>" % col_label)
+            html.append(f'<th>{col_label}</th>')
         ## get data rows (list of lists)
         display_n = 4  ## demo rows to display
         if self.new:
@@ -714,11 +713,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 design_flds_col_labels, design_flds_types)
         ## data rows into html
         for row in rows:
-            html.append("</tr>\n</thead>\n<tbody><tr>")
+            html.append('</tr>\n</thead>\n<tbody><tr>')
             for raw_val in row:
-                html.append(f"<td>{raw_val}</td>")
-            html.append("</tr>")
-        html.append("\n</tbody>\n</table></body></html>")
+                html.append(f'<td>{raw_val}</td>')
+            html.append('</tr>')
+        html.append('\n</tbody>\n</table></body></html>')
         html2show = ''.join(html)
         self.html.SetPage(html2show, mg.BASE_URL)
 
@@ -731,12 +730,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 del self.settings_data[0]
             except IndexError:
                 break
-        for row in data:
-            new_row = {mg.TBL_FLDNAME: row[0], mg.TBL_FLDNAME_ORIG: row[0], 
-                mg.TBL_FLDTYPE: row[1], mg.TBL_FLDTYPE_ORIG: row[1]}
+        for fldname, fldtype in data:
+            new_row = {
+                mg.TBL_FLDNAME: fldname, mg.TBL_FLDNAME_ORIG: fldname,
+                mg.TBL_FLDTYPE: fldtype, mg.TBL_FLDTYPE_ORIG: fldtype}
             extra.append(new_row)
         self.settings_data += extra
-        if debug: print(f"Initialised settings data: {self.settings_data}")
+        if debug: print(f'Initialised settings data: {self.settings_data}')
 
     def insert_before(self):
         """
@@ -748,11 +748,11 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         selected_rows = self.tabentry.grid.GetSelectedRows()
         if not selected_rows:
             wx.MessageBox(
-                _("Please select a row first (click to the left of the row)"))
+                _('Please select a row first (click to the left of the row)'))
             return False, None, None
         pos = selected_rows[0]
         if pos == 0:  ## for table config only
-            wx.MessageBox(_("The %s must always come first") % mg.SOFA_ID)
+            wx.MessageBox(_('The %s must always come first') % mg.SOFA_ID)
             return False, None, None
         bolinserted, row_data = self.tabentry.insert_row_above(pos)
         return bolinserted, pos, row_data
@@ -765,19 +765,20 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
 
         Also need overridden insert_before().
         """
-        bolinserted, row_before, row_data = self.insert_before()
+        bolinserted, row_before, (fldname, fldtype) = self.insert_before()
         if bolinserted:
             ## should be only change
-            self.add_new_to_settings(row_before, row_data)
+            self.add_new_to_settings(row_before, fldname, fldtype)
             self.update_demo()
         self.tabentry.grid.SetFocus()
         event.Skip()
 
-    def add_new_to_settings(self, row_before, row_data):
-        if self.debug: print(f"Row we inserted before was {row_before}")
+    def add_new_to_settings(self, row_before, fldname, fldtype):
+        if self.debug: print(f'Row we inserted before was {row_before}')
         ## insert new row into settings_data - Nones for original values
-        new_row = {mg.TBL_FLDNAME: row_data[0], mg.TBL_FLDNAME_ORIG: None, 
-            mg.TBL_FLDTYPE: row_data[1], mg.TBL_FLDTYPE_ORIG: None}
+        new_row = {
+            mg.TBL_FLDNAME: fldname, mg.TBL_FLDNAME_ORIG: None,
+            mg.TBL_FLDTYPE: fldtype, mg.TBL_FLDTYPE_ORIG: None}
         self.settings_data.insert(row_before, new_row)
         if self.debug: pprint.pprint(self.settings_data)
 
@@ -795,16 +796,16 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         dd = mg.DATADETS_OBJ
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tblname = self.tblname_lst[0]
-        if debug: print("DBE in make_new_tbl is: ", dd.dbe)
-        getdata.make_sofa_tbl(dd.con, dd.cur, tblname, oth_name_types, 
-            headless=False)
+        if debug: print(f'DBE in make_new_tbl is: {dd.dbe}')
+        getdata.make_sofa_tbl(
+            dd.con, dd.cur, tblname, oth_name_types, headless=False)
         wx.MessageBox(
-            _("Your new table has been added to the default SOFA database"))
+            _('Your new table has been added to the default SOFA database'))
 
     def modify_tbl(self):
         """
         Make temp table, with strict type enforcement for all fields.
- 
+
         Copy across all fields which remain in the original table (possibly with
         new names and data types) plus add in all the new fields.
 
@@ -827,8 +828,9 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         orig_tblname = dd.tbl
         ## other (i.e. not the sofa_id) field details
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
-        if debug: print("oth_name_types to feed into "
-            f"make_strict_typing_tbl {oth_name_types}")
+        if debug:
+            print('oth_name_types to feed into '
+                f'make_strict_typing_tbl {oth_name_types}')
         try:  ## 1 way or other must do strict_cleanup()
             make_strict_typing_tbl(
                 orig_tblname, oth_name_types, self.settings_data)
@@ -838,8 +840,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             raise FldMismatchException
         except Exception as e:
             strict_cleanup(restore_tblname=orig_tblname)
-            raise Exception("Problem making strictly-typed table."
-                f"\nCaused by error: {b.ue(e)}")
+            raise Exception('Problem making strictly-typed table.'
+                f'\nCaused by error: {b.ue(e)}')
         copy_orig_tbl(orig_tblname)
         wipe_tbl(orig_tblname)
         final_name = self.tblname_lst[0]  ## may have been renamed
@@ -851,8 +853,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             strict_cleanup(restore_tblname=orig_tblname)
             restore_copy_tbl(orig_tblname)  ## effectively removes tmp_tbl 2
             dd.set_tbl(tbl=orig_tblname)
-            raise Exception("Problem making redesigned table."
-                f"\nCaused by error: {b.ue(e)}")
+            raise Exception('Problem making redesigned table.'
+                f'\nCaused by error: {b.ue(e)}')
         wipe_tbl(mg.TMP_TBLNAME2)
 
     def make_changes(self):
@@ -867,13 +869,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             ## contained by that and not the dialog itself.
             ## http://www.nabble.com/validator-not-in-a-dialog-td23112169.html
             if not self.panel.Validate():  ## runs validators on all assoc ctrls
-                raise Exception(_("Invalid table design."))
+                raise Exception(_('Invalid table design.'))
         gui_tblname = self.txt_tblname.GetValue()
         if self.new:
             try:
                 del self.tblname_lst[0]  ## empty ready to repopulate
             except Exception:
-                pass  ## OK to fail to delete item in list if already empty.
+                pass  ## OK to fail to delete item in list if already empty
             self.tblname_lst.append(gui_tblname)
             self.make_new_tbl()
             dd.set_tbl(tbl=gui_tblname)
@@ -882,8 +884,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 orig_tblname = self.tblname_lst[0]
                 del self.tblname_lst[0]  ## empty ready to repopulate
                 self.tblname_lst.append(gui_tblname)
-                dd.set_tbl(tbl=orig_tblname)  ## The new one hasn't hit the
-                    ## database yet.
+                dd.set_tbl(tbl=orig_tblname)  ## The new one hasn't hit the database yet
                 self.modify_tbl()
         self.changes_made = True
 
@@ -956,13 +957,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             raise Exception(_("Can't recode a read only table"))
         self.tabentry.update_settings_data()
         if debug:
-            print(f"init_settings_data: {self.init_settings_data}")
+            print(f'init_settings_data: {self.init_settings_data}')
             print(self.settings_data)
         ## save any changes in table_config dlg first
         new_tbl, tblname_changed, data_changed = self.get_change_status()
         if new_tbl or tblname_changed or data_changed:
-            ret = wx.MessageBox(_("You will need to save the changes you made "
-                "first. Save changes and continue?"), 
+            ret = wx.MessageBox(_('You will need to save the changes you made '
+                'first. Save changes and continue?'), 
                 caption=_('SAVE CHANGES?'), style=wx.YES_NO)
             if ret == wx.YES:
                 try:
@@ -971,18 +972,18 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                     self.init_settings_data = [(x[mg.TBL_FLDNAME],
                         x[mg.TBL_FLDTYPE]) for x in self.settings_data]
                     if debug:
-                        print("settings_data coming back after update:") 
+                        print('settings_data coming back after update:')
                         pprint.pprint(self.settings_data)
-                        pprint.pprint("init_settings_data after "
-                            f"update: {self.init_settings_data}")
+                        pprint.pprint('init_settings_data after '
+                            f'update: {self.init_settings_data}')
                 except FldMismatchException:
                     wx.MessageBox(
-                        _("Unable to modify table. Some data does not match the"
-                        " column type. Please edit and try again."))
+                        _('Unable to modify table. Some data does not match the'
+                        ' column type. Please edit and try again.'))
                     return
                 except Exception as e:
                     wx.MessageBox(
-                        _("Unable to modify table.\nCaused by error: %s")
+                        _('Unable to modify table.\nCaused by error: %s')
                         % b.ue(e))
                     return
             else:
@@ -1000,10 +1001,10 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
             self.init_settings_data = [(x[mg.TBL_FLDNAME], x[mg.TBL_FLDTYPE]) 
                 for x in self.settings_data]
             if debug:
-                print("Returned settings_data after "
-                    f"recode: {self.settings_data}")
-                pprint.pprint("init_settings_data after "
-                    f"recode: {self.init_settings_data}")
+                print('Returned settings_data after '
+                    f'recode: {self.settings_data}')
+                pprint.pprint('init_settings_data after '
+                    f'recode: {self.init_settings_data}')
 
     def on_cancel(self, _event):
         """
@@ -1039,12 +1040,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                     self.SetReturnCode(mg.RET_CHANGED_DESIGN)
                 except FldMismatchException:
                     wx.MessageBox(
-                        _("Unable to modify table. Some data does not match the"
-                        " column type. Please edit and try again."))
+                        _('Unable to modify table. Some data does not match the'
+                        ' column type. Please edit and try again.'))
                     return
                 except Exception as e:
-                    wx.MessageBox(_("Unable to modify table.\nCaused by error:"
-                        " %s") % b.ue(e))
+                    wx.MessageBox(
+                        _("Unable to modify table.\nCaused by error: %s")
+                        % b.ue(e))
                     return
             elif self.changes_made:  ## not in tableconf. Must've been in recoding
                 self.exiting = True
@@ -1052,10 +1054,10 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 self.SetReturnCode(mg.RET_CHANGED_DESIGN)
                 return
             else:
-                wx.MessageBox(_("No changes to update."))
+                wx.MessageBox(_('No changes to update.'))
                 return
 
-    
+
 class ConfigTableEntry(settings_grid.SettingsEntry):
     """
     settings_data should be returned as a list of dicts with the keys:
@@ -1063,9 +1065,9 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
     """
 
     def __init__(self, frame, panel, grid_size, col_dets,
-                 init_settings_data, settings_data, insert_data_func=None,
-                 cell_invalidation_func=None, cell_response_func=None,
-                 *, read_only=False):
+            init_settings_data, settings_data, insert_data_func=None,
+            cell_invalidation_func=None, cell_response_func=None, *,
+            read_only=False):
         cc = output.get_cc()
         self.frame = frame
         self.read_only = read_only
@@ -1079,7 +1081,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         ## disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
         attr.Setread_only(True)
-        attr.SetBackgroundColour(mg.read_only_COLOUR)
+        attr.SetBackgroundColour(mg.READ_ONLY_COLOUR)
         self.grid.SetRowAttr(0, attr)
         ## allow right click on variable names
         self.grid.Bind(wx.grid.EVT_GRID_CELL_RIGHT_CLICK, self.on_rclick_cell)
@@ -1111,14 +1113,15 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         fldname = self.grid.GetCellValue(src_row, 0)
         fldtype = self.grid.GetCellValue(src_row, 1)
         if saved_new_row:
-            if self.debug or debug: print(f"Row moved from was {src_row}")
+            if self.debug or debug: print(f'Row moved from was {src_row}')
             ## For row we're leaving, fill in new details.
             ## If an existing row, leave original values alone.
             try:
                 self.settings_data[src_row][mg.TBL_FLDNAME] = fldname
                 self.settings_data[src_row][mg.TBL_FLDTYPE] = fldtype
             except IndexError:  ## leaving what was the new row
-                new_row = {mg.TBL_FLDNAME: fldname, mg.TBL_FLDNAME_ORIG: None,
+                new_row = {
+                    mg.TBL_FLDNAME: fldname, mg.TBL_FLDNAME_ORIG: None,
                     mg.TBL_FLDTYPE: fldtype, mg.TBL_FLDTYPE_ORIG: None}
                 self.settings_data.append(new_row)
             if self.debug or debug: pprint.pprint(self.settings_data)
@@ -1165,7 +1168,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
             print('Final settings data:')
             pprint.pprint(self.settings_data)
 
-    def try_to_delete_row(self, assume_row_deletion_attempt=True):
+    def try_to_delete_row(self, *, assume_row_deletion_attempt=True):
         """
         Overridden so we can update settings data.
 
@@ -1196,8 +1199,8 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
             if assume_row_deletion_attempt:
-                wx.MessageBox(
-                    _('Please select a row first (click to the left of the row)'))
+                wx.MessageBox(_(
+                    'Please select a row first (click to the left of the row)'))
             else:
                 pass
         else:
@@ -1219,7 +1222,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
         elif row == 0:
             return False, _('Unable to delete sofa id row')
         elif self.new_is_dirty:
-            return (False,
-                _("Cannot delete a row while in the middle of making a new one"))
+            return (False, _(
+                'Cannot delete a row while in the middle of making a new one'))
         else:
             return True, None

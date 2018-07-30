@@ -183,37 +183,39 @@ class DlgImportFileSelect(wx.Dialog):
 def check_tblname(fpath, tblname, headless):
     """
     Returns tblname (None if no suitable name to use).
+
     Checks table name and gives user option of correcting it if problems.
+
     Raises exception if no suitable name selected.
     """
     ## check existing names
     valid, err = dbe_sqlite.valid_tblname(tblname)
     if not valid:
         if headless:
-            raise Exception("Faulty SOFA table name.")
+            raise Exception('Faulty SOFA table name.')
         else:
-            title = _("FAULTY SOFA TABLE NAME")
-            msg = (_("You can only use letters, numbers and underscores in "
-                "a SOFA Table Name. Use another name?\nOrig error: %s") % err)
+            title = _('FAULTY SOFA TABLE NAME')
+            msg = (_('You can only use letters, numbers and underscores in '
+                'a SOFA Table Name. Use another name?\nOrig error: %s') % err)
             ret = wx.MessageBox(msg, title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO:
-                raise Exception("Had a problem with faulty SOFA Table Name but "
-                    "user cancelled initial process of resolving it")
+                raise Exception('Had a problem with faulty SOFA Table Name but '
+                    'user cancelled initial process of resolving it')
             elif ret == wx.YES:
                 return None
     duplicate = getdata.dup_tblname(tblname)
     if duplicate:
         if not headless:  ## assume OK to overwrite existing table name with
             ## fresh data if running headless
-            title = _("SOFA NAME ALREADY EXISTS")
+            title = _('SOFA NAME ALREADY EXISTS')
             msg = _("A table named \"%(tbl)s\" already exists in the SOFA "
-                "default database.\n\nDo you want to replace it with the new "
+                'default database.\n\nDo you want to replace it with the new '
                 "data from \"%(fil)s\"?")
-            ret = wx.MessageBox(msg % {"tbl": tblname, "fil": fpath}, 
+            ret = wx.MessageBox(msg % {'tbl': tblname, 'fil': fpath},
                 title, wx.YES_NO|wx.ICON_QUESTION)
             if ret == wx.NO:  ## no overwrite so get new one (or else!)
                 wx.MessageBox(
-                    _("Please change the SOFA Table Name and try again"))
+                    _('Please change the SOFA Table Name and try again'))
                 return None
             elif ret == wx.YES:
                 pass  ## use name (overwrite orig)
@@ -232,7 +234,7 @@ def run_import(self, force_quickcheck=False):
     self.progbar.SetValue(0)
     fpath = self.txt_file.GetValue()
     if not fpath:
-        wx.MessageBox(_("Please select a file"))
+        wx.MessageBox(_('Please select a file'))
         self.align_btns_to_importing(importing=False)
         self.txt_file.SetFocus()
         return
@@ -242,12 +244,12 @@ def run_import(self, force_quickcheck=False):
             mg.IMPORT_EXTENTIONS['tsv'], mg.IMPORT_EXTENTIONS['tab']):
         self.file_type = FILE_CSV
     elif extension.lower() == mg.IMPORT_EXTENTIONS['txt']:
-        ret = wx.MessageBox(_("SOFA imports txt files as csv or "
-            "tab-delimited files.\n\nIs your txt file a valid csv or "
-            "tab-delimited file?"), caption=_("CSV FILE?"), style=wx.YES_NO)
+        ret = wx.MessageBox(_('SOFA imports txt files as csv or '
+            'tab-delimited files.\n\nIs your txt file a valid csv or '
+            'tab-delimited file?'), caption=_('CSV FILE?'), style=wx.YES_NO)
         if ret == wx.NO:
-            wx.MessageBox(_("Unable to import txt files unless csv or "
-                "tab-delimited format inside"))
+            wx.MessageBox(_('Unable to import txt files unless csv or '
+                'tab-delimited format inside'))
             self.align_btns_to_importing(importing=False)
             return
         else:
@@ -267,11 +269,11 @@ def run_import(self, force_quickcheck=False):
         return
     tblname = self.txt_int_name.GetValue()
     if not tblname:
-        wx.MessageBox(_("Please select a SOFA Table Name for the file"))
+        wx.MessageBox(_('Please select a SOFA Table Name for the file'))
         self.align_btns_to_importing(importing=False)
         self.txt_int_name.SetFocus()
         return
-    if u" " in tblname:
+    if ' ' in tblname:
         empty_spaces_msg = _("SOFA Table Name can't have empty spaces")
         wx.MessageBox(empty_spaces_msg)
         self.align_btns_to_importing(importing=False)
@@ -279,8 +281,8 @@ def run_import(self, force_quickcheck=False):
     bad_chars = ['-', ]
     for bad_char in bad_chars:
         if bad_char in tblname:
-            bad_char_msg = (_("Do not include '%s' in SOFA Table Name") % 
-                bad_char)
+            bad_char_msg = (
+                _("Do not include '%s' in SOFA Table Name") % bad_char)
             wx.MessageBox(bad_char_msg)
             self.align_btns_to_importing(importing=False)
             return
@@ -304,7 +306,7 @@ def run_import(self, force_quickcheck=False):
     ## import file
     if self.file_type == FILE_CSV:
         from sofastats.importing import csv_importer_new as csv_importer  #@UnresolvedImport
-        file_importer = csv_importer.CsvImporter(self, fpath, 
+        file_importer = csv_importer.CsvImporter(self, fpath,
             final_tblname, headless, headless_has_header, supplied_encoding,
             force_quickcheck)
     elif self.file_type == FILE_EXCEL:
@@ -319,8 +321,9 @@ def run_import(self, force_quickcheck=False):
     try:
         proceed = file_importer.get_params()
     except Exception as e:
-        wx.MessageBox(_('Unable to import data after getting '
-            'parameters\n\nError') + f': {b.ue(e)}')
+        wx.MessageBox(
+            _('Unable to import data after getting parameters\n\nError')
+            + f': {b.ue(e)}')
         lib.GuiLib.safe_end_cursor()
     if proceed:
         try:
@@ -338,6 +341,7 @@ def run_import(self, force_quickcheck=False):
         except Exception as e:
             self.progbar.SetValue(0)
             lib.GuiLib.safe_end_cursor()
-            wx.MessageBox(_('Unable to import data\n\nHelp available '
-                'at %s\n\n') % mg.CONTACT + f'Error: {b.ue(e)}')
+            wx.MessageBox(
+                _('Unable to import data\n\nHelp available at %s\n\n')
+                % mg.CONTACT + f'Error: {b.ue(e)}')
     self.align_btns_to_importing(importing=False)

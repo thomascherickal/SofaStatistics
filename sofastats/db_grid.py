@@ -255,7 +255,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             self.current_col_idx = col2select
             for col_idx in range(len(self.dd.flds)):
                 attr = wx.grid.GridCellAttr()
-                attr.SetBackgroundColour(mg.READONLY_COLOUR)
+                attr.SetBackgroundColour(mg.READ_ONLY_COLOUR)
                 self.grid.SetColAttr(col_idx, attr)
         else:
             ## disable any columns which do not allow data entry and set colour
@@ -266,7 +266,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
                     self.read_only_cols.append(col_idx)
                     attr = wx.grid.GridCellAttr()
                     attr.SetReadOnly(True)
-                    attr.SetBackgroundColour(mg.READONLY_COLOUR)
+                    attr.SetBackgroundColour(mg.READ_ONLY_COLOUR)
                     self.grid.SetColAttr(col_idx, attr)
                 elif col2select is None:  ## set once
                     col2select = col_idx

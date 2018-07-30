@@ -1,4 +1,3 @@
-
 import os
 
 import pylab
@@ -10,72 +9,73 @@ from sofastats import lib
 from sofastats import output
 from sofastats.stats import core_stats
 
-int_imgs_n = 0 # for internal images so always unique
+int_imgs_n = 0  ## for internal images so always unique
 
-def save_report_img(add_to_report, report_name, save_func=pylab.savefig, 
-        dpi=None):
+def save_report_img(add_to_report, report_name,
+        save_func=pylab.savefig, dpi=None):
     """
-    report_name -- full path to report
-    
-    If adding to report, save image to a subfolder in reports named after the 
-    report. Return a relative image source. Make subfolder if not present. Use 
-    image name guaranteed not to collide. Count items in subfolder and use index 
+    If adding to report, save image to a subfolder in reports named after the
+    report. Return a relative image source. Make subfolder if not present. Use
+    image name guaranteed not to collide. Count items in subfolder and use index
     as part of name.
-    
+
     If not adding to report, save image to internal folder, and return absolute
-    image source.  Remember to alternate sets of names so always the freshest 
+    image source.  Remember to alternate sets of names so always the freshest
     image showing in html (without having to reload etc).
+
+    :param str report_name: full path to report
     """
     debug = False
-    kwargs = {"bbox_inches": "tight"} # hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
+    kwargs = {'bbox_inches': 'tight'}  ## hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
     if dpi:
-        kwargs["dpi"] = dpi
+        kwargs['dpi'] = dpi
     if add_to_report:
-        imgs_path = output.ensure_imgs_path(report_path=report_name, 
-            ext=mg.RPT_SUBFOLDER_SUFFIX)
-        if debug: print("imgs_path: %s" % imgs_path)
+        imgs_path = output.ensure_imgs_path(
+            report_path=report_name, ext=mg.RPT_SUBFOLDER_SUFFIX)
+        if debug: print('imgs_path: %s' % imgs_path)
         n_imgs = len(os.listdir(imgs_path))
-        file_name = u"%03d.png" % n_imgs
-        img_path = os.path.join(imgs_path, file_name) # absolute
+        file_name = f'{n_imgs:03}.png'
+        img_path = os.path.join(imgs_path, file_name)  ## absolute
         args = [img_path]
         save_func(*args, **kwargs)
-        if debug: print("Just saved %s" % img_path)
+        if debug: print(f'Just saved {img_path}')
         subfolder = os.path.split(imgs_path[:-1])[1]
-        img_src = os.path.join(subfolder, file_name) #relative so can shift html
+        img_src = os.path.join(subfolder, file_name)  ##relative so can shift html
         img_src = output.percent_encode(img_src)
-        if debug: print("add_to_report img_src: %s" % img_src)
+        if debug: print(f'add_to_report img_src: {img_src}')
     else:
-        # must ensure internal images are always different each time we
-        # refresh html.  Otherwise might just show old version of same-named 
-        # image file!
-        output.ensure_imgs_path(report_path=mg.INT_IMG_PREFIX_PATH, 
-            ext=mg.RPT_SUBFOLDER_SUFFIX)
+        ## Must ensure internal images are always different each time we refresh
+        ## html. Otherwise might just show old version of same-named image file!
+        output.ensure_imgs_path(
+            report_path=mg.INT_IMG_PREFIX_PATH, ext=mg.RPT_SUBFOLDER_SUFFIX)
         global int_imgs_n
         int_imgs_n += 1
-        img_src = mg.INT_IMG_ROOT + u"_%03d.png" % int_imgs_n
+        img_src = mg.INT_IMG_ROOT + f'_{int_imgs_n:03}.png'
         if debug: print(img_src)
         args = [img_src]
         save_func(*args, **kwargs)
-        if debug: print("Just saved %s" % img_src)
+        if debug: print(f'Just saved {img_src}')
         file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
             else mg.FILE_URL_START_GEN)
         img_src = file_url_start + output.percent_encode(img_src)
         if mg.PLATFORM == mg.WINDOWS:
             img_src = output.fix_perc_encodings_for_win(img_src)
-    if debug: print("img_src: %s" % img_src)
+    if debug: print('img_src: %s' % img_src)
     return img_src
 
 def gen_config(axes_labelsize=14, xtick_labelsize=10, ytick_labelsize=10):
-    params = {"axes.labelsize": axes_labelsize,
-        "xtick.labelsize": xtick_labelsize, "ytick.labelsize": ytick_labelsize}
+    params = {
+        'axes.labelsize': axes_labelsize,
+        'xtick.labelsize': xtick_labelsize,
+        'ytick.labelsize': ytick_labelsize}
     pylab.rcParams.update(params)
 
-def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot, 
+def config_clustered_barchart(grid_bg, bar_colours, plot,
         var_label_a, y_label, val_labels_a, val_labels_b, as_in_bs_lst):
     """
     Clustered bar charts
-    
-    Var A defines the clusters and B the split within the clusters e.g. gender 
+
+    Var A defines the clusters and B the split within the clusters e.g. gender
     vs country = gender as boomslang bars and country as values within bars.
     """
     debug = False
@@ -88,30 +88,33 @@ def config_clustered_barchart(grid_bg, bar_colours, line_colour, plot,
         cluster.xValues = x_vals
         y_vals = as_in_bs_lst[i]
         if debug:
-            print("x_vals: %s" % x_vals)
-            print("y_vals: %s" % y_vals)
+            print(f'x_vals: {x_vals}')
+            print(f'y_vals: {y_vals}')
         cluster.yValues = y_vals
         if debug: print(i, bar_colours)
         cluster.color = bar_colours[i]
-        cluster.edgeColor = "white"
+        cluster.edgeColor = 'white'
         max_width = 17 if labels_n < 5 else 10
-        (cluster.label, unused, 
-         unused) = lib.OutputLib.get_lbls_in_lines(orig_txt=val_label_b, 
-            max_width=max_width)
+        (cluster.label,
+         _actual_lbl_width,
+         _n_lines) = lib.OutputLib.get_lbls_in_lines(
+                                    orig_txt=val_label_b, max_width=max_width)
         clustered_bars.add(cluster)
     clustered_bars.spacing = 0.5
     clustered_bars.xTickLabels = val_labels_a
-    if debug: print("xTickLabels: %s" % clustered_bars.xTickLabels)
+    if debug: print(f'xTickLabels: {clustered_bars.xTickLabels}')
     plot.add(clustered_bars)
     plot.setXLabel(var_label_a)
     plot.setYLabel(y_label)
 
-def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False, 
-        inner_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR, 
-        line_colour=mg.MPL_NORM_LINE_COLOR, inc_attrib=True):    
+def config_hist(fig, vals, var_label, histlbl=None,
+        inner_bg=mg.MPL_BGCOLOR, bar_colour=mg.MPL_FACECOLOR,
+        line_colour=mg.MPL_NORM_LINE_COLOR, *,
+        thumbnail=False, inc_attrib=True):
     """
     Configure histogram with subplot of normal distribution curve.
-    Size is set externally. 
+
+    Size is set externally.
     """
     debug = False
     axes = fig.gca()
@@ -130,17 +133,17 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
         n_bins = round(n_bins/2, 0)
         if n_bins < 5: 
             n_bins = 5
-        axes.axis("off")
+        axes.axis('off')
         normal_line_width = 1
     else:
         axes.set_xlabel(var_label)
         axes.set_ylabel('P')
         if not histlbl:
-            histlbl = _("Histogram for %s") % var_label
+            histlbl = _('Histogram for %s') % var_label
         axes.set_title(histlbl)
         normal_line_width = 4
     #n_bins = 4 # test only
-    #wx.MessageBox("n_bins: %s" % n_bins)
+    #wx.MessageBox('n_bins: %s' % n_bins)
     # see entry for hist in http://matplotlib.sourceforge.net/api/axes_api.html
     n, bins, patches = axes.hist(vals, n_bins, normed=1, range=(lower_limit, 
         upper_limit), facecolor=bar_colour, edgecolor=line_colour)
@@ -151,7 +154,7 @@ def config_hist(fig, vals, var_label, histlbl=None, thumbnail=False,
     if debug:
         print(norm_ys)
         print(ymin, ymax)
-        print("norm max: %s; axis max: %s" % (max(norm_ys), ymax))
+        print('norm max: %s; axis max: %s' % (max(norm_ys), ymax))
     if max(norm_ys) > ymax:
         axes.set_ylim(ymax=1.05*max(norm_ys))
     unused = axes.plot(bins, norm_ys, color=line_colour, 
@@ -167,7 +170,7 @@ def config_scatterplot(inner_bg, show_borders, line_colour, fig,
     """
     Configure scatterplot with line of best fit.
     Size is set externally.
-    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: u"Italy", # or None if only one series
+    series_dets = {mg.CHARTS_SERIES_LBL_IN_LEGEND: "Italy", # or None if only one series
         mg.LIST_X: [1,1,2,2,2,3,4,6,8,18, ...], 
         mg.LIST_Y: [3,5,4,5,6,7,9,12,17,6, ...],
         mg.INC_REGRESSION: True,
@@ -192,8 +195,8 @@ def config_scatterplot(inner_bg, show_borders, line_colour, fig,
         if ymin is not None and ymax is not None:
             pylab.ylim(ymin, ymax)
         if inc_regression:
-            line_lbl = "%s " % series_lbl if series_lbl else u"" # can't be identical as the points series so add a space
-            pylab.plot([min(sample_a), max(sample_a)], line_lst, u"-", 
+            line_lbl = '%s ' % series_lbl if series_lbl else u'' # can't be identical as the points series so add a space
+            pylab.plot([min(sample_a), max(sample_a)], line_lst, u'-', 
                 color=dot_colour, linewidth=5, label=line_lbl)
     axes = fig.gca()
     axes.set_xlabel(label_a)
@@ -203,8 +206,8 @@ def config_scatterplot(inner_bg, show_borders, line_colour, fig,
     box = axes.get_position()
     axes.set_position([box.x0, box.y0 + box.height*0.1, box.width, 
         box.height*0.9])
-    pylab.legend(loc="upper center", bbox_to_anchor=(0.5, -0.05), numpoints=1, 
-        ncol=6, borderaxespad=3, prop={"size": 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
+    pylab.legend(loc='upper center', bbox_to_anchor=(0.5, -0.05), numpoints=1, 
+        ncol=6, borderaxespad=3, prop={'size': 9}) # http://stackoverflow.com/questions/7125009/how-to-change-legend-size-with-matplotlib-pyplot
     pylab.annotate(mg.ATTRIBUTION, xy=(1,0.4), xycoords='axes fraction', 
         fontsize=7, rotation=270)
     pylab.annotate(n_chart, xy=(0.02, 0.96),
@@ -231,5 +234,5 @@ def add_scatterplot(inner_bg, show_borders, line_colour,
     save_func = pylab.savefig
     img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
     html.append(title_dets_html)
-    html.append(u"\n%s%s%s" % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
-    if debug: print("Just linked to %s" % img_src)
+    html.append(u'\n%s%s%s' % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
+    if debug: print('Just linked to %s' % img_src)

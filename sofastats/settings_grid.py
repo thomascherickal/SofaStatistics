@@ -106,7 +106,7 @@ class DlgSettingsEntry(wx.Dialog):
         self.SetReturnCode(wx.ID_OK)
         
     def on_delete(self, event):
-        unused = self.tabentry.try_to_delete_row()
+        self.tabentry.try_to_delete_row()
         self.tabentry.grid.SetFocus()
         event.Skip()
     
@@ -419,9 +419,9 @@ class SettingsEntry(object):
             print(u"on_grid_key_down - keycode %s pressed" % keycode)
         if (keycode in [wx.WXK_DELETE, wx.WXK_NUMPAD_DELETE] 
                 and not self.read_only):
-            # None if no deletion occurs
+            ## None if no deletion occurs
             if self.try_to_delete_row(assume_row_deletion_attempt=False):
-                # don't skip. Smother event so delete not entered anywhere.
+                ## don't skip. Smother event so delete not entered anywhere.
                 return
             else:
                 if not self.any_editor_shown:
@@ -884,15 +884,17 @@ class SettingsEntry(object):
                             " a cell")  
         else:
             return True, None
-    
-    def try_to_delete_row(self, assume_row_deletion_attempt=True):
+
+    def try_to_delete_row(self, *, assume_row_deletion_attempt=True):
         """
-        Delete row if a row selected and not the data entry row
-            and put focus on new line.
-        Return row idx deleted (or None if deletion did not occur).
-        If it is assumed there was a row deletion attempt (e.g. clicked a delete 
-            button), then warn if no selection.  If no such assumption, silently
-            cope with situation where no selection.
+        Delete row if a row selected and not the data entry row and put focus on
+        new line.
+
+        If it is assumed there was a row deletion attempt (e.g. clicked a delete
+        button), then warn if no selection. If no such assumption, silently cope
+        with situation where no selection.
+
+        :return: row idx deleted (or None if deletion did not occur).
         """
         selected_rows = self.grid.GetSelectedRows()
         sel_rows_n = len(selected_rows)
@@ -906,14 +908,14 @@ class SettingsEntry(object):
                 wx.MessageBox(msg)
         elif sel_rows_n == 0:
             if assume_row_deletion_attempt:
-                wx.MessageBox(_("Please select a row first (click to the left "
-                                "of the row)"))
+                wx.MessageBox(_(
+                    'Please select a row first (click to the left of the row)'))
             else:
                 pass
         else:
-            wx.MessageBox(_("Can only delete one row at a time"))
+            wx.MessageBox(_('Can only delete one row at a time'))
         return None
-    
+
     def delete_row(self, row):
         """
         Delete a row.
