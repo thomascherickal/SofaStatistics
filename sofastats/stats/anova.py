@@ -118,12 +118,12 @@ if len(samples) < 2:
         script_lst.append(u"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn, 
     mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_gp, label_a, label_b, 
-    label_avg, add_to_report, report_name, css_fil=u"%(css_fil)s", 
+    label_avg, report_name, css_fil=u"%(css_fil)s", 
     css_idx=%(css_idx)s, dp=dp, details=details,
-    page_break_after=False)""" % {u"css_fil": lib.escape_pre_write(css_fil),
+    add_to_report=add_to_report, page_break_after=False)""" % {"css_fil": lib.escape_pre_write(css_fil),
         u"css_idx": css_idx})
-        script_lst.append(u"fil.write(anova_output)")
-        return u"\n".join(script_lst)
+        script_lst.append('fil.write(anova_output)')
+        return '\n'.join(script_lst)
 
     def on_btn_help(self, event):
         import webbrowser

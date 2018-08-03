@@ -74,9 +74,9 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(u"details = True" if details else u"details = {}")
         script_lst.append(u"""
 ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
-    label_gp, dic_a, dic_b, df, label_avg, add_to_report, report_name,
+    label_gp, dic_a, dic_b, df, label_avg, report_name,
     css_fil=u"%(css_fil)s", css_idx=%(css_idx)s, dp=dp,
-    details=details, page_break_after=False)""" %
+    details=details, add_to_report=add_to_report, page_break_after=False)""" %
             {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
         script_lst.append(u"fil.write(ttest_indep_output)")
         return u"\n".join(script_lst)

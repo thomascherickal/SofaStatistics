@@ -75,9 +75,9 @@ if len(sample_a) < 2 or len(sample_b) < 2:
             script_lst.append(u"details = {}")
         script_lst.append(u"""
 mann_whitney_output = stats_output.mann_whitney_output(u, p, label_gp, dic_a, 
-    dic_b, z, label_ranked, css_fil=u"%(css_fil)s", 
+    dic_b, z, label_ranked, 
     css_idx=%(css_idx)s, dp=dp, details=details, page_break_after=False)"""
-        % {u"css_fil": lib.escape_pre_write(css_fil), u"css_idx": css_idx})
+        % {u"css_idx": css_idx})
         script_lst.append(u"fil.write(mann_whitney_output)")
         return u"\n".join(script_lst)
 

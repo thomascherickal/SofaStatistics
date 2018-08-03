@@ -1,7 +1,7 @@
 """
 This module is mostly concerned with the html displayed as output, the scripts
 written to produce it, and the display of it.
-    
+
 For any given item of output, e.g. a report table or a dojo chart, there is a
 snippet of code specific to that item, and other, potentially shared code, that
 might be needed to display that item e.g. css, or javascript.
@@ -38,7 +38,7 @@ the standalone snippet (in _internal) an absolute path to the existing images is
 needed. This is achieved, when converting the raw snippet into the internal
 standalone GUI version by including the css in embedded form in the snippet
 header and editing the css in a simple search and replace looking for url(...).
-  
+
 The initial snippet also has all the js it needs for dojo in the html header as
 well as its special css.  There is no obstacle to linking to these resources
 rather than embedding them so they are linked.
@@ -85,7 +85,7 @@ def update_var_dets(dlg):
     cc = get_cc()
     (dlg.var_labels, dlg.var_notes, 
      dlg.var_types, dlg.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-     
+
 def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     debug = False
     imgs_path = os.path.join(os.path.splitext(report_path)[0] + ext, '')
@@ -98,10 +98,10 @@ def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
 
 def append_divider(html, title, indiv_title='', item_type=''):
     """
-    indiv_title -- so we can use a general title but have separate parts e.g. 
-    separate histograms under a single analysis e.g. ANOVA.
-
     Must immediately follow image or table item that it refers to.
+
+    :param str indiv_title: so we can use a general title but have separate
+     parts e.g. separate histograms under a single analysis e.g. ANOVA.
     """
     item_title = get_item_title(title, indiv_title, item_type)
     html.append(f'{mg.ITEM_TITLE_START}<!--{item_title}-->'
@@ -110,9 +110,9 @@ def append_divider(html, title, indiv_title='', item_type=''):
 def get_part_dets(part, ideal):
     len_part = min(len(part), ideal)
     extra = ideal - len_part
-    return len_part, extra 
+    return len_part, extra
 
-def get_item_title(title, indiv_title=u"", item_type=u""):
+def get_item_title(title, indiv_title='', item_type=''):
     """
     Limits maximum characters for title - plus the split if needed.
 
@@ -257,11 +257,11 @@ def get_fallback_css():
         }"""
     default_css += "\n    td.%s{\n        text-align: left;\n        "  % \
         mg.CSS_LBL + \
-        u"background-color: #F5F5F5;\n    }"
-    default_css += u"\n    td.%s{\n        text-align: right;\n    }" % \
+        "background-color: #F5F5F5;\n    }"
+    default_css += "\n    td.%s{\n        text-align: right;\n    }" % \
         mg.CSS_ALIGN_RIGHT
     return default_css
-    
+
 def get_html_hdr(hdr_title, css_fils, new_js_n_charts=None, *,
         has_dojo=False, default_if_prob=False, grey=False, abs_pth=False):
     """
@@ -444,13 +444,14 @@ makefaint = function(colour){
         }
     }
 -->
-</style>""" % {'make_objs_func_str': make_objs_func_str,
-               'label_line_break_js': mg.LBL_LINE_BREAK_JS,
-               'dojo_js_source': dojo_js_source}
+</style>""" % {
+        'make_objs_func_str': make_objs_func_str,
+        'label_line_break_js': mg.LBL_LINE_BREAK_JS,
+        'dojo_js_source': dojo_js_source}
     else:
         dojo_insert = ''
-    hdr = mg.DEFAULT_HDR % {'title': hdr_title, u'css': css, 
-        u'dojo_insert': dojo_insert}
+    hdr = mg.DEFAULT_HDR % {
+        'title': hdr_title, 'css': css, 'dojo_insert': dojo_insert}
     if abs_pth:
         hdr = rel2abs_css_bg_imgs(hdr)
     if debug: print(hdr)
@@ -470,8 +471,8 @@ def get_js_n_charts(html):
     """
     debug = False
     try:
-        idx_start = (html.index(mg.N_CHARTS_TAG_START) +
-            len(mg.N_CHARTS_TAG_START))
+        idx_start = (html.index(mg.N_CHARTS_TAG_START)
+            + len(mg.N_CHARTS_TAG_START))
         idx_end = html.index(mg.N_CHARTS_TAG_END)
         raw_n_charts_str = html[idx_start: idx_end]
         if debug: print(raw_n_charts_str)
@@ -488,7 +489,7 @@ def get_makechartRenumbers_n(html):
     """
     Count occurrences of makechartRenumber.
     """
-    makechartRenumbers_n = html.count('makechartRenumber') - 1 # one in header
+    makechartRenumbers_n = html.count('makechartRenumber') - 1  ## one in header
     return makechartRenumbers_n
 
 def get_css_dets():
@@ -497,7 +498,7 @@ def get_css_dets():
 
     css_fils - list of full paths to css files.
 
-    Knowing the current report and the current css what is the full list of css 
+    Knowing the current report and the current css what is the full list of css
     files used by the report and what is the index for the current one in that
     list?
 
@@ -509,15 +510,15 @@ def get_css_dets():
     cc = get_cc()
     if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
         ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
-            'Continue using the default style instead?') % 
-            cc[mg.CURRENT_CSS_PATH], _('Needs CSS Style'), 
+            'Continue using the default style instead?')
+            % cc[mg.CURRENT_CSS_PATH], _('Needs CSS Style'),
             style=wx.YES_NO|wx.ICON_QUESTION)
         if ret == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
             raise my_exceptions.MissingCss(cc[mg.CURRENT_CSS_PATH])
     css_fils = None
-    # read from report
+    ## read from report
     if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
         content = b.get_unicode_from_file(fpath=cc[mg.CURRENT_REPORT_PATH])
         if content:
@@ -530,7 +531,7 @@ def get_css_dets():
                 exec(css_fils_str, css_dets_dic)
                 css_fils = css_dets_dic['css_fils']
             except Exception:
-                pass # Don't let css failuer stop report production.
+                pass  ## Don't let css failuer stop report production.
     if not css_fils:
         css_fils = [cc[mg.CURRENT_CSS_PATH]]
     else:
@@ -541,7 +542,7 @@ def get_css_dets():
     return css_fils, css_idx
 
 def _get_report_table_title_dets_html(titles, subtitles, css_idx):
-    (CSS_TBL_TITLE, 
+    (CSS_TBL_TITLE,
      CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
     title_dets_html_lst = []
     ## titles
@@ -553,7 +554,7 @@ def _get_report_table_title_dets_html(titles, subtitles, css_idx):
         title_dets_html_lst.append(get_titles_inner_html(titles))
     title_dets_html_lst.append(mg.TBL_TITLE_END)
     title_dets_html_lst.append('</span>')
-    # subtitles
+    ## subtitles
     if titles and subtitles:
         title_dets_html_lst.append('<br>')
     title_dets_html_lst.append(f"<span class='{CSS_TBL_SUBTITLE}'>")
@@ -563,7 +564,7 @@ def _get_report_table_title_dets_html(titles, subtitles, css_idx):
     title_dets_html_lst.append(mg.TBL_SUBTITLE_END)
     title_dets_html_lst.append('</span>')
     title_dets_html_lst.append('</th></tr></thead></table>')
-    # combine
+    ## combine
     title_dets_html = '\n'.join(title_dets_html_lst)
     return title_dets_html      
 
@@ -600,7 +601,7 @@ def get_title_dets_html(titles, subtitles, css_idx, *, istable=False):
 
     istable -- is being called by a report table rather than a chart
 
-    If title and/or subtitle are empty, want minimal display height. But have to 
+    If title and/or subtitle are empty, want minimal display height. But have to
     have stable html so when report tables use this they can just change what is
     in the middle and show it live very fast. Solution - have cells table
     containing spans. But make separate table from main table so wide title !=
@@ -608,7 +609,7 @@ def get_title_dets_html(titles, subtitles, css_idx, *, istable=False):
     """
     return (_get_report_table_title_dets_html(titles, subtitles, css_idx)
         if istable else _get_chart_title_dets_html(titles, subtitles, css_idx))
-    
+
 def get_titles_inner_html(titles):
     """
     Just the bits within the tags, css etc.
@@ -636,8 +637,7 @@ def percent_encode(url2esc):
 
 def fix_perc_encodings_for_win(mystr):
     """
-    IE6 at least chokes on C%3A%5CDocuments but is OK with
-    C:/Documents.
+    IE6 at least chokes on C%3A%5CDocuments but is OK with C:/Documents.
 
     IE6 can't cope with non-English text percent encoded or otherwise. See
     http://ihateinternetexplorer.com/. The IE widget on Windows 7 is fine though
@@ -645,8 +645,8 @@ def fix_perc_encodings_for_win(mystr):
 
     These steps made a difference in the wxPython IE-based window on XP. Crazy.
     """
-    fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, '/').
-        replace(mg.PERC_ENCODED_COLON, ':'))
+    fixed_str = (mystr.replace(mg.PERC_ENCODED_BACKSLASH, '/')
+        .replace(mg.PERC_ENCODED_COLON, ':'))
     return fixed_str
 
 def extract_title_subtitle(txt):
@@ -679,42 +679,42 @@ def extract_tbl_only(tbl_item):
             mystart, post_start = split_report
         except ValueError:
             if debug: print(tbl_item)
-            raise Exception('Unable to split by report table start (%s).'
-                '\n\nOrig item: %s\n...\n%s' % (mg.REPORT_TABLE_START, 
-                tbl_item[:400], tbl_item[-400:]))
+            raise Exception('Unable to split by report table '
+                f'start ({mg.REPORT_TABLE_START}).'
+                f'\n\nOrig item: {tbl_item[:400]}\n...\n{tbl_item[-400:]}')
         title, subtitle = extract_title_subtitle(mystart)
         tbl_html, unused = post_start.split(mg.REPORT_TABLE_END)
         tbl_only = f'<h2>{title}</h2>\n<h2>{subtitle}</h2>\n{tbl_html}'
     except Exception as e:
         msg = ('Unable to extract report table html and title from '
-            'input. Orig error: %s' % b.ue(e))
+            f'input. Orig error: {b.ue(e)}')
         if debug: print(msg)
         raise Exception(msg)
     return tbl_only
 
 def rel2abs_rpt_img_links(str_html):
     """
-    Linked images in external HTML reports are in different locations from those 
-    in internal standalone GUI output. 
+    Linked images in external HTML reports are in different locations from those
+    in internal standalone GUI output.
 
-    The former are in subfolders of the reports folder ready to be shared with 
-    other people alongside the report file which refers to them. The latter are 
+    The former are in subfolders of the reports folder ready to be shared with
+    other people alongside the report file which refers to them. The latter are
     in the internal folder only.
 
-    The internal-only images/js can be referred to by the GUI with reference to 
+    The internal-only images/js can be referred to by the GUI with reference to
     their absolute path.
 
-    The report-associated images/js, can be referred to by their report in a 
-    relative sense, but not by the GUI which has a different relative location 
-    than the report. That is why it must use an absolute path to the images/js 
+    The report-associated images/js, can be referred to by their report in a
+    relative sense, but not by the GUI which has a different relative location
+    than the report. That is why it must use an absolute path to the images/js
     (stored in a particular report's subfolder).
 
-    So this functionality is only needed for GUI display of report-associated 
+    So this functionality is only needed for GUI display of report-associated
     images/js.
 
-    Turn my_report_name/001.png to e.g. 
-    file:///home/g/Documents/sofastats/reports/my_report_name/001.png so 
-    that the html can be written to, and read from, anywhere (and still show the 
+    Turn my_report_name/001.png to e.g.
+    file:///home/g/Documents/sofastats/reports/my_report_name/001.png so
+    that the html can be written to, and read from, anywhere (and still show the
     images!) in the temporary GUI displays.
     """
     debug = False
@@ -728,8 +728,8 @@ def rel2abs_rpt_img_links(str_html):
     if debug: print(f'report_path: {report_path}')
     file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
         else mg.FILE_URL_START_GEN)
-    abs_display_content = str_html.replace(mg.IMG_SRC_START, 
-        f'{mg.IMG_SRC_START}{file_url_start}{report_path}')
+    abs_display_content = str_html.replace(
+        mg.IMG_SRC_START, f'{mg.IMG_SRC_START}{file_url_start}{report_path}')
     if debug and verbose: 
         print(f'From \n\n{str_html}\n\nto\n\n{abs_display_content}')
     return abs_display_content
@@ -757,7 +757,7 @@ def rel2abs_rpt_extras(strhtml, tpl):
     debug = False
     url = path2url(mg.REPORT_EXTRAS_PATH)
     abs_display_content = strhtml.replace(
-        tpl % mg.REPORT_EXTRAS_FOLDER, tpl % url) 
+        tpl % mg.REPORT_EXTRAS_FOLDER, tpl % url)
     if debug: print(f'From \n\n{strhtml}\n\nto\n\n{abs_display_content}')
     return abs_display_content
 
@@ -844,7 +844,7 @@ def hdr_has_dojo(html):
 
 def extract_html_content(html, start_tag, end_tag):
     """
-    Get html between the supplied tags.  The start tag must be present.
+    Get html between the supplied tags. The start tag must be present.
     """
     try:
         start_idx = html.index(start_tag) + len(start_tag)
@@ -960,7 +960,7 @@ def _strip_script(script):
     except ValueError:
         stripped = script
     return stripped
-        
+
 def get_cc():
     debug = False
     if not mg.CURRENT_CONFIG:
@@ -1031,11 +1031,11 @@ def insert_prelim_code(modules, f, fil_report, css_fils, *, new_has_dojo):
     """
     debug = False
     if debug: print(css_fils)
-    f.write("\n" + mg.MAIN_SCRIPT_START)
-    f.write("\nimport gettext")
-    f.write("\nimport numpy as np")
-    f.write("\nimport os")
-    f.write("\nimport sys")
+    f.write('\n' + mg.MAIN_SCRIPT_START)
+    f.write('\nimport gettext')
+    f.write('\nimport numpy as np')
+    f.write('\nimport os')
+    f.write('\nimport sys')
     f.write('\ngettext.install(domain="sofastats", '
             f'localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")')
     f.write('\n' + lib.get_gettext_setup_txt())

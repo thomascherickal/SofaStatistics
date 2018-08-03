@@ -69,9 +69,9 @@ sample_x, sample_y, data_tups = core_stats.get_paired_data(
             css_fil_esc = lib.escape_pre_write(css_fil)
         script_lst.append(f"""
 spearmansr_output = stats_output.spearmansr_output(sample_x, sample_y, r, p, df,
-    label_x, label_y, add_to_report, report_name,
+    label_x, label_y, report_name,
     css_fil="{css_fil_esc}", css_idx={css_idx}, dp=dp,
-    details=details, page_break_after=False)""")
+    details=details, add_to_report=add_to_report, page_break_after=False)""")
         script_lst.append('fil.write(spearmansr_output)')
         return '\n'.join(script_lst)
 
