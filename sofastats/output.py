@@ -190,7 +190,7 @@ def get_fallback_css():
             font-size: 14px;
         }
         th, .%s, .%s, .%s, .%s {""" % (mg.CSS_ROW_VAR, mg.CSS_ROW_VAL, 
-                                mg.CSS_DATACELL, mg.CSS_FIRST_DATACELL) + u"""
+                                mg.CSS_DATACELL, mg.CSS_FIRST_DATACELL) + """
             border: solid 1px #A1A1A1;
         }
         th{

@@ -17,27 +17,27 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import my_exceptions
 from sofastats import lib
-import CUBRIDdb as cubrid
+import CUBRIDdb as cubrid  #@UnresolvedIMport
 
-# http://www.cubrid.org/manual/841/en/Data%20Types
-# numeric data types
-INT = "int"
-INTEGER = "integer"
-SHORT = "short"
-SMALLINT = "smallint"
-BIGINT = "bigint"
-DECIMAL = "decimal"
-NUMERIC = "numeric"
-DOUBLE = "double"
-DOUBLE_PRECISION = "double precision"
-FLOAT = "float"
-REAL = "real"
-DOUBLE = "double"
-MONETARY = "monetary"
+## http://www.cubrid.org/manual/841/en/Data%20Types
+## numeric data types
+INT = 'int'
+INTEGER = 'integer'
+SHORT = 'short'
+SMALLINT = 'smallint'
+BIGINT = 'bigint'
+DECIMAL = 'decimal'
+NUMERIC = 'numeric'
+DOUBLE = 'double'
+DOUBLE_PRECISION = 'double precision'
+FLOAT = 'float'
+REAL = 'real'
+DOUBLE = 'double'
+MONETARY = 'monetary'
 
 DEFAULT_PORT = 33000
 
-if_clause = "IF(%s, %s, %s)"
+if_clause = 'IF(%s, %s, %s)'
 placeholder = '?'
 left_obj_quote = '`'
 right_obj_quote = '`'
@@ -45,22 +45,22 @@ gte_not_equals = '!='
 cartesian_joiner = ','
 
 def quote_obj(raw_val):
-    return f"{left_obj_quote}{raw_val}{right_obj_quote}"
+    return f'{left_obj_quote}{raw_val}{right_obj_quote}'
 
 def quote_val(raw_val, charset2try='iso-8859-1'):
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'", 
-        sql_esc_str_literal_quote="''", 
+    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'",
+        sql_esc_str_literal_quote="''",
         pystr_use_double_quotes=True, charset2try=charset2try)
 
 def get_summable(clause):
-    return f"CASE WHEN {clause} THEN 1 ELSE 0 END"
+    return f'CASE WHEN {clause} THEN 1 ELSE 0 END'
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
-    orderby = f"ORDER BY {quote_obj(order_val)}" if order_val else ''
-    return f"SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}"
+    orderby = f'ORDER BY {quote_obj(order_val)}' if order_val else ''
+    return f'SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}'
 
 def get_syntax_elements():
-    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
+    return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val,
         placeholder, get_summable, gte_not_equals, cartesian_joiner)
 
 def get_con_cur_for_db(con_dets_cubrid, db):
@@ -68,11 +68,11 @@ def get_con_cur_for_db(con_dets_cubrid, db):
     Could use charset="utf8") http://mysql-python.sourceforge.net/CUBRIDdb.html
     """
     try:
-        cubrid_db = "demodb"
+        cubrid_db = 'demodb'
         if db:
             cubrid_db = db
         con_url = (
-            "CUBRID"
+            'CUBRID'
             f":{con_dets_cubrid['host']}"
             f":{con_dets_cubrid['port']}"
             f":{cubrid_db}"
@@ -80,8 +80,8 @@ def get_con_cur_for_db(con_dets_cubrid, db):
             f":{con_dets_cubrid['passwd']}")
         con = cubrid.connect(con_url)
     except Exception as e:
-        raise Exception(f"Unable to connect to CUBRID db using {con_url}. "
-            f"\nCaused by error: {b.ue(e)}")
+        raise Exception(f'Unable to connect to CUBRID db using {con_url}. '
+            f'\nCaused by error: {b.ue(e)}')
     cur = con.cursor()  ## must return tuples not dics
     return con, cur
 
@@ -101,7 +101,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     all_dbs = []
     env = os.getenv('CUBRID_DATABASES')
     if env is not None:
-        with open(env + "/databases.txt", 'r') as f:
+        with open(env + '/databases.txt', 'r') as f:
             line = f.readline()  ## skip first line
             line = f.readline()
             while line:
@@ -120,8 +120,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         cur.close()
         con.close()
     if not dbs:
-        raise Exception(_("Unable to find any databases that have tables "
-            "and you have permission to access."))
+        raise Exception(_('Unable to find any databases that have tables '
+            'and you have permission to access.'))
     dbs_lc = [x.lower() for x in dbs]
     con, cur = get_con_cur_for_db(con_dets_cubrid, db)
     if not db:
@@ -138,7 +138,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if db:
             cubrid_db = db
         con_url = (
-            "CUBRID"
+            'CUBRID'
             f":{con_dets_cubrid['host']}"
             f":{con_dets_cubrid['port']}"
             f":{cubrid_db}"
@@ -149,7 +149,7 @@ def get_con_resources(con_dets, default_dbs, db=None):
     else:
         if db.lower() not in dbs_lc:
             raise Exception(f'Database "{db}" not available '
-                "from supplied connection")
+                'from supplied connection')
     con_resources = {
         mg.DBE_CON: con, mg.DBE_CUR: cur,
         mg.DBE_DBS: dbs, mg.DBE_DB: db}
@@ -159,19 +159,19 @@ def get_tbls(cur, db):
     """
     Get table names given database and cursor.
     """
-    SQL_get_tblnames = "SHOW TABLES"
+    SQL_get_tblnames = 'SHOW TABLES'
     cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     tbls.sort(key=lambda s: s.upper())
     return tbls
 
 def has_tbls(cur, db):
-    SQL_get_tblnames = "SHOW TABLES"
+    SQL_get_tblnames = 'SHOW TABLES'
     cur.execute(SQL_get_tblnames)
     tbls = [x[0] for x in cur.fetchall()]
     if tbls:
         return True
-    return False 
+    return False
 
 def get_min_max(coltype, num_prec, dec_pts):
     """
@@ -248,26 +248,26 @@ def get_flds(cur, db, tbl):
     """
     debug = False
     ## http://www.cubrid.org/manual/841/en/Numeric%20Types
-    numeric_lst = [INT, INTEGER, SHORT, SMALLINT, BIGINT, DECIMAL, DOUBLE, 
+    numeric_lst = [INT, INTEGER, SHORT, SMALLINT, BIGINT, DECIMAL, DOUBLE,
         FLOAT, REAL, DOUBLE, DOUBLE_PRECISION, MONETARY]
     ## http://www.cubrid.org/manual/841/en/Date%7CTime%20Types
     datetime_lst = ('date', 'time', 'datetime', 'timestamp')
     """
     iso8859-1 is the default charset for CUBRID.
-    
+
     CUBRID also supports UTF-8 and EUC-KR charsets. There is one restriction
     though as even though you can store data in other character sets, string
     functions or LIKE search are not supported.
     """
     tbl_charset = 'iso8859-1'
-    SQL_get_fld_dets = f"SHOW COLUMNS FROM {quote_obj(tbl)}"
+    SQL_get_fld_dets = f'SHOW COLUMNS FROM {quote_obj(tbl)}'
     cur.execute(SQL_get_fld_dets)
     flds = {}
     for i, row in enumerate(cur.fetchall()):
         if debug: print(row)
         fldname, coltype, nullable, unused, fld_default, extra = row
-        bolnullable = (nullable == u"YES")
-        autonum = "auto_increment" in extra
+        bolnullable = (nullable == 'YES')
+        autonum = 'auto_increment' in extra
         timestamp = coltype.lower().startswith('timestamp')
         boldata_entry_ok = not (autonum or timestamp)
         bolnumeric = False
@@ -345,7 +345,7 @@ def get_flds(cur, db, tbl):
             mg.FLD_BOLDATETIME: boldatetime,
         }
         flds[fldname] = dets_dic
-    if debug: print(f"flds: {flds}")
+    if debug: print(f'flds: {flds}')
     return flds
 
 def get_index_dets(cur, db, tbl):
@@ -360,13 +360,13 @@ def get_index_dets(cur, db, tbl):
     tbltest    0       PRIMARY     1             id
     tbltest    1       names_idx   1             fname
     tbltest    1       names_idx   2             lname
-    tbltest    1       age_idx     1             age 
+    tbltest    1       age_idx     1             age
     """
     debug = False
-    SQL_get_idx_dets = f"SHOW INDEX FROM {quote_obj(tbl)}"
+    SQL_get_idx_dets = f'SHOW INDEX FROM {quote_obj(tbl)}'
     cur.execute(SQL_get_idx_dets)
     idx_dets = {}  ## key_name is the key
-    idx_seq = {}  ## e.g. {0: "fname", 1: "lname"}
+    idx_seq = {}  ## e.g. {0: 'fname', 1: 'lname'}
     next_seq = 0
     has_unique = False
     for row in cur.fetchall():
@@ -391,7 +391,7 @@ def get_index_dets(cur, db, tbl):
             ## only need to add any additional flds
             idx_dets[key_name][mg.IDX_FLDS].append(col_name)
     ## get list of key_names sorted by idx sequence
-    ## idx_seq e.g. {0: "fname", 1: "lname"}
+    ## idx_seq e.g. {0: 'fname', 1: 'lname'}
     lst_key_names = [idx_seq[x] for x in sorted(idx_seq)]
     ## use sorted key_names to get sorted list of idx dicts
     idxs = []
@@ -406,24 +406,24 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_cubrid= wx.StaticBox(scroll, -1, 'CUBRID')
     ## default database
     parent.lbl_cubrid_default_db = wx.StaticText(
-        scroll, -1, _("Default Database (name only):"))
+        scroll, -1, _('Default Database (name only):'))
     parent.lbl_cubrid_default_db.SetFont(lblfont)
     cubrid_default_db = (
         parent.cubrid_default_db if parent.cubrid_default_db else '')
     parent.txt_cubrid_default_db = wx.TextCtrl(
         scroll, -1, cubrid_default_db, size=(200, -1))
     parent.txt_cubrid_default_db.Enable(not read_only)
-    parent.txt_cubrid_default_db.SetToolTip(_("Default database"))
+    parent.txt_cubrid_default_db.SetToolTip(_('Default database'))
     ## default table
     parent.lbl_cubrid_default_tbl = wx.StaticText(
-        scroll, -1, _("Default Table:"))
+        scroll, -1, _('Default Table:'))
     parent.lbl_cubrid_default_tbl.SetFont(lblfont)
     cubrid_default_tbl = (
         parent.cubrid_default_tbl if parent.cubrid_default_tbl else '')
     parent.txt_cubrid_default_tbl = wx.TextCtrl(
         scroll, -1, cubrid_default_tbl, size=(200, -1))
     parent.txt_cubrid_default_tbl.Enable(not read_only)
-    parent.txt_cubrid_default_tbl.SetToolTip(_("Default table (optional)"))
+    parent.txt_cubrid_default_tbl.SetToolTip(_('Default table (optional)'))
     ## host
     parent.lbl_cubrid_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_cubrid_host.SetFont(lblfont)
@@ -431,22 +431,22 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     parent.txt_cubrid_host = wx.TextCtrl(scroll, -1, cubrid_host, size=(100,-1))
     parent.txt_cubrid_host.Enable(not read_only)
     parent.txt_cubrid_host.SetToolTip(
-        _("Host e.g. localhost, or localhost:%s" % DEFAULT_PORT))
+        _('Host e.g. localhost, or localhost:%s' % DEFAULT_PORT))
     ## user
-    parent.lbl_cubrid_user = wx.StaticText(scroll, -1, _("User:"))
+    parent.lbl_cubrid_user = wx.StaticText(scroll, -1, _('User:'))
     parent.lbl_cubrid_user.SetFont(lblfont)
-    cubrid_user = parent.cubrid_user if parent.cubrid_user else ""
+    cubrid_user = parent.cubrid_user if parent.cubrid_user else ''
     parent.txt_cubrid_user = wx.TextCtrl(scroll, -1, cubrid_user, size=(100,-1))
     parent.txt_cubrid_user.Enable(not read_only)
-    parent.txt_cubrid_user.SetToolTip(_("User e.g. dba"))
+    parent.txt_cubrid_user.SetToolTip(_('User e.g. dba'))
     ## password
-    parent.lbl_cubrid_pwd = wx.StaticText(scroll, -1, _("Password:"))
+    parent.lbl_cubrid_pwd = wx.StaticText(scroll, -1, _('Password:'))
     parent.lbl_cubrid_pwd.SetFont(lblfont)
     cubrid_pwd = parent.cubrid_pwd if parent.cubrid_pwd else ''
     parent.txt_cubrid_pwd = wx.TextCtrl(
         scroll, -1, cubrid_pwd, size=(300,-1), style=wx.TE_PASSWORD)
     parent.txt_cubrid_pwd.Enable(not read_only)
-    parent.txt_cubrid_pwd.SetToolTip(_("Password"))
+    parent.txt_cubrid_pwd.SetToolTip(_('Password'))
     ## 2 CUBRID
     parent.szr_cubrid = wx.StaticBoxSizer(bx_cubrid, wx.VERTICAL)
     ## 3 CUBRID INNER
@@ -491,7 +491,7 @@ def get_proj_settings(parent, proj_dic):
         raw_port = proj_dic[mg.PROJ_CON_DETS][mg.DBE_CUBRID].get('port',
             DEFAULT_PORT)
         if raw_port != DEFAULT_PORT:
-            parent.cubrid_host = f"{raw_host}:{raw_port}"
+            parent.cubrid_host = f'{raw_host}:{raw_port}'
         else:
             parent.cubrid_host = raw_host
         parent.cubrid_user = proj_dic[mg.PROJ_CON_DETS][mg.DBE_CUBRID]['user']
@@ -525,6 +525,7 @@ def set_con_det_defaults(parent):
 def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     """
     Can pass in port at end of host (separated by a colon e.g. localhost:33000).
+
     Copes with missing default database and table. Will get the first available.
     """
     default_db = parent.txt_cubrid_default_db.GetValue()
@@ -539,7 +540,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
             cubrid_port = int(raw_port)
         except ValueError:
             raise Exception("Host had a ':' but the port was not an integer "
-                f"e.g. localhost:{DEFAULT_PORT}")
+                f'e.g. localhost:{DEFAULT_PORT}')
     else:
         cubrid_host = raw_host
         cubrid_port = DEFAULT_PORT
@@ -554,7 +555,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         or cubrid_default_tbl)
     incomplete_cubrid = dirty and not has_cubrid_con
     if incomplete_cubrid:
-        wx.MessageBox(_("The CUBRID details are incomplete"))
+        wx.MessageBox(_('The CUBRID details are incomplete'))
         parent.txt_cubrid_default_db.SetFocus()
     default_dbs[mg.DBE_CUBRID] = cubrid_default_db
     default_tbls[mg.DBE_CUBRID] = cubrid_default_tbl

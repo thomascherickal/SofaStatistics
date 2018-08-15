@@ -1167,8 +1167,9 @@ class StartFrame(wx.Frame):
         dlgProj = projselect.DlgProjSelect(self, proj_fils, self.active_proj)
         dlgProj.ShowModal()
         if not projects.valid_proj(mg.PROJS_FOLDER, self.active_proj):
-            wx.MessageBox(u"Unable to use '%s' project. Using default instead."
-                % projects.filname2projname(self.active_proj))
+            projname = projects.filname2projname(self.active_proj)
+            wx.MessageBox(
+                f'Unable to use "{projname}" project. Using default instead.')
             self.set_proj_lbl(projects.filname2projname(mg.DEFAULT_PROJ))
         event.Skip()
 

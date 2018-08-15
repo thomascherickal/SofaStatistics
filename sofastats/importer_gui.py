@@ -307,16 +307,19 @@ def run_import(self, force_quickcheck=False):
     if self.file_type == FILE_CSV:
         from sofastats.importing import csv_importer_new as csv_importer  #@UnresolvedImport
         file_importer = csv_importer.CsvImporter(self, fpath,
-            final_tblname, headless, headless_has_header, supplied_encoding,
-            force_quickcheck)
+            final_tblname, supplied_encoding,
+            headless=headless, headless_has_header=headless_has_header,
+            force_quickcheck=force_quickcheck)
     elif self.file_type == FILE_EXCEL:
         from sofastats.importing import excel_importer  #@UnresolvedImport
-        file_importer = excel_importer.ExcelImporter(self, fpath,
-            final_tblname, headless, headless_has_header, force_quickcheck)
+        file_importer = excel_importer.ExcelImporter(self, fpath, final_tblname,
+            headless=headless, headless_has_header=headless_has_header,
+            force_quickcheck=force_quickcheck)
     elif self.file_type == FILE_ODS:
         from sofastats.importing import ods_importer  #@UnresolvedImport
-        file_importer = ods_importer.OdsImporter(self, fpath,
-            final_tblname, headless, headless_has_header, force_quickcheck)
+        file_importer = ods_importer.OdsImporter(self, fpath, final_tblname,
+            headless=headless, headless_has_header=headless_has_header,
+            force_quickcheck=force_quickcheck)
     proceed = False
     try:
         proceed = file_importer.get_params()

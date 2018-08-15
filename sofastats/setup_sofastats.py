@@ -14,37 +14,37 @@ show_early_steps = True
 force_error = False
 debug = False
 
-INIT_DEBUG_MSG = ("Please note the messages above (e.g. with a screen-shot)"
-    " and press any key to close")
+INIT_DEBUG_MSG = ('Please note the messages above (e.g. with a screen-shot)'
+    ' and press any key to close')
 import warnings
-if show_early_steps: print("Just imported warnings")
+if show_early_steps: print('Just imported warnings')
 warnings.simplefilter('ignore', DeprecationWarning)
 warnings.simplefilter('ignore', UserWarning)
 import datetime #@UnusedImport
-if show_early_steps: print("Just imported datetime")
+if show_early_steps: print('Just imported datetime')
 import gettext
-if show_early_steps: print("Just imported gettext")
+if show_early_steps: print('Just imported gettext')
 import glob #@UnusedImport
-if show_early_steps: print("Just imported glob")
+if show_early_steps: print('Just imported glob')
 import os
-if show_early_steps: print("Just imported os")
+if show_early_steps: print('Just imported os')
 import platform #@UnusedImport
-if show_early_steps: print("Just imported platform")
+if show_early_steps: print('Just imported platform')
 import shutil
-if show_early_steps: print("Just imported shutil")
+if show_early_steps: print('Just imported shutil')
 import sqlite3 as sqlite #@UnusedImport
-if show_early_steps: print("Just imported sqlite3")
+if show_early_steps: print('Just imported sqlite3')
 import sys
-if show_early_steps: print("Just imported sys")
+if show_early_steps: print('Just imported sys')
 import traceback
-if show_early_steps: print("Just imported traceback")
+if show_early_steps: print('Just imported traceback')
 import wx #@UnusedImport
-if show_early_steps: print("Just imported wx")
+if show_early_steps: print('Just imported wx')
 import wx.html2
-if show_early_steps: print("Just imported wx.html2")
+if show_early_steps: print('Just imported wx.html2')
 ## All i18n except for wx-based (which MUST happen after wx.App init)
 ## http://wiki.wxpython.org/RecipesI18n
-## Install gettext.  Now all strings enclosed in "_()" will automatically be
+## Install gettext.  Now all strings enclosed in '_()' will automatically be
 ## translated.
 localedir = './locale'  ## fall back
 try:
@@ -57,13 +57,13 @@ except NameError as e:
             localedir = os.path.join(path, 'locale')
             break
 if show_early_steps:
-    print("Just identified locale folder")
+    print('Just identified locale folder')
 gettext.install(domain='sofastats', localedir=localedir)
-if show_early_steps: print("Just installed gettext")
+if show_early_steps: print('Just installed gettext')
 try:
     from sofastats import basic_lib as b #@UnresolvedImport
 except Exception as e:
-    msg = (f"Problem importing basic_lib. {traceback.format_exc()}")
+    msg = (f'Problem importing basic_lib. {traceback.format_exc()}')
     if show_early_steps: 
         print(msg)
         input(INIT_DEBUG_MSG)  ## Not holding up any other way of getting msg
@@ -73,7 +73,7 @@ except Exception as e:
 try:
     from sofastats import my_globals as mg  #@UnresolvedImport  ## has translated text
 except Exception as e:
-    msg = f"Problem with importing my_globals. {traceback.format_exc()}"
+    msg = f'Problem with importing my_globals. {traceback.format_exc()}'
     if show_early_steps: 
         print(msg)
         input(INIT_DEBUG_MSG)
@@ -84,7 +84,7 @@ try:
     from sofastats import config_globals  #@UnresolvedImport
     from sofastats import lib #@UnresolvedImport
 except Exception as e:
-    msg = f"Problem with first round of local importing. {traceback.format_exc()}"
+    msg = f'Problem with first round of local importing. {traceback.format_exc()}'
     if show_early_steps:
         print(msg)
         input(INIT_DEBUG_MSG)  ## not holding up any other way of getting msg
@@ -98,7 +98,7 @@ try:
     config_globals.import_dbe_plugins() ## as late as possible because uses
         ## local modules e.g. my_exceptions, lib
 except Exception as e:
-    msg = (f"Problem with configuring globals. {traceback.format_exc()}")
+    msg = (f'Problem with configuring globals. {traceback.format_exc()}')
     if show_early_steps: 
         print(msg)
         input(INIT_DEBUG_MSG)
@@ -113,22 +113,22 @@ class ErrMsgFrame(wx.Frame):
         :param bool raw_error_msg: if not to be used as is (raw), wrap in Oops!
         etc, version number etc.
         """
-        wx.Frame.__init__(self, None, title=_("SOFA Error"))
+        wx.Frame.__init__(self, None, title=_('SOFA Error'))
         error_msg = b.ue(e)
         mybreak = '\n' + '*'*30 + '\n'
-        err_msg_fname = "sofastats_error_details.txt"
+        err_msg_fname = 'sofastats_error_details.txt'
         if not raw_error_msg:
             error_msg = (
-                "Oops! Something went wrong running SOFA Statistics version "
-                f"{mg.VERSION}."
-                "\n\nHelp is available at "
-                "http://www.sofastatistics.com/userguide.php under "
-                "\"SOFA won't start - solutions\". You can also email "
-                f"lead developer {mg.CONTACT} for help (usually "
-                "reasonably prompt).\n\nSOFA is about to make an error file "
-                "on your desktop. Please include that file "
-                f"(\"{err_msg_fname}\") in your email."
-                f"\n{mybreak}\nCaused by error: {error_msg}")
+                'Oops! Something went wrong running SOFA Statistics version '
+                f'{mg.VERSION}.'
+                '\n\nHelp is available at '
+                'http://www.sofastatistics.com/userguide.php under '
+                '"SOFA won\'t start - solutions". You can also email '
+                f'lead developer {mg.CONTACT} for help (usually '
+                'reasonably prompt).\n\nSOFA is about to make an error file '
+                'on your desktop. Please include that file '
+                f'("{err_msg_fname}") in your email.'
+                f'\n{mybreak}\nCaused by error: {error_msg}')
         wx.MessageBox(error_msg)
         fpath = os.path.join(mg.HOME_PATH, 'Desktop', err_msg_fname)
         with open(fpath, 'w', encoding='utf-8') as f:
@@ -216,14 +216,14 @@ def init_com_types(parent, panel):
     comtypes_tag = os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)
     if (mg.PLATFORM == mg.WINDOWS and not os.path.exists(comtypes_tag)):
         ## init com types
-        wx.MessageBox(_("Click OK to prepare for first use of SOFA "
-            "Statistics.\n\nPreparation may take a moment ..."))
+        wx.MessageBox(_('Click OK to prepare for first use of SOFA '
+            'Statistics.\n\nPreparation may take a moment ...'))
         parent.html = wx.html2.WebView.New(panel, -1, size=wx.Size(10, 10))
         parent.html.SetPage('', mg.BASE_URL)
         parent.html = None
         ## leave tag saying it is done
         f = open(comtypes_tag, 'w', encoding='utf-8')
-        f.write("Comtypes handled successfully :-)")
+        f.write('Comtypes handled successfully :-)')
         f.close()
 
 def get_installed_version(local_path):
@@ -247,19 +247,19 @@ def make_local_subfolders(local_path, local_subfolders):
     """
     try:
         os.mkdir(local_path)
-        if show_early_steps: print("Made local folder successfully.")
+        if show_early_steps: print('Made local folder successfully.')
     except Exception as e:
-        raise Exception(f'Unable to make local SOFA path \"{local_path}\".'
-            + f"\nCaused by error: {b.ue(e)}")
+        raise Exception(f'Unable to make local SOFA path "{local_path}".'
+            + f'\nCaused by error: {b.ue(e)}')
     for local_subfolder in local_subfolders:  ## create required subfolders
         try:
             os.mkdir(os.path.join(local_path, local_subfolder))
             if show_early_steps: 
-                print(f"Added {local_subfolder} successfully.")
+                print(f'Added {local_subfolder} successfully.')
         except Exception as e:
             raise Exception(
                 f'Unable to make local subfolder "{local_subfolder}".'
-                + f"\nCaused by error: {b.ue(e)}")
+                + f'\nCaused by error: {b.ue(e)}')
     print(f'Made local subfolders under "{local_path}"')
 
 def run_test_code(script):
@@ -278,13 +278,13 @@ def run_test_code(script):
         exec(test_code, test_dic)
     except SyntaxError as e:
         raise Exception(_("Syntax error in test script \"%(test_path)s\"."
-            "\nCaused by error: %(err)s") % {"test_path": test_path,
-            "err": b.ue(e)})
+            "\nCaused by error: %(err)s") % {'test_path': test_path,
+            'err': b.ue(e)})
     except Exception as e:
         raise Exception(_("Error running test script \"%(test_path)s\"."
-            "\nCaused by errors:\n\n%(err)s") % {u"test_path": test_path,
-            "err": traceback.format_exc()})
-    print(f"Ran test code {script}")
+            "\nCaused by errors:\n\n%(err)s") % {'test_path': test_path,
+            'err': traceback.format_exc()})
+    print(f'Ran test code {script}')
 
 def populate_css_path(prog_path, local_path):
     """
@@ -299,14 +299,14 @@ def populate_css_path(prog_path, local_path):
             src_style = os.path.join(prog_path, mg.CSS_FOLDER, style)
             dest_style = os.path.join(local_path, mg.CSS_FOLDER, style)
             shutil.copy(src_style, dest_style)
-            if show_early_steps: print(f"Just copied {style}")
+            if show_early_steps: print(f'Just copied {style}')
         except Exception as e:  ## more diagnostic info to explain why it failed
-            raise Exception("Problem populating css path using shutil.copy()."
-                f"\nCaused by error: {b.ue(e)}"
-                f"\nsrc_style: {src_style}"
-                f"\ndest_style: {dest_style}"
-                f"\nFile location details: {sys.path}")
-    print(f"Populated css paths under {local_path}")
+            raise Exception('Problem populating css path using shutil.copy().'
+                f'\nCaused by error: {b.ue(e)}'
+                f'\nsrc_style: {src_style}'
+                f'\ndest_style: {dest_style}'
+                f'\nFile location details: {sys.path}')
+    print(f'Populated css paths under {local_path}')
 
 def populate_extras_path(prog_path, local_path):
     extras = ['arc.xd.js', 'blank.gif', 'blank.htm', 'dojo.xd.js',
@@ -361,9 +361,9 @@ def populate_extras_path(prog_path, local_path):
                 mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER, extra))
             if show_early_steps: print(f'Just copied {extra}')
         except Exception as e:
-            raise Exception("Problem populating report extras path."
-                f"\nCaused by error: {b.ue(e)}")
-    print(f"Populated report extras path under {local_path}")
+            raise Exception('Problem populating report extras path.'
+                f'\nCaused by error: {b.ue(e)}')
+    print(f'Populated report extras path under {local_path}')
 
 def populate_local_paths(prog_path, local_path, default_proj):
     """
@@ -373,15 +373,15 @@ def populate_local_paths(prog_path, local_path, default_proj):
     populate_css_path(prog_path, local_path)
     shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB),
         os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
-    if show_early_steps: print(f"Just copied {mg.SOFA_DB}")
+    if show_early_steps: print(f'Just copied {mg.SOFA_DB}')
     shutil.copy(os.path.join(prog_path, mg.PROJS_FOLDER, mg.DEFAULT_PROJ),
         default_proj)
-    if show_early_steps: print(f"Just copied {default_proj}")
+    if show_early_steps: print(f'Just copied {default_proj}')
     shutil.copy(os.path.join(prog_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS),
         os.path.join(local_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS))
-    if show_early_steps: print(f"Just copied {mg.DEFAULT_VDTS}")
+    if show_early_steps: print(f'Just copied {mg.DEFAULT_VDTS}')
     populate_extras_path(prog_path, local_path)
-    print(f"Populated local paths under {local_path}")
+    print(f'Populated local paths under {local_path}')
 
 def config_local_proj(local_path, default_proj, settings_subfolders):
     """
@@ -399,7 +399,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         f.close()
         if show_early_steps: print('Just read default project')
         for path in settings_subfolders:
-            old_path = f"/home/g/Documents/sofastats/{path}/"
+            old_path = f'/home/g/Documents/sofastats/{path}/'
             new_path = lib.escape_pre_write(
                 os.path.join(mg.LOCAL_PATH, path, ''))
             #new_path = new_path.replace('"', '""')
@@ -410,35 +410,35 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         if mg.PLATFORM == mg.WINDOWS:
             proj_str = proj_str.replace("default_dbs = {",
                 "default_dbs = {'%s': None, " % mg.DBE_MS_ACCESS)
-            proj_str = proj_str.replace("default_tbls = {",
+            proj_str = proj_str.replace('default_tbls = {',
                 "default_tbls = {'%s': None, " % mg.DBE_MS_ACCESS)
-            if show_early_steps: print("Just updated %s" % mg.DBE_MS_ACCESS)
-            proj_str = proj_str.replace("default_dbs = {",
+            if show_early_steps: print('Just updated %s' % mg.DBE_MS_ACCESS)
+            proj_str = proj_str.replace('default_dbs = {',
                 "default_dbs = {'%s': None, " % mg.DBE_MS_SQL)
-            proj_str = proj_str.replace("default_tbls = {",
+            proj_str = proj_str.replace('default_tbls = {',
                 "default_tbls = {'%s': None, " % mg.DBE_MS_SQL)
-            if show_early_steps: print(f"Just updated {mg.DBE_MS_SQL}")
+            if show_early_steps: print(f'Just updated {mg.DBE_MS_SQL}')
         with open(default_proj, 'w', encoding='utf-8') as f:
             f.write(proj_str)
         if show_early_steps: 
-            print(u"Just wrote to default project %s" % default_proj)
+            print(f'Just wrote to default project {default_proj}')
         ## create file as tag we have done the changes to the proj file
         with open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), 'w', 
                 encoding='utf-8') as f:
-            f.write("Local project file customised successfully :-)")
-        print("Configured default project file for user")
+            f.write('Local project file customised successfully :-)')
+        print('Configured default project file for user')
     except Exception as e:
-        raise Exception("Problem configuring default project settings. "
-            "It may be best to delete your local sofastats folder "
-            "e.g. C:\\Users\\username\\sofastats or C:\\Documents "
-            "and Settings\\username\\sofastats"
-            f"\nCaused by error: {b.ue(e)}")
+        raise Exception('Problem configuring default project settings. '
+            'It may be best to delete your local sofastats folder '
+            'e.g. C:\\Users\\username\\sofastats '
+            'or C:\\Documents and Settings\\username\\sofastats'
+            f'\nCaused by error: {b.ue(e)}')
 
 def store_version(local_path):
     fpath = os.path.join(local_path, mg.VERSION_FILE)
     with open(fpath, 'w', encoding='utf-8') as f:
         f.write(mg.VERSION)
-    print(f"Stored version as {mg.VERSION}")
+    print(f'Stored version as {mg.VERSION}')
 
 def get_installer_version_status(local_path):
     try:
@@ -454,18 +454,18 @@ def archive_older_default_report():
     def_rpt_pth = os.path.join(mg.REPORTS_PATH, mg.DEFAULT_REPORT)
     if os.path.exists(def_rpt_pth):
         try:
-            new_filename = f"default_report_pre_{mg.VERSION}.htm"
+            new_filename = f'default_report_pre_{mg.VERSION}.htm'
             new_version = os.path.join(mg.REPORTS_PATH, new_filename)
             os.rename(def_rpt_pth, new_version)
             if show_early_steps: 
-                print(f"Just renamed {def_rpt_pth} to new version")
-            mg.DEFERRED_WARNING_MSGS.append("EXISTING REPORT SAFEGUARDED:"
-                f"\n\nAs part of the upgrade to version {mg.VERSION}, "
+                print(f'Just renamed {def_rpt_pth} to new version')
+            mg.DEFERRED_WARNING_MSGS.append('EXISTING REPORT SAFEGUARDED:'
+                f'\n\nAs part of the upgrade to version {mg.VERSION}, '
                 f'SOFA has renamed "{mg.DEFAULT_REPORT}" to "{new_filename}" '
-                "\nto ensure all new content added to the default report "
-                "works with the latest chart display code.")
+                '\nto ensure all new content added to the default report '
+                'works with the latest chart display code.')
         except OSError as e:
-            raise Exception("Unable to archive older default report.")
+            raise Exception('Unable to archive older default report.')
 
 def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     """
@@ -488,17 +488,17 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
     course, if the folder is made operational by renaming it to "sofastats".
     """
     if force_error:
-        raise Exception("Error added to make error message appear :-)")
+        raise Exception('Error added to make error message appear :-)')
     (installer_recovery_is_newer, 
      installer_recovery_newer_status_known) = \
         get_installer_version_status(mg.RECOVERY_PATH)
-    if show_early_steps: print("Just identified installer recovery status")
+    if show_early_steps: print('Just identified installer recovery status')
     if (installer_recovery_is_newer or not installer_recovery_newer_status_known
             or not os.path.exists(mg.RECOVERY_PATH)):
         ## make fresh recovery folder (over top of previous if necessary)
         try:
             shutil.rmtree(mg.RECOVERY_PATH)
-            if show_early_steps: print(f"Just deleted {mg.RECOVERY_PATH}")
+            if show_early_steps: print(f'Just deleted {mg.RECOVERY_PATH}')
         except OSError:
             pass  ## OK to fail removing recovery path if not there.
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
@@ -507,7 +507,7 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
         config_local_proj(mg.RECOVERY_PATH, default_proj, subfolders_in_proj)
         store_version(mg.RECOVERY_PATH)
-        print("Freshened recovery")
+        print('Freshened recovery')
 
 def setup_folders():
     """
@@ -519,7 +519,7 @@ def setup_folders():
     oth_subfolders = [os.path.join(mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)]
     local_subfolders = subfolders_in_proj + oth_subfolders
     prog_path = mg.SCRIPT_PATH
-    if show_early_steps: print("Just set prog_path")
+    if show_early_steps: print('Just set prog_path')
     try:
         ## 1) make local SOFA folder if missing. Otherwise, leave intact for now
         try:
@@ -538,19 +538,19 @@ def setup_folders():
         except Exception as e:
             raise Exception(
                 f'Unable to make local sofa folders in "{mg.LOCAL_PATH}."'
-                + f"\nCaused by error: {b.ue(e)}")
+                + f'\nCaused by error: {b.ue(e)}')
         run_test_code(mg.TEST_SCRIPT_POST_CONFIG)  ## can now use dd and proj config
         ## 2) Modify existing local SOFA folder if version change require it
         existing_local = not local_path_setup_needed
         if existing_local:
             try:  ## e.g. if already installed version is older than 1.1.16 ...
                 installed_version = get_installed_version(mg.LOCAL_PATH)
-                if show_early_steps: print("Just got installed version")
+                if show_early_steps: print('Just got installed version')
                 new_version = (installed_version is None 
                     or lib.version_a_is_newer(version_a=mg.VERSION,
                     version_b=installed_version))
                 if new_version:
-                    ## update css files - url(images...) -> url("images...")
+                    ## update css files - url(images...) -> url('images...')
                     populate_css_path(prog_path, mg.LOCAL_PATH)
                     ## ensure sofastats_report_extras folder and freshly populate it
                     REPORT_EXTRAS_PATH = os.path.join(mg.LOCAL_PATH,
@@ -558,27 +558,27 @@ def setup_folders():
                     try:
                         os.mkdir(REPORT_EXTRAS_PATH)  ## under reports
                         if show_early_steps: 
-                            print(f"Just made {REPORT_EXTRAS_PATH}")
+                            print(f'Just made {REPORT_EXTRAS_PATH}')
                     except OSError as e:
                         pass  ## Already there.
                     except Exception as e:
-                        raise Exception("Unable to make report extras "
+                        raise Exception('Unable to make report extras '
                             f'path "{REPORT_EXTRAS_PATH}".'
-                            + f"\nCaused by error: {b.ue(e)}")
+                            + f'\nCaused by error: {b.ue(e)}')
                     populate_extras_path(prog_path, mg.LOCAL_PATH)
                     archive_older_default_report()
                     store_version(mg.LOCAL_PATH)  ## update it so only done once
             except Exception as e:
-                raise Exception("Problem modifying your local sofastats folder."
+                raise Exception('Problem modifying your local sofastats folder.'
                     f' One option is to delete the "{mg.LOCAL_PATH}" folder and'
-                    f" let SOFA make a fresh one.\nCaused by error: {b.ue(e)}")
+                    f' let SOFA make a fresh one.\nCaused by error: {b.ue(e)}')
         ## 3) Make a fresh recovery folder if needed
         try:
             freshen_recovery(prog_path, local_subfolders, subfolders_in_proj)
         except Exception as e:
             raise Exception(
                 f'Problem freshening your recovery folder "{prog_path}".'
-                f"\nCaused by error: {b.ue(e)}")
+                f'\nCaused by error: {b.ue(e)}')
         ## 4) ensure the internal copy images path exists
         try:
             os.mkdir(mg.INT_COPY_IMGS_PATH)
@@ -586,8 +586,8 @@ def setup_folders():
             pass  ## already there
     except Exception as e:
         if show_early_steps: 
-            print("Problem running initial setup - about to make msg.")
-        msg = f"Problem running initial setup.\nCaused by error: {b.ue(e)}"
+            print('Problem running initial setup - about to make msg.')
+        msg = f'Problem running initial setup.\nCaused by error: {b.ue(e)}'
         if show_early_steps: 
             print(msg)
             print(traceback.format_exc())
@@ -617,9 +617,9 @@ except my_exceptions.InconsistentFileDate as e:
     msgapp = ErrMsgApp(b.ue(e))
 except Exception as e:
     msg = (
-        f"Problem with second round of local importing while importing {about}."
-        f"\nCaused by error: {b.ue(e)}"
-        f"\n\nMore details that may help developer:\n{traceback.format_exc()}")
+        f'Problem with second round of local importing while importing {about}.'
+        f'\nCaused by error: {b.ue(e)}'
+        f'\n\nMore details that may help developer:\n{traceback.format_exc()}')
     msgapp = ErrMsgApp(msg)
     # msgapp.MainLoop() # already sys.exit()
     # del msgapp

@@ -16,20 +16,24 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
     exporting scripts buttons etc.  Sets values for db, default_tbl etc and
     responds to selections etc.
     """
-    
+
     def __init__(self, title):
         cc = output.get_cc()
         wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET,0),
-            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX\
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.title = title
         self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.output_modules = [
-            (None, 'my_globals as mg'), ('stats', 'core_stats'),
-            (None, 'getdata'), (None, 'output'), (None, 'stats_output'), ]
+            (None, 'my_globals as mg'),
+            ('stats', 'core_stats'),
+            (None, 'getdata'),
+            (None, 'output'),
+            (None, 'stats_output'),
+        ]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes, 
@@ -40,7 +44,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.panel = wx.Panel(self)
         bx_desc = wx.StaticBox(self.panel, -1, _('Purpose'))
         bx_vars = wx.StaticBox(self.panel, -1, _('Variables'))
-        #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
         ## key settings
         self.drop_tbls_panel = self.panel
@@ -50,8 +53,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.drop_tbls_sel_evt = self.on_table_sel
         self.drop_tbls_rmargin = 10
         self.drop_tbls_can_grow = False
-        (self.szr_data, 
-         self.szr_output_config) = self.get_gen_config_szrs(self.panel, 
+        (self.szr_data,
+         self.szr_output_config) = self.get_gen_config_szrs(self.panel,
                                                 hide_db=hide_db)  ## mixin
         self.drop_tbls_szr = self.szr_data
         getdata.data_dropdown_settings_correct(parent=self)
@@ -76,7 +79,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
             bx_vars.SetToolTip(self.variables_rc_msg)
         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
-        #szr_vars = wx.BoxSizer(wx.HORIZONTAL) # removes tooltip bug in gtk
         self.szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
         szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
         szr_vars.Add(self.szr_vars_top, 1, wx.LEFT, 5)
@@ -89,13 +91,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.setup_var_dropdowns()
         ## phrase
         self.lbl_phrase = wx.StaticText(
-            self.panel, -1, _("Start making your selections"))
+            self.panel, -1, _('Start making your selections'))
         szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
         if mg.MAX_HEIGHT <= 620:
             myheight = 130
         elif mg.MAX_HEIGHT <= 820:
-            myheight = ((mg.MAX_HEIGHT/1024.0)*350) - 20
+            myheight = ((350 * mg.MAX_HEIGHT) / 1024.0) - 20
         else:
             myheight = 350
         if mg.PLATFORM == mg.MAC:
@@ -132,11 +134,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def get_fresh_drop_a(self, items, idx_a):
         """
-        Must make fresh to get performant display even with lots of items in a 
-            non-system font on Linux.
+        Must make fresh to get performant display even with lots of items in a
+        non-system font on Linux.
         """
         try:
-            self.drop_group_a.Destroy() # don't want more than one
+            self.drop_group_a.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_group_a = wx.Choice(self.panel, -1, choices=items, size=(300, -1))
@@ -149,7 +151,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def get_fresh_drop_b(self, items, idx_b):
         try:
-            self.drop_group_b.Destroy() # don't want more than one
+            self.drop_group_b.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_group_b = wx.Choice(self.panel, -1, choices=items, size=(300, -1))
@@ -162,21 +164,20 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def setup_var_dropdowns(self):
         """
-        Makes fresh objects each time (and rebinds etc) because that is the only 
-            way (in Linux at least) to have a non-standard font-size for items
-            in a performant way e.g. if more than 10-20 items in a list. Very
-            slow if having to add items to dropdown if having to set font e.g.
-            using SetItems().
+        Makes fresh objects each time (and rebinds etc) because that is the only
+        way (in Linux at least) to have a non-standard font-size for items in a
+        performant way e.g. if more than 10-20 items in a list. Very slow if
+        having to add items to dropdown if having to set font e.g. using
+        SetItems().
         """
         var_a, var_b = self.get_vars()
         fld_choice_items = self.get_group_choices()
-        idx_a = projects.get_idx_to_select(fld_choice_items, var_a, 
-                                           self.var_labels, mg.GROUP_A_DEFAULT)
+        idx_a = projects.get_idx_to_select(
+            fld_choice_items, var_a, self.var_labels, mg.GROUP_A_DEFAULT)
         self.drop_group_a = self.get_fresh_drop_a(fld_choice_items, idx_a)
-        idx_b = projects.get_idx_to_select(fld_choice_items, var_b, 
-                                           self.var_labels, mg.GROUP_B_DEFAULT)
+        idx_b = projects.get_idx_to_select(
+            fld_choice_items, var_b, self.var_labels, mg.GROUP_B_DEFAULT)
         self.drop_group_b = self.get_fresh_drop_b(fld_choice_items, idx_b)
-        
         self.panel.Layout()
         try:
             self.szr_vars_top.Clear()
@@ -191,13 +192,13 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def on_show(self, _event):
         if self.exiting:
             return
-        html2show = _(u"<p>Waiting for an analysis to be run.</p>")
+        html2show = _('<p>Waiting for an analysis to be run.</p>')
         self.html.SetPage(html2show, mg.BASE_URL)
 
     def on_rclick_group_a(self, _event):
         var_a, choice_item = self.get_var_a()
-        var_label_a = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_a)
+        var_label_a = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_a)
         updated = config_output.set_var_props(choice_item, var_a, var_label_a,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -205,8 +206,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_b(self, _event):
         var_b, choice_item = self.get_var_b()
-        var_label_b = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_b)
+        var_label_b = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_b)
         updated = config_output.set_var_props(choice_item, var_b, var_label_b,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
@@ -216,47 +217,47 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.setup_var_dropdowns()
         self.update_defaults()
         self.update_phrase()
-        
+
     def get_group_choices(self):
         """
         Get group choice items.
-        Also stores var names, and var names sorted by their labels (for later 
-            reference).
+
+        Also stores var names, and var names sorted by their labels (for later
+        reference).
         """
-        var_names = projects.get_approp_var_names(self.var_types,
-                                                  self.min_data_type)
+        var_names = projects.get_approp_var_names(
+            self.var_types, self.min_data_type)
         if len(var_names) < 2:
-            msg = (_(u"<p>There are not enough suitable variables available"
-                    u" for this analysis. "
-                    u"Only variables with a %s data type can be used in this "
-                    u"analysis."
-                    u"</p><p>This problem sometimes occurs when numeric data is"
-                    u" accidentally imported from a spreadsheet as text. "
-                    u"In such cases the solution is to format the data columns "
-                    u"to a numeric format in the spreadsheet and re-import it."
-                    u"</p>") % 
-                    mg.VAR_TYPE_KEY2_SHORT_LBL.get(self.min_data_type, 
-                        _("suitable")))
+            msg = (_(
+                '<p>There are not enough suitable variables available for this '
+                'analysis. Only variables with a %s data type can be used in '
+                'this analysis.</p>'
+                '<p>This problem sometimes occurs when numeric data is '
+                'accidentally imported from a spreadsheet as text. In such '
+                'cases the solution is to format the data columns to a numeric '
+                'format in the spreadsheet and re-import it.</p>')
+                % mg.VAR_TYPE_KEY2_SHORT_LBL.get(
+                    self.min_data_type, _('suitable')))
             try:
                 self.html.SetPage(msg, mg.BASE_URL)
-            except Exception: # no html ctrl yet so defer and display when ready
+            except Exception:  ## no html ctrl yet so defer and display when ready
                 pass
-        (fld_choice_items, 
+        (fld_choice_items,
          self.sorted_var_names) = lib.GuiLib.get_sorted_choice_items(
                                     dic_labels=self.var_labels, vals=var_names)
         return fld_choice_items
-       
+
     def on_database_sel(self, event):
         """
-        Reset dbe, database, cursor, tables, table, tables dropdown, 
-            fields, has_unique, and idxs after a database selection.
+        Reset dbe, database, cursor, tables, table, tables dropdown, fields,
+        has_unique, and idxs after a database selection.
         """
         if config_ui.ConfigUI.on_database_sel(self, event):
             output.update_var_dets(dlg=self)
             self.setup_var_dropdowns()
-                
+
     def on_table_sel(self, event):
-        "Reset key data details after table selection."       
+        "Reset key data details after table selection."
         config_ui.ConfigUI.on_table_sel(self, event)
         output.update_var_dets(dlg=self)
         self.setup_var_dropdowns()
@@ -272,11 +273,11 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         var_b = self.sorted_var_names[idx_b]
         var_b_item = self.drop_group_b.GetStringSelection()
         return var_b, var_b_item
-    
+
     def get_vars(self):
         """
-        self.sorted_var_names is set when dropdowns are set 
-            (and only changed when reset).
+        self.sorted_var_names is set when dropdowns are set (and only changed
+        when reset).
         """
         try:
             var_a, unused = self.get_var_a()
@@ -287,29 +288,30 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         except Exception:
             var_b = None
         return var_a, var_b
-        
+
     def on_btn_var_config(self, event):
         config_ui.ConfigUI.on_btn_var_config(self, event)
         self.setup_var_dropdowns()        
         self.update_phrase()
-        
+
     def on_group_by_sel(self, event):
         self.update_phrase()
         self.update_defaults()
         event.Skip()
-        
+
     def get_drop_vals(self):
         """
         Get values from main drop downs.
+
         Returns var_a, label_a, var_b, label_b.
         """
         var_a, var_b = self.get_vars()
-        label_a = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_a)
-        label_b = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_b)
+        label_a = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_a)
+        label_b = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_b)
         return var_a, label_a, var_b, label_b
-    
+
     def update_phrase(self):
         """
         Update phrase based on Group A and Group B.
@@ -317,45 +319,45 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         try:
             unused, label_a, unused, label_b = self.get_drop_vals()
             self.lbl_phrase.SetLabel(_("Is \"%(a)s\" different from \"%(b)s\"?") 
-                                     % {"a": label_a, "b": label_b})
+                % {'a': label_a, 'b': label_b})
         except Exception:
-            self.lbl_phrase.SetLabel(u"")
-    
+            self.lbl_phrase.SetLabel('')
+
     def update_defaults(self):
         mg.GROUP_A_DEFAULT = self.drop_group_a.GetStringSelection()
         mg.GROUP_B_DEFAULT = self.drop_group_b.GetStringSelection()
 
     def on_btn_run(self, event):
         """
-        Generate script to special location (INT_SCRIPT_PATH), run script 
-            putting output in special location (INT_REPORT_PATH) and into report 
-            file, and finally, display html output.
+        Generate script to special location (INT_SCRIPT_PATH), run script
+        putting output in special location (INT_REPORT_PATH) and into report
+        file, and finally, display html output.
         """
         cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             ## css_idx is supplied at the time
-            get_script_args={u'css_fil': cc[mg.CURRENT_CSS_PATH], 
-                u"report_name": cc[mg.CURRENT_REPORT_PATH],
-                u"details": mg.DEFAULT_DETAILS}
+            get_script_args={
+                'css_fil': cc[mg.CURRENT_CSS_PATH],
+                'report_name': cc[mg.CURRENT_REPORT_PATH],
+                'details': mg.DEFAULT_DETAILS}
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args)
-    
+
     def test_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """
-        # group A and B cannot be the same
-        if self.drop_group_a.GetStringSelection() == \
-                self.drop_group_b.GetStringSelection():
-            wx.MessageBox(_("Group A and Group B must be different"))
+        ## group A and B cannot be the same
+        if (self.drop_group_a.GetStringSelection()
+                == self.drop_group_b.GetStringSelection()):
+            wx.MessageBox(_('Group A and Group B must be different'))
             return False
         return True
-    
+
     def on_btn_help(self, event):
-        wx.MessageBox("Under construction")
+        wx.MessageBox('Under construction')
         event.Skip()
-    
+
     def on_btn_clear(self, event):
-        wx.MessageBox("Under construction")
+        wx.MessageBox('Under construction')
         event.Skip()
-    

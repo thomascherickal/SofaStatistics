@@ -423,17 +423,17 @@ class CsvSampler:
 class CsvImporter(importer.FileImporter):
 
     def __init__(self, parent, fpath, tblname,
-            headless, headless_has_header,
-            supplied_encoding, force_quickcheck=False):
+            supplied_encoding, *,
+            headless, headless_has_header, force_quickcheck=False):
         self.parent = parent
         importer.FileImporter.__init__(self, self.parent, fpath, tblname,
-            headless, headless_has_header, supplied_encoding)
+            headless=headless, headless_has_header=headless_has_header,
+            supplied_encoding=supplied_encoding)
         self.ext = 'CSV'
         self.force_quickcheck = force_quickcheck
 
     def get_params(self):
-        return True  ## cover all this in more complex fashion handling encoding
-            ## and delimiters
+        return True  ## cover all this in more complex fashion handling encoding and delimiters
 
     @staticmethod
     def consolidate_line_seps(mystr):
@@ -488,10 +488,10 @@ class CsvImporter(importer.FileImporter):
                 break
         fldtypes = []
         for ok_fldname in ok_fldnames:
-            fldtype = importer.assess_sample_fld(sample_data, self.has_header,
+            fldtype = importer.assess_sample_fld(sample_data, 
                 ok_fldname, ok_fldnames, faulty2missing_fld_list,
-                allow_none=False, comma_dec_sep_ok=not comma_delimiter,
-                headless=self.headless)
+                has_header=self.has_header, allow_none=False,
+                comma_dec_sep_ok=not comma_delimiter, headless=self.headless)
             fldtypes.append(fldtype)
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not bolhas_rows:

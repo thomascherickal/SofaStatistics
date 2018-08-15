@@ -3,23 +3,23 @@ GENERAL ********************
 export2imgs() does the real work and can be scripted outside the GUI. Set
 headless = True when calling. export2imgs has the best doc string to read.
 
-The starting point is always HTML. If a report, will have lots of individual 
+The starting point is always HTML. If a report, will have lots of individual
 items to extract and convert into images/pdfs and/or spreadsheet tables.
 
-Splits HTML by divider SOFA puts between all chunks of content. Namely 
+Splits HTML by divider SOFA puts between all chunks of content. Namely
 mg.OUTPUT_ITEM_DIVIDER.
 
 IMAGES *********************
 
 For images, there are two situations:
 
-1) images that were created by matplotlib that are already created and were only 
+1) images that were created by matplotlib that are already created and were only
 linked to by the HTML. We just need to relocate a copy and rename these.
 
-2) images which only exist when rendered by a web browser which can handle 
+2) images which only exist when rendered by a web browser which can handle
 javascript and SVG.
 
-For each split item, a separate HTML file must be made, rendered within 
+For each split item, a separate HTML file must be made, rendered within
 wkhtmltopdf, and the PDF converted into an image.
 
 Because we don't know the final size of the output image we have to start with
@@ -38,29 +38,28 @@ Anyway, still an expensive process but we are doing very little of it.
 
 SPLITTING OUTPUT ************
 
-Use SOFA Python code to split output into individual HTML items (if a chart 
-series we split these into individual charts). Each will have the massive HTML 
-header (css and javascript etc) plus a tiny end bit (close body and html tags). 
+Use SOFA Python code to split output into individual HTML items (if a chart
+series we split these into individual charts). Each will have the massive HTML
+header (css and javascript etc) plus a tiny end bit (close body and html tags).
 Store the temp HTML output in the _internal folder.
 
-Also split out any text in same order so that numbering can be sequential. Store 
+Also split out any text in same order so that numbering can be sequential. Store
 names inside html original so we can name “001 - Gender by Ethnicity.png” etc.
 
 http://www.imagemagick.org/Magick++/Image.html#Image%20Manipulation%20Methods
-http://www.imagemagick.org/Usage/crop/#trim. A trick that works is to add a 
+http://www.imagemagick.org/Usage/crop/#trim. A trick that works is to add a
 border of the colour you want to trim, then_ trim.
 
 trim() -- Trim edges that are the background color from the image.
 
-trimming is very slow at higher dpis so we can do a quick, dirty version at a 
-lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough 
+trimming is very slow at higher dpis so we can do a quick, dirty version at a
+lower dpi, get dimensions, and multiply by the PDF dpi/cheap dpi to get rough
 dimensions to crop.
 
 For multipage images, use [idx] notation after .pdf
 http://stackoverflow.com/questions/4809314/...
     ...imagemagick-is-converting-only-the-first-page-of-the-pdf
 """
-import codecs
 import os
 import shutil
 from subprocess import Popen, PIPE
@@ -76,8 +75,8 @@ from sofastats.exporting import export_output
 from sofastats.exporting import export_output_pdfs
 from sofastats import output
 
-HTML4PDF_FILE = u"html4pdf.html"
-PDF2IMG_FILE = u"pdf2img.pdf"
+HTML4PDF_FILE = 'html4pdf.html'
+PDF2IMG_FILE = 'pdf2img.pdf'
 PDF2IMG_PATH = os.path.join(mg.INT_PATH, PDF2IMG_FILE)
 
 img_creation_problem = False
@@ -86,10 +85,10 @@ img_creation_problem = False
 class ExportImage(object):
 
     @staticmethod
-    def export2imgs(hdr, img_items, save2report_path, report_path,
-            alternative_path, output_dpi, gauge_start_imgs=0, headless=False,
+    def export2imgs(hdr, img_items, report_path,
+            alternative_path, output_dpi, gauge_start_imgs=0,
             export_status=None, steps_per_img=None, msgs=None, progbar=None,
-            multi_page_items=True):
+            save2report_path=True, headless=False, multi_page_items=True):
         """
         hdr -- HTML header with css, javascript etc. Make hdr (and img_items)
         with get_hdr_and_items()
@@ -134,71 +133,70 @@ class ExportImage(object):
         if headless:
             if ((export_status, steps_per_img, msgs, progbar)
                     != (None, None, None, None)):
-                raise Exception(u"If running headless, don't set the "
-                    u"GUI-specific settings")
+                raise Exception(
+                    "If running headless, don't set the GUI-specific settings")
             export_status = {mg.CANCEL_EXPORT: False}
-            steps_per_img = 1 # leave msgs as default of None
+            steps_per_img = 1  ## leave msgs as default of None
             progbar = export_output.Prog2console()
         if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
         output_dpi = 60 if debug else output_dpi
         if save2report_path:
-            imgs_path = output.ensure_imgs_path(report_path,
-                ext=u"_exported_images")
+            imgs_path = output.ensure_imgs_path(
+                report_path, ext='_exported_images')
         else:
             imgs_path = alternative_path
         if mg.OVERRIDE_FOLDER:
             imgs_path = mg.OVERRIDE_FOLDER
         if debug: print(imgs_path)
         rpt_root = os.path.split(report_path)[0]
-        html4pdf_path = os.path.join(rpt_root, HTML4PDF_FILE) # must be in reports path so JS etc all available
+        html4pdf_path = os.path.join(rpt_root, HTML4PDF_FILE)  ## must be in reports path so JS etc all available
         n_imgs = len(img_items)
         long_time = ((n_imgs > 30 and output_dpi == mg.SCREEN_DPI) 
             or (n_imgs > 10 and output_dpi == mg.PRINT_DPI) 
             or (n_imgs > 2 and output_dpi == mg.HIGH_QUAL_DPI))
         if long_time and not headless:
-            msg = _("The report has %s images to export at %s dpi. "
-                "Do you wish to export at this time?") % (n_imgs, output_dpi)
-            if wx.MessageBox(msg, caption=_("SLOW EXPORT PREDICTED"),
+            msg = _('The report has %s images to export at %s dpi. '
+                'Do you wish to export at this time?') % (n_imgs, output_dpi)
+            if wx.MessageBox(msg, caption=_('SLOW EXPORT PREDICTED'),
                     style=wx.YES_NO) == wx.NO:
                 if progbar: progbar.SetValue(0)
                 raise my_exceptions.ExportCancel
         gauge2show = min(gauge_start_imgs, mg.EXPORT_IMG_GAUGE_STEPS)
         if progbar: progbar.SetValue(gauge2show)
-        ftr = u"</body></html>"
-        for i, item in enumerate(img_items, 1): # the core - where images are actually exported
+        ftr = '</body></html>'
+        for i, item in enumerate(img_items, 1):  ## the core - where images are actually exported
             ExportImage._export2img(i, item, hdr, ftr, report_path, imgs_path,
-                html4pdf_path, output_dpi, headless, export_status, progbar,
-                multi_page_items)
+                html4pdf_path, output_dpi, export_status, progbar,
+                headless=headless, multi_page_items=multi_page_items)
             gauge2show += steps_per_img
             if progbar: progbar.SetValue(gauge2show)
         if save2report_path:
             img_saved_msg = (
-                _(u"Images have been saved to: \"%s\".") % imgs_path)
+                _('Images have been saved to: \"%s\".') % imgs_path)
         else:
             foldername = os.path.split(alternative_path)[1]
-            img_saved_msg = (u"Images have been saved to your desktop in the "
-                u"\"%s\" folder." % foldername)
+            img_saved_msg = ('Images have been saved to your desktop in the '
+                '\'%s\' folder.' % foldername)
         if img_creation_problem:
-            img_saved_msg += ((u"\n\nThere may have been a problem making some "
-                u"of the images - please contact the developer at %s for "
-                u"assistance") % mg.CONTACT)
+            img_saved_msg += (('\n\nThere may have been a problem making some '
+                'of the images - please contact the developer at %s for '
+                'assistance') % mg.CONTACT)
         if not headless:
             msgs.append(img_saved_msg)
 
     @staticmethod
-    def _copy_existing_img(item, report_path, imgs_path, headless=False,
-        progbar=None):
+    def _copy_existing_img(item, report_path, imgs_path, progbar=None, *,
+            headless=False):
         """
         Merely copying an existing image
         """
         export_report = not (report_path == mg.INT_REPORT_PATH)
-        src, dst = lib.OutputLib.get_src_dst_preexisting_img(export_report,
-            imgs_path, item.content)
+        src, dst = lib.OutputLib.get_src_dst_preexisting_img(
+            export_report, imgs_path, item.content)
         try:
             shutil.copyfile(src, dst)
         except Exception as e:
-            msg = (u"Unable to copy existing image file. Orig error: %s" %
-                b.ue(e))
+            msg = (f'Unable to copy existing image file. Orig error: {b.ue(e)}')
             if not headless:
                 wx.MessageBox(msg)
             else:
@@ -208,70 +206,71 @@ class ExportImage(object):
 
     @staticmethod
     def _html2img(i, item, hdr, ftr, html4pdf_path, img_pth_no_ext, output_dpi,
-            multi_page_items=True):
+            *, multi_page_items=True):
         """
         Key bits htmltopdf() and pdf2img()
         """
         debug = False
         if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
-        full_content_html = u"\n".join([hdr, item.content, ftr])
-        with open(html4pdf_path, "w", encoding="utf-8") as f:
+        full_content_html = '\n'.join([hdr, item.content, ftr])
+        with open(html4pdf_path, 'w', encoding='utf-8') as f:
             f.write(full_content_html)
-            f.close()
-        export_output_pdfs.html2pdf(html_path=html4pdf_path,
-            pdf_path=PDF2IMG_PATH, as_pre_img=True)
+        export_output_pdfs.html2pdf(
+            html_path=html4pdf_path, pdf_path=PDF2IMG_PATH, as_pre_img=True)
         #wx.MessageBox(img_pth_no_ext)
         if debug: print(img_pth_no_ext)
         imgs_made = Pdf2Img.pdf2img(pdf_path=PDF2IMG_PATH,
             img_pth_no_ext=img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
             output_dpi=output_dpi, multi_page_items=multi_page_items)
-        if debug: print(u"Just made image(s) %s:\n%s" %
-            (i, u",\n".join(imgs_made)))
+        if debug:
+            list_imgs_made = ',\n'.join(imgs_made)
+            print(f'Just made image(s) {i}\n{list_imgs_made}')
 
     @staticmethod
     def _export2img(i, item, hdr, ftr, report_path, imgs_path, html4pdf_path,
-            output_dpi, headless=False, export_status=None, progbar=None,
-            multi_page_items=True):
-        # give option of backing out
+            output_dpi, export_status=None, progbar=None, *,
+            headless=False, multi_page_items=True):
+        ## give option of backing out
         if not headless: wx.Yield()
         if export_status[mg.CANCEL_EXPORT]:
             if progbar: progbar.SetValue(0)
             raise my_exceptions.ExportCancel
-        img_name_no_ext = "%04i_%s" % (i, lib.get_safer_name(item.title))
+        title = lib.get_safer_name(item.title)
+        img_name_no_ext = f'{i:04}_{title}'
         img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
         if mg.IMG_SRC_START in item.content:
             ExportImage._copy_existing_img(item, report_path, imgs_path,
-                headless, progbar)
+                progbar, headless=headless)
         else:
             ExportImage._html2img(i, item, hdr, ftr, html4pdf_path,
-                img_pth_no_ext, output_dpi, multi_page_items)
+                img_pth_no_ext, output_dpi, multi_page_items=multi_page_items)
 
 
 def copy_output():
     wx.BeginBusyCursor()
-    bi = wx.BusyInfo("Copying output ...")
-    # act as if user selected print dpi and export as images
+    bi = wx.BusyInfo('Copying output ...')
+    ## act as if user selected print dpi and export as images
     export_status = {mg.CANCEL_EXPORT: False}
     sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
     sorted_names.sort()
     for filename in sorted_names:
         delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
         os.remove(delme)
-    hdr, img_items, unused = export_output.get_hdr_and_items(mg.INT_REPORT_PATH, 
-        mg.EXPORT_IMAGES_DIAGNOSTIC)
-    msgs = [] # not used in this case
-    ExportImage.export2imgs(hdr, img_items=img_items, save2report_path=False,
+    hdr, img_items, unused = export_output.get_hdr_and_items(
+        mg.INT_REPORT_PATH, mg.EXPORT_IMAGES_DIAGNOSTIC)
+    msgs = []  ## not used in this case
+    ExportImage.export2imgs(hdr, img_items=img_items,
         report_path=mg.INT_REPORT_PATH, alternative_path=mg.INT_COPY_IMGS_PATH,
-        output_dpi=mg.PRINT_DPI, gauge_start_imgs=0, headless=False,
+        output_dpi=mg.PRINT_DPI, gauge_start_imgs=0,
         export_status=export_status, steps_per_img=mg.EXPORT_IMG_GAUGE_STEPS,
-        msgs=msgs, progbar=None)
+        msgs=msgs, progbar=None, save2report_path=False, headless=False)
     sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
     sorted_names.sort()
-    # http://wiki.wxpython.org/ClipBoard
+    ## http://wiki.wxpython.org/ClipBoard
     wx.TheClipboard.Open()
     do = wx.FileDataObject()
     for filname in sorted_names:
-        if filname.endswith(u".png"):
+        if filname.endswith('.png'):
             imgname = os.path.join(mg.INT_COPY_IMGS_PATH, filname)
             do.AddFile(imgname)
     wx.TheClipboard.AddData(do)
@@ -297,9 +296,9 @@ class Pdf2Img(object):
 
     @staticmethod
     def _u2utf8(unicode_txt):
-        # http://stackoverflow.com/questions/1815427/...
-        #     ...how-to-pass-an-unicode-char-argument-to-imagemagick
-        return unicode_txt.encode("utf-8")
+        ## http://stackoverflow.com/questions/1815427/...
+        ##     ...how-to-pass-an-unicode-char-argument-to-imagemagick
+        return unicode_txt.encode('utf-8')
 
     @staticmethod
     def trim(img_path):
@@ -337,7 +336,7 @@ class Pdf2Img(object):
     @staticmethod
     def _get_convert(platform):
         if platform == mg.WINDOWS:
-            convert = u"convert.exe"
+            convert = 'convert.exe'
         elif platform == mg.MAC:
             """
             Assumes the framework path is the first path in PATH, so we
@@ -353,19 +352,19 @@ class Pdf2Img(object):
             """
             #import os
             #print(os.environ["PATH"])
-            convert = (u'export PATH="%(framework_path)s:${PATH}" '
-                u'&& export MAGICK_CONFIGURE_PATH="%(framework_path)s" '
-                u'&& "%(framework_path)s/convert"' 
-                % {"framework_path": mg.MAC_FRAMEWORK_PATH})
+            framework_path = mg.MAC_FRAMEWORK_PATH
+            convert = (f'export PATH="{framework_path}:${{PATH}}" '
+                f'&& export MAGICK_CONFIGURE_PATH="{framework_path}" '
+                f'&& "{framework_path}/convert"')
         elif platform == mg.LINUX:
-            convert = u"convert"
+            convert = 'convert'
         else:
-            raise Exception(u"Encountered an unexpected platform!")
+            raise Exception('Encountered an unexpected platform!')
         return convert
 
     @staticmethod
     def pdf2img(pdf_path, img_pth_no_ext, bgcolour=mg.BODY_BACKGROUND_COLOUR,
-            output_dpi=300, multi_page_items=True):
+            output_dpi=300, *, multi_page_items=True):
         """
         Wanted to use pythonmagick wrapper instead of ImageMagick directly but
         too much grief setting up on OSX.
@@ -378,38 +377,37 @@ class Pdf2Img(object):
         for i in range(n_pages):
             if not multi_page_items and i > 0:
                 break
-            orig_pdf = "%s[%s]" % (pdf_path, i)
-            # Make small throw-away version to get size (cheap process to avoid slow process)
-            suffix = "" if i == 0 else "_%02i" % i
-            img_name = "%s%s.png" % (img_pth_no_ext, suffix)
-            # Note - change density before setting input image otherwise 72 dpi 
-            # no matter what you subsequently do with -density
+            orig_pdf = f'{pdf_path}[{i}]'
+            ## Make small throw-away version to get size (cheap process to avoid slow process)
+            suffix = '' if i == 0 else f'_{i:02}'
+            img_name = f'{img_pth_no_ext}{suffix}.png'
+            ## Note - change density before setting input image otherwise 72 dpi
+            ## no matter what you subsequently do with -density
             convert = Pdf2Img._get_convert(mg.PLATFORM)
-            cmd = ('%s -density %s -borderColor "%s" -border %s -trim '
-                '"%s" "%s"' % (convert, output_dpi, Pdf2Img._u2utf8(bgcolour),
-                "1x1", Pdf2Img._u2utf8(orig_pdf), img_name))
+            cmd = (f'{convert} -density {output_dpi} '
+                   f'-borderColor "{Pdf2Img._u2utf8(bgcolour)}" -border 1x1 '
+                   f'-trim "{Pdf2Img._u2utf8(orig_pdf)}" "{img_name}"')
             if debug: print(cmd)
             p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             output, err = p.communicate()
             if err:
-                if (u"cache resources exhausted" in err
-                        or u"Image width exceeds user limit" in err):
-                    wx.MessageBox(u"Unable to make these images at this "
-                        u"resolution ({} dpi) by converting from PDF version. "
-                        u"Please try again at a lower resolution.\n\nOrig error"
-                        u": {}".format(output_dpi, err))
+                if ('cache resources exhausted' in err
+                        or 'Image width exceeds user limit' in err):
+                    wx.MessageBox('Unable to make these images at this '
+                        f'resolution ({output_dpi} dpi) by converting from PDF '
+                        'version. Please try again at a lower resolution.'
+                        '\n\nOrig error: {err}')
                 else:
-                    wx.MessageBox(u"Unable to make these images successfully."
-                        u"\n\nOrig error: {}".format(output_dpi, err))
+                    wx.MessageBox('Unable to make these images successfully.'
+                        f'\n\nOrig error: {err}')
                 if debug and verbose:
-                    print("%s returned %s with error %s" % (cmd,
-                        p.returncode, err))
+                    print(f'{cmd} returned {p.returncode} with error {err}')
                 break
             if Pdf2Img._check_img_made(img_path=img_name):
                 Pdf2Img.trim(img_name)
                 imgs_made.append(img_name)
             else:
-                raise Exception("Unable to make these images at this resolution"
-                    " ({} dpi). Please try again at a lower resolution.".format(
-                    output_dpi))
+                raise Exception('Unable to make these images at this resolution'
+                    f' ({output_dpi} dpi). Please try again at a lower '
+                    'resolution.')
         return imgs_made

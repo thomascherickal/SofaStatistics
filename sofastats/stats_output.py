@@ -69,37 +69,40 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     html.append('\n</thead>\n<tbody>')
     tpl = '%%.%sf' % dp
     html.append('\n<tr><td>' + _('Between') + '</td>'
-        f"<td class='{CSS_ALIGN_RIGHT}'>" + '%s</td>'
-        % (tpl % round(ssbn, dp)) + f"<td class='{CSS_ALIGN_RIGHT}'>"
-        + f"{dfbn}</td>")
-    html.append(f"<td class='{CSS_ALIGN_RIGHT}'>" + "%s</td>"
-        % (tpl % round(mean_squ_bn, dp)) + f"<td class='{CSS_ALIGN_RIGHT}'>" 
-        + "%s</td>" % (tpl % round(F, dp))
-        + f"<td>{lib.OutputLib.get_p(p)}</td></tr>")
-    html.append(u"\n<tr><td>" + _("Within")
-        + f"<td class='{CSS_ALIGN_RIGHT}'>" + "%s</td>" % (tpl % round(sswn, dp))
+        f"<td class='{CSS_ALIGN_RIGHT}'>"
+        + '{}</td>'.format(tpl % round(ssbn, dp))
+        + f"<td class='{CSS_ALIGN_RIGHT}'>"
+        + f'{dfbn}</td>')
+    html.append(f"<td class='{CSS_ALIGN_RIGHT}'>"
+        + '{}</td>'.format(tpl % round(mean_squ_bn, dp))
+        + f"<td class='{CSS_ALIGN_RIGHT}'>"
+        + '{}</td>'.format(tpl % round(F, dp))
+        + f'<td>{lib.OutputLib.get_p(p)}</td></tr>')
+    html.append('\n<tr><td>' + _('Within')
+        + f"<td class='{CSS_ALIGN_RIGHT}'>"
+        + "{}</td>".format(tpl % round(sswn, dp))
         + f"<td class='{CSS_ALIGN_RIGHT}'>" + f"{dfwn}</td>")
     html.append(f"<td class='{CSS_ALIGN_RIGHT}'>" + "%s</td>"
         % (tpl % round(mean_squ_wn, dp)) + "<td></td><td></td></tr>")
-    html.append(f"\n</tbody>\n</table>{mg.REPORT_TABLE_END}\n")
-    output.append_divider(html, title, indiv_title="Analysis of Variance")
+    html.append(f'\n</tbody>\n</table>{mg.REPORT_TABLE_END}\n')
+    output.append_divider(html, title, indiv_title='Analysis of Variance')
     try:
         unused, p_sim = core_stats.sim_variance(samples, threshold=0.01)
         msg = _p_msg(p_sim)
     except Exception:
-        msg = "Unable to calculate"
+        msg = 'Unable to calculate'
     ## footnote 2
-    html.append("\n<p>" + _("O'Brien's test for homogeneity of variance")
-        + f": {msg}" + " <a href='#ft2'><sup>2</sup></a></p>")
+    html.append('\n<p>' + _("O'Brien's test for homogeneity of variance")
+        + f': {msg}' + " <a href='#ft2'><sup>2</sup></a></p>")
     add_footnote(footnotes, content=mg.OBRIEN_EXPLAN)
     html.append(mg.TBL_TITLE_START + mg.TBL_TITLE_END)
-    html.append("\n\n<h3>"  + mg.TBL_SUBTITLE_START
-        + _("Group summary details")  + mg.TBL_SUBTITLE_END + "</h3>")
+    html.append('\n\n<h3>'  + mg.TBL_SUBTITLE_START
+        + _('Group summary details')  + mg.TBL_SUBTITLE_END + '</h3>')
     html.append(f"\n{mg.REPORT_TABLE_START}<table cellspacing='0'>\n<thead>")
     html.append(f"\n<tr><th class='{CSS_FIRST_COL_VAR}'>" + _('Group')
         + '</th>'
-        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _("N") + '</th>'
-        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _("Mean") + '</th>'
+        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('N') + '</th>'
+        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Mean') + '</th>'
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('CI 95%')
         + f"<a class='{CSS_TBL_HDR_FTNOTE}"
         + "' href='#ft3'><sup>3</sup></a></th>")
@@ -110,14 +113,14 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         + _("Standard Deviation") + f"<a class='{CSS_TBL_HDR_FTNOTE}"
         + "' href='#ft4'><sup>4</sup></a></th>")
     add_footnote(footnotes, content=mg.STD_DEV_EXPLAN)
-    html.append("\n<th class='%s'>" % CSS_FIRST_COL_VAR + _("Min") + '</th>'
-        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _("Max") + "</th>")
+    html.append(f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Min') + '</th>'
+        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Max') + '</th>')
     ## footnotes 5,6,7
-    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _("Kurtosis") 
+    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _('Kurtosis') 
         + f"<a class='{CSS_TBL_HDR_FTNOTE}' href='#ft5'><sup>5</sup></a></th>")
-    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _("Skew")
+    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _('Skew')
         + f"<a class='{CSS_TBL_HDR_FTNOTE}' href='#ft6'><sup>6</sup></a></th>")
-    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _("p abnormal") 
+    html.append(f"<th class='{CSS_FIRST_COL_VAR}'>" + _('p abnormal') 
         + f"<a class='{CSS_TBL_HDR_FTNOTE}' href='#ft7'><sup>7</sup></a></th>")
     html.append('</tr>')
     add_footnote(footnotes, content=mg.KURT_EXPLAN)
@@ -139,10 +142,11 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
     for dic, sample in dic_sample_tups:
         results = (dic[mg.STATS_DIC_LBL],
             lib.formatnum(dic[mg.STATS_DIC_N]),
-            round(dic[mg.STATS_DIC_MEAN], dp), "%s - %s"
-            % (tpl % round(dic[mg.STATS_DIC_CI][0], dp),
-            tpl % round(dic[mg.STATS_DIC_CI][1], dp)),
-            tpl % round(dic[mg.STATS_DIC_SD], dp), dic[mg.STATS_DIC_MIN],
+            round(dic[mg.STATS_DIC_MEAN], dp),
+            '{} - {}'.format(tpl % round(dic[mg.STATS_DIC_CI][0], dp),
+            tpl.format(round(dic[mg.STATS_DIC_CI][1], dp))),
+            tpl.format(round(dic[mg.STATS_DIC_SD], dp)),
+            dic[mg.STATS_DIC_MIN],
             dic[mg.STATS_DIC_MAX])
         try:
             (unused, p_arr, cskew,
@@ -390,7 +394,7 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         t, p, label_gp,
         dic_a, dic_b, df, label_avg, dp, indep,
         css_idx, html)
-    output.append_divider(html, title, indiv_title=u"")
+    output.append_divider(html, title, indiv_title='')
     ## histogram
     histlbl = f"Differences between {dic_a['label']} and {dic_b['label']}"
     charting_pylab.gen_config(
@@ -470,8 +474,8 @@ def mann_whitney_output(u, p, label_gp, dic_a, dic_b, z, label_ranked,
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Min') + '</th>'
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Max') + '</th></tr>')
     html.append('\n</thead>\n<tbody>')
-    row_tpl = (f"\n<tr><td class='{CSS_LBL}'>" + "%s</td><td>%s</td>"
-        + "<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>")
+    row_tpl = (f"\n<tr><td class='{CSS_LBL}'>" + '%s</td><td>%s</td>'
+        + '<td>%s</td><td>%s</td><td>%s</td><td>%s</td></tr>')
     for dic in [dic_a, dic_b]:
         html.append(row_tpl % (dic[mg.STATS_DIC_LBL],
             lib.formatnum(dic[mg.STATS_DIC_N]),
@@ -593,7 +597,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_idx=0,
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('N') + '</th>'
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Median') + '</th>'
         + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Min') + '</th>'
-        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _("Max") + '</th></tr>')
+        + f"\n<th class='{CSS_FIRST_COL_VAR}'>" + _('Max') + '</th></tr>')
     html.append('\n</thead>\n<tbody>')
     row_tpl = (f"\n<tr><td class='{CSS_LBL}'>%s</td><td>%s</td>"
         '<td>%s</td><td>%s</td><td>%s</td></tr>')
@@ -1019,7 +1023,7 @@ def chisquare_output(chi, p,
         html.append('</tr>\n<tr>')
     ## add totals row
     col_tots = zip(col_obs_tots, col_exp_tots)
-    html.append(f"<td class='{CSS_ROW_VAL}'>" + _("TOTAL") + "</td>")
+    html.append(f"<td class='{CSS_ROW_VAL}'>" + _('TOTAL') + '</td>')
     for col_obs_tot, col_exp_tot in col_tots:
         html.append(f"<td class='{CSS_DATACELL}'>"
             + f'{col_obs_tot}</td>'

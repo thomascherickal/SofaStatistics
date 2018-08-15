@@ -792,9 +792,9 @@ class DlgConfig(wx.Dialog):
             existing_data = self.tree.GetItemPyData(node_id)
             var_name = existing_data.var_name
             bolnumeric = existing_data.bolnumeric
-            item_conf = lib.ItemConfig(sort_order_lbl, var_name, 
-                measure_lbls_lst, has_tot, bolnumeric)
-            self.tree.SetItemPyData(node_id, item_conf)        
+            item_conf = lib.ItemConfig(sort_order_lbl, var_name,
+                measure_lbls_lst, has_tot=has_tot, bolnumeric=bolnumeric)
+            self.tree.SetItemPyData(node_id, item_conf)
             self.tree.SetItemText(node_id, item_conf.get_summary(), 1)
         """
         Grab deep copy of last one. This will be used to set defaults so that

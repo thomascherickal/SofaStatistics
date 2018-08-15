@@ -80,11 +80,11 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         szr_desc.Add(szr_desc_right, 1, wx.GROW)
         ## DATA CONNECTIONS
         lbl_data_con_dets = wx.StaticText(self.panel_top, -1,
-            _("How to connect to my data:"))
+            _('How to connect to my data:'))
         lbl_data_con_dets.SetFont(lblfont)
         ## default dbe
         lbl_default_dbe = wx.StaticText(self.scroll_con_dets, -1,
-            _("Default Database Engine:"))
+            _('Default Database Engine:'))
         lbl_default_dbe.SetFont(lblfont)
         self.drop_default_dbe = wx.Choice(self.scroll_con_dets, -1,
             choices=mg.DBES)
@@ -93,7 +93,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         self.drop_default_dbe.Bind(wx.EVT_CHOICE, self.on_dbe_choice)
         self.drop_default_dbe.Enable(not self.read_only)
         lbl_scroll_down = wx.StaticText(self.scroll_con_dets, -1,
-            _("(scroll down for details of all your database engines)"))
+            _('(scroll down for details of all your database engines)'))
         ## default dbe
         szr_default_dbe = wx.BoxSizer(wx.HORIZONTAL)
         szr_default_dbe.Add(lbl_default_dbe, 0, wx.LEFT|wx.RIGHT, 5)
@@ -159,8 +159,8 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             ## prepopulate with default settings
             self.get_proj_settings(fil_proj=mg.DEFAULT_PROJ)
             self.proj_name = mg.EMPTY_PROJ_NAME
-            self.proj_notes = _("The internal sofa_db is added by default. It "
-                "is needed to allow you to add new tables to SOFA Statistics")
+            self.proj_notes = _('The internal sofa_db is added by default. It '
+                'is needed to allow you to add new tables to SOFA Statistics')
             self.new_proj = True
         try:
             self.proj_name
@@ -178,7 +178,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                 mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 with open(fil_default_var_dets, 'w', encoding='utf-8') as f:
-                    f.write("# add variable details here")
+                    f.write('# add variable details here')
             self.fil_var_dets = fil_default_var_dets
         try:            
             self.fil_css
@@ -212,25 +212,25 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         except SyntaxError as e:
             wx.MessageBox(
                 _("Syntax error in project file \"%(fil_proj)s\"."
-                "\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                "err": b.ue(e)})
+                "\n\nDetails: %(err)s") % {'fil_proj': fil_proj,
+                'err': b.ue(e)})
             raise
         except Exception as e:
             wx.MessageBox(
                 _("Error processing project file \"%(fil_proj)s\"."
-                "\n\nDetails: %(err)s") % {u"fil_proj": fil_proj,
-                "err": b.ue(e)})
+                "\n\nDetails: %(err)s") % {'fil_proj': fil_proj,
+                'err': b.ue(e)})
             raise
         try:
             self.proj_name = projects.filname2projname(fil_proj)
         except Exception as e:
             wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                "Use %(def_proj)s for reference.") % {u"fil_proj": fil_proj,
-                "def_proj": mg.DEFAULT_PROJ})
+                "Use %(def_proj)s for reference.") % {'fil_proj': fil_proj,
+                'def_proj': mg.DEFAULT_PROJ})
             raise
         ## Taking settings from proj file (via exec and proj_dic)
         ##   and adding them to this frame ready for use.
-        ## Must always be stored, even if only ""
+        ## Must always be stored, even if only ''
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
             self.fil_var_dets = proj_dic[mg.PROJ_FIL_VDTS]
@@ -240,15 +240,15 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             self.default_dbe = proj_dic[mg.PROJ_DBE]
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError as e:
-            wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                "Use %(def_proj)s for reference.") % {"fil_proj": fil_proj,
-                "def_proj": mg.DEFAULT_PROJ})
-            raise Exception(u"Key error reading from proj_dic."
-                "\nCaused by error: %s" % b.ue(e))
+            wx.MessageBox(_('Please check %(fil_proj)s for errors. '
+                'Use %(def_proj)s for reference.') % {'fil_proj': fil_proj,
+                'def_proj': mg.DEFAULT_PROJ})
+            raise Exception('Key error reading from proj_dic.'
+                f'\nCaused by error: {b.ue(e)}')
         except Exception as e:
-            wx.MessageBox(_("Please check %(fil_proj)s for errors. "
-                "Use %(def_proj)s for reference.") % {"fil_proj": fil_proj,
-                "def_proj": mg.DEFAULT_PROJ})
+            wx.MessageBox(_('Please check %(fil_proj)s for errors. '
+                'Use %(def_proj)s for reference.') % {'fil_proj': fil_proj,
+                'def_proj': mg.DEFAULT_PROJ})
             raise
 
     def on_dbe_choice(self, event):
@@ -301,23 +301,22 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         Export script if enough data to create table.
         """
         import webbrowser
-        url = (u"http://www.sofastatistics.com/wiki/doku.php"
-            u"?id=help:projects")
+        url = ('http://www.sofastatistics.com/wiki/doku.php?id=help:projects')
         webbrowser.open_new_tab(url)
         event.Skip()
 
     def on_delete(self, _event):
         proj_name = self.txt_name.GetValue()
-        if wx.MessageBox(_("Deleting a project cannot be undone. Do you want "
+        if wx.MessageBox(_('Deleting a project cannot be undone. Do you want '
             "to delete the \"%s\" project?") % proj_name, style=wx.YES|wx.NO|
             wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
-            fil_to_delete = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, 
-                f"{self.txt_name.GetValue()}{mg.PROJ_EXT}")
+            fil_to_delete = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER,
+                f'{self.txt_name.GetValue()}{mg.PROJ_EXT}')
             os.remove(fil_to_delete)
         except Exception:
-            raise Exception("Unable to delete selected project.")
+            raise Exception('Unable to delete selected project.')
         self.Destroy()
         self.SetReturnCode(wx.ID_DELETE)  ## only for dialogs (MUST come after Destroy)
 
@@ -329,28 +328,29 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
     def on_ok(self, _event):
         """
         If not read-only, writes settings to proj file.
+
         Name, notes and report are all taken from the text in the text boxes.
         """
         ## get the data (separated for easier debugging)
         proj_name = self.txt_name.GetValue()
         if self.read_only:
-            self.parent.store_proj_name(f"{proj_name}{mg.PROJ_EXT}")
+            self.parent.store_proj_name(f'{proj_name}{mg.PROJ_EXT}')
         else:
             if proj_name == mg.EMPTY_PROJ_NAME:
-                wx.MessageBox(_("Please provide a project name"))
+                wx.MessageBox(_('Please provide a project name'))
                 self.txt_name.SetFocus()
                 return
             elif proj_name == projects.filname2projname(mg.DEFAULT_PROJ):
-                wx.MessageBox(_("You cannot use the default project name"))
+                wx.MessageBox(_('You cannot use the default project name'))
                 self.txt_name.SetFocus()
                 return
             try:
-                self.parent.store_proj_name(f"{proj_name}{mg.PROJ_EXT}")
+                self.parent.store_proj_name(f'{proj_name}{mg.PROJ_EXT}')
             except Exception:
-                print(f"Failed to change to {proj_name}{mg.PROJ_EXT}")
+                print(f'Failed to change to {proj_name}{mg.PROJ_EXT}')
                 pass  ## Only needed if returning to projselect form so OK to fail otherwise.
             fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER,
-                f"{proj_name}{mg.PROJ_EXT}")
+                f'{proj_name}{mg.PROJ_EXT}')
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else ''
@@ -369,13 +369,13 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             enough_completed = proj_name and any_cons
             if not enough_completed:
                 wx.MessageBox(
-                    _("Not enough details completed to save a project file"))
+                    _('Not enough details completed to save a project file'))
                 return
             default_dbe_lacks_con = default_dbe not in completed_dbes
             if default_dbe_lacks_con:
-                wx.MessageBox(_("Connection details need to be completed "
-                    "for the default database engine (%s) to save a project"
-                    " file.") % default_dbe)
+                wx.MessageBox(_('Connection details need to be completed '
+                    'for the default database engine (%s) to save a project'
+                    ' file.') % default_dbe)
                 return
             proj_content = projects.get_proj_content(proj_notes, fil_var_dets,
                 fil_css, fil_report, fil_script, default_dbe, default_dbs,
@@ -383,9 +383,9 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             ## write the data
             if (self.new
                 and (os.path.exists(fil_name)
-                and wx.MessageBox(_("A project file of this name already exists"
-                    ". Do you wish to override it?"),
-                    caption=_("PROJECT ALREADY EXISTS"),
+                and wx.MessageBox(_('A project file of this name already exists'
+                    '. Do you wish to override it?'),
+                    caption=_('PROJECT ALREADY EXISTS'),
                     style=wx.YES_NO) == wx.NO)):
                 return
             ## In Windows, MySQL.proj and mysql.proj are the same in the file
@@ -397,10 +397,10 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             try:
                 f = open(fil_name, 'w', encoding='utf-8')
             except OSError as e:
-                wx.MessageBox(_("Unable to save project file. Please check "
+                wx.MessageBox(_('Unable to save project file. Please check '
                     "\"%(fil_name)s\" is a valid file name."
-                    "\n\nCaused by error: %(err)s") % {"fil_name": fil_name,
-                    "err": b.ue(e)})
+                    "\n\nCaused by error: %(err)s") % {'fil_name': fil_name,
+                    'err': b.ue(e)})
                 return
             f.write(proj_content)
             f.close()

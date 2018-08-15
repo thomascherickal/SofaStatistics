@@ -1,7 +1,6 @@
-
 import locale
 
-import wx
+import wx  #@UnusedImport
 import wx.html2
 
 from sofastats import basic_lib as b
@@ -16,13 +15,16 @@ from sofastats import projects
 def get_range_idxs(vals, val_a, val_b):
     """
     Get range indexes for two values from list of values.
-    NB the two values are strings as displayed in dropdowns even if the 
-        underlying data is not.
-    E.g. u'1' and u'5' in [1, 2, 3, 4, 5]
-    or u'"Chrome"' and u'"Safari"' in [u'Chrome', u'Firefox', ...]
-    or u'1000000000000.2' etc in ['1000000000000.2', '1000000000000.3', ...].
-    val_a and val_b are deliberately wrapped in double quotes if strings by 
-        all valid inputs to this function.
+
+    NB the two values are strings as displayed in dropdowns even if the
+    underlying data is not.
+
+    E.g. '1' and '5' in [1, 2, 3, 4, 5]
+    or '"Chrome"' and '"Safari"' in ['Chrome', 'Firefox', ...]
+    or '1000000000000.2' etc in ['1000000000000.2', '1000000000000.3', ...].
+
+    val_a and val_b are deliberately wrapped in double quotes if strings by all
+    valid inputs to this function.
     """
     debug = False
     if debug:
@@ -52,31 +54,34 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             myheight = mg.MAX_HEIGHT - 70
         else:
             myheight = 800
-        wx.Dialog.__init__(self, parent=None, id=-1, title=title, 
-                           pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
-                           style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|
-                           wx.RESIZE_BORDER|wx.CLOSE_BOX|wx.SYSTEM_MENU|
-                           wx.CAPTION|wx.CLIP_CHILDREN)
+        wx.Dialog.__init__(self, parent=None, id=-1, title=title,
+            pos=(mg.HORIZ_OFFSET, 0), size=(1024, myheight),
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
+            |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self,autoupdate=True)
         self.SetFont(mg.GEN_FONT)
-        self.output_modules = [(None, "my_globals as mg"),
-            ("stats", "core_stats"), (None, "getdata"), (None, "output"),
-            (None, "stats_output"), ]
+        self.output_modules = [
+            (None, 'my_globals as mg'),
+            ('stats', 'core_stats'),
+            (None, 'getdata'),
+            (None, 'output'),
+            (None, 'stats_output'),
+        ]
         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.title = title
         self.takes_range = takes_range
-        self.url_load = True # btn_expand
+        self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        self.variables_rc_msg = _("Right click variables to view/edit details")
-        # set up panels for frame
+        self.variables_rc_msg = _('Right click variables to view/edit details')
+        ## set up panels for frame
         self.panel_top = wx.Panel(self)
         self.panel_data = wx.Panel(self)
         self.panel_vars = wx.Panel(self)
         self.panel_bottom = wx.Panel(self)
-        bx_desc = wx.StaticBox(self.panel_top, -1, _("Purpose"))
-        bx_vars = wx.StaticBox(self.panel_vars, -1, _("Variables"))
+        bx_desc = wx.StaticBox(self.panel_top, -1, _('Purpose'))
+        bx_vars = wx.StaticBox(self.panel_vars, -1, _('Variables'))
         #self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
         config_output.add_icon(frame=self)
         szr_top = wx.BoxSizer(wx.HORIZONTAL)
@@ -121,28 +126,26 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.szr_group_by_vars = wx.BoxSizer(wx.HORIZONTAL)
         self.szr_vars_a_and_b = wx.BoxSizer(wx.HORIZONTAL)
         ## var averaged
-        self.lbl_avg = wx.StaticText(self.panel_vars, -1, f"{self.averaged}:")
+        self.lbl_avg = wx.StaticText(self.panel_vars, -1, f'{self.averaged}:')
         self.lbl_avg.SetFont(mg.LABEL_FONT)
         self.setup_avg_dropdown()
         self.szr_vars_top_left.Add(self.szr_avg_vars, 0)
-        # group by
-        self.gp_vals_sorted = [] # same order in dropdowns
-        self.gp_choice_items_sorted = [] # refreshed as required and in 
-            # order of labels, not raw values
-        self.sorted_var_names_by = [] # var names sorted by labels i.e. same as 
-            # dropdown.  Refreshed as needed so always usable.
-        self.lbl_group_by = wx.StaticText(self.panel_vars, -1, _("Group By:"))
+        ## group by
+        self.gp_vals_sorted = []  ## same order in dropdowns
+        self.gp_choice_items_sorted = []  ## refreshed as required and in order of labels, not raw values
+        self.sorted_var_names_by = [] ## var names sorted by labels i.e. same as dropdown. Refreshed as needed so always usable.
+        self.lbl_group_by = wx.StaticText(self.panel_vars, -1, _('Group By:'))
         self.lbl_group_by.SetFont(mg.LABEL_FONT)
-        self.lbl_chop_warning = wx.StaticText(self.panel_vars, -1, u"")
+        self.lbl_chop_warning = wx.StaticText(self.panel_vars, -1, '')
         self.lbl_chop_warning.SetFont(mg.GEN_FONT)
         self.setup_group_dropdown()
         if self.range_gps:
-            group_a_lbl = _("From Group")
-            group_b_lbl = _("To")
+            group_a_lbl = _('From Group')
+            group_b_lbl = _('To')
         else:
-            group_a_lbl = _("Group A:")
-            group_b_lbl = _("Group B:")
-        # Gets unique values for selected variable. Sets choices for drop_group_a and B accordingly.
+            group_a_lbl = _('Group A:')
+            group_b_lbl = _('Group B:')
+        ## Gets unique values for selected variable. Sets choices for drop_group_a and B accordingly.
         self.lbl_group_a = wx.StaticText(self.panel_vars, -1, group_a_lbl)
         self.lbl_group_b = wx.StaticText(self.panel_vars, -1, group_b_lbl)
         msg = self.setup_a_and_b_dropdowns(suppress_immediate_msg=True)
@@ -153,9 +156,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         ln_vert = wx.StaticLine(self.panel_vars, style=wx.LI_VERTICAL) 
         szr_vars_top.Add(ln_vert, 0, wx.GROW|wx.LEFT|wx.RIGHT, 5)
         szr_vars_top.Add(szr_vars_top_right, 0)
-        # comment
-        self.lbl_phrase = wx.StaticText(self.panel_vars, -1, 
-                                        _("Start making your selections"))
+        ## comment
+        self.lbl_phrase = wx.StaticText(
+            self.panel_vars, -1, _('Start making your selections'))
         style = wx.GROW|wx.BOTTOM
         if mg.PLATFORM != mg.MAC:
             style |= wx.TOP
@@ -173,10 +176,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             myheight = 350
         if mg.PLATFORM == mg.MAC:
             myheight = myheight*0.3
-
-        
-        self.html = wx.html2.WebView.New(self.panel_bottom, -1, size=wx.Size(200, myheight))
-        
+        self.html = wx.html2.WebView.New(
+            self.panel_bottom, -1, size=wx.Size(200, myheight))
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
@@ -207,16 +208,16 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         self.SetSizer(szr_main)
         szr_lst = [szr_top, self.szr_data, szr_vars, szr_bottom]
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst)
-        if msg: # otherwise appears before dialog even open and visible
+        if msg:  ## otherwise appears before dialog even open and visible
             wx.CallAfter(lambda: wx.MessageBox(msg))
 
     def get_fresh_drop_avg(self, items, idx_avg):
         """
-        Must make fresh to get performant display even with lots of items in a 
-            non-system font on Linux.
+        Must make fresh to get performant display even with lots of items in a
+        non-system font on Linux.
         """
         try:
-            self.drop_avg.Destroy() # don't want more than one
+            self.drop_avg.Destroy()  ## don't want more than one
         except Exception:
             pass
         drop_avg = wx.Choice(self.panel_vars, -1, choices=items, size=(220, -1))
@@ -229,25 +230,25 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def get_fresh_drop_group_by(self, items, idx_gp_by):
         try:
-            self.drop_group_by.Destroy() # don't want more than one
+            self.drop_group_by.Destroy()  ## don't want more than one
         except Exception:
             pass
-        drop_group_by = wx.Choice(self.panel_vars, -1, choices=items, 
-                                  size=(220, -1))
+        drop_group_by = wx.Choice(
+            self.panel_vars, -1, choices=items, size=(220, -1))
         drop_group_by.SetFont(mg.GEN_FONT)
         drop_group_by.SetSelection(idx_gp_by)
         drop_group_by.Bind(wx.EVT_CHOICE, self.on_group_by_sel)
         drop_group_by.Bind(wx.EVT_CONTEXT_MENU, self.on_rclick_group_by)
         drop_group_by.SetToolTip(self.variables_rc_msg)
         return drop_group_by
-    
+
     def get_fresh_drop_a(self, items, idx_a):
         try:
-            self.drop_group_a.Destroy() # don't want more than one
+            self.drop_group_a.Destroy()  ## don't want more than one
         except Exception:
             pass
-        drop_group_a = wx.Choice(self.panel_vars, -1, choices=items, 
-                                 size=(200, -1))
+        drop_group_a = wx.Choice(
+            self.panel_vars, -1, choices=items, size=(200, -1))
         drop_group_a.SetFont(mg.GEN_FONT)
         drop_group_a.SetSelection(idx_a)
         drop_group_a.Bind(wx.EVT_CHOICE, self.on_group_by_a_sel)
@@ -256,24 +257,23 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def get_fresh_drop_b(self, items, idx_b):
         try:
-            self.drop_group_b.Destroy() # don't want more than one
+            self.drop_group_b.Destroy()  ## don't want more than one
         except Exception:
             pass
-        drop_group_b = wx.Choice(self.panel_vars, -1, choices=items, 
-                                 size=(200, -1))
+        drop_group_b = wx.Choice(
+            self.panel_vars, -1, choices=items, size=(200, -1))
         drop_group_b.SetFont(mg.GEN_FONT)
         drop_group_b.SetSelection(idx_b)
         drop_group_b.Bind(wx.EVT_CHOICE, self.on_group_by_b_sel)
         drop_group_b.SetToolTip(self.variables_rc_msg)
         return drop_group_b
-    
+
     def setup_avg_dropdown(self):
         unused, var_avg = self.get_vars()
         self.sorted_var_names_avg = []
-        (var_avg_choice_items, 
-         idx_avg) = self.get_items_and_idx_for_avg(mg.VAR_AVG_DEFAULT, 
-                                                  self.sorted_var_names_avg, 
-                                                  var_avg)
+        (var_avg_choice_items,
+         idx_avg) = self.get_items_and_idx_for_avg(mg.VAR_AVG_DEFAULT,
+                                            self.sorted_var_names_avg, var_avg)
         self.drop_avg = self.get_fresh_drop_avg(var_avg_choice_items, idx_avg)
         self.panel_vars.Layout()
         try:
@@ -327,10 +327,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if no_selection:
             (msg, items_a, idx_a, items_b, 
              idx_b, enable) = (None, [], 0, [], 0, False)
-        else: # this is the potentially slow bit
+        else:  ## this is the potentially slow bit
             wx.BeginBusyCursor()
-            (msg, items_a, idx_a, 
-             items_b, idx_b) = self.get_items_and_idxs_for_a_and_b(var_gp, 
+            (msg, items_a, idx_a,
+             items_b, idx_b) = self.get_items_and_idxs_for_a_and_b(var_gp,
                                              val_a, val_b, where_filt, and_filt)
             lib.GuiLib.safe_end_cursor()
             enable = True
@@ -357,7 +357,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def on_show(self, _event):
         if self.exiting:
             return
-        html2show = _("<p>Waiting for an analysis to be run.</p>")
+        html2show = _('<p>Waiting for an analysis to be run.</p>')
         self.html.SetPage(html2show, mg.BASE_URL)
 
     def add_other_var_opts(self, szr=None):
@@ -374,19 +374,19 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
 
     def on_rclick_group_by(self, _event):
         var_gp, choice_item = self.get_group_by()
-        label_gp = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_gp)
+        label_gp = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_gp)
         updated = config_output.set_var_props(choice_item, var_gp, label_gp,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
 
     def on_rclick_vars(self, _event):
-        var_name, choice_item = self.get_var_dets(self.drop_avg, 
+        var_name, choice_item = self.get_var_dets(self.drop_avg,
                                                   self.sorted_var_names_avg)
         var_label = lib.GuiLib.get_item_label(item_labels=self.var_labels,
             item_val=var_name)
-        updated = config_output.set_var_props(choice_item, var_name, var_label, 
+        updated = config_output.set_var_props(choice_item, var_name, var_label,
             self.var_labels, self.var_notes, self.var_types, self.val_dics)
         if updated:
             self.refresh_vars()
@@ -417,12 +417,12 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def on_table_sel(self, event):
         "Reset key data details after table selection."       
         config_ui.ConfigUI.on_table_sel(self, event)
-        # now update var dropdowns
+        ## now update var dropdowns
         output.update_var_dets(dlg=self)
         self.setup_group_dropdown()
         self.setup_avg_dropdown()
         self.setup_a_and_b_dropdowns()
-        
+
     def on_btn_var_config(self, event):
         """
         Want to retain already selected item - even though label and even
@@ -499,27 +499,26 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         mg.VAR_AVG_DEFAULT = self.drop_avg.GetStringSelection()
         mg.VAL_A_DEFAULT = self.drop_group_a.GetStringSelection()
         mg.VAL_B_DEFAULT = self.drop_group_b.GetStringSelection()
-    
+
     def on_group_by_a_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
-        
+
     def on_group_by_b_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
 
-    def get_items_and_idx_for_avg(self, default, sorted_var_names, 
-                                  var_name=None, inc_drop_select=False, 
-                                  override_min_data_type=None):
+    def get_items_and_idx_for_avg(self, default, sorted_var_names,
+            var_name=None, inc_drop_select=False, override_min_data_type=None):
         debug = False
         min_data_type = (override_min_data_type if override_min_data_type
-                         else self.min_data_type)
+            else self.min_data_type)
         if debug: print(var_name, self.min_data_type, override_min_data_type)
-        var_names = projects.get_approp_var_names(self.var_types,
-                                                  min_data_type)
-        (var_choice_items, 
+        var_names = projects.get_approp_var_names(
+            self.var_types, min_data_type)
+        (var_choice_items,
          sorted_vals) = lib.GuiLib.get_sorted_choice_items(
              dic_labels=self.var_labels, vals=var_names,
              inc_drop_select=inc_drop_select)
@@ -529,56 +528,55 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             except IndexError:
                 break
         sorted_var_names.extend(sorted_vals)
-        # set selection
-        idx_var = projects.get_idx_to_select(var_choice_items, var_name, 
-                                             self.var_labels, default)
+        ## set selection
+        idx_var = projects.get_idx_to_select(
+            var_choice_items, var_name, self.var_labels, default)
         return var_choice_items, idx_var
-        
-    def get_items_and_idxs_for_a_and_b(self, var_gp, val_a, val_b, where_filt, 
-                                       and_filt):
+
+    def get_items_and_idxs_for_a_and_b(self,
+            var_gp, val_a, val_b, where_filt, and_filt):
         """
-        If under 250,000 records in source table (when filtered, if applicable), 
-            use entire table as source for group by query to get unique values. 
-            If 250,000 upwards, use first 250,000 records as source. If more 
-            than 20 unique values, only show first 20 and inform user.
+        If under 250,000 records in source table (when filtered, if applicable),
+        use entire table as source for group by query to get unique values. If
+        250,000 upwards, use first 250,000 records as source. If more than 20
+        unique values, only show first 20 and inform user.
         """
         debug = False
         dd = mg.DATADETS_OBJ
         msg = None
-        n_high = 250000
+        n_high = 250_000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
         quoted_tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
-        SQL_get_count = "SELECT COUNT(*) FROM %s %s" % (quoted_tblname,
-            where_filt)
+        SQL_get_count = f'SELECT COUNT(*) FROM {quoted_tblname} {where_filt}'
         if debug: print(SQL_get_count)
         dd.cur.execute(SQL_get_count)
         rows_n = dd.cur.fetchone()[0]
-        if debug: print(u"%s records" % str(rows_n))
+        if debug: print(f'{rows_n} records')
         high_n_recs = (rows_n >= n_high)
         if high_n_recs:
-            first_sql = getdata.get_first_sql(dd.dbe, quoted_tblname,
-                top_n=n_high)
-            source = u"(%s) AS qry" % first_sql
+            first_sql = getdata.get_first_sql(
+                dd.dbe, quoted_tblname, top_n=n_high)
+            source = f'({first_sql}) AS qry'
             if debug: print(source)
         else:
             source = quoted_tblname
-        SQL_get_sorted_vals = u"""SELECT %(var_gp)s 
-            FROM %(source)s
-            WHERE %(var_gp)s IS NOT NULL
-                %(and_filt)s
-            GROUP BY %(var_gp)s 
-            ORDER BY %(var_gp)s""" % {"var_gp": objqtr(var_gp), 
-                                     "source": source, "and_filt": and_filt}
+        var_gp_str = objqtr(var_gp)
+        SQL_get_sorted_vals = f"""SELECT {var_gp_str}
+            FROM {source}
+            WHERE {var_gp_str} IS NOT NULL
+                {and_filt}
+            GROUP BY {var_gp_str}
+            ORDER BY {var_gp_str}"""
         if debug: print(SQL_get_sorted_vals)
         dd.cur.execute(SQL_get_sorted_vals)
         val_dic = self.val_dics.get(var_gp, {})
-        # cope if variable has massive spread of values
+        ## cope if variable has massive spread of values
         self.gp_vals_sorted = []
-        # http://code.activestate.com/recipes/...
-        # ...498181-add-thousands-separator-commas-to-formatted-number/
-        # locale.setlocale(locale.LC_ALL, "")
-        # http://docs.python.org/library/locale.html...
-        # ...#background-details-hints-tips-and-caveats
+        ## http://code.activestate.com/recipes/...
+        ## ...498181-add-thousands-separator-commas-to-formatted-number/
+        ## locale.setlocale(locale.LC_ALL, '')
+        ## http://docs.python.org/library/locale.html...
+        ## ...#background-details-hints-tips-and-caveats
         strn = locale.format('%d', n_high, True)
         excess_length_cat = False
         n_vals = 0
@@ -600,157 +598,159 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 break
         if n_vals == mg.MAX_GROUPS4DROPDOWN:
             if high_n_recs:
-                chop_warning = _("Showing first %s groups in\n in first "
-                                 "%s rows") % (mg.MAX_GROUPS4DROPDOWN, strn)
+                chop_warning = (_(
+                    'Showing first %s groups in\n in first %s rows')
+                     % (mg.MAX_GROUPS4DROPDOWN, strn))
             else:
-                chop_warning =_("Showing first %s unique groups" % 
-                                mg.MAX_GROUPS4DROPDOWN)
+                chop_warning =_('Showing first %s unique groups'
+                    % mg.MAX_GROUPS4DROPDOWN)
         elif n_vals == 0:
-            chop_warning = u""
+            chop_warning = ''
         else:
-            chop_warning = (_("Showing groups from\n first %s rows") % strn
-                              if high_n_recs else u"")
+            chop_warning = (_('Showing groups from\n first %s rows') % strn
+                if high_n_recs else u'')
         if excess_length_cat:
-            msg = (u"Values longer than %s from \"%s\" were not included" %
-                   (mg.MAX_VAL_LEN_IN_SQL_CLAUSE, var_gp))
+            msg = (f'Values longer than {mg.MAX_VAL_LEN_IN_SQL_CLAUSE} from '
+                f'"{var_gp}" were not included')
             if not n_vals:
-                msg = u"No suitable values to group by. " + msg
+                msg = f'No suitable values to group by. {msg}'
         else:
             if not n_vals:
-                wx.MessageBox(u"No suitable values to group by in \"%s\"" % 
-                              var_gp)
+                wx.MessageBox(
+                    f'No suitable values to group by in "{var_gp}"')
         self.lbl_chop_warning.SetLabel(chop_warning)
-        self.gp_choice_items_sorted = [lib.GuiLib.get_choice_item(val_dic, x) 
-                                       for x in self.gp_vals_sorted]
+        self.gp_choice_items_sorted = [
+            lib.GuiLib.get_choice_item(val_dic, x) for x in self.gp_vals_sorted]
         items_a = self.gp_choice_items_sorted
         items_b = self.gp_choice_items_sorted
-        # set selections
+        ## set selections
         if val_a:
             item_new_version_a = lib.GuiLib.get_choice_item(val_dic, val_a)
             idx_a = self.gp_choice_items_sorted.index(item_new_version_a)
-        else: # use defaults if possible
+        else:  ## use defaults if possible
             idx_a = 0
             if mg.VAL_A_DEFAULT:
                 try:
                     idx_a = self.gp_choice_items_sorted.index(mg.VAL_A_DEFAULT)
                 except ValueError:
-                    pass # Using idx of 0 is OK
+                    pass  ## Using idx of 0 is OK
         if val_b:
             item_new_version_b = lib.GuiLib.get_choice_item(val_dic, val_b)
             idx_b = self.gp_choice_items_sorted.index(item_new_version_b)
-        else: # use defaults if possible
+        else:  ## use defaults if possible
             idx_b = 0
             if mg.VAL_B_DEFAULT:
                 try:
                     idx_b = self.gp_choice_items_sorted.index(mg.VAL_B_DEFAULT)
                 except ValueError:
-                    pass # Using idx of 0 is OK
+                    pass  ## Using idx of 0 is OK
         return msg, items_a, idx_a, items_b, idx_b
-    
+
     def get_drop_vals(self):
         """
         Get values (in unicode form) from main drop downs.
-        
-        Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b, 
+
+        Returns var_gp_numeric, var_gp, label_gp, val_a, label_a, val_b,
         label_b, var_avg, label_avg.
         """
         dd = mg.DATADETS_OBJ
         selection_idx_gp = self.drop_group_by.GetSelection()
         var_gp = self.sorted_var_names_by[selection_idx_gp]
-        label_gp = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_gp)
+        label_gp = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_gp)
         var_gp_numeric = dd.flds[var_gp][mg.FLD_BOLNUMERIC]
-        # Now the a and b choices under the group
+        ## Now the a and b choices under the group
         val_dic = self.val_dics.get(var_gp, {})
         selection_idx_a = self.drop_group_a.GetSelection()
         if selection_idx_a == -1:
-            raise Exception(u"Unable to set values for groups a and b. Check "
-                u"your data and any filtering applied.")
+            raise Exception('Unable to set values for groups a and b. '
+                'Check your data and any filtering applied.')
         val_a_raw = self.gp_vals_sorted[selection_idx_a]
         val_a = lib.UniLib.any2unicode(val_a_raw)
-        label_a = lib.GuiLib.get_item_label(item_labels=val_dic,
-            item_val=val_a_raw)
+        label_a = lib.GuiLib.get_item_label(
+            item_labels=val_dic, item_val=val_a_raw)
         selection_idx_b = self.drop_group_b.GetSelection()
         val_b_raw = self.gp_vals_sorted[selection_idx_b]
         val_b = lib.UniLib.any2unicode(val_b_raw)
-        label_b = lib.GuiLib.get_item_label(item_labels=val_dic,
-            item_val=val_b_raw)
-        # the avg variable(s)
+        label_b = lib.GuiLib.get_item_label(
+            item_labels=val_dic, item_val=val_b_raw)
+        ## the avg variable(s)
         selection_idx_avg = self.drop_avg.GetSelection()
         var_avg = self.sorted_var_names_avg[selection_idx_avg]
-        label_avg = lib.GuiLib.get_item_label(item_labels=self.var_labels,
-            item_val=var_avg)
-        return (var_gp_numeric, var_gp, label_gp, val_a, label_a, 
-            val_b, label_b, var_avg, label_avg)
-        
+        label_avg = lib.GuiLib.get_item_label(
+            item_labels=self.var_labels, item_val=var_avg)
+        return (var_gp_numeric, var_gp, label_gp,
+            val_a, label_a,
+            val_b, label_b,
+            var_avg, label_avg)
+
     def on_averaged_sel(self, event):        
         self.update_phrase()
         self.update_defaults()
         event.Skip()
-    
+
     def on_btn_run(self, event):
         """
-        Generate script to special location (INT_SCRIPT_PATH), run script 
-            putting output in special location (INT_REPORT_PATH) and into report 
-            file, and finally, display html output.
+        Generate script to special location (INT_SCRIPT_PATH), run script
+        putting output in special location (INT_REPORT_PATH) and into report
+        file, and finally, display html output.
         """
         cc = output.get_cc()
         run_ok = self.test_config_ok()
         if run_ok:
             ## css_idx is supplied at the time
-            get_script_args={u'css_fil': cc[mg.CURRENT_CSS_PATH], 
-                u"report_name": cc[mg.CURRENT_REPORT_PATH],
-                u"details": mg.DEFAULT_DETAILS}
+            get_script_args = {'css_fil': cc[mg.CURRENT_CSS_PATH],
+                'report_name': cc[mg.CURRENT_REPORT_PATH],
+                'details': mg.DEFAULT_DETAILS}
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args)
-    
+
     def test_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """
-        # group by and averaged variables cannot be the same
-        if self.drop_group_by.GetStringSelection() == \
-                self.drop_avg.GetStringSelection():
-            wx.MessageBox(_("The Grouped By Variable and the %s variable "
-                            "cannot be the same") % self.averaged)
+        ## group by and averaged variables cannot be the same
+        if (self.drop_group_by.GetStringSelection()
+                == self.drop_avg.GetStringSelection()):
+            wx.MessageBox(_('The Grouped By Variable and the %s variable '
+                'cannot be the same') % self.averaged)
             return False
-        # group A and B cannot be the same
-        if self.drop_group_a.GetStringSelection() == \
-                self.drop_group_b.GetStringSelection():
-            wx.MessageBox(_("Group A and Group B must be different"))
+        ## group A and B cannot be the same
+        if (self.drop_group_a.GetStringSelection()
+                == self.drop_group_b.GetStringSelection()):
+            wx.MessageBox(_('Group A and Group B must be different'))
             return False
         if self.takes_range:
             try:
-                (var_gp_numeric, unused, unused, unused, 
+                (var_gp_numeric, unused, unused, unused,
                  unused, unused, unused, unused, unused) = self.get_drop_vals()
             except Exception as e:
-                wx.MessageBox(u"Unable to get script to make output. "
-                    u"Orig error: %s" % b.ue(e))
-            # group a must be lower than group b
+                wx.MessageBox(
+                    f'Unable to get script to make output. Orig error: {b.ue(e)}')
+            ## group a must be lower than group b
             selection_idx_a = self.drop_group_a.GetSelection()
             val_a = self.gp_vals_sorted[selection_idx_a]
             selection_idx_b = self.drop_group_b.GetSelection()
             val_b = self.gp_vals_sorted[selection_idx_b]
             if var_gp_numeric:
-                # NB SQLite could have a string in a numeric field
-                # could cause problems even if the string value is not one of 
-                # the ones being tested as a range boundary here.
+                ## NB SQLite could have a string in a numeric field
+                ## could cause problems even if the string value is not one of
+                ## the ones being tested as a range boundary here.
                 try:
                     val_a = float(val_a)
                     val_b = float(val_b)
                 except (ValueError, TypeError):
-                    wx.MessageBox(u"Both values must be numeric.  "
-                        u"Values selected were %s and %s" % (val_a, val_b))
+                    wx.MessageBox('Both values must be numeric.  '
+                        f'Values selected were {val_a} and {val_b}')
                     return False
             if  val_a > val_b:
-                wx.MessageBox(_("Group A must be lower than Group B"))
+                wx.MessageBox(_('Group A must be lower than Group B'))
                 return False
         return True
-    
+
     def on_btn_help(self, event):
-        wx.MessageBox(u"Under construction")
+        wx.MessageBox('Under construction')
         event.Skip()
-    
+
     def on_btn_clear(self, event):
-        wx.MessageBox(u"Under construction")
+        wx.MessageBox('Under construction')
         event.Skip()
-    

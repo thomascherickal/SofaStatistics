@@ -18,7 +18,7 @@ import webbrowser
 ## Import hyperlink
 try:
     from agw import hyperlink as hl
-except ImportError: # if it's not there locally, try the wxPython lib.
+except ImportError:  ## if it's not there locally, try the wxPython lib.
     try:
         import wx.lib.agw.hyperlink as hl #@UnusedImport
     except ImportError:
@@ -85,7 +85,7 @@ class DlgVarConfig(wx.Dialog):
         self.btn_var_dets_path.SetToolTip(
             _('Select an existing variable config file'))
         szr_main = wx.BoxSizer(wx.VERTICAL)
-        # Variables
+        ## Variables
         szr_var_config = wx.StaticBoxSizer(bx_var_config, wx.HORIZONTAL)
         szr_var_config.Add(self.txt_var_dets_file, 1, wx.GROW)
         szr_var_config.Add(self.btn_var_dets_path, 0, wx.LEFT|wx.RIGHT, 5)
@@ -188,8 +188,8 @@ class DlgVarConfig(wx.Dialog):
     def on_btn_script_path(self, unused_event):
         "Open dialog and takes the script file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
-            _('Choose or create a file to export scripts to:'), 
-            defaultDir=os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER), 
+            _('Choose or create a file to export scripts to:'),
+            defaultDir=os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER),
             defaultFile='', wildcard=_('Scripts (*.py)|*.py'),
             style=wx.FD_SAVE)
             ## MUST have a parent to enforce modal in Windows
@@ -490,7 +490,7 @@ class ConfigUI(object):
         self.vdt_file = vdt_file
         self.script_file = script_file
 
-    def on_btn_var_config(self, unused_event):
+    def on_btn_var_config(self, _event):
         """
         Return the settings selected
         """
@@ -505,7 +505,7 @@ class ConfigUI(object):
         dlg.Destroy()
         return ret_dic
 
-    def on_chk_add_to_report(self, unused_event):
+    def on_chk_add_to_report(self, _event):
         try:
             mg.ADD2RPT = self.chk_add_to_report.IsChecked()
         except Exception:
@@ -518,12 +518,12 @@ class ConfigUI(object):
         debug = False
         raw_titles = self.txt_titles.GetValue()
         if raw_titles:
-            titles = ['%s' % x for x in raw_titles.split('\n')]
+            titles = [f'{x}' for x in raw_titles.split('\n')]
         else:
             titles = []
         raw_subtitles = self.txt_subtitles.GetValue()
         if raw_subtitles:
-            subtitles = ['%s' % x for x in raw_subtitles.split('\n')]
+            subtitles = [f'{x}' for x in raw_subtitles.split('\n')]
         else:
             subtitles = []
         if debug: print(f'{titles} {subtitles}')
@@ -549,7 +549,7 @@ class ConfigUI(object):
         ## check not a massive table
         too_long = False
         rows_n = self.get_rows_n()
-        if rows_n > 250000:
+        if rows_n > 250_000:
             strn = locale.format('%d', rows_n, True)
             if wx.MessageBox(_('The underlying data table has %s rows. '
                     'Do you wish to run this analysis?') % strn,
@@ -558,7 +558,7 @@ class ConfigUI(object):
         return too_long
 
     ## database/ tables (and views)
-    def on_database_sel(self, unused_event):
+    def on_database_sel(self, _event):
         """
         Copes if have to back out of selection because cannot access required
         details e.g. MS SQL Server model database.
@@ -575,7 +575,7 @@ class ConfigUI(object):
             return True
         return False
 
-    def on_table_sel(self, unused_event):
+    def on_table_sel(self, _event):
         "Reset key data details after table selection."  
         debug = False
         if debug: print('on_table_sel called')     
@@ -597,12 +597,12 @@ class ConfigUI(object):
                 parent.drop_tbls_szr, parent.drop_tbls_panel)
         lib.GuiLib.safe_end_cursor()
 
-    def on_rclick_tables(self, unused_event):
+    def on_rclick_tables(self, _event):
         "Allow addition or removal of data filter"
         self.filters()
         ## event.Skip() - don't use or will appear twice in Windows!
 
-    def on_btn_filter(self, unused_event):
+    def on_btn_filter(self, _event):
         self.filters()
 
     def on_open(self, event):
@@ -614,13 +614,13 @@ class ConfigUI(object):
         expected_subfolder = os.path.join(rpt_root, mg.REPORT_EXTRAS_FOLDER)
         return os.path.exists(expected_subfolder)
 
-    # report output
-    def on_btn_report_path(self, unused_event):
+    ## report output
+    def on_btn_report_path(self, _event):
         "Open dialog and takes the report file selected (if any)"
         cc = output.get_cc()
-        dlg_get_file = wx.FileDialog(self, 
-            _('Choose or create a report output file:'), 
-            defaultDir=mg.REPORTS_PATH, defaultFile=u'', 
+        dlg_get_file = wx.FileDialog(self,
+            _('Choose or create a report output file:'),
+            defaultDir=mg.REPORTS_PATH, defaultFile='',
             wildcard=_('HTML files (*.htm)|*.htm|HTML files (*.html)|*.html'),
             style=wx.FD_SAVE)
             ## MUST have a parent to enforce modal in Windows
@@ -660,7 +660,7 @@ class ConfigUI(object):
         else:
             raise Exception(f'Unexpected export selection: {idx_export_sel}')
 
-    def on_sel_export_report(self, unused_event):
+    def on_sel_export_report(self, _event):
         cc = output.get_cc()
         report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
         if report_missing:
@@ -672,7 +672,7 @@ class ConfigUI(object):
                 msg = NO_OUTPUT_YET_MSG
             else:
                 msg = _('The output file has not been created yet. Nothing to '
-                    'export') # not in a position to make one
+                    'export')  ## not in a position to make one
             wx.MessageBox(msg)
             return
         ## check subfolder there
@@ -689,12 +689,12 @@ class ConfigUI(object):
         dlg.ShowModal()
 
 
-    def on_sel_export_output(self, unused_event):
+    def on_sel_export_output(self, _event):
         try:
             self.update_demo_display()  ## so mg.INT_REPORT_PATH includes the latest title
         except AttributeError:
             pass
-        dlg = export_output_gui.DlgExportOutput(title=u"Export Output", 
+        dlg = export_output_gui.DlgExportOutput(title='Export Output',
             report_path=mg.INT_REPORT_PATH, save2report_path=False,
             multi_page_items=self.multi_page_items)
         dlg.ShowModal()
@@ -727,8 +727,7 @@ class ConfigUI(object):
         try:
             script = self.get_script(css_idx, **get_script_args)
         except Exception as e:
-            raise Exception("Problem getting script. Orig error: %s" % 
-                b.ue(e))
+            raise Exception(f'Problem getting script. Orig error: {b.ue(e)}')
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT
         (bolran_report, 
          str_content) = output.run_report(self.output_modules,
@@ -736,13 +735,13 @@ class ConfigUI(object):
             add_to_report=add_to_report, new_has_dojo=new_has_dojo)
         if debug: print(str_content)
         return bolran_report, str_content
-    
+
     def run_report(self, get_script_args, *, new_has_dojo=False):
         if self.too_long():
             return
         wx.BeginBusyCursor()
-        bolran_report, str_content = self.get_script_output(get_script_args,
-            new_has_dojo=new_has_dojo)
+        bolran_report, str_content = self.get_script_output(
+            get_script_args, new_has_dojo=new_has_dojo)
         lib.OutputLib.update_local_display(self.html, str_content)
         self.content2expand = str_content
         self.align_export_btns(bolran_report)
@@ -779,7 +778,7 @@ class ConfigUI(object):
                 msg = NO_OUTPUT_YET_MSG
             else:
                 msg = _(
-                    "The output file has not been created yet. Nothing to view")  ## not in a position to make one
+                    'The output file has not been created yet. Nothing to view')  ## not in a position to make one
             wx.MessageBox(msg)
         else:
             url = output.path2url(cc[mg.CURRENT_REPORT_PATH])

@@ -25,13 +25,13 @@ DatetimeSplit = namedtuple(
 class TypeLib(object):
 
     @staticmethod
-    def is_numeric(val, comma_dec_sep_ok=False):
+    def is_numeric(val, *, comma_dec_sep_ok=False):
         """
         Is a value numeric?  This is operationalised to mean can a value be cast
-        as a float.  
+        as a float.
 
         NB the string 5 is numeric. Scientific notation is numeric. Complex
-        numbers are considered not numeric for general use.  
+        numbers are considered not numeric for general use.
 
         The type may not be numeric (e.g. might be the string '5') but the
         "content" must be.
@@ -97,8 +97,8 @@ class DbLib(object):
 
         sql_esc_str_literal_quote -- e.g. '' for SQLite
 
-        pystr_use_double_quotes -- Use double quotes for string declaration 
-        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the 
+        pystr_use_double_quotes -- Use double quotes for string declaration
+        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the
         literal quotes used by the database engine to minimise escaping.
         """
         debug = False
@@ -116,7 +116,7 @@ class DbLib(object):
 
             mystr = "'Don''t say \"Hello\" like that'"
 
-            Tricky because two levels of escaping ;-). 
+            Tricky because two levels of escaping ;-).
 
             1) Database engine dependent SQL escaping: The SQL statement itself
             has its own escaping of internal quotes. So SQLite uses ' for quotes
@@ -133,26 +133,26 @@ class DbLib(object):
             """
             try:  ## 1) do sql escaping
                 try:  ## try as if already unicode
-                    val = raw_val.replace(sql_str_literal_quote, 
-                        sql_esc_str_literal_quote)
+                    val = raw_val.replace(
+                        sql_str_literal_quote, sql_esc_str_literal_quote)
                 except UnicodeDecodeError:
                     if debug: print(repr(raw_val))
                     val = raw_val.replace(
                         sql_str_literal_quote, sql_esc_str_literal_quote)
             except AttributeError as e:
                 raise Exception(
-                    "Inappropriate attempt to quote non-string value."
-                    f"\nCaused by error: {b.ue(e)}")
+                    'Inappropriate attempt to quote non-string value.'
+                    f'\nCaused by error: {b.ue(e)}')
             if pystr_use_double_quotes:
                 ## 2) do Python escaping
                 pystr_esc_val = val.replace('"', '\"')
                 ## 3) variable declaration of quoted value
-                quoted_val = (f"{sql_str_literal_quote}{pystr_esc_val}"
-                    f"{sql_str_literal_quote}")
+                quoted_val = (f'{sql_str_literal_quote}{pystr_esc_val}'
+                    f'{sql_str_literal_quote}')
             else:
                 pystr_esc_val = val.replace("'", "\'")
-                quoted_val = (f"{sql_str_literal_quote}{pystr_esc_val}"
-                    f"{sql_str_literal_quote}")
+                quoted_val = (f'{sql_str_literal_quote}{pystr_esc_val}'
+                    f'{sql_str_literal_quote}')
         return quoted_val
 
     @staticmethod
@@ -171,7 +171,7 @@ class OutputLib(object):
     @staticmethod
     def get_sig_dp(val):
         strval = str(val)
-        if re.search(r"\d+e[+-]\d+", strval):  ## num(s) e +or- num(s)
+        if re.search(r'\d+e[+-]\d+', strval):  ## num(s) e +or- num(s)
             num_string = repr(val)  ## 1000000000000.4 rather than 1e+12
         else:
             num_string = strval
@@ -238,43 +238,43 @@ class OutputLib(object):
         """
         Extract image path from html.
 
-        use_as_url -- is the path going to be used as a url (if not we need to 
-        unquote it) so the image path we extract can be used by the os e.g. to 
+        use_as_url -- is the path going to be used as a url (if not we need to
+        unquote it) so the image path we extract can be used by the os e.g. to
         copy an image
 
-        IMG_SRC_START -- u"<img src='"
+        IMG_SRC_START -- "<img src='"
         """
         debug = False
         idx_start = content.index(mg.IMG_SRC_START) + len(mg.IMG_SRC_START)
-        if debug: print(f"\n\n\nextract_img_path\n{content}")
+        if debug: print(f'\n\n\nextract_img_path\n{content}')
         content_after_start = content[idx_start:]
         idx_end = content_after_start.index(mg.IMG_SRC_END) + idx_start
         img_path = content[idx_start: idx_end]
         if debug: 
-            print(f"idx_end: {idx_end}")
-            print(f"img_path: {img_path}")
+            print(f'idx_end: {idx_end}')
+            print(f'img_path: {img_path}')
         if not use_as_url:
             img_path = urllib.parse.unquote(img_path)  ## so a proper path and not %20 etc
-            if debug: print(f"not use_as_url img_path:\n{img_path}")
+            if debug: print(f'not use_as_url img_path:\n{img_path}')
         ## strip off 'file:///' (or file:// as appropriate for os)
         if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
             img_path = os.path.join('', img_path.split(mg.FILE_URL_START_WIN)[1])
         elif mg.FILE_URL_START_GEN in img_path:
             img_path = os.path.join('', img_path.split(mg.FILE_URL_START_GEN)[1])
-        if debug: print(f"Final img_path:\n{img_path}")
+        if debug: print(f'Final img_path:\n{img_path}')
         return img_path
 
     @staticmethod
     def get_src_dst_preexisting_img(export_report, imgs_path, content):
         """
         export_report -- boolean (cf export output)
-        imgs_path -- 
+        imgs_path --
         e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM
         e.g. export report: /home/g/Documents/sofastats/reports/test_exporting_exported_images
-        content -- 
+        content --
         e.g. export output: <img src='file:///home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png'>
         e.g. export report: <img src='test_exporting_images/000.png'>
-        want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png 
+        want src to be /home/g/Documents/sofastats/reports/sofa_use_only_report_images/_img_001.png
             (not file:///home ...)
         and dst to be
         e.g. export output: /home/g/Desktop/SOFA export Sep 30 09-34 AM/_img_001.png
@@ -283,31 +283,31 @@ class OutputLib(object):
         debug = False
         img_path = OutputLib._extract_img_path(content, use_as_url=False)
         if debug:
-            print(f"get_src_dst_pre-existing_img\nimg_path:\n{img_path}\n")
+            print(f'get_src_dst_pre-existing_img\nimg_path:\n{img_path}\n')
         if export_report:  ## trim off trailing divider, then split and get first part
             src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
         else:
             src = img_path  ## the run_report process leaves an abs version. How nice!
-        if debug: print(f"src:\n{src}\n")
+        if debug: print(f'src:\n{src}\n')
         img_name = os.path.split(img_path)[1]
-        if debug: print(f"img_path:\n{img_path}\n")
+        if debug: print(f'img_path:\n{img_path}\n')
         dst = os.path.join(imgs_path, img_name)
-        if debug: print(f"dst:\n{dst}\n")
+        if debug: print(f'dst:\n{dst}\n')
         return src, dst
 
     @staticmethod
     def style2path(style):
         "Get full path of css file from style name alone"
-        return os.path.join(mg.CSS_PATH, f"{style}.css")
+        return os.path.join(mg.CSS_PATH, f'{style}.css')
 
     @staticmethod
     def path2style(path):
         "Strip style out of full css path"
         debug = False
-        if debug: print(f"path: {path}")
-        style = path[len(mg.CSS_PATH)+1:-len(".css")]  ## +1 to miss trailing slash
+        if debug: print(f'path: {path}')
+        style = path[len(mg.CSS_PATH)+1:-len('.css')]  ## +1 to miss trailing slash
         if style == '':
-            raise Exception(f"Problem stripping style out of path ({path})")
+            raise Exception(f'Problem stripping style out of path ({path})')
         return style
 
     @staticmethod
@@ -329,20 +329,20 @@ class OutputLib(object):
         try:
             exec(css_dojo, css_dojo_dic)
         except SyntaxError as e:
-            wx.MessageBox(_("Syntax error in dojo settings in css file"
+            wx.MessageBox(_('Syntax error in dojo settings in css file'
                 " \"%(css_fil)s\"."
-                "\n\nDetails: %(css_dojo)s %(err)s") % {"css_fil": css_fil,
-                "css_dojo": css_dojo, u"err": b.ue(e)})
+                "\n\nDetails: %(css_dojo)s %(err)s") % {'css_fil': css_fil,
+                'css_dojo': css_dojo, u'err': b.ue(e)})
             raise
         except Exception as e:
             wx.MessageBox(_("Error processing css dojo file \"%(css_fil)s\"."
-                "\n\nDetails: %(err)s") % {"css_fil": css_fil, "err": b.ue(e)})
+                "\n\nDetails: %(err)s") % {'css_fil': css_fil, 'err': b.ue(e)})
             raise
         return css_dojo_dic
 
     @staticmethod
     def update_local_display(html_ctrl, str_content, *, wrap_text=False):
-        str_content = f"<p>{str_content}</p>" if wrap_text else str_content
+        str_content = f'<p>{str_content}</p>' if wrap_text else str_content
         html_ctrl.SetPage(str_content, mg.BASE_URL)  ## allow footnotes
 
     @staticmethod
@@ -352,16 +352,16 @@ class OutputLib(object):
 
         Will be "%s" % wrapped txt not "\"%s\"" % wrapped_txt
 
-        actual_lbl_width -- may be broken into lines if not rotated. If rotated, we
-        need sum of each line (no line breaks possible at present).
+        actual_lbl_width -- may be broken into lines if not rotated. If rotated,
+        we need sum of each line (no line breaks possible at present).
         """
         debug = False
         lines = []
         try:
             words = orig_txt.split()
         except Exception:
-            raise Exception("Tried to split a non-text label. "
-                "Is the script not supplying text labels?")
+            raise Exception('Tried to split a non-text label. '
+                'Is the script not supplying text labels?')
         line_words = []
         for word in words:
             line_words.append(word)
@@ -408,18 +408,18 @@ class OutputLib(object):
     def get_p(p):
         p_str = OutputLib.to_precision(num=p, precision=4)
         if p < 0.001:
-            p_str = f"< 0.001 ({p_str})"
+            p_str = f'< 0.001 ({p_str})'
         return p_str
 
     @staticmethod
-    def get_num2display(num, output_type, inc_perc=True):
+    def get_num2display(num, output_type, *, inc_perc=True):
         if output_type == mg.FREQ_KEY:
             num2display = str(num)
         else:
             if inc_perc:
-                num2display = f"{num}%"
+                num2display = f'{num}%'
             else:
-                num2display = f"{num}"
+                num2display = f'{num}'
         return num2display
 
     @staticmethod
@@ -451,7 +451,7 @@ class OutputLib(object):
         if n >= math.pow(10, precision):
             n = n / 10.
             e = e + 1
-        m = "%.*g" % (precision, n)
+        m = '%.*g' % (precision, n)
         if e < -2 or e >= precision:
             out.append(m[0])
             if precision > 1:
@@ -482,8 +482,8 @@ class OutputLib(object):
             var_dets = b.get_exec_ready_text(text=var_dets)
             var_dets_dic = {}
             exec(var_dets, var_dets_dic)
-            if debug: wx.MessageBox(f"{fil_var_dets} got a clean bill of health"
-                " from get_invalid_var_dets_msg()!")
+            if debug: wx.MessageBox(f'{fil_var_dets} got a clean bill of health'
+                ' from get_invalid_var_dets_msg()!')
             return None
         except Exception as e:
             return b.ue(e)
@@ -493,41 +493,41 @@ class UniLib(object):
 
     cp1252 = {
         # from http://www.microsoft.com/typography/unicode/1252.htm
-        "\x80": "\u20AC",  ## EURO SIGN
-        "\x82": "\u201A",  ## SINGLE LOW-9 QUOTATION MARK
-        "\x83": "\u0192",  ## LATIN SMALL LETTER F WITH HOOK
-        "\x84": "\u201E",  ## DOUBLE LOW-9 QUOTATION MARK
-        "\x85": "\u2026",  ## HORIZONTAL ELLIPSIS
-        "\x86": "\u2020",  ## DAGGER
-        "\x87": "\u2021",  ## DOUBLE DAGGER
-        "\x88": "\u02C6",  ## MODIFIER LETTER CIRCUMFLEX ACCENT
-        "\x89": "\u2030",  ## PER MILLE SIGN
-        "\x8A": "\u0160",  ## LATIN CAPITAL LETTER S WITH CARON
-        "\x8B": "\u2039",  ## SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-        "\x8C": "\u0152",  ## LATIN CAPITAL LIGATURE OE
-        "\x8E": "\u017D",  ## LATIN CAPITAL LETTER Z WITH CARON
-        "\x91": "\u2018",  ## LEFT SINGLE QUOTATION MARK
-        "\x92": "\u2019",  ## RIGHT SINGLE QUOTATION MARK
-        "\x93": "\u201C",  ## LEFT DOUBLE QUOTATION MARK
-        "\x94": "\u201D",  ## RIGHT DOUBLE QUOTATION MARK
-        "\x95": "\u2022",  ## BULLET
-        "\x96": "\u2013",  ## EN DASH
-        "\x97": "\u2014",  ## EM DASH
-        "\x98": "\u02DC",  ## SMALL TILDE
-        "\x99": "\u2122",  ## TRADE MARK SIGN
-        "\x9A": "\u0161",  ## LATIN SMALL LETTER S WITH CARON
-        "\x9B": "\u203A",  ## SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-        "\x9C": "\u0153",  ## LATIN SMALL LIGATURE OE
-        "\x9E": "\u017E",  ## LATIN SMALL LETTER Z WITH CARON
-        "\x9F": "\u0178",  ## LATIN CAPITAL LETTER Y WITH DIAERESIS
+        '\x80': '\u20AC',  ## EURO SIGN
+        '\x82': '\u201A',  ## SINGLE LOW-9 QUOTATION MARK
+        '\x83': '\u0192',  ## LATIN SMALL LETTER F WITH HOOK
+        '\x84': '\u201E',  ## DOUBLE LOW-9 QUOTATION MARK
+        '\x85': '\u2026',  ## HORIZONTAL ELLIPSIS
+        '\x86': '\u2020',  ## DAGGER
+        '\x87': '\u2021',  ## DOUBLE DAGGER
+        '\x88': '\u02C6',  ## MODIFIER LETTER CIRCUMFLEX ACCENT
+        '\x89': '\u2030',  ## PER MILLE SIGN
+        '\x8A': '\u0160',  ## LATIN CAPITAL LETTER S WITH CARON
+        '\x8B': '\u2039',  ## SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+        '\x8C': '\u0152',  ## LATIN CAPITAL LIGATURE OE
+        '\x8E': '\u017D',  ## LATIN CAPITAL LETTER Z WITH CARON
+        '\x91': '\u2018',  ## LEFT SINGLE QUOTATION MARK
+        '\x92': '\u2019',  ## RIGHT SINGLE QUOTATION MARK
+        '\x93': '\u201C',  ## LEFT DOUBLE QUOTATION MARK
+        '\x94': '\u201D',  ## RIGHT DOUBLE QUOTATION MARK
+        '\x95': '\u2022',  ## BULLET
+        '\x96': '\u2013',  ## EN DASH
+        '\x97': '\u2014',  ## EM DASH
+        '\x98': '\u02DC',  ## SMALL TILDE
+        '\x99': '\u2122',  ## TRADE MARK SIGN
+        '\x9A': '\u0161',  ## LATIN SMALL LETTER S WITH CARON
+        '\x9B': '\u203A',  ## SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+        '\x9C': '\u0153',  ## LATIN SMALL LIGATURE OE
+        '\x9E': '\u017E',  ## LATIN SMALL LETTER Z WITH CARON
+        '\x9F': '\u0178',  ## LATIN CAPITAL LETTER Y WITH DIAERESIS
     }
 
     oth_ms_gremlins = {
-        "\xe2\x80\x9c": "\u201C",  ## LEFT DOUBLE QUOTATION MARK,
-        "\xe2\x80\x9d": "\u201D",  ## RIGHT DOUBLE QUOTATION MARK
-        "\xe2\x80\x93": "\u2013",  ## EN DASH
-        "\xe2\x80\x94": "\u2014",  ## EM DASH - guess as to key
-        "\xe2\x80\xa6": "\u2026",  ## HORIZONTAL ELLIPSIS
+        '\xe2\x80\x9c': '\u201C',  ## LEFT DOUBLE QUOTATION MARK,
+        '\xe2\x80\x9d': '\u201D',  ## RIGHT DOUBLE QUOTATION MARK
+        '\xe2\x80\x93': '\u2013',  ## EN DASH
+        '\xe2\x80\x94': '\u2014',  ## EM DASH - guess as to key
+        '\xe2\x80\xa6': '\u2026',  ## HORIZONTAL ELLIPSIS
     }
 
     @staticmethod
@@ -546,10 +546,11 @@ class UniLib(object):
         Inspiration from http://effbot.org/zone/unicode-gremlins.htm
         which maps cp1252 gremlins to real unicode characters.
 
-        Main changes - now ensure the output is unicode even if cp1252 characters
-        not found in it.
+        Main changes - now ensure the output is unicode even if cp1252
+        characters not found in it.
 
-        Also handles smart quotes etc (which are multibyte) and commonly used ;-).
+        Also handles smart quotes etc (which are multibyte) and commonly
+        used ;-).
         """
         
         
@@ -562,19 +563,19 @@ class UniLib(object):
         import re  # easier to transplant for testing if everything here
         debug = False
         if not isinstance(text, str):
-            raise Exception("UniLib._ms2unicode() requires strings as inputs.")
+            raise Exception('UniLib._ms2unicode() requires strings as inputs.')
         if debug: print(repr(text))
         for gremlin in UniLib.oth_ms_gremlins:  ## turn to unicode any bytes which contain
-                ## cp1252 bytes.  E.g. so u"\xe2\x80\x93" doesn't become the
-                ## nonsense u"\xe2\u20AC\x93" as a result of our search and replace.
+                ## cp1252 bytes.  E.g. so u'\xe2\x80\x93' doesn't become the
+                ## nonsense u'\xe2\u20AC\x93' as a result of our search and replace.
             if re.search(gremlin, text):
                 if isinstance(text, str):  ## Make sure we have a unicode string for 
                     ## fixing up step.  If has those ms characters probably safe to 
-                    ## decode using "iso-8859-1"
+                    ## decode using 'iso-8859-1'
                     text = text.decode('iso-8859-1')
                 text = re.sub(gremlin, UniLib._fix_gremlins, text)
-        if re.search("[\x80-\x9f]", text):
-            text = re.sub("[\x80-\x9f]", UniLib._fix_cp1252, text)
+        if re.search('[\x80-\x9f]', text):
+            text = re.sub('[\x80-\x9f]', UniLib._fix_cp1252, text)
         if isinstance(text, str):  ## no gremlins or cp1252 so no guarantees unicoded
             try:
                 text = text.decode(locale.getpreferredencoding())
@@ -595,7 +596,7 @@ class UniLib(object):
         Return safe unicode string (pure unicode and no unescaped backslashes).
         """
         if not isinstance(raw, (str, bytes)): # isinstance includes descendants
-            raise Exception("UniLib._str2unicode() requires strings as inputs.")
+            raise Exception('UniLib._str2unicode() requires strings as inputs.')
         if type(raw) == bytes:
             try:
                 safe = raw.decode(locale.getpreferredencoding())
@@ -632,7 +633,7 @@ class UniLib(object):
             ## only work with repr if you have to
             ## 0.3 -> 0.3 if print() but 0.29999999999999999 if repr()
             strval = str(raw)
-            if re.search(r"\d+e[+-]\d+", strval):  ## num(s) e +or- num(s)
+            if re.search(r'\d+e[+-]\d+', strval):  ## num(s) e +or- num(s)
                 return str(repr(raw))  ## 1000000000000.4 rather than 1e+12
             else:
                 return str(raw)
@@ -658,7 +659,8 @@ class UniLib(object):
         Needed because pprint.pformat() can't cope with strings like
         'João Rosário'.
 
-        Pity so will have to wait till Python 3 version to handle more elegantly.
+        Pity so will have to wait till Python 3 version to handle more
+        elegantly.
 
         Goal is to make files that Python can run.
 
@@ -672,9 +674,9 @@ class UniLib(object):
         rows = []
         for key, val in keyvals:
             keystr = UniLib._get_unicode_repr(key) + ': '
-            rows.append(keystr + UniLib.dic2unicode(val,
-                indent + len('{' + keystr)))
-        joiner = ",\n%s" % (indent*' ',)
+            rows.append(
+                keystr + UniLib.dic2unicode(val, indent + len('{' + keystr)))
+        joiner = ',\n%s' % (indent*' ',)
         ustr += (joiner.join(rows))
         ustr += '}'
         return ustr
@@ -687,26 +689,26 @@ class DateLib(object):
         debug = False
         now = datetime.datetime.now()
         try:
-            raw_datestamp = now.strftime("%d/%m/%Y at %I:%M %p")
+            raw_datestamp = now.strftime('%d/%m/%Y at %I:%M %p')
             ## see http://groups.google.com/group/comp.lang.python/browse_thread/...
             ## ...thread/a18a590eb5d12e5b
             datestamp = raw_datestamp.decode(locale.getpreferredencoding())
             if debug: print(repr(datestamp))
-            u_datestamp = "{}".format(datestamp)
+            u_datestamp = '{}'.format(datestamp)
         except Exception:
             try:
-                raw_datestamp = now.strftime("%d/%m/%Y at %H:%M")
+                raw_datestamp = now.strftime('%d/%m/%Y at %H:%M')
                 datestamp = raw_datestamp.decode(locale.getpreferredencoding())
                 if debug: print(repr(datestamp))
-                u_datestamp = "{}".format(datestamp)
+                u_datestamp = '{}'.format(datestamp)
             except Exception:
                 try:
-                    raw_datestamp = now.strftime("%d/%m/%Y at %H:%M")
+                    raw_datestamp = now.strftime('%d/%m/%Y at %H:%M')
                     datestamp = raw_datestamp.decode('utf8', 'replace')
                     if debug: print(repr(datestamp))
-                    u_datestamp = "{}".format(datestamp)
+                    u_datestamp = '{}'.format(datestamp)
                 except Exception:
-                    u_datestamp = "date-time unrecorded"  ## TODO -chardet?
+                    u_datestamp = 'date-time unrecorded'  ## TODO -chardet?
         return u_datestamp
 
     @staticmethod
@@ -735,10 +737,8 @@ class DateLib(object):
         And http://code.activestate.com/recipes/511451/
         """
         try:
-            datetime_str = "%s-%s-%s %s:%s:%s" % (pytime.year,
-              str(pytime.month).zfill(2), str(pytime.day).zfill(2),
-              str(pytime.hour).zfill(2),  str(pytime.minute).zfill(2),
-              str(pytime.second).zfill(2))
+            datetime_str = (f'{pytime.year}-{pytime.month:02}-{pytime.day:02} '
+                f'{pytime.hour:02}:{pytime.minute:02}:{pytime.second:02}')
         except ValueError:
             datetime_str = 'NULL'
         return datetime_str
@@ -747,6 +747,7 @@ class DateLib(object):
     def _is_date_part(datetime_str):
         """
         Assumes date will have - or / or . or , or space and time will not.
+
         If a mishmash will fail bad_date later.
         """
         return ('-' in datetime_str
@@ -759,10 +760,11 @@ class DateLib(object):
     def _is_time_part(datetime_str):
         """
         Assumes time will have : (or am/pm) and date will not.
+
         If a mishmash will fail bad_time later.
         """
-        return (":" in datetime_str or "am" in datetime_str.lower()
-            or "pm" in datetime_str.lower())
+        return (':' in datetime_str or 'am' in datetime_str.lower()
+            or 'pm' in datetime_str.lower())
 
     @staticmethod
     def _is_year(datetime_str):
@@ -789,12 +791,12 @@ class DateLib(object):
         the ways that ensure any legitimate datetime strings are split properly.
 
         E.g. 2009 (or 4pm) returned as a list of 1 item []
-        E.g. 2011-04-14T23:33:05 returned as [u"2011-04-14", u"23:33:052"]
+        E.g. 2011-04-14T23:33:05 returned as ['2011-04-14', '23:33:052']
          (Google docs spreadsheets use 2011-04-14T23:33:05).
-        E.g. 1 Feb, 2009 4pm returned as [u"1 Feb, 2009", u"4pm"]
-        E.g. 1 Feb 2009 returned as [u"1 Feb 2009"]
-        E.g. 1 Feb 2009 4pm returned as [u"1 Feb 2009", u"4pm"]
-        E.g. 21/12/2009 4pm returned as [u"21/12/2009", u"4pm"]
+        E.g. 1 Feb, 2009 4pm returned as ['1 Feb, 2009', '4pm']
+        E.g. 1 Feb 2009 returned as ['1 Feb 2009']
+        E.g. 1 Feb 2009 4pm returned as ['1 Feb 2009', '4pm']
+        E.g. 21/12/2009 4pm returned as ['21/12/2009', '4pm']
 
         Not sure which way round they are yet or no need to guarantee that the
         parts are even valid as either dates or times.
@@ -808,8 +810,8 @@ class DateLib(object):
         datetime_str = datetime_str.replace(' PM', 'PM')
         datetime_str = datetime_str.replace(' AM', 'AM')
         if datetime_str.count('T') == 1:
-            parts_lst = datetime_str.split('T')  ## e.g. ["2011-04-14", "23:33:052"]
-        elif ' ' in datetime_str and datetime_str.strip() != '': # split by last one unless ... last one fails time test
+            parts_lst = datetime_str.split('T')  ## e.g. ['2011-04-14', '23:33:052']
+        elif ' ' in datetime_str and datetime_str.strip() != '':  ## split by last one unless ... last one fails time test
             ## So we handle 1 Feb 2009 and 1 Feb 2009 4pm and 2011/03/23 4pm correctly
             ## and 4pm 2011/03/23.
             ## Assumed no spaces in times (as cleaned up to this point e.g. 4 pm -> 4pm).
@@ -823,7 +825,7 @@ class DateLib(object):
             else:  ## Has to be split to potentially be valid. Split by last space
                 ## (or first space if potentially starts with time).
                 ## Safe because we have removed spaces within times.
-                bits = datetime_str.split(u" ")  ## e.g. ["1 Feb 2009", u"4pm"]
+                bits = datetime_str.split(' ')  ## e.g. ['1 Feb 2009', '4pm']
                 if first_bit_passes_time_test:
                     first = bits[0]
                     last = ' '.join([str(x) for x in bits[1:]])  ## at least one bit
@@ -874,8 +876,8 @@ class DateLib(object):
             return DatetimeSplit(None, None, True)
 
     @staticmethod
-    def _get_dets_of_usable_datetime_str(raw_datetime_str, ok_date_formats, 
-        ok_time_formats):
+    def _get_dets_of_usable_datetime_str(raw_datetime_str,
+            ok_date_formats, ok_time_formats):
         """
         Returns (date_part, date_format, time_part, time_format, boldate_then_time)
         if a usable datetime. NB usable doesn't mean valid as such.  E.g. we may
@@ -889,11 +891,11 @@ class DateLib(object):
         debug = False
         if not TypeLib.is_string(raw_datetime_str):
             if debug:
-                print(f"{raw_datetime_str} is not a valid datetime string")
+                print(f'{raw_datetime_str} is not a valid datetime string')
             return None
         if raw_datetime_str.strip() == '':
             if debug:
-                print("Spaces or empty text are not valid datetime strings")
+                print('Spaces or empty text are not valid datetime strings')
             return None
         try:
             str(raw_datetime_str)
@@ -902,7 +904,7 @@ class DateLib(object):
         ## evaluate date and/or time components against allowable formats
         dt_split = DateLib._datetime_split(raw_datetime_str)
         if dt_split.date_part is None and dt_split.time_part is None:
-            if debug: print("Both date and time parts are empty.")
+            if debug: print('Both date and time parts are empty.')
             return None
         ## gather information on the parts we have (we have at least one)
         date_format = None
@@ -932,12 +934,10 @@ class DateLib(object):
                     continue
             if bad_time:
                 return None
-        # have at least one part and no bad parts
-        return (dt_split.date_part, date_format, dt_split.time_part, time_format,
+        ## have at least one part and no bad parts
+        return (dt_split.date_part, date_format,
+            dt_split.time_part, time_format,
             dt_split.boldate_then_time)
-
-    #print(_get_dets_of_usable_datetime_str("4 am Feb 1 2011", mg.OK_DATE_FORMATS,
-    #                                       mg.OK_TIME_FORMATS))
 
     @staticmethod
     def is_usable_datetime_str(raw_datetime_str,
@@ -945,7 +945,7 @@ class DateLib(object):
         """
         Is the datetime string usable? Used for checking user-entered datetimes.
 
-        Doesn't cover all possibilities - just what is needed for typical data 
+        Doesn't cover all possibilities - just what is needed for typical data
         entry.
 
         If only a time, can always use today's date later to prepare for SQL.
@@ -962,9 +962,9 @@ class DateLib(object):
         2pm, 2:30pm, 14:30 , 14:30:00
         http://docs.python.org/library/datetime.html#module-datetime
         Should only be one space in string (if any) - between date and time
-            (or time and date).
+        (or time and date).
         """
-        return DateLib._get_dets_of_usable_datetime_str(raw_datetime_str, 
+        return DateLib._get_dets_of_usable_datetime_str(raw_datetime_str,
             ok_date_formats or mg.OK_DATE_FORMATS, 
             ok_time_formats or mg.OK_TIME_FORMATS) is not None
 
@@ -978,7 +978,7 @@ class DateLib(object):
         http://www.cl.cam.ac.uk/~mgk25/iso-time.html
         """
         try:
-            unused = time.strptime(raw_datetime_str, "%Y-%m-%d %H:%M:%S")
+            unused = time.strptime(raw_datetime_str, '%Y-%m-%d %H:%M:%S')
             return True
         except Exception:
             return False
@@ -995,8 +995,8 @@ class DateLib(object):
         datetime_dets = DateLib._get_dets_of_usable_datetime_str(
             raw_datetime_str, mg.OK_DATE_FORMATS, mg.OK_TIME_FORMATS)
         if datetime_dets is None:
-            raise Exception("Need a usable datetime string to return a standard"
-                " datetime string.")
+            raise Exception('Need a usable datetime string to return a standard'
+                ' datetime string.')
         else: 
             ## usable (possibly requiring a date to be added to a time)
             ## has at least one part (date/time) and anything it has is ok
@@ -1006,24 +1006,24 @@ class DateLib(object):
             ## determine what type of valid datetime then make time object
             if date_part is not None and time_part is not None:
                 if boldate_then_time:
-                    time_obj = time.strptime(f"{date_part} {time_part}",
-                        f"{date_format} {time_format}")
+                    time_obj = time.strptime(f'{date_part} {time_part}',
+                        f'{date_format} {time_format}')
                 else:  ## time then date
-                    time_obj = time.strptime(f"{time_part} {date_part}",
-                        f"{time_format} {date_format}")
+                    time_obj = time.strptime(f'{time_part} {date_part}',
+                        f'{time_format} {date_format}')
             elif date_part is not None and time_part is None:
                 ## date only (add time of 00:00:00)
                 time_obj = time.strptime(
-                    f"{date_part} 00:00:00", f"{date_format} %H:%M:%S")
+                    f'{date_part} 00:00:00', f'{date_format} %H:%M:%S')
             elif date_part is None and time_part is not None:
                 ## time only (assume today's date)
                 today = time.localtime()
                 time_obj = time.strptime(
-                    f"{today[0]}-{today[1]}-{today[2]} {time_part}",
-                    f"%Y-%m-%d {time_format}")
+                    f'{today[0]}-{today[1]}-{today[2]} {time_part}',
+                    f'%Y-%m-%d {time_format}')
             else:
                 raise Exception(
-                    "Supposedly a usable datetime str but no usable parts")
+                    'Supposedly a usable datetime str but no usable parts')
             if debug: print(time_obj)
         return time_obj
 
@@ -1054,7 +1054,7 @@ class DateLib(object):
     @staticmethod
     def time_obj_to_datetime_str(time_obj):
         "Takes time_obj and returns standard datetime string"
-        datetime_str = "%4d-%02d-%02d %02d:%02d:%02d" % (time_obj[:6])
+        datetime_str = '%4d-%02d-%02d %02d:%02d:%02d' % (time_obj[:6])
         return datetime_str
 
     @staticmethod
@@ -1063,7 +1063,8 @@ class DateLib(object):
         Takes a string and checks if there is a usable datetime in there. A time 
         without a date is OK). As is a month or year only.
 
-        If there is, returns seconds since epoch (1970). Can be a negative value.
+        If there is, returns seconds since epoch (1970). Can be a negative
+        value.
         """
         time_obj = DateLib._get_time_obj(raw_datetime_str)
         input_dt = datetime.datetime(*time_obj[:6])
@@ -1080,8 +1081,8 @@ class FiltLib(object):
         """
         Returns tbl_filt_label, tbl_filt.
 
-        Do not build tbl_file = clause yourself using this - use get_tbl_filt_clause
-        instead so quoting works.
+        Do not build tbl_file = clause yourself using this - use
+        get_tbl_filt_clause instead so quoting works.
         """
         try:
             tbl_filt_label, tbl_filt = mg.DBE_TBL_FILTS[dbe][db][tbl]
@@ -1107,12 +1108,12 @@ class FiltLib(object):
         (other AND condition_A) OR condition_B instead of as
         other AND (condition_A OR condition_B).
 
-        Filters must still work if empty strings (for performance when no filter 
+        Filters must still work if empty strings (for performance when no filter
         required).
         """
         if tbl_filt.strip() != '':
-            where_tbl_filt = f""" WHERE ({tbl_filt})"""
-            and_tbl_filt = f""" AND ({tbl_filt})"""
+            where_tbl_filt = f' WHERE ({tbl_filt})'
+            and_tbl_filt = f' AND ({tbl_filt})'
         else:
             where_tbl_filt = ''
             and_tbl_filt = ''
@@ -1125,12 +1126,12 @@ class FiltLib(object):
         """
         if tbl_filt.strip() != '':
             if tbl_filt_label.strip() != '':
-                filt_msg = _("Data filtered by \"%(label)s\": %(filt)s") % \
-                    {"label": tbl_filt_label, "filt": tbl_filt.strip()}
+                filt_msg = (_("Data filtered by \"%(label)s\": %(filt)s")
+                    % {'label': tbl_filt_label, 'filt': tbl_filt.strip()})
             else:
-                filt_msg = _("Data filtered by: ") + tbl_filt.strip()
+                filt_msg = _('Data filtered by: ') + tbl_filt.strip()
         else:
-            filt_msg = _("All data in table included - no filtering")
+            filt_msg = _('All data in table included - no filtering')
         return filt_msg
 
 
@@ -1138,8 +1139,8 @@ class GuiLib(object):
 
     @staticmethod
     def setup_link(link, link_colour, bg_colour):
-        link.SetColours(link=link_colour, visited=link_colour,
-            rollover=link_colour)
+        link.SetColours(
+            link=link_colour, visited=link_colour, rollover=link_colour)
         link.SetOwnBackgroundColour(bg_colour)
         link.SetOwnFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9,
             wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -1151,10 +1152,10 @@ class GuiLib(object):
         link.UpdateLink(True)
 
     @staticmethod
-    def _get_min_content_size(szr_lst, vertical=True):
+    def _get_min_content_size(szr_lst, *, vertical=True):
         """
-        For a list of sizers return min content size overall. NB excludes padding 
-        (border).
+        For a list of sizers return min content size overall. NB excludes
+        padding (border).
 
         Returns x, y.
 
@@ -1165,7 +1166,7 @@ class GuiLib(object):
         y = 0
         for szr in szr_lst:
             szr_x, szr_y = szr.GetMinSize()
-            if debug: print(f"szr_x: {szr_x}; szr_y: {szr_y}")
+            if debug: print(f'szr_x: {szr_x}; szr_y: {szr_y}')
             if vertical:
                 x = max([szr_x, x])
                 y += szr_y
@@ -1282,18 +1283,18 @@ class GuiLib(object):
     def get_blank_btn_bmp(xpm='blankbutton.xpm'):
         blank_btn_path = os.path.join(mg.SCRIPT_PATH, 'images', xpm)
         if not os.path.exists(blank_btn_path):
-            raise Exception("Problem finding background button image. "
-                f"Missing path: {blank_btn_path}")
+            raise Exception('Problem finding background button image. '
+                f'Missing path: {blank_btn_path}')
         try:
             blank_btn_bmp = wx.Image(blank_btn_path,
                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         except Exception:
             raise Exception(
-                f"Problem creating background button image from {blank_btn_path}")
+                f'Problem creating background button image from {blank_btn_path}')
         return blank_btn_bmp
 
     @staticmethod
-    def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, reverse=False):
+    def get_bmp(src_img_path, bmp_type=wx.BITMAP_TYPE_GIF, *, reverse=False):
         """
         Makes image with path details, mirrors if required, then converts to a
         bitmap and returns it.
@@ -1329,13 +1330,12 @@ class GuiLib(object):
         """
         tree.item_has_children(item_id) doesn't work if root is hidden.
         E.g. self.tree = wx.gizmos.TreeListCtrl(self, -1,
-                          style=wx.TR_FULL_ROW_HIGHLIGHT | \
-                          wx.TR_HIDE_ROOT)
+            style=wx.TR_FULL_ROW_HIGHLIGHT|wx.TR_HIDE_ROOT)
         wxTreeCtrl::ItemHasChildren
         bool ItemHasChildren(const wxTreeItemId& item) const
         Returns TRUE if the item has children.
         """
-        item, unused = tree.GetFirstChild(parent) # item is an id
+        item, unused = tree.GetFirstChild(parent)  ## item is an id
         return True if item else False
 
     @staticmethod
@@ -1394,15 +1394,15 @@ class GuiLib(object):
         e.g. if has a label, turn agegrp into Age Group
         """
         item_val_u = UniLib.any2unicode(item_val)
-        return item_labels.get(item_val, item_val_u.title())  ##.replace(u"\n", u" ") # leave as is
+        return item_labels.get(item_val, item_val_u.title())  ##.replace(u'\n', u' ') # leave as is
 
     @staticmethod
     def get_choice_item(item_labels, item_val):
         """
-        e.g. "Age Group (agegrp)"
+        e.g. 'Age Group (agegrp)'
         """
         item_label = GuiLib.get_item_label(item_labels, item_val)
-        return f"{item_label} ({UniLib.any2unicode(item_val)})"
+        return f'{item_label} ({UniLib.any2unicode(item_val)})'
 
     @staticmethod
     def get_sorted_choice_items(dic_labels, vals, *, inc_drop_select=False):
@@ -1469,8 +1469,8 @@ class MultilineCheckBox(wx.CheckBox):
     def on_paint(self, event):
         dc = wx.PaintDC(self)
         self.draw(dc)
-        self.RefreshRect(wx.Rect(0, 0, self._textHOffset,
-            self.GetSize().height))
+        self.RefreshRect(
+            wx.Rect(0, 0, self._textHOffset, self.GetSize().height))
         event.Skip()
 
     def draw(self, dc):
@@ -1502,8 +1502,8 @@ class StdCheckBox(wx.CheckBox):
 
 
 class DlgHelp(wx.Dialog):
-    def __init__(self, parent, title, guidance_lbl, activity_lbl, guidance, 
-            help_pg):
+    def __init__(self,
+            parent, title, guidance_lbl, activity_lbl, guidance, help_pg):
         wx.Dialog.__init__(self, parent=parent, title=title,
             style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU,
             pos=(mg.HORIZ_OFFSET+100,100))
@@ -1515,10 +1515,10 @@ class DlgHelp(wx.Dialog):
         szr_main = wx.BoxSizer(wx.VERTICAL)
         lbl_guidance = wx.StaticText(self.panel, -1, guidance)
         szr_guidance.Add(lbl_guidance, 1, wx.GROW|wx.ALL, 10)
-        btn_online_help = wx.Button(self.panel, -1, _("Online Help"))
+        btn_online_help = wx.Button(self.panel, -1, _('Online Help'))
         btn_online_help.Bind(wx.EVT_BUTTON, self.on_online_help)
         btn_online_help.SetToolTip(
-            _("Get more help with %s online") % activity_lbl)
+            _('Get more help with %s online') % activity_lbl)
         btn_close = wx.Button(self.panel, wx.ID_CLOSE)
         btn_close.Bind(wx.EVT_BUTTON, self.on_close)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
@@ -1534,7 +1534,7 @@ class DlgHelp(wx.Dialog):
     def on_online_help(self, event):
         import webbrowser
         url = (
-            f"http://www.sofastatistics.com/wiki/doku.php?id=help:{self.help_pg}")
+            f'http://www.sofastatistics.com/wiki/doku.php?id=help:{self.help_pg}')
         webbrowser.open_new_tab(url)
         event.Skip()
 
@@ -1577,14 +1577,14 @@ class StaticWrapText(wx.StaticText):
         current = []
         for word in words:
             current.append(word)
-            if self.GetTextExtent(" ".join(current))[0] > max_width:
+            if self.GetTextExtent(' '.join(current))[0] > max_width:
                 del current[-1]
-                lines.append(" ".join(current))
+                lines.append(' '.join(current))
                 current = [word]
         ## pick up the last line of text
-        lines.append(" ".join(current))
+        lines.append(' '.join(current))
         ## set the actual label property to the wrapped version
-        super(StaticWrapText, self).set_label("\n".join(lines))
+        super(StaticWrapText, self).set_label('\n'.join(lines))
         ## refresh the widget
         self.Refresh()
 
@@ -1604,7 +1604,7 @@ class ItemConfig(object):
     Note - won't have a var name if it is the column config item.
     """
 
-    def __init__(self, sort_order, var_name=None, measures_lst=None,
+    def __init__(self, sort_order, var_name=None, measures_lst=None, *,
             has_tot=False, bolnumeric=False):
         self.var_name = var_name
         if measures_lst:
@@ -1615,30 +1615,30 @@ class ItemConfig(object):
         self.sort_order = sort_order
         self.bolnumeric = bolnumeric
 
-    def get_summary(self, verbose=False):
+    def get_summary(self, *, verbose=False):
         """
         String summary of data (apart from variable name).
         """
         str_parts = []
-        total_part = _("Has TOTAL") if self.has_tot else None
+        total_part = _('Has TOTAL') if self.has_tot else None
         if total_part:
             str_parts.append(total_part)
         # ordinary sorting by freq (may include rows and cols)
-        order2lbl_dic = {mg.SORT_NONE_KEY: "Not Sorted",
-            mg.SORT_VALUE_KEY: "Sort by Value",
-            mg.SORT_LBL_KEY: _("Sort by Label"),
-            mg.SORT_INCREASING_KEY: _("Sort by Freq (Asc)"),
-            mg.SORT_DECREASING_KEY: _("Sort by Freq (Desc)")}
+        order2lbl_dic = {mg.SORT_NONE_KEY: 'Not Sorted',
+            mg.SORT_VALUE_KEY: 'Sort by Value',
+            mg.SORT_LBL_KEY: _('Sort by Label'),
+            mg.SORT_INCREASING_KEY: _('Sort by Freq (Asc)'),
+            mg.SORT_DECREASING_KEY: _('Sort by Freq (Desc)')}
         sort_order_part = order2lbl_dic.get(self.sort_order)
         if sort_order_part:
             str_parts.append(sort_order_part)
         if verbose:
             if self.bolnumeric:
-                str_parts.append(_("Numeric"))
+                str_parts.append(_('Numeric'))
             else:
-                str_parts.append(_("Not numeric"))
-        measures = ", ".join(self.measures_lst)
-        measures_part = _("Measures: %s") % measures if measures else None
+                str_parts.append(_('Not numeric'))
+        measures = ', '.join(self.measures_lst)
+        measures_part = _('Measures: %s') % measures if measures else None
         if measures_part:
             str_parts.append(measures_part)
         return '; '.join(str_parts)
@@ -1652,31 +1652,31 @@ def get_gettext_setup_txt():
     Must achieve same result for gettext as occurs in SofaApp.setup_i18n() in
     start.py.
 
-    Need to explicitly set proper locale in scripts so they can run 
+    Need to explicitly set proper locale in scripts so they can run
     independently of the GI.
 
     Doesn't need to be in start.py but safest to be next to where code it is
     meant to replicate.
     """
     bits = []
-    bits.append("try:")
+    bits.append('try:')
     bits.append("    mytrans = gettext.translation('sofastats', "
         f'"{escape_pre_write(mg.LANGDIR)}",')
     bits.append(f"        languages=['{mg.CANON_NAME}',], fallback=True)")
-    bits.append("    mytrans.install()")
-    bits.append("except Exception as e:")
+    bits.append('    mytrans.install()')
+    bits.append('except Exception as e:')
     bits.append('    raise Exception("Problem installing translation. "')
     bits.append('        "Original error: %s" % e)')
     if mg.PLATFORM == mg.LINUX:
-        bits.append("try:")
+        bits.append('try:')
         bits.append(f"    os.environ['LANG'] = '{mg.CANON_NAME}.UTF-8'")
-        bits.append("except (ValueError, KeyError):")
-        bits.append("    pass  ## OK if unable to set environment settings.")
+        bits.append('except (ValueError, KeyError):')
+        bits.append('    pass  ## OK if unable to set environment settings.')
     return '\n'.join(bits)
 
 def formatnum(num):
     try:
-        formatted = f"{num:,}"
+        formatted = f'{num:,}'
     except ValueError:
         formatted = num
     return formatted
@@ -1687,7 +1687,7 @@ def fix_eols(orig):
     Prevents variable or value labels, for example, with line breaks.
     """
     try:
-        fixed = orig.replace(u"\n", u" ")
+        fixed = orig.replace(u'\n', u' ')
     except AttributeError:  ## e.g. None
         fixed = orig
     return fixed
@@ -1718,23 +1718,23 @@ def sort_value_lbls(sort_order, vals_etc_lst, idx_measure, idx_lbl):
         vals_etc_lst.sort(key=itemgetter(idx_lbl))
 
 def pluralise_with_s(singular, n):
-    return singular if n == 1 else f"{singular}s"
+    return singular if n == 1 else f'{singular}s'
 
 def get_bins(min_val, max_val, n_distinct):
     """
-    Goal - set nice bin widths so "nice" value e.g. 0.2, 0.5, 1 (or
+    Goal - set nice bin widths so 'nice' value e.g. 0.2, 0.5, 1 (or
     200, 500, 1000 or 0.002, 0.005, 0.01) and not too many or too few bins.
 
-    Start with a bin width which splits the data into the optimal number of 
-    bins. Normalise it, adjust upwards to nice size, and denormalise. Check 
+    Start with a bin width which splits the data into the optimal number of
+    bins. Normalise it, adjust upwards to nice size, and denormalise. Check
     number of bins resulting.
 
-    OK? If room to double number of bins, halve size of normalised bin width, 
-    and try to adjust upwards to a nice size. This time, however, there is the 
-    option of 2 as an interval size (so we have 2, 5, or 10. Denormalise and 
+    OK? If room to double number of bins, halve size of normalised bin width,
+    and try to adjust upwards to a nice size. This time, however, there is the
+    option of 2 as an interval size (so we have 2, 5, or 10. Denormalise and
     recalculate the number of bins.
 
-    Now reset lower and upper limits if appropriate. Make lower limit a multiple 
+    Now reset lower and upper limits if appropriate. Make lower limit a multiple
     of the bin_width and make upper limit n_bins*bin_width higher.
 
     Add another bin if not covering max value.
@@ -1744,9 +1744,9 @@ def get_bins(min_val, max_val, n_distinct):
     debug = False
     ## init
     if min_val > max_val:
-        if debug: print(f"Had to swap {min_val} and {max_val} ...")
+        if debug: print(f'Had to swap {min_val} and {max_val} ...')
         min_val, max_val = max_val, min_val
-        if debug: print(f"... to {min_val} and {max_val}")
+        if debug: print(f'... to {min_val} and {max_val}')
     data_range = max_val - min_val
     if data_range == 0:
         data_range = 1
@@ -1769,7 +1769,7 @@ def get_bins(min_val, max_val, n_distinct):
     while norm_bin_width > 10:
         norm_bin_width /= 10.0
     if debug:
-        print(f"init: {init_bin_width}, normed: {norm_bin_width}")
+        print(f'init: {init_bin_width}, normed: {norm_bin_width}')
     ## get denorm ratio so can convert norm_bin widths back to data bin widths
     denorm_ratio = init_bin_width/norm_bin_width
     ## adjust upwards to either 5 or 10
@@ -1809,9 +1809,9 @@ def get_bins(min_val, max_val, n_distinct):
         upper_limit += better_bin_width
         n_bins += 1
     if debug:
-        print(f"For {min_val} to {max_val} use an interval size of "
-            f"{better_bin_width} for a data range of "
-            f"{lower_limit} to {upper_limit} giving you {n_bins} bins")
+        print(f'For {min_val} to {max_val} use an interval size of '
+            f'{better_bin_width} for a data range of '
+            f'{lower_limit} to {upper_limit} giving you {n_bins} bins')
     return n_bins, lower_limit, upper_limit
 
 def version_a_is_newer(version_a, version_b):
@@ -1821,17 +1821,17 @@ def version_a_is_newer(version_a, version_b):
     try:
         version_b_parts = version_b.split('.')
         if len(version_b_parts) != 3:
-            raise Exception("Faulty Version B details")
+            raise Exception('Faulty Version B details')
         version_b_parts = [int(x) for x in version_b_parts]
     except Exception:
-        raise Exception("Version B parts faulty")
+        raise Exception('Version B parts faulty')
     try:
-        version_a_parts = version_a.split(u".")
+        version_a_parts = version_a.split(u'.')
         if len(version_a_parts) != 3:
-            raise Exception("Faulty Version A details")
+            raise Exception('Faulty Version A details')
         version_a_parts = [int(x) for x in version_a_parts]
     except Exception:
-        raise Exception("Version A parts faulty")
+        raise Exception('Version A parts faulty')
     if version_a_parts[0] > version_b_parts[0]:
         is_newer = True
     elif (version_a_parts[0] == version_b_parts[0]
@@ -1855,7 +1855,7 @@ def get_val_type(val, comma_dec_sep_ok=False):
     """
     comma_dec_sep_ok -- Some countries use commas as decimal separators.
     """
-    if TypeLib.is_numeric(val, comma_dec_sep_ok):  ## anything SQLite can add
+    if TypeLib.is_numeric(val, comma_dec_sep_ok=comma_dec_sep_ok):  ## anything SQLite can add
             ## _as a number_ into a numeric field
         val_type = mg.VAL_NUMERIC
     elif TypeLib.is_pytime(val):  ## COM on Windows
@@ -1864,7 +1864,7 @@ def get_val_type(val, comma_dec_sep_ok=False):
         usable_datetime = DateLib.is_usable_datetime_str(val)
         if usable_datetime:
             val_type = mg.VAL_DATE
-        elif val == '':  ## Note - some strings can't be coerced into u"" comparison
+        elif val == '':  ## Note - some strings can't be coerced into '' comparison
             val_type = mg.VAL_EMPTY_STRING
         else:
             val_type = mg.VAL_STRING
@@ -1897,14 +1897,14 @@ def esc_str_input(raw):
     """
     Escapes input ready to go into a string using %.
 
-    So "variable %Y has fields %s" % fields will fail because variables with 
+    So "variable %Y has fields %s" % fields will fail because variables with
     name %Y will confuse the string formatting operation.  %%Y will be fine.
     """
     try:
         new_str = raw.replace('%', '%%')
     except Exception as e:
         raise Exception(
-            f"Unable to escape str input.\nCaused by error: {b.ue(e)}")
+            f'Unable to escape str input.\nCaused by error: {b.ue(e)}')
     return new_str
 
 def get_var_dets(fil_var_dets):
@@ -1913,9 +1913,9 @@ def get_var_dets(fil_var_dets):
 
     Returns var_labels, var_notes, var_types, val_dics.
 
-    If any errors, return empty dicts and let user continue. Perhaps a corrupted 
-    vdts file. Not a reason to bring the whole show down. At least make it easy 
-    for them to fix the variable details/change the project settings etc. 
+    If any errors, return empty dicts and let user continue. Perhaps a corrupted
+    vdts file. Not a reason to bring the whole show down. At least make it easy
+    for them to fix the variable details/change the project settings etc.
     """
     empty_var_dets = ({},{},{},{})
     var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
@@ -1939,18 +1939,18 @@ def get_var_dets(fil_var_dets):
                 var_types, var_dets_dic['val_dics'])
         except Exception as e:
             wx.MessageBox(f'Four variables needed in "{fil_var_dets}": '
-                "var_labels, var_notes, var_types, and val_dics. "
-                f"Please check file. Orig error: {b.ue(e)}")
+                'var_labels, var_notes, var_types, and val_dics. '
+                f'Please check file. Orig error: {b.ue(e)}')
     except SyntaxError as e:
         wx.MessageBox(
             _("Syntax error in variable details file \"%(fil_var_dets)s\"."
-            "\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets,
-            "err": str(e)})
+            "\n\nDetails: %(err)s") % {u'fil_var_dets': fil_var_dets,
+            'err': str(e)})
     except Exception as e:
         wx.MessageBox(
             _("Error processing variable details file \"%(fil_var_dets)s\"."
-            "\n\nDetails: %(err)s") % {u"fil_var_dets": fil_var_dets,
-            "err": str(e)})
+            "\n\nDetails: %(err)s") % {u'fil_var_dets': fil_var_dets,
+            'err': str(e)})
     return results
 
 def get_rand_val_of_type(lbl_type_key):
@@ -1961,7 +1961,7 @@ def get_rand_val_of_type(lbl_type_key):
     elif lbl_type_key == mg.FLDTYPE_DATE_KEY:
         vals_of_type = mg.DTM_DATA_SEQ
     else:
-        raise Exception("Unknown lbl_type_key in get_rand_val_of_type")
+        raise Exception('Unknown lbl_type_key in get_rand_val_of_type')
     return random.choice(vals_of_type)
 
 def get_n_fldnames(n):
@@ -1974,7 +1974,7 @@ def get_n_fldnames(n):
 def get_unique_fldnames(existing_fldnames):
     """
     If some field names are blank e.g. empty columns in a csv file, autofill
-    with safe names (numbered to be unique). Create numbered versions of 
+    with safe names (numbered to be unique). Create numbered versions of
     duplicates to ensure they are also unique.
     """
     fldnames = []
@@ -2033,8 +2033,8 @@ def n2d(f):
     try:
         n, d = f.as_integer_ratio()
     except Exception:
-        raise Exception(f'Unable to turn value "{f}" into integer ratio for '
-            + "unknown reason.")
+        raise Exception(
+            f'Unable to turn value "{f}" into integer ratio for unknown reason.')
     numerator, denominator = decimal.Decimal(n), decimal.Decimal(d)
     ctx = decimal.Context(prec=60)
     result = ctx.divide(numerator, denominator)
@@ -2063,7 +2063,7 @@ def get_escaped_dict_pre_write(mydict):
     return '{' + ',\n    '.join(items_list) + '}'
 
 if mg.PLATFORM == mg.WINDOWS:
-    exec("import pywintypes")
+    exec('import pywintypes')
 
 def escape_pre_write(txt):
     """
@@ -2077,7 +2077,7 @@ def escape_pre_write(txt):
 
     Only ever use on the contents e.g. home/fred\'s home...
     """
-    esctxt = txt.replace("\\", "\\\\")
+    esctxt = txt.replace('\\', '\\\\')
     esctxt = esctxt.replace('"', '\\"')
     esctxt = esctxt.replace("'", "\\'")
     return esctxt
@@ -2086,7 +2086,7 @@ def get_file_name(path):
     "Works on Windows paths as well"
     path = path.replace('\\\\', '\\').replace('\\', '/')
     return os.path.split(path)[1]
-    
+
 def if_none(val, default):
     """
     Returns default if value is None - otherwise returns value.

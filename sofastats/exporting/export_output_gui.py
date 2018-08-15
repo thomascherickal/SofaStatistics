@@ -36,7 +36,7 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
     tot_taken = pdf_taken + imgs_taken + tbls_taken
     if tot_taken == 0:
         raise Exception(
-            "Unable to get start and steps - zero items to show progress for.")
+            'Unable to get start and steps - zero items to show progress for.')
     pdf_as_prop = pdf_taken/float(tot_taken)
     imgs_as_prop = imgs_taken/float(tot_taken)
     tbls_as_prop = tbls_taken/float(tot_taken)
@@ -85,15 +85,15 @@ class DlgExportOutput(wx.Dialog):
             report_name = os.path.split(report_path)[1]
             msg = f'Export "{report_name}"'
         else:
-            msg = "Export content currently displayed in SOFA"
+            msg = 'Export content currently displayed in SOFA'
         lbl_msg = wx.StaticText(self, -1, msg)
         szr.Add(lbl_msg, 0, wx.ALL, 10)
         szr_pdf_or_tbls = wx.BoxSizer(wx.VERTICAL)
         szr_left_and_right = wx.BoxSizer(wx.HORIZONTAL)
-        self.chk_pdf = wx.CheckBox(self, -1, _("Export as PDF"))
+        self.chk_pdf = wx.CheckBox(self, -1, _('Export as PDF'))
         self.chk_pdf.Bind(wx.EVT_CHECKBOX, self.on_chk_pdf)
         self.chk_tbls = wx.CheckBox(self, -1,
-            _("Export to spreadsheet (report tables only)"))
+            _('Export to spreadsheet (report tables only)'))
         self.chk_tbls.Bind(wx.EVT_CHECKBOX, self.on_chk_tbls)
         szr_pdf_or_tbls.Add(self.chk_pdf, 0, wx.ALL, 10)
         szr_pdf_or_tbls.Add(self.chk_tbls, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
@@ -101,21 +101,21 @@ class DlgExportOutput(wx.Dialog):
         szr_left_and_right.Add(szr_pdf_or_tbls)
         szr_left_and_right.Add(ln_split, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_imgs = wx.BoxSizer(wx.VERTICAL)
-        self.chk_imgs = wx.CheckBox(self, -1, _("Export as Images"))
+        self.chk_imgs = wx.CheckBox(self, -1, _('Export as Images'))
         self.chk_imgs.Bind(wx.EVT_CHECKBOX, self.on_chk_imgs)
         self.choice_dpis = [
-            (_("Draft Quality (%s dpi)") % mg.DRAFT_DPI, mg.DRAFT_DPI),
-            (_("Screen Quality (%s dpi)") % mg.SCREEN_DPI, mg.SCREEN_DPI),
-            (_("Print Quality (%s dpi)") % mg.PRINT_DPI, mg.PRINT_DPI),
-            (_("High Quality (%s dpi)") % mg.HIGH_QUAL_DPI, mg.HIGH_QUAL_DPI),
-            (_("Top Quality (%s dpi)") % mg.TOP_DPI, mg.TOP_DPI),
+            (_('Draft Quality (%s dpi)') % mg.DRAFT_DPI, mg.DRAFT_DPI),
+            (_('Screen Quality (%s dpi)') % mg.SCREEN_DPI, mg.SCREEN_DPI),
+            (_('Print Quality (%s dpi)') % mg.PRINT_DPI, mg.PRINT_DPI),
+            (_('High Quality (%s dpi)') % mg.HIGH_QUAL_DPI, mg.HIGH_QUAL_DPI),
+            (_('Top Quality (%s dpi)') % mg.TOP_DPI, mg.TOP_DPI),
         ]
         choices = [x[0] for x in self.choice_dpis]
         self.drop_dpi = wx.Choice(self, -1, choices=choices)
         idx_print = 2
         self.drop_dpi.SetSelection(idx_print)
-        self.drop_dpi.SetToolTip("The more dots per inch (dpi) the higher the "
-            "quality but the slower the export process.")
+        self.drop_dpi.SetToolTip('The more dots per inch (dpi) the higher the '
+            'quality but the slower the export process.')
         szr_imgs.Add(self.chk_imgs, 0, wx.LEFT|wx.RIGHT|wx.TOP, 10)
         szr_imgs.Add(self.drop_dpi, 0, wx.LEFT|wx.RIGHT|wx.BOTTOM, 10)
         szr_left_and_right.Add(szr_imgs, 0)
@@ -123,7 +123,7 @@ class DlgExportOutput(wx.Dialog):
         self.btn_cancel = wx.Button(self, wx.ID_CANCEL)
         self.btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
         self.btn_cancel.Enable(False)
-        self.btn_export = wx.Button(self, -1, "Export")
+        self.btn_export = wx.Button(self, -1, 'Export')
         self.btn_export.Bind(wx.EVT_BUTTON, self.on_btn_export)
         self.btn_export.Enable(False)
         szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=0)
@@ -141,7 +141,7 @@ class DlgExportOutput(wx.Dialog):
         szr.SetSizeHints(self)
         szr.Layout()
 
-    def on_btn_export(self, unused_event):
+    def on_btn_export(self, _event):
         debug = False
         headless = False
         if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
@@ -153,7 +153,7 @@ class DlgExportOutput(wx.Dialog):
         if not (do_pdf or do_imgs or do_tbls):
             lib.GuiLib.safe_end_cursor()
             self.align_btns_to_exporting(exporting=False)
-            wx.MessageBox(u"Please select a format(s) to export in.")
+            wx.MessageBox('Please select a format(s) to export in.')
             return
         msgs = []
         hdr, img_items, tbl_items = export_output.get_hdr_and_items(
@@ -163,57 +163,58 @@ class DlgExportOutput(wx.Dialog):
         if not (do_pdf or (do_imgs and n_imgs) or (do_tbls and n_tbls)):
             lib.GuiLib.safe_end_cursor()
             self.align_btns_to_exporting(exporting=False)
-            wx.MessageBox(u"No output of the selected type(s) to export.")
+            wx.MessageBox('No output of the selected type(s) to export.')
             return
         self.align_btns_to_exporting(exporting=True)
         if self.save2report_path:
             temp_desktop_path = None
         else:
-            # save to folder on desktop
+            ## save to folder on desktop
             ts = datetime.datetime.now().strftime('%b %d %I-%M %p').strip()
-            foldername = u"SOFA export %s" % ts
-            desktop = os.path.join(mg.HOME_PATH, u"Desktop")
+            foldername = f'SOFA export {ts}'
+            desktop = os.path.join(mg.HOME_PATH, 'Desktop')
             temp_desktop_path = os.path.join(desktop, foldername)
             if debug: print(temp_desktop_path)
             try:
                 os.mkdir(temp_desktop_path)
             except OSError:
-                pass # already there
+                pass  ## already there
         idx_sel = self.drop_dpi.GetSelection()
         idx_dpi = 1
         self.output_dpi = self.choice_dpis[idx_sel][idx_dpi]
         n_pdfs = 1 if do_pdf else 0
         (gauge_start_pdf, steps_per_pdf, 
         gauge_start_imgs, steps_per_img, 
-        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(n_pdfs, n_imgs,
-            self.output_dpi, n_tbls)
+        gauge_start_tbls, steps_per_tbl) = get_start_and_steps(
+                                       n_pdfs, n_imgs, self.output_dpi, n_tbls)
         if do_pdf:
             try:
-                export_output_pdfs.pdf_tasks(self.save2report_path,
-                    self.report_path, temp_desktop_path, headless,
-                    gauge_start_pdf, steps_per_pdf, msgs, self.progbar)
+                export_output_pdfs.pdf_tasks(
+                    self.report_path, temp_desktop_path,
+                    gauge_start_pdf, steps_per_pdf, msgs, self.progbar,
+                    save2report_path=self.save2report_path, headless=headless)
             except Exception as e:
                 self.progbar.SetValue(0)
                 lib.GuiLib.safe_end_cursor()
                 self.align_btns_to_exporting(exporting=False)
                 self.export_status[mg.CANCEL_EXPORT] = False
-                wx.MessageBox(u"Unable to export PDF. Orig error: %s" % b.ue(e))
+                wx.MessageBox(f'Unable to export PDF. Orig error: {b.ue(e)}')
                 return
         if do_imgs:
             try:
                 export_output_images.ExportImage.export2imgs(hdr, img_items,
-                    self.save2report_path, self.report_path, temp_desktop_path,
-                    self.output_dpi, gauge_start_imgs, headless,
+                    self.report_path, temp_desktop_path,
+                    self.output_dpi, gauge_start_imgs,
                     self.export_status, steps_per_img, msgs, self.progbar,
-                    self.multi_page_items)
+                    save2report_path=self.save2report_path,
+                    headless=headless, self.multi_page_items)
             except Exception as e:
                 try:
                     raise
                 except my_exceptions.ExportCancel:
-                    wx.MessageBox(u"Export Cancelled")
+                    wx.MessageBox('Export Cancelled')
                 except Exception as e:
-                    msg = (u"Problem exporting output. Orig error: %s" %
-                        b.ue(e))
+                    msg = (f'Problem exporting output. Orig error: {b.ue(e)}')
                     if debug: print(msg)
                     wx.MessageBox(msg)
                 self.progbar.SetValue(0)
@@ -223,22 +224,24 @@ class DlgExportOutput(wx.Dialog):
                 return
         if do_tbls:
             if n_tbls == 0:
-                wx.MessageBox(_(u"No report tables to export to spreadsheet - "
-                    u"skipping this task"))
+                wx.MessageBox(_('No report tables to export to spreadsheet - '
+                    'skipping this task'))
             else:
                 try:
-                    export_output_spreadsheets.export2spreadsheet(hdr, tbl_items, 
-                        self.save2report_path, self.report_path, temp_desktop_path, 
-                        gauge_start_tbls, headless, steps_per_tbl, msgs, 
-                        self.progbar)
+                    export_output_spreadsheets.export2spreadsheet(
+                        hdr, tbl_items,
+                        self.report_path, temp_desktop_path,
+                        gauge_start_tbls, steps_per_tbl, msgs, self.progbar,
+                        save2report_path=self.save2report_path,
+                        headless=headless)
                 except Exception as e:
                     try:
                         raise
                     except my_exceptions.ExportCancel:
-                        wx.MessageBox(u"Export Cancelled")
+                        wx.MessageBox('Export Cancelled')
                     except Exception as e:
-                        msg = (u"Problem exporting output. Orig error: %s" % 
-                            b.ue(e))
+                        msg = (
+                            f'Problem exporting output. Orig error: {b.ue(e)}')
                         if debug: print(msg)
                         wx.MessageBox(msg)
                     self.progbar.SetValue(0)
@@ -249,22 +252,22 @@ class DlgExportOutput(wx.Dialog):
         self.progbar.SetValue(mg.EXPORT_IMG_GAUGE_STEPS)
         lib.GuiLib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
-        msg = u"\n\n".join(msgs)
-        caption = (_(u"EXPORTED REPORT") if self.save2report_path 
-            else _(u"EXPORTED CURRENT OUTPUT"))
-        wx.MessageBox(_(u"Exporting completed.\n\n%s") % msg, caption=caption)
+        msg = '\n\n'.join(msgs)
+        caption = (_('EXPORTED REPORT') if self.save2report_path 
+            else _('EXPORTED CURRENT OUTPUT'))
+        wx.MessageBox(_('Exporting completed.\n\n%s') % msg, caption=caption)
         self.progbar.SetValue(0)
 
-    def on_chk_pdf(self, unused_event):
+    def on_chk_pdf(self, _event):
         self.align_btns_to_completeness()
 
-    def on_chk_imgs(self, unused_event):
+    def on_chk_imgs(self, _event):
         self.align_btns_to_completeness()
 
-    def on_chk_tbls(self, unused_event):
+    def on_chk_tbls(self, _event):
         self.align_btns_to_completeness()
 
-    def on_btn_cancel(self, unused_event):
+    def on_btn_cancel(self, _event):
         self.export_status[mg.CANCEL_EXPORT] = True
 
     def align_btns_to_completeness(self):
@@ -279,5 +282,5 @@ class DlgExportOutput(wx.Dialog):
         self.btn_cancel.Enable(exporting)
         self.btn_export.Enable(not exporting)
 
-    def on_btn_close(self, unused_event):
+    def on_btn_close(self, _event):
         self.Destroy()

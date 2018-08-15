@@ -52,7 +52,7 @@ class DlgChooseFldtype(wx.Dialog):
         btn_text = wx.Button(self.panel, mg.RET_TEXT, mg.FLDTYPE_STRING_LBL)
         btn_text.Bind(wx.EVT_BUTTON, self.on_text)
         szr_btns.Add(btn_text, 0, wx.LEFT|wx.RIGHT, 10)
-        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL) # 
+        btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_cancel)
         szr_btns.Add(btn_cancel, 0,  wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(lbl_choice, 0, wx.GROW|wx.ALL, 10)
@@ -153,12 +153,12 @@ class DlgFixMismatch(wx.Dialog):
         self.faulty2missing_fld_list.append(self.fldname)
         self.Destroy()
         self.SetReturnCode(mg.RET_DATE)
-        
+
     def on_text(self, _event):
         self.fldtypes[self.fldname] = mg.FLDTYPE_STRING_KEY
         self.Destroy()
         self.SetReturnCode(mg.RET_TEXT)
-        
+
     def on_cancel(self, _event):
         self.Destroy()
         self.SetReturnCode(wx.ID_CANCEL)  ## only for dialogs 
@@ -179,8 +179,7 @@ def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
 def get_sample_rows(fpath):
     debug = False
     try:
-        f = open(fpath)  ## don't use "U" - let it fail if necessary
-            ## and suggest an automatic cleanup.
+        f = open(fpath)  ## don't use "U" - let it fail if necessary and suggest an automatic cleanup.
         sample_rows = []
         for i, row in enumerate(f):
             if i < 20:
@@ -221,7 +220,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             dlg = DlgChooseFldtype(fldname)
             ret = dlg.ShowModal()
             if ret == wx.ID_CANCEL:
-                raise Exception(u"Needed a data type for \"%s\"." % fldname)
+                raise Exception(f'Needed a data type for "{fldname}".')
             elif ret == mg.RET_NUMERIC:
                 fldtype = mg.FLDTYPE_NUMERIC_KEY
             elif ret == mg.RET_DATE:
@@ -229,11 +228,11 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
             elif ret == mg.RET_TEXT:
                 fldtype = mg.FLDTYPE_STRING_KEY
             else:
-                raise Exception(u"Unexpected return type from DlgChooseFldtype")
+                raise Exception('Unexpected return type from DlgChooseFldtype')
         else:
             fldtype = mg.FLDTYPE_STRING_KEY
     elif len(main_type_set) > 1:
-        # get user to choose
+        ## get user to choose
         fldtypes = {}
         fldtype_choices = []
         if mg.VAL_NUMERIC in main_type_set:
@@ -247,7 +246,7 @@ def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
                 details=first_mismatch, assessing_sample=assessing_sample)
             ret = dlg.ShowModal()
             if ret == wx.ID_CANCEL:
-                raise Exception(u"Inconsistencies in data type.")         
+                raise Exception('Inconsistencies in data type.')         
             else:
                 fldtype = fldtypes[fldname]
         else:
@@ -330,9 +329,10 @@ def process_tblname(rawname):
     """
     return lib.get_safer_name(rawname)
 
-def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
+def assess_sample_fld(sample_data, ok_fldname, ok_fldnames,
         faulty2missing_fld_list, *,
-        allow_none=True, comma_dec_sep_ok=False, headless=False):
+        has_header=True, allow_none=True, comma_dec_sep_ok=False,
+        headless=False):
     """
     NB client code gets number of fields in row 1. Then for each field, it
     traverses rows (i.e. travels down a col, then down the next etc). If a row
@@ -364,10 +364,10 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
     expected_fldtype = ''
     start_row_num = 2 if has_header else 1
     for row_num, row in enumerate(sample_data, start_row_num):
-        if debug: print(row_num, row) # look esp for Nones
+        if debug: print(row_num, row)  ## look esp for Nones
         if allow_none:
-            val = lib.if_none(row[ok_fldname], u"")
-        else: # csvs don't allow none for example
+            val = lib.if_none(row[ok_fldname], '')
+        else:  ## CSVs don't allow none for example
             val = row[ok_fldname]
             if val is None:
                 report_fld_n_mismatch(row, row_num, ok_fldnames,
@@ -381,9 +381,9 @@ def assess_sample_fld(sample_data, has_header, ok_fldname, ok_fldnames,
         main_type_set.discard(mg.VAL_EMPTY_STRING)
         if len(main_type_set) > 1 and not first_mismatch:
             ## identify row and value to report to user
-            first_mismatch = FIRST_MISMATCH_TPL.format(row=row_num, 
-                value=val, fldtype=expected_fldtype)
-    fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set, 
+            first_mismatch = FIRST_MISMATCH_TPL.format(
+                row=row_num, value=val, fldtype=expected_fldtype)
+    fldtype = get_best_fldtype(fldname=ok_fldname, type_set=type_set,
         faulty2missing_fld_list=faulty2missing_fld_list,
         first_mismatch=first_mismatch, headless=headless)
     return fldtype
@@ -395,13 +395,13 @@ def is_blank_raw_val(raw_val):
     """
     return raw_val in ('', "''", '""', None)
 
-def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype, *,
-        comma_dec_sep_ok=False):
+def get_val_and_ok_status(feedback, raw_val, fldtype, *,
+        is_pytime=False, comma_dec_sep_ok=False):
     debug = False
     ok_data = False        
     if fldtype == mg.FLDTYPE_NUMERIC_KEY:
         ## must be numeric, or empty string or dot (which we'll turn to NULL)
-        if lib.TypeLib.is_numeric(raw_val, comma_dec_sep_ok):
+        if lib.TypeLib.is_numeric(raw_val, comma_dec_sep_ok=comma_dec_sep_ok):
             if raw_val == 'NaN':
                 ok_data = True
                 val = NULL_INDICATOR
@@ -460,22 +460,22 @@ def get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype, *,
         raise Exception('Unexpected field type in importer.get_val()')
     return val, ok_data
 
-def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname, 
+def get_val(feedback, raw_val, is_pytime, fldtype, ok_fldname,
         faulty2missing_fld_list, row_num, *, comma_dec_sep_ok=False):
     """
     feedback -- dic with mg.NULLED_DOTS_KEY
 
-    Missing values are OK in numeric and date fields in the source field being 
-    imported, but a missing value indicator (e.g. ".") is not. Must be 
-    converted to a null. A missing value indicator is fine in the data _once it 
+    Missing values are OK in numeric and date fields in the source field being
+    imported, but a missing value indicator (e.g. ".") is not. Must be
+    converted to a null. A missing value indicator is fine in the data _once it
     has been imported_ but not beforehand.
 
-    Checking is always necessary, even for a sample which has already been 
-    examined. May have found a variable conflict and need to handle it after it 
+    Checking is always necessary, even for a sample which has already been
+    examined. May have found a variable conflict and need to handle it after it
     raises a mismatch error by turning faulty values to nulls.
     """
-    val, ok_data = get_val_and_ok_status(feedback, raw_val, is_pytime, fldtype,
-        comma_dec_sep_ok=comma_dec_sep_ok)
+    val, ok_data = get_val_and_ok_status(feedback, raw_val, fldtype,
+        is_pytime=is_pytime, comma_dec_sep_ok=comma_dec_sep_ok)
     if not ok_data:
         if ok_fldname in faulty2missing_fld_list:
             val = NULL_INDICATOR  ## replace faulty value with a null
@@ -611,28 +611,6 @@ def _process_row_dets(
         ## quoting must happen earlier so we can pass in NULL (None)
         vals_rows.append(vals)
     if debug and verbose: print(SQL_insert_row_tpl, vals_rows)
-    
-    
-    """
-    cur.executemany(SQL_insert_row_tpl, vals_rows)
-    
-     INSERT INTO sofa_tmp_tbl
-        (`var001`, `var002`, `var003`, `var004`, `var005`, `var006`, `var007`, `var008`, `var009`, `var010`, 
-         `var011`, `var012`, `var013`, `var014`, `var015`)
-        VALUES(?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-        
-    Should come through as NULL and 7466 etc i.e. nulls and numbers not strings 
-     [['NULL', 'NULL', 'NULL', 'NULL', 'NULL', '5508', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 
- '5496', 'NULL', 'NULL'], ['7466', 'NULL', '2200', 'NULL', '3308', 'NULL', 'NULL', '7486', 'NULL', '2173', 'NULL', 
- '3323', 'NULL', 'NULL', 'NULL'], ['NULL', 'NULL', 'NULL', 'NULL', '1', '1', '100302', 'NULL', 'NULL', 'NULL', 
- 'NULL', '1', '1', '2', '2'], ['NULL', 'NULL', 'NULL', 'NULL', '1', '1', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', '1', '1', 
- '2', '2'], ['NULL', 'NULL', 'NULL', 'NULL', '1', '1', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', '1', '1', '2', '2'], 
- ['NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', 'NULL', '0', 
- '0'], ['3752', '3714', '1171', '1029', '1563', '1745', 'NULL', '3778', '3708', '1208', '965', '1505', '1818', 'NULL', 
- 'NULL'], ['7466', 'NULL', '2200', 'NULL', '3308', 'NULL', 'NULL', '7486', 'NULL', '2173', 'NULL', '3323', 'NULL', 
- 'NULL', 'NULL']]
-    """
-    
     try:
         cur.executemany(SQL_insert_row_tpl, vals_rows)
         if headless:
@@ -713,14 +691,14 @@ def add_rows(
 
 def get_steps_per_item(items_n):
     """
-    Needed for progress bar - how many items before displaying another of the 
+    Needed for progress bar - how many items before displaying another of the
     steps as set by mg.IMPORT_GAUGE_STEPS.
 
     Chunks per item e.g. 0.01.
     """
     if items_n != 0:
-        # we go through the sample once at start for sampling and then again
-        # for adding to table
+        ## we go through the sample once at start for sampling and then again
+        ## for adding to table
         steps_per_item = float(mg.IMPORT_GAUGE_STEPS)/items_n
     else:
         steps_per_item = None
@@ -728,7 +706,7 @@ def get_steps_per_item(items_n):
 
 def drop_tmp_tbl(con, cur):
     con.commit()
-    SQL_drop_disp_tbl = u"DROP TABLE IF EXISTS %s" % mg.TMP_TBLNAME
+    SQL_drop_disp_tbl = f'DROP TABLE IF EXISTS {mg.TMP_TBLNAME}'
     cur.execute(SQL_drop_disp_tbl)
     con.commit()
 
@@ -745,7 +723,7 @@ def try_to_add_to_tmp_tbl(
         con, cur,
         tblname, ok_fldnames, fldtypes,
         faulty2missing_fld_list, data,
-        progbar, rows_n, steps_per_item, gauge_start,
+        progbar, rows_n, steps_per_item, gauge_start, *,
         allow_none=True, comma_dec_sep_ok=False,
         has_header=True, headless=False):
     debug = False
@@ -759,8 +737,7 @@ def try_to_add_to_tmp_tbl(
         SQL_get_tblnames = """SELECT name 
             FROM sqlite_master 
             WHERE type = 'table'"""
-        cur.execute(SQL_get_tblnames)  ## otherwise it doesn't always seem to
-            ## have the latest data on which tables exist
+        cur.execute(SQL_get_tblnames)  ## otherwise it doesn't always seem to have the latest data on which tables exist
         drop_tmp_tbl(con, cur)
         if debug: print(f'Successfully dropped {mg.TMP_TBLNAME}')
     except Exception as e:
@@ -814,7 +791,7 @@ def add_to_tmp_tbl(
         con, cur,
         tblname, ok_fldnames, fldtypes,
         faulty2missing_fld_list, data,
-        progbar, rows_n, steps_per_item, gauge_start,
+        progbar, rows_n, steps_per_item, gauge_start, *,
         allow_none=True, comma_dec_sep_ok=False,
         has_header=True, headless=False):
     """
@@ -869,20 +846,20 @@ def tmp_to_named_tbl(con, cur, tblname, progbar, nulled_dots, *,
     """
     debug = False
     try:
-        SQL_drop_tbl = (u"DROP TABLE IF EXISTS %s" % 
-            getdata.tblname_qtr(mg.DBE_SQLITE, tblname))
+        tblname_str = getdata.tblname_qtr(mg.DBE_SQLITE, tblname)
+        SQL_drop_tbl = f'DROP TABLE IF EXISTS {tblname_str}'
         if debug: print(SQL_drop_tbl)
         cur.execute(SQL_drop_tbl)
         con.commit()
-        SQL_rename_tbl = (u"ALTER TABLE %s RENAME TO %s" % 
-            (getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME), 
-            getdata.tblname_qtr(mg.DBE_SQLITE, tblname)))
+        tmp_tblname_str = getdata.tblname_qtr(mg.DBE_SQLITE, mg.TMP_TBLNAME)
+        SQL_rename_tbl = (
+            f'ALTER TABLE {tmp_tblname_str} RENAME TO {tblname_str}')
         if debug: print(SQL_rename_tbl)
         cur.execute(SQL_rename_tbl)
         con.commit()
     except Exception as e:
-        raise Exception(u"Unable to rename temporary table."
-            u"\nCaused by error: %s" % b.ue(e))
+        raise Exception('Unable to rename temporary table.'
+            f'\nCaused by error: {b.ue(e)}')
     progbar.SetValue(mg.IMPORT_GAUGE_STEPS)
     msg = _("Successfully imported data as\n\"%(tbl)s\".")
     if nulled_dots:
@@ -892,7 +869,7 @@ def tmp_to_named_tbl(con, cur, tblname, progbar, nulled_dots, *,
         "'Enter/Edit Data' button on the main form. You'll find your "
         "data in the '%s' database.") % mg.SOFA_DB
     if not headless:
-        wx.MessageBox(msg % {"tbl": tblname})
+        wx.MessageBox(msg.format(tbl=tblname))
 
 def get_content_dets(strdata):
     debug = False
@@ -906,12 +883,12 @@ def get_content_dets(strdata):
         if debug: print(len_row, row)
         if len_row < max_row_len:
             # right pad sequence with empty str (to become empty str cells)
-            row += [u"" for x in range(max_row_len - len_row)]
-        line = u"<tr><td>" + u"</td><td>".join(row) + u"</td></tr>"
+            row += ['' for x in range(max_row_len - len_row)]
+        line = '<tr><td>' + '</td><td>'.join(row) + '</td></tr>'
         lines.append(line)
-    trows = u"\n".join(lines)
-    content = u"<table border='1' style='border-collapse: collapse;'>" + \
-        u"<tbody>\n" + trows + u"\n</tbody></table>"
+    trows = '\n'.join(lines)
+    content = ("<table border='1' style='border-collapse: collapse;'>"
+        '<tbody>\n' + trows + '\n</tbody></table>')
     n_lines_actual = len(lines)
     content_height = 35*n_lines_actual
     content_height = 300 if content_height > 300 else content_height
@@ -920,35 +897,37 @@ def get_content_dets(strdata):
 
 class DlgHasHeader(wx.Dialog):
     def __init__(self, parent, ext):
-        wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
-            size=(550, 300), style=wx.CAPTION|wx.SYSTEM_MENU, 
-            pos=(mg.HORIZ_OFFSET+200,120))
+        wx.Dialog.__init__(self, parent=parent, title=_('Header row?'),
+            size=(550, 300), style=wx.CAPTION|wx.SYSTEM_MENU,
+            pos=(mg.HORIZ_OFFSET + 200, 120))
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        lbl_explan = wx.StaticText(self.panel, -1, _("Does your %s file have a "
-            "header row?") % ext)
-        lbl_with_header = wx.StaticText(self.panel, -1, 
-            _("Example with header"))
+        lbl_explan = wx.StaticText(self.panel, -1,
+            _('Does your %s file have a header row?') % ext)
+        lbl_with_header = wx.StaticText(self.panel, -1,
+            _('Example with header'))
         lbl_with_header.SetFont(mg.LABEL_FONT)
         img_ctrl_with_header = wx.StaticBitmap(self.panel)
-        img_with_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-            u"%s_with_header.xpm" % ext), wx.BITMAP_TYPE_XPM)
+        img_with_header = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', f'{ext}_with_header.xpm'),
+            wx.BITMAP_TYPE_XPM)
         bmp_with_header = wx.BitmapFromImage(img_with_header)
         img_ctrl_with_header.SetBitmap(bmp_with_header)
-        lbl_without_header = wx.StaticText(self.panel, -1, _("Example without"))
+        lbl_without_header = wx.StaticText(self.panel, -1, _('Example without'))
         lbl_without_header.SetFont(mg.LABEL_FONT)
         img_ctrl_without_header = wx.StaticBitmap(self.panel)
-        img_without_header = wx.Image(os.path.join(mg.SCRIPT_PATH, u"images", 
-            u"%s_without_header.xpm" % ext), wx.BITMAP_TYPE_XPM)
+        img_without_header = wx.Image(
+            os.path.join(mg.SCRIPT_PATH, 'images', f'{ext}_without_header.xpm'),
+            wx.BITMAP_TYPE_XPM)
         bmp_without_header = wx.BitmapFromImage(img_without_header)
         img_ctrl_without_header.SetBitmap(bmp_without_header)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER, 
-            _("Has Header Row"))
+            _('Has Header Row'))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
         btn_has_header.SetDefault()
-        btn_no_header = wx.Button(self.panel, -1, _("No Header"))
+        btn_no_header = wx.Button(self.panel, -1, _('No Header'))
         btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
@@ -967,41 +946,41 @@ class DlgHasHeader(wx.Dialog):
 
     def on_btn_has_header(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(mg.HAS_HEADER) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(mg.HAS_HEADER)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
 
     def on_btn_no_header(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(mg.NO_HEADER) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(mg.NO_HEADER)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
 
     def on_btn_cancel(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(wx.ID_CANCEL)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
 
 
 class DlgHasHeaderGivenData(wx.Dialog):
     def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
-        wx.Dialog.__init__(self, parent=parent, title=_("Header row?"),
+        wx.Dialog.__init__(self, parent=parent, title=_('Header row?'),
             size=(850, 250), style=wx.CAPTION|wx.SYSTEM_MENU,
-            pos=(mg.HORIZ_OFFSET+200,120))
+            pos=(mg.HORIZ_OFFSET + 200, 120))
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
         szr_btns = wx.BoxSizer(wx.HORIZONTAL)
-        explan = _(u"Does your %s file have a header row? Note - SOFA cannot "
-            u"handle multiple header rows.") % ext
+        explan = _('Does your %s file have a header row? Note - SOFA cannot '
+            'handle multiple header rows.') % ext
         lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
         html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,240))
         html_content.SetPage(content, mg.BASE_URL)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER,
-            _("Has Header Row"))
+            _('Has Header Row'))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)
-        btn_no_header = wx.Button(self.panel, -1, _("No Header"))
+        btn_no_header = wx.Button(self.panel, -1, _('No Header'))
         btn_no_header.Bind(wx.EVT_BUTTON, self.on_btn_no_header)
         btn_cancel = wx.Button(self.panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
@@ -1018,27 +997,27 @@ class DlgHasHeaderGivenData(wx.Dialog):
         self.panel.SetSizer(szr_main)
         szr_main.SetSizeHints(self)
         self.Layout()
-        
+
     def on_btn_has_header(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(mg.HAS_HEADER) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(mg.HAS_HEADER)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
         
     def on_btn_no_header(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(mg.NO_HEADER) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(mg.NO_HEADER)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
         
     def on_btn_cancel(self, unused_event):
         self.Destroy()
-        self.SetReturnCode(wx.ID_CANCEL) # or nothing happens!  
-        # Prebuilt dialogs presumably do this internally.
+        self.SetReturnCode(wx.ID_CANCEL)  ## or nothing happens!  
+        ## Prebuilt dialogs presumably do this internally.
 
 
 class DummyProgBar():
 
     def SetValue(self, value):
-        print(u"Progress {:,} ...".format(round(value, 3)))
+        print('Progress {:,} ...'.format(round(value, 3)))
 
 
 class DummyLabel():
@@ -1052,21 +1031,22 @@ dummy_import_status = {mg.CANCEL_IMPORT: False}
 class HeadlessImporter(object):
     def __init__(self):
         self.progbar = DummyProgBar()
-        self.import_status = dummy_import_status.copy() # can change and
-        # running script can check on it.
+        self.import_status = dummy_import_status.copy()  ## can change and running script can check on it.
         self.lbl_feedback = DummyLabel()
 
 
 def check_tblname(tblname):
     """
     Returns tblname (None if no suitable name to use).
+
     Checks table name and gives user option of correcting it if problems.
+
     Raises exception if no suitable name selected.
     """
-    # check existing names
+    ## check existing names
     valid, unused = dbe_sqlite.valid_tblname(tblname)
     if not valid:
-        raise Exception("Faulty SOFA table name.")
+        raise Exception('Faulty SOFA table name.')
     return tblname
 
 def get_file_start_ext(path):
@@ -1075,70 +1055,71 @@ def get_file_start_ext(path):
     return filestart, extension
 
 def run_headless_import(fpath=None, tblname=None,
-        headless_has_header=True, supplied_encoding=None,
-        force_quickcheck=False):
+        supplied_encoding=None, *,
+        headless_has_header=True, force_quickcheck=False):
     """
     Usage:
-    fpath = "/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx" #csvfiles/percent_names.csv"
-    tblname = "headless_yeah_baby"
+    fpath = '/home/g/grantshare/import_testing/xlsfiles/Data w Respondent ID.xlsx' #csvfiles/percent_names.csv'
+    tblname = 'headless_yeah_baby'
     headless_has_header = True
-    supplied_encoding = "utf-8"
+    supplied_encoding = 'utf-8'
     force_quickcheck = True
-    importer.run_headless_import(fpath, tblname, headless_has_header,
-        supplied_encoding, force_quickcheck)
+    importer.run_headless_import(fpath, tblname, supplied_encoding,
+        headless_has_header=True, force_quickcheck=False)
 
-    Identify type of file by extension and open dialog if needed
-    to get any additional choices e.g. separator used in 'csv'.
+    Identify type of file by extension and open dialog if needed to get any
+    additional choices e.g. separator used in 'csv'.
     """
     headless = True
     if not fpath:
-        raise Exception(_(u"A file name must be supplied when importing if "
-            u"running in headless mode."))
+        raise Exception(_('A file name must be supplied when importing if '
+            'running in headless mode.'))
 
-    # identify file type
+    ## identify file type
     unused, extension = get_file_start_ext(fpath)
-    if extension.lower() in (mg.IMPORT_EXTENTIONS[u"csv"],
-            mg.IMPORT_EXTENTIONS[u"tsv"], mg.IMPORT_EXTENTIONS[u"tab"]):
+    if extension.lower() in (mg.IMPORT_EXTENTIONS['csv'],
+            mg.IMPORT_EXTENTIONS['tsv'], mg.IMPORT_EXTENTIONS['tab']):
         file_type = FILE_CSV
-    elif extension.lower() == mg.IMPORT_EXTENTIONS[u"txt"]:
+    elif extension.lower() == mg.IMPORT_EXTENTIONS['txt']:
         file_type = FILE_CSV
-    elif extension.lower() in (mg.IMPORT_EXTENTIONS[u"xls"],
-            mg.IMPORT_EXTENTIONS[u"xlsx"]):
+    elif extension.lower() in (mg.IMPORT_EXTENTIONS['xls'],
+            mg.IMPORT_EXTENTIONS['xlsx']):
         file_type = FILE_EXCEL
-    elif extension.lower() == mg.IMPORT_EXTENTIONS[u"ods"]:
+    elif extension.lower() == mg.IMPORT_EXTENTIONS['ods']:
         file_type = FILE_ODS
     else:
-        unknown_msg = _("Files with the file name extension "
-            "'%s' are not supported") % extension
+        unknown_msg = _("Files with the file name extension '%s' are "
+            "not supported")% extension
         raise Exception(unknown_msg)
     if not tblname:
-        raise Exception("Unable to import headless unless table name supplied")
-    if u" " in tblname:
+        raise Exception('Unable to import headless unless table name supplied')
+    if ' ' in tblname:
         empty_spaces_msg = _("SOFA Table Name can't have empty spaces")
         raise Exception(empty_spaces_msg)
-    bad_chars = [u"-", ]
+    bad_chars = ['-', ]
     for bad_char in bad_chars:
         if bad_char in tblname:
-            bad_char_msg = (_("Do not include '%s' in SOFA Table Name") %
-                bad_char)
+            bad_char_msg = (
+                _("Do not include '%s' in SOFA Table Name") % bad_char)
             raise Exception(bad_char_msg)
     if tblname[0] in [str(x) for x in range(10)]:
-        digit_msg = _("SOFA Table Names cannot start with a digit")
+        digit_msg = _('SOFA Table Names cannot start with a digit')
         raise Exception(digit_msg)
     try:
         final_tblname = check_tblname(tblname)
         if final_tblname is None:
-            raise Exception("Table name supplied is inappropriate for some "
-                "reason.")
+            raise Exception(
+                'Table name supplied is inappropriate for some reason.')
     except Exception:
         raise
-    # import file
+    ## import file
     dummy_importer = HeadlessImporter()
     if file_type == FILE_CSV:
         from sofastats.importing import csv_importer_new as csv_importer #@UnresolvedImport
         file_importer = csv_importer.CsvImporter(dummy_importer, fpath,
-            final_tblname, headless, headless_has_header, supplied_encoding,
-            force_quickcheck)
+            final_tblname, supplied_encoding,
+            headless=headless, headless_has_header=headless_has_header,
+            force_quickcheck=force_quickcheck)
     elif file_type == FILE_EXCEL:
         from sofastats.importing import excel_importer #@UnresolvedImport
         file_importer = excel_importer.ExcelImporter(dummy_importer, fpath,
@@ -1153,7 +1134,7 @@ def run_headless_import(fpath=None, tblname=None,
 
 
 class FileImporter():
-    def __init__(self, parent, fpath, tblname, supplied_encoding=None,
+    def __init__(self, parent, fpath, tblname, supplied_encoding=None, *,
             headless=False, headless_has_header=False):
         self.parent = parent
         self.fpath = fpath
@@ -1186,10 +1167,8 @@ if __name__ == '__main__':
     """
     cd /home/g/projects/sofastats_proj/sofastatistics/ && python -m sofastats.importer
     """
-    fpath = "/home/g/grantshare/import_testing/csvfiles/....csv"
-    tblname = "..."
-    headless_has_header = False
-    supplied_encoding = "utf-8"
-    force_quickcheck = True
+    fpath = '/home/g/grantshare/import_testing/csvfiles/....csv'
+    tblname = '...'
+    supplied_encoding = 'utf-8'
     run_headless_import(fpath, tblname,
-        headless_has_header, supplied_encoding, force_quickcheck)
+        supplied_encoding, headless_has_header=False, force_quickcheck=True)

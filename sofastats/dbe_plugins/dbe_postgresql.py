@@ -78,11 +78,11 @@ def quote_val(raw_val, charset2try='iso-8859-1'):
         charset2try=charset2try)
 
 def get_summable(clause):
-    return f"CASE WHEN {clause} THEN 1 ELSE 0 END"
+    return f'CASE WHEN {clause} THEN 1 ELSE 0 END'
 
 def get_first_sql(quoted_tblname, top_n, order_val=None):
-    orderby = f"ORDER BY {quote_obj(order_val)}" if order_val else ''
-    return f"SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}"
+    orderby = f'ORDER BY {quote_obj(order_val)}' if order_val else ''
+    return f'SELECT * FROM {quoted_tblname} {orderby} LIMIT {top_n}'
 
 def get_syntax_elements():
     return (if_clause, left_obj_quote, right_obj_quote, quote_obj, quote_val, 
@@ -111,16 +111,16 @@ def get_con_resources(con_dets, default_dbs, db=None):
     except Exception as e:
         user = con_dets_pgsql.get('user')
         if user != 'postgres' and not db:
-            msg = ("Unable to connect to PostgreSQL db. A default database "
+            msg = ('Unable to connect to PostgreSQL db. A default database '
                 "is required unless the user is 'postgres'."
-                f"\nCaused by error: {b.ue(e)}")
+                f'\nCaused by error: {b.ue(e)}')
         else:
-            msg = ("Unable to connect to PostgreSQL db."
-                f"\nCaused by error: {b.ue(e)}")
+            msg = ('Unable to connect to PostgreSQL db.'
+                f'\nCaused by error: {b.ue(e)}')
         raise Exception(msg)
     cur = con.cursor()  ## must return tuples not dics
     ## get database name
-    SQL_get_db_names = "SELECT datname FROM pg_database"
+    SQL_get_db_names = 'SELECT datname FROM pg_database'
     cur.execute(SQL_get_db_names)
     ## only want dbs with at least one table.
     all_dbs = [x[0] for x in cur.fetchall()]
@@ -138,8 +138,8 @@ def get_con_resources(con_dets, default_dbs, db=None):
         con.close()
     if not dbs:
         raise Exception(
-            _("Unable to find any databases that have tables and you have "
-            "permission to access."))
+            _('Unable to find any databases that have tables and you have '
+            'permission to access.'))
     dbs_lc = [x.lower() for x in dbs]
     ## get db (default if possible otherwise first)
     ## NB db must be accessible from connection
@@ -401,7 +401,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_pgsql= wx.StaticBox(scroll, -1, 'PostgreSQL')
     ## default database
     parent.lbl_pgsql_default_db = wx.StaticText(
-        scroll, -1, _("Default Database (name only):"))
+        scroll, -1, _('Default Database (name only):'))
     parent.lbl_pgsql_default_db.SetFont(lblfont)
     pgsql_default_db = (
         parent.pgsql_default_db if parent.pgsql_default_db else '')
@@ -409,7 +409,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
         scroll, -1, pgsql_default_db, size=(250, -1))
     parent.txt_pgsql_default_db.Enable(not read_only)
     parent.txt_pgsql_default_db.SetToolTip(
-        _("Default database (optional if user is postgres)"))
+        _('Default database (optional if user is postgres)'))
     ## default table
     parent.lbl_pgsql_default_tbl = wx.StaticText(
         scroll, -1, _('Default Table:'))
@@ -419,14 +419,14 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     parent.txt_pgsql_default_tbl = wx.TextCtrl(
         scroll, -1, pgsql_default_tbl, size=(250, -1))
     parent.txt_pgsql_default_tbl.Enable(not read_only)
-    parent.txt_pgsql_default_tbl.SetToolTip(_("Default table (optional)"))
+    parent.txt_pgsql_default_tbl.SetToolTip(_('Default table (optional)'))
     ## host
-    parent.lbl_pgsql_host = wx.StaticText(scroll, -1, _("Host:"))
+    parent.lbl_pgsql_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_pgsql_host.SetFont(lblfont)
     pgsql_host = parent.pgsql_host if parent.pgsql_host else ''
     parent.txt_pgsql_host = wx.TextCtrl(scroll, -1, pgsql_host, size=(100,-1))
     parent.txt_pgsql_host.Enable(not read_only)
-    parent.txt_pgsql_host.SetToolTip(_("Host e.g. localhost, or remote:3307"))
+    parent.txt_pgsql_host.SetToolTip(_('Host e.g. localhost, or remote:3307'))
     ## 5432 is the default port for PostgreSQL
     ## user
     parent.lbl_pgsql_user = wx.StaticText(scroll, -1, _('User:'))
@@ -434,7 +434,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     pgsql_user = parent.pgsql_user if parent.pgsql_user else ''
     parent.txt_pgsql_user = wx.TextCtrl(scroll, -1, pgsql_user, size=(100, -1))
     parent.txt_pgsql_user.Enable(not read_only)
-    parent.txt_pgsql_user.SetToolTip(_("User e.g. postgres"))
+    parent.txt_pgsql_user.SetToolTip(_('User e.g. postgres'))
     ## password
     parent.lbl_pgsql_pwd = wx.StaticText(scroll, -1, _('Password:'))
     parent.lbl_pgsql_pwd.SetFont(lblfont)
@@ -531,7 +531,7 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
         or pgsql_default_db or pgsql_default_tbl)
     incomplete_pgsql = dirty and (not has_pgsql_con or missing_db)
     if incomplete_pgsql:
-        msg = _("The PostgreSQL details are incomplete.")
+        msg = _('The PostgreSQL details are incomplete.')
         if missing_db:
             msg += _(
                 " A default database is required unless the user is 'postgres'")
@@ -551,6 +551,6 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
                 port = host_bits[1].strip()
                 con_dets_pgsql['port'] = port
         else:
-            raise Exception(u"Not expected number of parts split by ':'")
+            raise Exception("Not expected number of parts split by ':'")
         con_dets[mg.DBE_PGSQL] = con_dets_pgsql
     return incomplete_pgsql, has_pgsql_con

@@ -35,7 +35,7 @@ ADD2RPT = False
 PYTHON_ENCODING_DECLARATION = ('#! /usr/bin/env python' + os.linesep
     + '# -*- coding: utf-8 -*-' + os.linesep)
 DROP_SELECT = _('Nothing selected')
-ODS_GETTING_LARGE = 10000000
+ODS_GETTING_LARGE = 10_000_000
 MAX_WIDTH = None  ## set later
 MAX_HEIGHT = None
 DEFAULT_LEVEL = None
@@ -208,14 +208,14 @@ RPT_CONFIG = {
         ROWPCT_AN_OPTION_KEY: True,
         MEASURES_HORIZ_KEY: True,
         DEFAULT_MEASURE_KEY: FREQ_LBL,
-        QUICK_IF_BELOW_KEY: 1000 if debug else 5000},  ## 5000
+        QUICK_IF_BELOW_KEY: 1_000 if debug else 5_000},  ## 5000
     CROSSTAB: {COL_MEASURES_KEY: [FREQ_LBL, COLPCT_LBL],
         VAR_SUMMARISED_KEY: False,
         NEEDS_ROWS_KEY: True,
         ROWPCT_AN_OPTION_KEY: True,
         MEASURES_HORIZ_KEY: True,
         DEFAULT_MEASURE_KEY: FREQ_LBL,
-        QUICK_IF_BELOW_KEY: 1000 if debug else 4000},  ## 4000
+        QUICK_IF_BELOW_KEY: 1_000 if debug else 4_000},  ## 4000
     ROW_STATS: {COL_MEASURES_KEY: [MEAN_LBL, STD_DEV_LBL, MEDIAN_LBL, MODE_LBL,
             SUMM_N_LBL, MIN_LBL, MAX_LBL, RANGE_LBL, LOWER_QUARTILE_LBL,
             UPPER_QUARTILE_LBL, IQR_LBL, SUM_LBL],
@@ -224,7 +224,7 @@ RPT_CONFIG = {
         ROWPCT_AN_OPTION_KEY: False,
         MEASURES_HORIZ_KEY: False,
         DEFAULT_MEASURE_KEY: MEAN_LBL,
-        QUICK_IF_BELOW_KEY: 1000 if debug else 2000},  ## 2000
+        QUICK_IF_BELOW_KEY: 1_000 if debug else 2_000},  ## 2000
     DATA_LIST: {COL_MEASURES_KEY: [],
         VAR_SUMMARISED_KEY: False,
         NEEDS_ROWS_KEY: False,
@@ -233,7 +233,7 @@ RPT_CONFIG = {
         DEFAULT_MEASURE_KEY: None,
         QUICK_IF_BELOW_KEY: 750},
   }
-MAX_CELLS_IN_REPORT_TABLE = 100000 if debug else 5000
+MAX_CELLS_IN_REPORT_TABLE = 100_000 if debug else 5_000
 MAX_VAL_LEN_IN_SQL_CLAUSE = 90
 COL_CONFIG_ITEM_LBL = _('Column configuration')
 ## dimension trees
@@ -1063,7 +1063,7 @@ MAX_CATS_GEN = 100
 MAX_GROUPS4DROPDOWN = 20
 MAX_CHART_SERIES = 30
 MIN_HISTO_VALS = 5
-MAX_RANKDATA_VALS = 100000  ## can override in gui mode
+MAX_RANKDATA_VALS = 100_000  ## can override in gui mode
 MAX_POINTS_DOJO_SCATTERPLOT = 800  ## 800 (use 5000 to demo dojo using demo_tbl)
 MAX_SCATTERPLOT_SERIES = 5
 MAX_CHARTS_IN_SET = 16
@@ -1095,7 +1095,7 @@ DRAFT_DPI = 72
 SCREEN_DPI = 150
 PRINT_DPI = 300
 HIGH_QUAL_DPI = 600
-TOP_DPI = 1000 if PLATFORM == WINDOWS else 1200  ## Windows XP crashes with a
+TOP_DPI = 1_000 if PLATFORM == WINDOWS else 1_200  ## Windows XP crashes with a
 ## message about PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such
 ## file or directory
 

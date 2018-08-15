@@ -371,7 +371,8 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
                     if not measures:
                         measures = [self.default_measure]
                     self.add_measures(
-                        subitem_node, measures, is_coltot, force_freq)
+                        subitem_node, measures,
+                        is_coltot=is_coltot, force_freq=force_freq)
                 else:
                     ## for each child of tree_dims_item e.g. Eth and Age Gp
                     if dim == mg.COLDIM_KEY:

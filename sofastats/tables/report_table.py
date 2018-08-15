@@ -825,8 +825,8 @@ tab_test = rawtables.RawTable(titles={titles},
         script_lst.append(f'{child_node_label} = dimtables.DimNode('
             f'{fld_arg}' 
             f'\n    label="{var_label}",'
-            f'\n    labels={labels_dic} {measures_arg} {tot_arg} '
-            f'{sort_order_arg} {numeric_arg})')
+            f'\n    labels={labels_dic} {measures_arg} '
+            f'{sort_order_arg} {tot_arg} {numeric_arg})')
         if parent_node_label in ('tree_rows', 'tree_cols'):
             parent_name = ('rows' if parent_node_label == 'tree_rows'
                 else 'columns')
