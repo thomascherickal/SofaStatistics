@@ -176,7 +176,7 @@ class LabelNode(tree.Node):
             f'Child labels: {child_lbls}')
 
 
-class DimTable(object):
+class DimTable:
 
     """
     Functionality that applies to both demo and live tables
@@ -1355,7 +1355,7 @@ class SummTable(LiveTable):
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.MEAN_KEY:
             val2float = getdata.get_val2float_func(self.dbe)
-            col_float_val = val2float(self.quote_obj(col_fld))
+            col_float_val = val2float(col_fld_str)
             SQL_get_mean = f"""\
             SELECT AVG({col_float_val}) 
             FROM {tbl_str}
@@ -1384,14 +1384,12 @@ class SummTable(LiveTable):
                     data_val = 'Too many modes to display'
                 else:
                     mode2show = ', '.join(str(x) for x in mode)
-                    data_val = u"%s (N=%s)" % (mode2show,
-                        lib.formatnum(maxfreq))
+                    data_val = f'{mode2show} (N={maxfreq:,})'
             except Exception:
                 bad_val = self._get_non_num_val(SQL_get_vals)
                 if bad_val is not None:
-                    msg = (u"Unable to calculate mode for %s. " % col_fld
-                        + u"The field contains at least one non-numeric "
-                        + u"value: \"%s\"" % bad_val)
+                    msg = (f'Unable to calculate mode for {col_fld}. The field '
+                        f'contains at least one non-numeric value: "{bad_val}"')
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.LOWER_QUARTILE_KEY:
             data_val, msg = self._lq(data, SQL_get_vals, col_fld, dp2_tpl)
@@ -1400,18 +1398,18 @@ class SummTable(LiveTable):
         elif measure == mg.IQR_KEY:
             data_val, msg = self._iq_range(data, SQL_get_vals, col_fld, dp2_tpl)
         elif measure == mg.SUMM_N_KEY:
-            SQL_get_n = u"SELECT COUNT(%s) " % self.quote_obj(col_fld) + \
-                u"FROM %s %s" % (getdata.tblname_qtr(self.dbe, self.tbl), 
-                    overall_filter)
+            SQL_get_n = f"""\
+            SELECT COUNT({col_fld_str})
+            FROM {tbl_str} {overall_filter}
+            """
             try:
                 self.cur.execute(SQL_get_n)
-                data_val = u"N=%s" % lib.formatnum(self.cur.fetchone()[0])
+                data_val = f'N={self.cur.fetchone()[0]:,}'
             except Exception:
                 data_val = mg.NO_CALC_LBL
         elif measure == mg.STD_DEV_KEY:
-            data_val, msg = self._std_dev(data, SQL_get_vals, col_fld,
-                dp2_tpl)
+            data_val, msg = self._std_dev(
+                data, SQL_get_vals, col_fld, dp2_tpl)
         else:
-            raise Exception(u"Measure not available")
+            raise Exception('Measure not available')
         return data_val, msg
-    

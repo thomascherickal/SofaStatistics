@@ -139,7 +139,7 @@ def cell_response(self, val, row, col, grid, col_dets):
     pass
 
 
-class SettingsEntry(object):
+class SettingsEntry:
 
     def __init__(self, frame, panel, grid_size, col_dets,
             init_settings_data, settings_data,

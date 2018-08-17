@@ -22,7 +22,7 @@ DatetimeSplit = namedtuple(
     'DatetimeSplit', 'date_part, time_part, boldate_then_time')
 
 
-class TypeLib(object):
+class TypeLib:
 
     @staticmethod
     def is_numeric(val, *, comma_dec_sep_ok=False):
@@ -83,7 +83,7 @@ class TypeLib(object):
         return type(val).__name__ == 'time'
 
 
-class DbLib(object):
+class DbLib:
 
     @staticmethod
     def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, *, 
@@ -166,7 +166,7 @@ class DbLib(object):
         return db_name_key
 
 
-class OutputLib(object):
+class OutputLib:
 
     @staticmethod
     def get_sig_dp(val):
@@ -489,7 +489,7 @@ class OutputLib(object):
             return b.ue(e)
 
 
-class UniLib(object):
+class UniLib:
 
     cp1252 = {
         # from http://www.microsoft.com/typography/unicode/1252.htm
@@ -682,7 +682,7 @@ class UniLib(object):
         return ustr
 
 
-class DateLib(object):
+class DateLib:
 
     @staticmethod
     def get_unicode_datestamp():
@@ -1073,7 +1073,7 @@ class DateLib(object):
         return epoch_seconds
 
 
-class FiltLib(object):
+class FiltLib:
     """All the filtering functions"""
 
     @staticmethod
@@ -1135,7 +1135,7 @@ class FiltLib(object):
         return filt_msg
 
 
-class GuiLib(object):
+class GuiLib:
 
     @staticmethod
     def setup_link(link, link_colour, bg_colour):
@@ -1593,7 +1593,7 @@ class StaticWrapText(wx.StaticText):
         self.__wrap()
 
 
-class ItemConfig(object):
+class ItemConfig:
     """
     Item config storage and retrieval.
 

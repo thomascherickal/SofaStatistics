@@ -198,7 +198,7 @@ class DlgVarConfig(wx.Dialog):
         dlg_get_file.Destroy()
 
 
-class ConfigUI(object):
+class ConfigUI:
     """
     The standard interface for choosing data, styles etc.
 

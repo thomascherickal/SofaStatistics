@@ -82,7 +82,7 @@ PDF2IMG_PATH = os.path.join(mg.INT_PATH, PDF2IMG_FILE)
 img_creation_problem = False
 
 
-class ExportImage(object):
+class ExportImage:
 
     @staticmethod
     def export2imgs(hdr, img_items, report_path,
@@ -279,7 +279,7 @@ def copy_output():
     lib.GuiLib.safe_end_cursor()
 
 
-class Pdf2Img(object):
+class Pdf2Img:
 
     @staticmethod
     def _check_img_made(img_path):

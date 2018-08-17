@@ -15,7 +15,7 @@ except AttributeError:
 output_item = namedtuple('output_item', 'title, content')
 
 
-class Prog2console(object):
+class Prog2console:
     def SetValue(self, value):
         print(f'Current progress: {value:>3} ...')
 

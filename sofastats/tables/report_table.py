@@ -109,7 +109,7 @@ def get_missing_dets_msg(tab_type, has_rows, has_cols):
     return '\n'.join(html)
 
 
-class RptTypeOpts(object):
+class RptTypeOpts:
     """
     Required because of a bug in Mac when displaying radio button groups with a
     font size smaller than the system font. Have to build a collection of

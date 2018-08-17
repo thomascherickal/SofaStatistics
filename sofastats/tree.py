@@ -1,14 +1,14 @@
-
 from sofastats import my_exceptions
 
 
-class Nodes(object):
+class Nodes:
     """
     Nodes functionality used by Nodes and Trees
     """
     def add_child(self, child_node):
         """
         Add child node.  Set level, and parent of node.
+
         Returns child node
         """
         if isinstance(self, NodeTree):
@@ -26,7 +26,7 @@ class Nodes(object):
             start_node = self.root_node
         else:
             start_node = self
-        max_depth = 1 # initialise
+        max_depth = 1  ## initialise
         for child_node in start_node.children:
             child_depth = child_node.get_depth()
             if (child_depth + 1) > max_depth:
@@ -45,12 +45,13 @@ class Nodes(object):
             return [start_node]
         else:
             term_nodes_lst = []
-            children_term_nodes = [child_node.get_terminal_nodes() 
-                                   for child_node in start_node.children]
+            children_term_nodes = [
+                child_node.get_terminal_nodes()
+                for child_node in start_node.children]
             for child_term_nodes in children_term_nodes:
                 term_nodes_lst += child_term_nodes
             return term_nodes_lst
-        
+
     def gener_node(self):
         yield self
         for child_node in self.children:
@@ -60,14 +61,14 @@ class Nodes(object):
 
 class NodeTree(Nodes):
     """
-    Object names follow standard tree data structure terminology of 
-    root, nodes, subtrees, terminal nodes, parent, child, sibling, 
-    and tree depth.
+    Object names follow standard tree data structure terminology of root, nodes,
+    subtrees, terminal nodes, parent, child, sibling, and tree depth.
+
     Nodes can only have one parent. All nodes come from root.
     """
 
     def __init__(self):
-        self.root_node = Node(label="Root")
+        self.root_node = Node(label='Root')
         self.root_node.level = 0
 
     def print_children(self, node):
@@ -75,27 +76,28 @@ class NodeTree(Nodes):
         for child_node in node.children:
             l.append(str(child_node))
             children_str = str(self.print_children(child_node))
-            if children_str: #otherwise an empty string will get own line
+            if children_str:  ## otherwise an empty string will get own line
                 l.append(str(self.print_children(child_node)))
-        return "\n".join(l)
+        return '\n'.join(l)
 
     def __str__(self):
         l = []
         l.append(str(self.root_node))
         l.append(self.print_children(self.root_node))
-        return "\n".join(l)
+        return '\n'.join(l)
 
 
 class Node(Nodes):
     """
-    Optionally, has details (a dictionary) and a text label.    
-    Node index is set when added to either a tree 
-    or an existing node.
-    Parent is set when added to a node (or left as None if added
-    to a tree). Children is updated as children are added.
+    Optionally, has details (a dictionary) and a text label.
+
+    Node index is set when added to either a tree or an existing node.
+
+    Parent is set when added to a node (or left as None if added to a tree).
+    Children is updated as children are added.
     """
 
-    def __init__(self, dets_dic=None, label=""):
+    def __init__(self, dets_dic=None, label=''):
         if dets_dic:
             self.dets_dic = dets_dic
         else:
@@ -104,10 +106,9 @@ class Node(Nodes):
         self.parent = None
         self.children=[]
         self.label = label
-        
+
     def __str__(self):
-        return self.level*2*" " + "Level: " + str(self.level) + \
-            "; Label: " + self.label + \
-            "; Details: " + str(self.dets_dic) + \
-            "; Child labels: " + ", ".join([x.label for x in self.children])
-            
+        return (self.level*2*' '
+            + f'Level: {self.level}; Label: {self.label}'
+            + f'; Details: {self.dets_dic}; Child labels: '
+            + ', '.join([x.label for x in self.children]))

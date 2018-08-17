@@ -9,7 +9,7 @@ from sofastats.tables import rawtables
 import wx
 
 
-class DemoTable(object):
+class DemoTable:
     """
     All demo tables, whether dim tables or raw tables, derive from this class.
     """
@@ -172,7 +172,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,
             col_labels, col_names, col_sorting, dd.tbl, dd.flds, dd.cur,
             self.first_col_as_label, self.val_dics, self.add_total_row,
-            where_tbl_filt, css_idx, page_break_after=False, display_n=4)
+            where_tbl_filt, css_idx, display_n=4, page_break_after=False)
         return demo_html
 
 

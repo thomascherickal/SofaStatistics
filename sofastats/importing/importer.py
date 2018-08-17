@@ -1028,7 +1028,7 @@ class DummyLabel():
 dummy_import_status = {mg.CANCEL_IMPORT: False}
 
 
-class HeadlessImporter(object):
+class HeadlessImporter:
     def __init__(self):
         self.progbar = DummyProgBar()
         self.import_status = dummy_import_status.copy()  ## can change and running script can check on it.
