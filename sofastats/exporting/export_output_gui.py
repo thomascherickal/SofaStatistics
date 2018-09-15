@@ -7,14 +7,14 @@ import os
 
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats.exporting import export_output
-from sofastats.exporting import export_output_images
-from sofastats.exporting import export_output_pdfs
-from sofastats.exporting import export_output_spreadsheets
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import my_exceptions
+from . import export_output
+from . import export_output_images
+from . import export_output_pdfs
+from . import export_output_spreadsheets
 
 PDF_ITEM_TAKES = 4
 TBL_ITEM_TAKES = 1
@@ -207,7 +207,7 @@ class DlgExportOutput(wx.Dialog):
                     self.output_dpi, gauge_start_imgs,
                     self.export_status, steps_per_img, msgs, self.progbar,
                     save2report_path=self.save2report_path,
-                    headless=headless, self.multi_page_items)
+                    headless=headless, multi_page_items=self.multi_page_items)
             except Exception as e:
                 try:
                     raise

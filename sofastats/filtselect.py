@@ -1,11 +1,11 @@
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import config_output
-from sofastats import getdata
-from sofastats import projects
+from . import basic_lib as b
+from . import my_globals as mg
+from . import lib
+from . import config_output
+from . import getdata
+from . import projects
 
 def get_val(raw_val, flds, fldname):
     """

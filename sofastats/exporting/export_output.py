@@ -4,8 +4,8 @@ import sys
 
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
+from .. import basic_lib as b
+from .. import my_globals as mg
 
 try:
     EXE_TMP = sys._MEIPASS #@UndefinedVariable

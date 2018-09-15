@@ -3,11 +3,11 @@ import os
 import pylab
 import wx #@UnusedImport
 
-from sofastats import my_globals as mg
-from sofastats import boomslang
-from sofastats import lib
-from sofastats import output
-from sofastats.stats import core_stats
+from .. import my_globals as mg
+from .. import boomslang
+from .. import lib
+from .. import output
+from ..stats import core_stats
 
 int_imgs_n = 0  ## for internal images so always unique
 

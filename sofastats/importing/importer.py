@@ -1,6 +1,6 @@
 import os
 import wx #@UnusedImport
-import wx.html
+import wx.html2
 
 ## enable headless use
 try:
@@ -9,14 +9,14 @@ except NameError:
     import gettext
     gettext.install(domain='sofastats', localedir='./locale')
 
-from sofastats import basic_lib as b #@UnresolvedImport
-from sofastats import my_globals as mg #@UnresolvedImport
-from sofastats import lib #@UnresolvedImport
-from sofastats import my_exceptions #@UnresolvedImport
+from .. import basic_lib as b #@UnresolvedImport
+from .. import my_globals as mg #@UnresolvedImport
+from .. import lib #@UnresolvedImport
+from .. import my_exceptions #@UnresolvedImport
 
-from sofastats import setup_sofastats #@UnresolvedImport @UnusedImport
-from sofastats import getdata  #@UnresolvedImport must be before anything referring to plugin modules
-from sofastats.dbe_plugins import dbe_sqlite #@UnresolvedImport
+from .. import setup_sofastats #@UnresolvedImport @UnusedImport
+from .. import getdata  #@UnresolvedImport must be before anything referring to plugin modules
+from ..dbe_plugins import dbe_sqlite #@UnresolvedImport
 
 NULL_INDICATOR = None  #'NULL'
 FILE_CSV = 'csv'
@@ -164,7 +164,8 @@ class DlgFixMismatch(wx.Dialog):
         self.SetReturnCode(wx.ID_CANCEL)  ## only for dialogs 
         ## (MUST come after Destroy)
 
-def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
+def has_header_row(row1_types, row2_types,
+        str_type, empty_type, non_str_types):
     row1_types_set = set(row1_types)
     row2_types_set = set(row2_types)
     n_types = len(row1_types_set)
@@ -175,23 +176,6 @@ def has_header_row(row1_types, row2_types, str_type, empty_type, non_str_types):
     non_string_set = set(non_str_types)  ## ignore EMPTY
     row2_has_non_strings = len(row2_types_set.intersection(non_string_set)) > 0
     return row1_strings_only and row2_has_non_strings
-
-def get_sample_rows(fpath):
-    debug = False
-    try:
-        f = open(fpath)  ## don't use "U" - let it fail if necessary and suggest an automatic cleanup.
-        sample_rows = []
-        for i, row in enumerate(f):
-            if i < 20:
-                if debug: print(row)
-                sample_rows.append(row)
-    except IOError:
-            raise Exception(f'Unable to find file "{fpath}" for importing. '
-                'Please check that file exists.')
-    except Exception as e:
-        raise Exception('Unable to open and sample file. '
-            f'\nCaused by error: {b.ue(e)}')
-    return sample_rows
 
 def get_best_fldtype(fldname, type_set, faulty2missing_fld_list,
         first_mismatch='', *, headless=False):
@@ -869,7 +853,7 @@ def tmp_to_named_tbl(con, cur, tblname, progbar, nulled_dots, *,
         "'Enter/Edit Data' button on the main form. You'll find your "
         "data in the '%s' database.") % mg.SOFA_DB
     if not headless:
-        wx.MessageBox(msg.format(tbl=tblname))
+        wx.MessageBox(msg % {'tbl': tblname})
 
 def get_content_dets(strdata):
     debug = False
@@ -877,12 +861,12 @@ def get_content_dets(strdata):
         max_row_len = max([len(x) for x in strdata])
     except Exception:
         max_row_len = None
-    lines = [] # init
+    lines = []  ## init
     for row in strdata:
         len_row = len(row)
         if debug: print(len_row, row)
         if len_row < max_row_len:
-            # right pad sequence with empty str (to become empty str cells)
+            ## right pad sequence with empty str (to become empty str cells)
             row += ['' for x in range(max_row_len - len_row)]
         line = '<tr><td>' + '</td><td>'.join(row) + '</td></tr>'
         lines.append(line)
@@ -975,7 +959,7 @@ class DlgHasHeaderGivenData(wx.Dialog):
         lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
-        html_content = wx.html.HtmlWindow(self.panel, -1, size=(820,240))
+        html_content = wx.html2.WebView.New(self.panel, -1, size=(820, 240))
         html_content.SetPage(content, mg.BASE_URL)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER,
             _('Has Header Row'))

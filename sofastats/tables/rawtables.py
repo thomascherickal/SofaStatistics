@@ -1,10 +1,10 @@
 from collections import namedtuple
 from textwrap import dedent
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import getdata
-from sofastats import output
+from .. import my_globals as mg
+from .. import lib
+from .. import getdata
+from .. import output
 
 """
 Don't use dd - this and any other modules we wish to run as a standalone script

@@ -67,13 +67,13 @@ from subprocess import Popen, PIPE
 from PIL import Image, ImageChops
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats.exporting import export_output
-from sofastats.exporting import export_output_pdfs
-from sofastats import output
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import my_exceptions
+from . import export_output
+from . import export_output_pdfs
+from .. import output
 
 HTML4PDF_FILE = 'html4pdf.html'
 PDF2IMG_FILE = 'pdf2img.pdf'

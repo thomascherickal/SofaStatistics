@@ -5,7 +5,7 @@ import zipfile
 from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
-from sofastats import importer #@UnresolvedImport
+from sofastats.importing import importer #@UnresolvedImport
 
 """
 NB need to handle ods from OpenOffice Calc, and Gnumeric at least. Some

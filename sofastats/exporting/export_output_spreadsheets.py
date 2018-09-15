@@ -4,9 +4,9 @@ calling.
 """
 import os
 
-from sofastats import my_globals as mg
-from sofastats.exporting import export_output
-from sofastats import output
+from .. import my_globals as mg
+from . import export_output
+from .. import output
 
 def export2spreadsheet(hdr, tbl_items,
         report_path, alternative_path,

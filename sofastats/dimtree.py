@@ -1,12 +1,12 @@
 import copy
 
-import wx
-import wx.dataview
+import wx  #@UnusedImport
+import wx.dataview  #@UnusedImport
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import config_output
-from sofastats import projects
+from . import my_globals as mg
+from . import lib
+from . import config_output
+from . import projects
 
 MEASURES = 'measures'
 HAS_TOT = 'has_tot'

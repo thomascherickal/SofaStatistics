@@ -3,9 +3,9 @@ import wx
 
 from sofastats import my_globals as mg  #@UnresolvedImport
 from sofastats import lib  #@UnresolvedImport
-from sofastats import ods_reader  #@UnresolvedImport
+from sofastats.importing import ods_reader  #@UnresolvedImport
 from sofastats import getdata  #@UnresolvedImport
-from sofastats import importer  #@UnresolvedImport
+from sofastats.importing import importer  #@UnresolvedImport
 
 debug = False
 if debug:

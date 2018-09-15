@@ -7,10 +7,10 @@ from pathlib import Path
 import pprint
 import wx
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import projects
-from sofastats import settings_grid
+from . import my_globals as mg
+from . import lib
+from . import projects
+from . import settings_grid
 
 debug = False
 PRETEND_IS_MAC = debug

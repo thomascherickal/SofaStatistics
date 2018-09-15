@@ -6,7 +6,7 @@ from .PlotLayout import *
 import copy
 
 try:
-    import mpl_toolkits.axes_grid.inset_locator
+    import mpl_toolkits.axes_grid1.inset_locator
     insetLocatorLoaded = True
 except ImportError:
     insetLocatorLoaded = False
@@ -341,7 +341,7 @@ class Plot:
         if location not in locationMap:
             print >>sys.stderr, "Location '%s' isn't valid. Valid locations are: %s" % (location, ', '.join(locationMap))
 
-        ax = mpl_toolkits.axes_grid.inset_locator.inset_axes(parentAxes, width="%.2f%%" % (width * 100.0), height="%.2f%%" % (height * 100.0), loc=locationMap[location])
+        ax = mpl_toolkits.axes_grid1.inset_locator.inset_axes(parentAxes, width="%.2f%%" % (width * 100.0), height="%.2f%%" % (height * 100.0), loc=locationMap[location])
         return self.drawPlot(ax)
 
     # def plotInset(self, parentAxes, width, height, hPos, vPos, padding):

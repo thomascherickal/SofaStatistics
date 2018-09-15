@@ -14,7 +14,7 @@ def ue(e):
     """
     return str(e)
 
-def clean_BOM_UTF8_from_bytestring(bytestr):
+def _clean_BOM_UTF8_from_bytestring(bytestr):
     """
     From codecs: BOM_UTF8 = '\xef\xbb\xbf'
 
@@ -41,7 +41,7 @@ def get_unicode_from_file(fpath):
         raise Exception(f'Unable to read non-existent file {fpath}')
     except Exception as e:
         raise Exception(f'Unable to read from file "{fpath}". Orig error {ue(e)}')
-    bom_utf8_stripped = clean_BOM_UTF8_from_bytestring(bytestr)
+    bom_utf8_stripped = _clean_BOM_UTF8_from_bytestring(bytestr)
     try:
         fixed = bom_utf8_stripped.decode('utf-8')
     except Exception:

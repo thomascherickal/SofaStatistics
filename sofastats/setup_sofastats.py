@@ -61,7 +61,7 @@ if show_early_steps:
 gettext.install(domain='sofastats', localedir=localedir)
 if show_early_steps: print('Just installed gettext')
 try:
-    from sofastats import basic_lib as b #@UnresolvedImport
+    from . import basic_lib as b #@UnresolvedImport
 except Exception as e:
     msg = (f'Problem importing basic_lib. {traceback.format_exc()}')
     if show_early_steps: 
@@ -71,7 +71,7 @@ except Exception as e:
             ## just let that step happen.
     raise Exception(msg)
 try:
-    from sofastats import my_globals as mg  #@UnresolvedImport  ## has translated text
+    from . import my_globals as mg  #@UnresolvedImport  ## has translated text
 except Exception as e:
     msg = f'Problem with importing my_globals. {traceback.format_exc()}'
     if show_early_steps: 
@@ -80,9 +80,9 @@ except Exception as e:
     raise Exception(msg)
 mg.LOCALEDIR = localedir
 try:
-    from sofastats import my_exceptions #@UnresolvedImport
-    from sofastats import config_globals  #@UnresolvedImport
-    from sofastats import lib #@UnresolvedImport
+    from . import my_exceptions #@UnresolvedImport
+    from . import config_globals  #@UnresolvedImport
+    from . import lib #@UnresolvedImport
 except Exception as e:
     msg = f'Problem with first round of local importing. {traceback.format_exc()}'
     if show_early_steps:
@@ -599,18 +599,18 @@ def setup_folders():
 # local importing
 try:
     about = 'config_output'
-    from sofastats import config_output  #@UnusedImport actually uses proj dict and connects to sofa_db. Thus
+    from . import config_output  #@UnusedImport actually uses proj dict and connects to sofa_db. Thus
         ## can't rely on wx.msgboxes etc because wx.App not up yet
     about = 'getdata'
-    from sofastats import getdata #@UnusedImport
+    from . import getdata #@UnusedImport
     about = 'projects'
-    from sofastats import projects #@UnusedImport
+    from . import projects #@UnusedImport
     about = 'projects_gui'
-    from sofastats import projects_gui #@UnusedImport
+    from . import projects_gui #@UnusedImport
     about = 'projselect'
-    from sofastats import projselect #@UnusedImport
+    from . import projselect #@UnusedImport
     about = 'quotes'
-    from sofastats import quotes #@UnusedImport
+    from . import quotes #@UnusedImport
 except my_exceptions.ComtypesException as e:
     msgapp = ErrMsgApp(b.ue(e))
 except my_exceptions.InconsistentFileDate as e:

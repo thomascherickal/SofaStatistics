@@ -1,14 +1,14 @@
 import os
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import config_globals
-from sofastats import lib
-from sofastats import config_output
-from sofastats import output
-from sofastats import projects
-from sofastats import projects_gui
+from . import basic_lib as b
+from . import my_globals as mg
+from . import config_globals
+from . import lib
+from . import config_output
+from . import output
+from . import projects
+from . import projects_gui
 
 
 class DlgProjSelect(wx.Dialog):

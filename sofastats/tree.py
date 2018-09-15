@@ -1,4 +1,4 @@
-from sofastats import my_exceptions
+from . import my_exceptions
 
 
 class Nodes:

@@ -1,15 +1,15 @@
 import pprint
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import config_output
-from sofastats.dbe_plugins import dbe_sqlite
-from sofastats import getdata
-from sofastats import output
-from sofastats import projects
-from sofastats import settings_grid
+from . import basic_lib as b
+from . import my_globals as mg
+from . import lib
+from . import config_output
+from .dbe_plugins import dbe_sqlite
+from . import getdata
+from . import output
+from . import projects
+from . import settings_grid
 
 TO = 'TO'
 MIN = 'MIN'

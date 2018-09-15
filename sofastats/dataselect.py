@@ -10,7 +10,7 @@ from sofastats.dbe_plugins import dbe_sqlite
 from sofastats import getdata
 from sofastats import output
 from sofastats import projects
-from sofastats import table_config
+from sofastats.tables import table_config
 
 
 class DlgDataSelect(wx.Dialog):

@@ -2,8 +2,8 @@ import wx  #@UnusedImport
 import wx.html2
 import os
 
-from sofastats import my_globals as mg
-from sofastats import lib
+from . import my_globals as mg
+from . import lib
 
 def display_report(parent, str_content, url_load=False):
     # display results

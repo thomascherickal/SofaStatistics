@@ -1,10 +1,10 @@
 import os
 import wx
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import output
-from sofastats import settings_grid
+from . import my_globals as mg
+from . import lib
+from . import output
+from . import settings_grid
 
 BROKEN_VDT_MSG = _('This field is numeric, so any non-numeric keys in the '
     "source vdt file e.g. '1', '1a', 'apple' will be ignored. Did you manually"
@@ -85,20 +85,17 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
         f.write(f'\n\n\nval_dics={lib.UniLib.dic2unicode(val_dics)}')
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
-def val2sortnum(val):
-    try:
-        sortnum = float(val)
-    except (ValueError, TypeError):
-        sortnum = val  ## will be after the numbers - sort order seems to be None, 1, capital text, lower case text
-    return sortnum
-
 def sensible_sort_keys(input_list):
     """
     Sort so None, '1', 2, 3, '4', 11, '12', 'Banana', 'apple'. In practice, the
     most important bit is the "numbers" being in order like
     '1', 2, 3, '4', 11, '12'.
     """
-    return input_list.sort(key=lambda s: val2sortnum(s[0]))
+    nones = [None for val in input_list if val is None]
+    nums = sorted([val for val in input_list if isinstance(val, (int, float))])
+    strs = sorted([val for val in input_list if not isinstance(val, (int, float))])
+    sensibly_sorted_keys = nones + nums + strs
+    return sensibly_sorted_keys
 
 def get_init_settings_data(val_dics, var_name, bolnumeric):
     """

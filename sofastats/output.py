@@ -68,11 +68,11 @@ import traceback
 import urllib
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import config_globals
-from sofastats import lib
-from sofastats import my_exceptions
+from . import basic_lib as b
+from . import my_globals as mg
+from . import config_globals
+from . import lib
+from . import my_exceptions
 
 ## Do not use os.linesep for anything going to be read and exec'd
 ## in Windows the \r\n makes it fail.
@@ -1117,7 +1117,8 @@ def generate_script(modules, css_fils, inner_script, tbl_filt_label, tbl_filt,
         with open(mg.INT_SCRIPT_PATH, 'w', encoding='utf-8') as f:
             if debug and verbose: print(css_fils)
             insert_prelim_code(
-                modules, f, mg.INT_REPORT_PATH, css_fils, new_has_dojo)
+                modules, f, mg.INT_REPORT_PATH, css_fils,
+                new_has_dojo=new_has_dojo)
             append_exported_script(
                 f, inner_script, tbl_filt_label, tbl_filt, inc_divider=False)
             add_end_script_code(f)

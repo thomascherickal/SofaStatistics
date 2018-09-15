@@ -7,10 +7,10 @@ import sys
 
 import PyPDF2 as pypdf
 
-from sofastats import basic_lib as b  #@UnresolvedImport
-from sofastats import my_globals as mg  #@UnresolvedImport
-from sofastats.exporting import export_output  #@UnresolvedImport
-from sofastats import output  #@UnresolvedImport
+from .. import basic_lib as b  #@UnresolvedImport
+from .. import my_globals as mg  #@UnresolvedImport
+from . import export_output  #@UnresolvedImport
+from .. import output  #@UnresolvedImport
 
 RAWPDF_FILE = u'raw.pdf'
 RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)

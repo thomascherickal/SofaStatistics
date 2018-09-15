@@ -4,12 +4,12 @@ import os
 import wx #@UnusedImport
 import wx.html2
 
-from sofastats import basic_lib as b #@UnresolvedImport
-from sofastats import my_globals as mg #@UnresolvedImport
-from sofastats import lib #@UnresolvedImport
-from sofastats import my_exceptions #@UnresolvedImport
-from sofastats import getdata #@UnresolvedImport
-from sofastats.importing import importer #@UnresolvedImport
+from .. import basic_lib as b #@UnresolvedImport
+from .. import my_globals as mg #@UnresolvedImport
+from .. import lib #@UnresolvedImport
+from .. import my_exceptions #@UnresolvedImport
+from .. import getdata #@UnresolvedImport
+from . import importer #@UnresolvedImport
 
 ROWS_TO_SHOW_USER = 10  ## need to show enough to choose encoding
 ERR_NO_DELIM = 'Could not determine delimiter'
@@ -140,18 +140,18 @@ class DlgImportDisplay(wx.Dialog):
         happens at last step.
         """
         try:
-            self.csv_sample = open(self.fpath, encoding=self.encoding)
+            f_csv_sample = open(self.fpath, encoding=self.encoding)
         except Exception as e:
             msg = ('Unable to display the first lines of this CSV file using '
                 f'the first selected encoding ({self.encoding}).'
                 f'\n\nOrig error: {b.ue(e)}')
             return msg, 100
         try:
-            ## don't use dict reader - consumes first row when we don't know
+            ## Don't use dict reader - consumes first row when we don't know
             ## field names. And if not a header, we might expect some values to
             ## be repeated, which means the row dicts could have fewer fields
             ## than there are actual fields.
-            tmp_reader = csv.reader(self.csv_sample, dialect=self.dialect)
+            tmp_reader = csv.reader(f_csv_sample, dialect=self.dialect)
         except csv.Error as e:
             lib.GuiLib.safe_end_cursor()
             if b.ue(e).startswith(ERR_NEW_LINE_IN_UNQUOTED):
@@ -245,6 +245,29 @@ class MyDialect(csv.Dialect):
 
 
 class CsvSampler:
+
+    @staticmethod
+    def get_sample_rows(fpath):
+        debug = False
+        possible_encodings = CsvSampler.get_possible_encodings(
+            fpath, first_only=True)
+        if not possible_encodings:
+            raise Exception(
+                f"Unable to open '{fpath}' - standard encodings failed")
+        try:
+            f = open(fpath, encoding=possible_encodings[0])
+            sample_rows = []
+            for i, row in enumerate(f):
+                if i < 20:
+                    if debug: print(row)
+                    sample_rows.append(row)
+        except IOError:
+                raise Exception(f'Unable to find file "{fpath}" for importing. '
+                    'Please check that file exists.')
+        except Exception as e:
+            raise Exception('Unable to open and sample file. '
+                f'\nCaused by error: {b.ue(e)}')
+        return sample_rows
 
     @staticmethod
     def _fix_text(fpath):
@@ -373,7 +396,7 @@ class CsvSampler:
         return prob_has_hdr
 
     @staticmethod
-    def get_possible_encodings(fpath):
+    def get_possible_encodings(fpath, *, first_only=False):
         """
         Get list of encodings which potentially work for a sample. Fast enough
         not to have to sacrifice code readability etc for performance.
@@ -382,23 +405,29 @@ class CsvSampler:
         defense of whitelisting encodings.
         """
         debug = False
+        MS_GREMLINS_ENCODING = 'cp1252'
         local_encoding = locale.getpreferredencoding()
         if mg.PLATFORM == mg.WINDOWS:
-            encodings = [
-                'cp1252', 'iso-8859-1', 'cp1257', 'utf-8', 'utf-16', 'big5']
+            encodings = [MS_GREMLINS_ENCODING, 'iso-8859-1', 'cp1257',
+                'utf-8', 'utf-16', 'big5']
         else:
             encodings = [
-                'utf-8', 'iso-8859-1', 'cp1252', 'cp1257', 'utf-16', 'big5']
+                'utf-8', 'iso-8859-1', MS_GREMLINS_ENCODING, 'cp1257',
+                'utf-16', 'big5']
         if local_encoding.lower() not in encodings:
             encodings.insert(0, local_encoding.lower())
         possible_encodings = []
         for encoding in encodings:
             if debug: print(f'About to test encoding: {encoding}')
             try:
-                open(fpath, encoding=encoding)
-                possible_encodings.append(encoding)
+                with open(fpath, encoding=encoding) as f:
+                    f.read()
             except Exception:
                 continue
+            else:
+                possible_encodings.append(encoding)
+                if first_only:
+                    break
         return possible_encodings
 
     @staticmethod
@@ -510,7 +539,7 @@ class CsvImporter(importer.FileImporter):
         encoding used to create them in the first place. That's why the user is
         given a choice. Could use chardets somehow as well.
         """
-        sample_rows = importer.get_sample_rows(self.fpath)
+        sample_rows = CsvSampler.get_sample_rows(self.fpath)
         sniff_sample = ''.join(sample_rows)
         dialect = CsvSampler.get_dialect(sniff_sample)
         if self.headless and (self.supplied_encoding is None and 
@@ -653,11 +682,11 @@ class CsvImporter(importer.FileImporter):
                 f'\nCaused by error: {b.ue(e)}')
         return rows_n
 
-    def _get_fldtypes(self, dialect, ok_fldnames,
+    def _get_fldtypes(self, dialect, encoding, ok_fldnames,
             progbar, steps_per_item,
             import_status, comma_delimiter,
             faulty2missing_fld_list):
-        with open(self.fpath) as f:
+        with open(self.fpath, encoding=encoding) as f:
             try:  ## we supply field names so will start with first data row
                 reader = csv.DictReader(
                     f, dialect=dialect, fieldnames=ok_fldnames)
@@ -706,7 +735,7 @@ class CsvImporter(importer.FileImporter):
         items_n = rows_n + sample_n + 1  ## 1 is for the final tmp to named step
         steps_per_item = importer.get_steps_per_item(items_n)
         comma_delimiter = (dialect.delimiter == ',')
-        fldtypes = self._get_fldtypes(dialect, ok_fldnames,
+        fldtypes = self._get_fldtypes(dialect, encoding, ok_fldnames,
             progbar, steps_per_item,
             import_status, comma_delimiter,
             faulty2missing_fld_list)

@@ -5,18 +5,20 @@ import locale
 import math
 from operator import itemgetter
 import os
+from pathlib import Path
 import random
 import re
 import textwrap
 import time
 import urllib
 
+import xlwt
 import wx
 
 # only import my_globals from local modules
-from sofastats import basic_lib as b  #@UnresolvedImport
-from sofastats import my_globals as mg  #@UnresolvedImport
-from sofastats import my_exceptions  #@UnresolvedImport
+from . import basic_lib as b  #@UnresolvedImport
+from . import my_globals as mg  #@UnresolvedImport
+from . import my_exceptions  #@UnresolvedImport
 
 DatetimeSplit = namedtuple(
     'DatetimeSplit', 'date_part, time_part, boldate_then_time')
@@ -489,46 +491,81 @@ class OutputLib:
             return b.ue(e)
 
 
-class UniLib:
+class UniLib:        
+
+    EURO_SIGN = b'\x80'
+    EN_DASH_1BYTE = b'\x96'
+    EM_DASH_1BYTE = b'\x97'
+    EN_DASH_3BYTE = b'\xe2\x80\x96'
+    EM_DASH_3BYTE = b'\xe2\x80\x97'
+    LEFT_DOUBLE_QUOTATION_MARK_1BYTE = b'\x93'
+    RIGHT_DOUBLE_QUOTATION_MARK_1BYTE = b'\x94'
+    LEFT_DOUBLE_QUOTATION_MARK_3BYTE = b'\xe2\x80\x9c'
+    RIGHT_DOUBLE_QUOTATION_MARK_3BYTE = b'\xe2\x80\x9d'
 
     cp1252 = {
         # from http://www.microsoft.com/typography/unicode/1252.htm
-        '\x80': '\u20AC',  ## EURO SIGN
-        '\x82': '\u201A',  ## SINGLE LOW-9 QUOTATION MARK
-        '\x83': '\u0192',  ## LATIN SMALL LETTER F WITH HOOK
-        '\x84': '\u201E',  ## DOUBLE LOW-9 QUOTATION MARK
-        '\x85': '\u2026',  ## HORIZONTAL ELLIPSIS
-        '\x86': '\u2020',  ## DAGGER
-        '\x87': '\u2021',  ## DOUBLE DAGGER
-        '\x88': '\u02C6',  ## MODIFIER LETTER CIRCUMFLEX ACCENT
-        '\x89': '\u2030',  ## PER MILLE SIGN
-        '\x8A': '\u0160',  ## LATIN CAPITAL LETTER S WITH CARON
-        '\x8B': '\u2039',  ## SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-        '\x8C': '\u0152',  ## LATIN CAPITAL LIGATURE OE
-        '\x8E': '\u017D',  ## LATIN CAPITAL LETTER Z WITH CARON
-        '\x91': '\u2018',  ## LEFT SINGLE QUOTATION MARK
-        '\x92': '\u2019',  ## RIGHT SINGLE QUOTATION MARK
-        '\x93': '\u201C',  ## LEFT DOUBLE QUOTATION MARK
-        '\x94': '\u201D',  ## RIGHT DOUBLE QUOTATION MARK
-        '\x95': '\u2022',  ## BULLET
-        '\x96': '\u2013',  ## EN DASH
-        '\x97': '\u2014',  ## EM DASH
-        '\x98': '\u02DC',  ## SMALL TILDE
-        '\x99': '\u2122',  ## TRADE MARK SIGN
-        '\x9A': '\u0161',  ## LATIN SMALL LETTER S WITH CARON
-        '\x9B': '\u203A',  ## SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-        '\x9C': '\u0153',  ## LATIN SMALL LIGATURE OE
-        '\x9E': '\u017E',  ## LATIN SMALL LETTER Z WITH CARON
-        '\x9F': '\u0178',  ## LATIN CAPITAL LETTER Y WITH DIAERESIS
+        EURO_SIGN: '\u20AC',
+        b'\x82': '\u201A',  ## SINGLE LOW-9 QUOTATION MARK
+        b'\x83': '\u0192',  ## LATIN SMALL LETTER F WITH HOOK
+        b'\x84': '\u201E',  ## DOUBLE LOW-9 QUOTATION MARK
+        b'\x85': '\u2026',  ## HORIZONTAL ELLIPSIS
+        b'\x86': '\u2020',  ## DAGGER
+        b'\x87': '\u2021',  ## DOUBLE DAGGER
+        b'\x88': '\u02C6',  ## MODIFIER LETTER CIRCUMFLEX ACCENT
+        b'\x89': '\u2030',  ## PER MILLE SIGN
+        b'\x8A': '\u0160',  ## LATIN CAPITAL LETTER S WITH CARON
+        b'\x8B': '\u2039',  ## SINGLE LEFT-POINTING ANGLE QUOTATION MARK
+        b'\x8C': '\u0152',  ## LATIN CAPITAL LIGATURE OE
+        b'\x8E': '\u017D',  ## LATIN CAPITAL LETTER Z WITH CARON
+        b'\x91': '\u2018',  ## LEFT SINGLE QUOTATION MARK
+        b'\x92': '\u2019',  ## RIGHT SINGLE QUOTATION MARK
+        LEFT_DOUBLE_QUOTATION_MARK_1BYTE: '\u201C',
+        RIGHT_DOUBLE_QUOTATION_MARK_1BYTE: '\u201D',
+        b'\x95': '\u2022',  ## BULLET
+        EN_DASH_1BYTE: '\u2013',
+        EM_DASH_1BYTE: '\u2014',
+        b'\x98': '\u02DC',  ## SMALL TILDE
+        b'\x99': '\u2122',  ## TRADE MARK SIGN
+        b'\x9A': '\u0161',  ## LATIN SMALL LETTER S WITH CARON
+        b'\x9B': '\u203A',  ## SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
+        b'\x9C': '\u0153',  ## LATIN SMALL LIGATURE OE
+        b'\x9E': '\u017E',  ## LATIN SMALL LETTER Z WITH CARON
+        b'\x9F': '\u0178',  ## LATIN CAPITAL LETTER Y WITH DIAERESIS
     }
 
     oth_ms_gremlins = {
-        '\xe2\x80\x9c': '\u201C',  ## LEFT DOUBLE QUOTATION MARK,
-        '\xe2\x80\x9d': '\u201D',  ## RIGHT DOUBLE QUOTATION MARK
-        '\xe2\x80\x93': '\u2013',  ## EN DASH
-        '\xe2\x80\x94': '\u2014',  ## EM DASH - guess as to key
-        '\xe2\x80\xa6': '\u2026',  ## HORIZONTAL ELLIPSIS
+        LEFT_DOUBLE_QUOTATION_MARK_3BYTE: '\u201C',
+        RIGHT_DOUBLE_QUOTATION_MARK_3BYTE: '\u201D',
+        EN_DASH_3BYTE: '\u2013',
+        EM_DASH_3BYTE: '\u2014',
+        b'\xe2\x80\xa6': '\u2026',  ## HORIZONTAL ELLIPSIS
     }
+
+    @staticmethod
+    def make_gremlin_csv():
+        """
+        Make something we can test importing with
+        """
+        fpath = Path(mg.INT_PATH) / 'gremlin.csv'
+        with open(fpath, 'wb') as f:
+            f.write(b'fld1, fld2')
+            fname = (UniLib.LEFT_DOUBLE_QUOTATION_MARK_1BYTE + b'Grant'
+                + UniLib.RIGHT_DOUBLE_QUOTATION_MARK_1BYTE)
+            lname = (UniLib.LEFT_DOUBLE_QUOTATION_MARK_1BYTE + b'Paton-Simpson'
+                + UniLib.RIGHT_DOUBLE_QUOTATION_MARK_1BYTE)
+            f.write(b'\n' + fname + b',' + lname)
+        print(f"Finished making '{fpath}'")
+
+    @staticmethod
+    def make_gremlin_xlsx():
+        """
+        Make something we can test importing with.
+        
+        Run in standalone python2 script so can make one without having to pass
+        into unicode first.
+        """
+        print("Run in Python 2 only - look for make_gremlin_xlsx.py (storage?)")
 
     @staticmethod
     def _fix_cp1252(m):
@@ -539,50 +576,6 @@ class UniLib:
     def _fix_gremlins(m):
         s = m.group(0)
         return UniLib.oth_ms_gremlins.get(s, s)
-
-    @staticmethod
-    def _ms2unicode(text):
-        """
-        Inspiration from http://effbot.org/zone/unicode-gremlins.htm
-        which maps cp1252 gremlins to real unicode characters.
-
-        Main changes - now ensure the output is unicode even if cp1252
-        characters not found in it.
-
-        Also handles smart quotes etc (which are multibyte) and commonly
-        used ;-).
-        """
-        
-        
-        
-        return text
-        
-        
-        
-        
-        import re  # easier to transplant for testing if everything here
-        debug = False
-        if not isinstance(text, str):
-            raise Exception('UniLib._ms2unicode() requires strings as inputs.')
-        if debug: print(repr(text))
-        for gremlin in UniLib.oth_ms_gremlins:  ## turn to unicode any bytes which contain
-                ## cp1252 bytes.  E.g. so u'\xe2\x80\x93' doesn't become the
-                ## nonsense u'\xe2\u20AC\x93' as a result of our search and replace.
-            if re.search(gremlin, text):
-                if isinstance(text, str):  ## Make sure we have a unicode string for 
-                    ## fixing up step.  If has those ms characters probably safe to 
-                    ## decode using 'iso-8859-1'
-                    text = text.decode('iso-8859-1')
-                text = re.sub(gremlin, UniLib._fix_gremlins, text)
-        if re.search('[\x80-\x9f]', text):
-            text = re.sub('[\x80-\x9f]', UniLib._fix_cp1252, text)
-        if isinstance(text, str):  ## no gremlins or cp1252 so no guarantees unicoded
-            try:
-                text = text.decode(locale.getpreferredencoding())
-            except UnicodeDecodeError:
-                text = text.decode('utf8', 'replace')
-        if debug: print(repr(text))
-        return text
 
     @staticmethod
     def _str2unicode(raw):
@@ -2047,7 +2040,7 @@ def n2d(f):
 def get_escaped_dict_pre_write(mydict):
     ## process each part and escape the paths only
     items_list = []
-    keys = mydict.keys()
+    keys = list(mydict.keys())
     keys.sort()  ## so testing can expect a fixed output for a fixed input
     for key in keys:
         val = mydict[key]
@@ -2100,3 +2093,6 @@ def if_none(val, default):
         return default
     else:
         return val
+
+#UniLib.make_gremlin_csv()
+UniLib.make_gremlin_xlsx()

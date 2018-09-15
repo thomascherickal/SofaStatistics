@@ -2,14 +2,14 @@ import math
 import numpy
 from textwrap import dedent
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats.stats import core_stats
-from sofastats import getdata
-from sofastats import output
-from sofastats import tree
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import my_exceptions
+from ..stats import core_stats
+from .. import getdata
+from .. import output
+from .. import tree
 
 """
 Don't use dd - this and any other modules we wish to run as a standalone script

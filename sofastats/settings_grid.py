@@ -1,9 +1,9 @@
 import wx  #@UnusedImport
 import wx.grid
 
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import controls
+from . import my_globals as mg
+from . import lib
+from . import controls
 
 COL_STR = 'col_string'
 COL_INT = 'col_integer'

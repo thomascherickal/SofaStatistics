@@ -2,15 +2,15 @@ import locale
 import os
 import wx
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import my_exceptions
-from sofastats import lib
-from sofastats.exporting import export_output_gui
-from sofastats.exporting import export_output_images
-from sofastats import getdata
-from sofastats import output
-from sofastats import showhtml
+from . import basic_lib as b
+from . import my_globals as mg
+from . import my_exceptions
+from . import lib
+from .exporting import export_output_gui
+from .exporting import export_output_images
+from . import getdata
+from . import output
+from . import showhtml
 
 import traceback
 import webbrowser

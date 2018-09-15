@@ -3,17 +3,17 @@ import wx #@UnusedImport
 import wx.lib.agw.hypertreelist as HTL
 import wx.html2
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats import getdata
-from sofastats import config_output
-from sofastats import config_ui
-from sofastats import demotables
-from sofastats import dimtree
-from sofastats import output
-from sofastats import projects
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import my_exceptions
+from .. import getdata
+from .. import config_output
+from .. import config_ui
+from . import demotables
+from .. import dimtree
+from .. import output
+from .. import projects
 
 def replace_titles_subtitles(orig, titles, subtitles):
     """

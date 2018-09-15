@@ -18,15 +18,15 @@ import wx #@UnusedImport
 import wx.grid
 import wx.html2
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import config_output
-from sofastats import getdata  ## must be anything referring to plugin modules
-from sofastats.dbe_plugins import dbe_sqlite
-from sofastats import output
-from sofastats import recode
-from sofastats import settings_grid
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import config_output
+from .. import getdata  ## must be anything referring to plugin modules
+from ..dbe_plugins import dbe_sqlite
+from .. import output
+from .. import recode
+from .. import settings_grid
 
 objqtr = dbe_sqlite.quote_obj
 

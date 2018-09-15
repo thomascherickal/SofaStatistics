@@ -4,7 +4,9 @@ copyright is held by Paton-Simpson & Associates Ltd.
 
 SOFA can be run in 3 main ways:
 
-1) As a stand-alone GUI application (launched with start.py)
+1) As a stand-alone GUI application (launched with start.py) e.g. (depending on
+where start.py is located)
+  cd ~/projects/sofastats_proj/sofastatistics && python3 -m sofastats.start
 2) Headless (no GUI) via scripting
 3) As a GUI but launched from another GUI program.
 

@@ -1,13 +1,12 @@
-import datetime
 import wx
-import xlrd
+import openpyxl
 
 from sofastats import basic_lib as b  #@UnresolvedImport
 from sofastats import my_globals as mg  #@UnresolvedImport
 from sofastats import my_exceptions  #@UnresolvedImport
 from sofastats import lib  #@UnresolvedImport
 from sofastats import getdata  #@UnresolvedImport
-from sofastats import importer  #@UnresolvedImport
+from sofastats.importing import importer  #@UnresolvedImport
 
 ROWS_TO_SAMPLE = 500  ## fast enough to sample quite a few
 
@@ -32,20 +31,15 @@ class ExcelImporter(importer.FileImporter):
         """
         Will return True if nothing but strings or in first row and anything in
         other rows that is not e.g. a number or a date. Empty is OK.
-        XL_CELL_BLANK = 6
-        XL_CELL_BOOLEAN = 4
-        XL_CELL_DATE = 3
-        XL_CELL_EMPTY = 0
-        XL_CELL_ERROR = 5
-        XL_CELL_NUMBER = 2
-        XL_CELL_TEXT = 1
         """
         debug = False
         if debug: print(row1_types, row2_types)
-        str_type = xlrd.XL_CELL_TEXT
-        empty_type = xlrd.XL_CELL_EMPTY
-        non_str_types = [xlrd.XL_CELL_BOOLEAN, xlrd.XL_CELL_DATE, 
-            xlrd.XL_CELL_NUMBER]  ## ignore EMPTY and ERROR
+        str_type = openpyxl.cell.cell.Cell.TYPE_STRING
+        empty_type = openpyxl.cell.cell.Cell.TYPE_NULL
+        non_str_types = [
+            openpyxl.cell.cell.Cell.TYPE_BOOL,
+            openpyxl.cell.cell.Cell.TYPE_NUMERIC,
+        ]  ## ignore TYPE_FORMULA, TYPE_ERROR, TYPE_FORMULA_CACHE_STRING, TYPE_INLINE
         return importer.has_header_row(
             row1_types, row2_types, str_type, empty_type, non_str_types)
 
@@ -59,33 +53,37 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            wkbook = xlrd.open_workbook(self.fpath)
-            wksheet = wkbook.sheet_by_index(0)
+            wkbook = openpyxl.load_workbook(self.fpath)
+            wksheet = wkbook.worksheets[0]
+            n_cols = wksheet.max_column
+            n_rows = wksheet.max_row
             strdata = []
-            for rowx in range(wksheet.nrows):
-                rowtypes = wksheet.row_types(rowx)
-                if rowx == 0:
-                    row1_types = rowtypes
-                elif rowx == 1:
-                    row2_types = rowtypes
-                newrow = []
-                for colx in range(wksheet.ncols):
-                    rawval = wksheet.cell_value(rowx, colx)
-                    try:
-                        rawval = rawval.strip()
-                    except AttributeError:
-                        pass
-                    val2show = self.getval2use(wkbook, rowtypes[colx], rawval)
-                    newrow.append(val2show)
-                strdata.append(newrow)
-                if (rowx+1) >= importer.ROWS_TO_SHOW_USER:
+            row1_types = []
+            row2_types = []
+            for row_idx in range(1, n_rows + 1):
+                new_row = []
+                for col_idx in range(1, n_cols + 1):
+                    cell = wksheet.cell(row=row_idx, column=col_idx)
+                    val = cell.value
+                    data_type = cell.data_type
+                if row_idx == 0:
+                    row1_types.append(data_type)
+                elif row_idx == 1:
+                    row2_types.append(data_type)
+                try:
+                    val = val.strip()
+                except AttributeError:
+                    val = str(val)
+                new_row.append(val)
+                strdata.append(new_row)
+                if (row_idx + 1) >= importer.ROWS_TO_SHOW_USER:
                     break
             try:
                 prob_has_hdr = self.has_header_row(row1_types, row2_types)
             except Exception:
                 prob_has_hdr = False
-            dlg = importer.DlgHasHeaderGivenData(self.parent, self.ext, strdata,
-                prob_has_hdr)
+            dlg = importer.DlgHasHeaderGivenData(
+                self.parent, self.ext, strdata, prob_has_hdr)
             ret = dlg.ShowModal()
             if debug: print(str(ret))
             if ret == wx.ID_CANCEL:
@@ -95,11 +93,12 @@ class ExcelImporter(importer.FileImporter):
             return True
 
     def get_ok_fldnames(self, wksheet):
+        n_cols = wksheet.max_column
         if self.has_header:
             ## use values of first row
             orig_fldnames = []
-            for col_idx in range(wksheet.ncols):
-                raw_fldname = wksheet.cell_value(rowx=0, colx=col_idx)
+            for col_idx in range(1, n_cols + 1):
+                raw_fldname = wksheet.cell(row=0, column=col_idx).value
                 fldname = (raw_fldname if isinstance(raw_fldname, str) 
                     else str(raw_fldname))
                 orig_fldnames.append(fldname)
@@ -108,73 +107,43 @@ class ExcelImporter(importer.FileImporter):
         else:
             ## numbered is OK
             fldnames = [
-                mg.NEXT_FLDNAME_TEMPLATE % (x+1,) for x in range(wksheet.ncols)]
+                mg.NEXT_FLDNAME_TEMPLATE % (x + 1, ) for x in range(n_cols)]
         return fldnames
 
-    def getval2use(self, wkbook, coltype, rawval):
-        if coltype == xlrd.XL_CELL_DATE:
-            try:
-                datetup = xlrd.xldate_as_tuple(rawval, wkbook.datemode)
-                ## Handle times (NB if they are trying to record duration, they 
-                ## should use an integer e.g. seconds
-                if datetup[0] == 0:
-                    cellval = datetime.time(datetup[3], datetup[4], datetup[5])
-                else:
-                    cellval = datetime.datetime(*datetup).isoformat(' ')
-            except Exception:
-                raise Exception('Invalid date - unable to import.')
-        else:
-            cellval = rawval
-        val2use = (cellval if isinstance(cellval, str) 
-            else str(cellval))
-        return val2use
-
-    def get_rowdict(self, rowx, wkbook, wksheet, fldnames):
+    def get_rowdict(self, row_idx, wksheet, fldnames):
         rowvals = []
-        rowtypes = wksheet.row_types(rowx)
-        rawrowvals = wksheet.row_values(rowx)  ## more efficient to grab once
-        for colx in range(wksheet.ncols):
-            rawval = rawrowvals[colx]
+        n_cols = wksheet.max_column
+        for col_idx in range(1, n_cols + 1):
+            rawval = wksheet.cell(row=row_idx, column=col_idx)
             try:
-                rawval = rawval.strip()
+                val = rawval.strip()
             except AttributeError:
-                pass
-            try:
-                val2use = self.getval2use(wkbook, rowtypes[colx], rawval)
-            except Exception as e:
-                raise Exception(
-                    f'Problem with value in field "{fldnames[colx]}", '
-                    f'row {rowx + 1}. Orig error: {b.ue(e)}')
-            rowvals.append(val2use)
+                val = str(rawval)
+            rowvals.append(val)
         rowdict = dict(zip(fldnames, rowvals))
         return rowdict
 
-    def assess_sample(self, wkbook, wksheet, ok_fldnames, progbar,
-            steps_per_item, import_status, faulty2missing_fld_list):
+    def assess_sample(self, wksheet, ok_fldnames,
+            progbar, steps_per_item, import_status,
+            faulty2missing_fld_list):
         """
         Assess data sample to identify field types based on values in fields.
+        Sample first N rows (at most) to establish field types. If a field has
+        mixed data types will define as string.
 
-        Doesn't really use built-in xlrd functionality for getting type data.
+        https://medium.com/aubergine-solutions/working-with-excel-sheets-in-python-using-openpyxl-4f9fd32de87f
 
-        Uses it indirectly to get values e.g. dates in correct form.
-
-        Decided to stay with existing approach.
-
-        If a field has mixed data types will define as string.
-
-        Returns fldtypes, sample_data.
-
-        fldtypes - dict with ok field names as keys and field types as values.
-        
-        sample_data - list of dicts containing the first rows of data (no point
-        reading them all again during subsequent steps).
-
-        Sample first N rows (at most) to establish field types.
+        :param dict fldtypes: dict with ok field names as keys and field types
+         as values.
+        :param list sample_data: list of dicts containing the first rows of data
+         (no point reading them all again during subsequent steps).
+        :return: fldtypes, sample_data.
+        :rtype: tuple
         """
         debug = False
         has_rows = False
         sample_data = []
-        row_idx = 1 if self.has_header else 0
+        row_idx = 2 if self.has_header else 1  ## openpyxl is 1-based
         while row_idx < wksheet.nrows:  ## iterates through data rows only
             if row_idx % 50 == 0:
                 if not self.headless:
@@ -182,10 +151,10 @@ class ExcelImporter(importer.FileImporter):
                 if import_status[mg.CANCEL_IMPORT]:
                     progbar.SetValue(0)
                     raise my_exceptions.ImportCancel
-            if debug: print(wksheet.row(row_idx))
+            if debug: print(self.get_rowdict(row_idx, wksheet, ok_fldnames))
             ## if has_header, starts at 1st data row
             has_rows = True
-            rowdict = self.get_rowdict(row_idx, wkbook, wksheet, ok_fldnames)
+            rowdict = self.get_rowdict(row_idx, wksheet, ok_fldnames)
             sample_data.append(rowdict)
             gauge_val = min(row_idx*steps_per_item, mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
@@ -222,9 +191,10 @@ class ExcelImporter(importer.FileImporter):
         if not self.headless:
             wx.BeginBusyCursor()
         try:
-            wkbook = xlrd.open_workbook(self.fpath,)
-            wksheet = wkbook.sheet_by_index(0)
-            n_datarows = wksheet.nrows -1 if self.has_header else wksheet.nrows
+            wkbook = openpyxl.load_workbook(self.fpath,)
+            wksheet = wkbook.worksheets[0]
+            n_rows = wksheet.max_row
+            n_datarows = n_rows - 1 if self.has_header else n_rows
             ## get field names
             ok_fldnames = self.get_ok_fldnames(wksheet)
             if debug: print(ok_fldnames)
@@ -246,9 +216,9 @@ class ExcelImporter(importer.FileImporter):
         if debug: 
             print(f'steps_per_item: {steps_per_item}')
             print('About to assess data sample')
-        (fldtypes, 
-         sample_data) = self.assess_sample(wkbook, wksheet, ok_fldnames,
-            progbar, steps_per_item, import_status, faulty2missing_fld_list)
+        fldtypes, sample_data = self.assess_sample(wksheet, ok_fldnames,
+            progbar, steps_per_item, import_status,
+            faulty2missing_fld_list)
         if debug:
             print('Just finished assessing data sample')
             print(fldtypes)
@@ -257,7 +227,7 @@ class ExcelImporter(importer.FileImporter):
         row_idx = 1 if self.has_header else 0
         while row_idx < wksheet.nrows:  ## iterates through data rows only
             data.append(
-                self.get_rowdict(row_idx, wkbook, wksheet, ok_fldnames))
+                self.get_rowdict(row_idx, wksheet, ok_fldnames))
             row_idx += 1
         gauge_start = steps_per_item * sample_n
         try:

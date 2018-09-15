@@ -12,8 +12,8 @@ assumed to be safe to start. Other modules need to be able to rely on the
 correctness of what is in my_globals at the time they are called.
 """
 
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
+from . import basic_lib as b
+from . import my_globals as mg
 
 def set_SCRIPT_PATH():
     """

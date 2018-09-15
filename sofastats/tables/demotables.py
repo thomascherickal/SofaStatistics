@@ -1,10 +1,10 @@
-from sofastats import basic_lib as b
-from sofastats import my_globals as mg
-from sofastats import lib
-from sofastats import my_exceptions
-from sofastats import output
-from sofastats.tables import dimtables
-from sofastats.tables import rawtables
+from .. import basic_lib as b
+from .. import my_globals as mg
+from .. import lib
+from .. import my_exceptions
+from .. import output
+from . import dimtables
+from . import rawtables
 
 import wx
 
