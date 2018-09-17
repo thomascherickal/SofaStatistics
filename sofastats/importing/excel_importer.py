@@ -27,6 +27,10 @@ class ExcelImporter(importer.FileImporter):
         self.ext = 'XLS/XLSX'
         self.force_quickcheck = force_quickcheck
 
+    def _get_start_row_idx(self):
+        start_row_idx = 2 if self.has_header else 1  ## openpyxl is 1-based
+        return start_row_idx
+
     def has_header_row(self, row1_types, row2_types):
         """
         Will return True if nothing but strings or in first row and anything in
@@ -34,11 +38,11 @@ class ExcelImporter(importer.FileImporter):
         """
         debug = False
         if debug: print(row1_types, row2_types)
-        str_type = openpyxl.cell.cell.Cell.TYPE_STRING
-        empty_type = openpyxl.cell.cell.Cell.TYPE_NULL
+        str_type = openpyxl.cell.cell.Cell.TYPE_STRING  #@UndefinedVariable
+        empty_type = openpyxl.cell.cell.Cell.TYPE_NULL  #@UndefinedVariable
         non_str_types = [
-            openpyxl.cell.cell.Cell.TYPE_BOOL,
-            openpyxl.cell.cell.Cell.TYPE_NUMERIC,
+            openpyxl.cell.cell.Cell.TYPE_BOOL,  #@UndefinedVariable
+            openpyxl.cell.cell.Cell.TYPE_NUMERIC,  #@UndefinedVariable
         ]  ## ignore TYPE_FORMULA, TYPE_ERROR, TYPE_FORMULA_CACHE_STRING, TYPE_INLINE
         return importer.has_header_row(
             row1_types, row2_types, str_type, empty_type, non_str_types)
@@ -66,15 +70,15 @@ class ExcelImporter(importer.FileImporter):
                     cell = wksheet.cell(row=row_idx, column=col_idx)
                     val = cell.value
                     data_type = cell.data_type
-                if row_idx == 0:
-                    row1_types.append(data_type)
-                elif row_idx == 1:
-                    row2_types.append(data_type)
-                try:
-                    val = val.strip()
-                except AttributeError:
-                    val = str(val)
-                new_row.append(val)
+                    if row_idx == 1:
+                        row1_types.append(data_type)
+                    elif row_idx == 2:
+                        row2_types.append(data_type)
+                    try:
+                        val = val.strip()
+                    except AttributeError:
+                        val = str(val)
+                    new_row.append(val)
                 strdata.append(new_row)
                 if (row_idx + 1) >= importer.ROWS_TO_SHOW_USER:
                     break
@@ -98,7 +102,7 @@ class ExcelImporter(importer.FileImporter):
             ## use values of first row
             orig_fldnames = []
             for col_idx in range(1, n_cols + 1):
-                raw_fldname = wksheet.cell(row=0, column=col_idx).value
+                raw_fldname = wksheet.cell(row=1, column=col_idx).value
                 fldname = (raw_fldname if isinstance(raw_fldname, str) 
                     else str(raw_fldname))
                 orig_fldnames.append(fldname)
@@ -111,16 +115,16 @@ class ExcelImporter(importer.FileImporter):
         return fldnames
 
     def get_rowdict(self, row_idx, wksheet, fldnames):
-        rowvals = []
+        row_vals = []
         n_cols = wksheet.max_column
         for col_idx in range(1, n_cols + 1):
-            rawval = wksheet.cell(row=row_idx, column=col_idx)
+            raw_val = wksheet.cell(row=row_idx, column=col_idx).value
             try:
-                val = rawval.strip()
+                val = raw_val.strip()
             except AttributeError:
-                val = str(rawval)
-            rowvals.append(val)
-        rowdict = dict(zip(fldnames, rowvals))
+                val = str(raw_val)
+            row_vals.append(val)
+        rowdict = dict(zip(fldnames, row_vals))
         return rowdict
 
     def assess_sample(self, wksheet, ok_fldnames,
@@ -143,8 +147,9 @@ class ExcelImporter(importer.FileImporter):
         debug = False
         has_rows = False
         sample_data = []
-        row_idx = 2 if self.has_header else 1  ## openpyxl is 1-based
-        while row_idx < wksheet.nrows:  ## iterates through data rows only
+        n_rows = wksheet.max_row
+        row_idx = self._get_start_row_idx()
+        while row_idx <= n_rows:  ## iterates through data rows only
             if row_idx % 50 == 0:
                 if not self.headless:
                     wx.Yield()
@@ -159,7 +164,7 @@ class ExcelImporter(importer.FileImporter):
             gauge_val = min(row_idx*steps_per_item, mg.IMPORT_GAUGE_STEPS)
             progbar.SetValue(gauge_val)
             if not self.headless:
-                if row_idx == (ROWS_TO_SAMPLE - 1):
+                if row_idx == ROWS_TO_SAMPLE:
                     break
             row_idx += 1
         fldtypes = []
@@ -191,7 +196,7 @@ class ExcelImporter(importer.FileImporter):
         if not self.headless:
             wx.BeginBusyCursor()
         try:
-            wkbook = openpyxl.load_workbook(self.fpath,)
+            wkbook = openpyxl.load_workbook(self.fpath)
             wksheet = wkbook.worksheets[0]
             n_rows = wksheet.max_row
             n_datarows = n_rows - 1 if self.has_header else n_rows
@@ -224,8 +229,8 @@ class ExcelImporter(importer.FileImporter):
             print(fldtypes)
             print(sample_data)
         data = []
-        row_idx = 1 if self.has_header else 0
-        while row_idx < wksheet.nrows:  ## iterates through data rows only
+        row_idx = self._get_start_row_idx()
+        while row_idx <= n_rows:  ## iterates through data rows only
             data.append(
                 self.get_rowdict(row_idx, wksheet, ok_fldnames))
             row_idx += 1

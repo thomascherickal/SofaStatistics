@@ -28,8 +28,7 @@ class DlgImportFileSelect(wx.Dialog):
         Make selection based on file extension and possibly inspection of sample
         of rows (e.g. csv dialect).
         """
-        title = (_('Select file to import')
-            + ' (csv/tsv/tab/xls/xlsx/ods/Google spreadsheet)')
+        title = (_('Select file to import') + ' (csv/tsv/tab/xlsx/ods)')
         wx.Dialog.__init__(self, parent=parent, title=title, size=(550, 300),
             style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU,
             pos=(mg.HORIZ_OFFSET+100, -1))
@@ -240,10 +239,15 @@ def run_import(self, force_quickcheck=False):
         return
     ## identify file type
     unused, extension = importer.get_file_start_ext(fpath)
-    if extension.lower() in (mg.IMPORT_EXTENTIONS['csv'],
-            mg.IMPORT_EXTENTIONS['tsv'], mg.IMPORT_EXTENTIONS['tab']):
+    ext = extension.lower()
+    csv_formats = (
+        mg.IMPORT_EXTENTIONS['csv'],
+        mg.IMPORT_EXTENTIONS['tsv'],
+        mg.IMPORT_EXTENTIONS['tab'],
+    )
+    if ext in csv_formats:
         self.file_type = FILE_CSV
-    elif extension.lower() == mg.IMPORT_EXTENTIONS['txt']:
+    elif ext == mg.IMPORT_EXTENTIONS['txt']:
         ret = wx.MessageBox(_('SOFA imports txt files as csv or '
             'tab-delimited files.\n\nIs your txt file a valid csv or '
             'tab-delimited file?'), caption=_('CSV FILE?'), style=wx.YES_NO)
@@ -254,15 +258,17 @@ def run_import(self, force_quickcheck=False):
             return
         else:
             self.file_type = FILE_CSV
-    elif extension.lower() in (mg.IMPORT_EXTENTIONS['xls'],
-            mg.IMPORT_EXTENTIONS['xlsx']):
+    elif ext == mg.IMPORT_EXTENTIONS['xlsx']:
         self.file_type = FILE_EXCEL
-    elif extension.lower() == mg.IMPORT_EXTENTIONS['ods']:
+    elif ext == mg.IMPORT_EXTENTIONS['ods']:
         self.file_type = FILE_ODS
     else:
-        unknown_msg = (_(
-            "Files with the file name extension '%s' are not supported")
-            % extension)
+        extra_warning_dets = (
+            '. Please convert to xlsx or another supported format first.'
+            if ext == mg.IMPORT_EXTENTIONS['xls'] else '')
+        unknown_msg = ((
+            _("Files with the file name extension '%s' are not supported")
+            % extension) + extra_warning_dets)
         self.file_type = FILE_UNKNOWN
         wx.MessageBox(unknown_msg)
         self.align_btns_to_importing(importing=False)

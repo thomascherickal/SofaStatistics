@@ -259,9 +259,10 @@ def process_fldnames(raw_names, *, headless=False, force_quickcheck=False):
         if debug: print(raw_names)
         names = []
         for name in raw_names:
+            name = name.replace(' ', '_')
             if len(name) > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
                 ## just truncate - let the get_unique_fldnames function handle the shortened names as it normally would
-                name = name[:mg.MAX_VAL_LEN_IN_SQL_CLAUSE - mg.FLDNAME_ZFILL] # Got to leave some room for what get_unique_fldnames() appends
+                name = name[:mg.MAX_VAL_LEN_IN_SQL_CLAUSE - mg.FLDNAME_ZFILL]  ## Got to leave some room for what get_unique_fldnames() appends
             names.append(name)
             if mg.SOFA_ID in names:
                 raise Exception(_('%s is a reserved field name.') % mg.SOFA_ID)
@@ -1058,7 +1059,6 @@ def run_headless_import(fpath=None, tblname=None,
     if not fpath:
         raise Exception(_('A file name must be supplied when importing if '
             'running in headless mode.'))
-
     ## identify file type
     unused, extension = get_file_start_ext(fpath)
     if extension.lower() in (mg.IMPORT_EXTENTIONS['csv'],
@@ -1066,14 +1066,18 @@ def run_headless_import(fpath=None, tblname=None,
         file_type = FILE_CSV
     elif extension.lower() == mg.IMPORT_EXTENTIONS['txt']:
         file_type = FILE_CSV
-    elif extension.lower() in (mg.IMPORT_EXTENTIONS['xls'],
-            mg.IMPORT_EXTENTIONS['xlsx']):
+    elif extension.lower() == mg.IMPORT_EXTENTIONS['xlsx']:
         file_type = FILE_EXCEL
     elif extension.lower() == mg.IMPORT_EXTENTIONS['ods']:
         file_type = FILE_ODS
+    elif extension.lower() == mg.IMPORT_EXTENTIONS['xls']:
+        unknown_msg = (_("Files with the file name extension '%s' are "
+            "not supported") % extension
+            + '. Please convert to xlsx or another supported format first.')
+        raise Exception(unknown_msg)
     else:
         unknown_msg = _("Files with the file name extension '%s' are "
-            "not supported")% extension
+            "not supported") % extension
         raise Exception(unknown_msg)
     if not tblname:
         raise Exception('Unable to import headless unless table name supplied')

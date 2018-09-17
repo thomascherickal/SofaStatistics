@@ -610,10 +610,11 @@ class UniLib:
 
     @staticmethod
     def handle_ms_data(data):
-        if not isinstance(data, str):
-            return data
-        else:
-            return UniLib._ms2unicode(data)
+        return data
+#         if not isinstance(data, str):
+#             return data
+#         else:
+#             return UniLib._ms2unicode(data)
 
     @staticmethod
     def any2unicode(raw):
