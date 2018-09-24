@@ -47,6 +47,30 @@ class ExcelImporter(importer.FileImporter):
         return importer.has_header_row(
             row1_types, row2_types, str_type, empty_type, non_str_types)
 
+    @staticmethod
+    def _get_processed_val(raw_val, none_replacement):
+        """
+        Get processed version of raw value ready for HTML renderer to display or
+        SQLite to ingest. Strings OK for both cases.
+
+        :param unknown raw_val: raw value. Need to remove trailing space from
+         strings and handle nulls (None).
+        :param str none_replacement: OK to be a string because SQLite will
+         handle it appropriately according to its affinity e.g. if affinity is
+         numeric then "3" will be stored as numeric; or HTML will display it
+         depending on use case.
+        :return: processed version of raw val
+        :rtype: str
+        """
+        if raw_val is None:
+            val = none_replacement
+        else:
+            try:
+                val = raw_val.strip()
+            except AttributeError:
+                val = str(raw_val)
+        return val
+
     def get_params(self):
         """
         Display each cell based on cell characteristics only - no attempt to
@@ -68,16 +92,14 @@ class ExcelImporter(importer.FileImporter):
                 new_row = []
                 for col_idx in range(1, n_cols + 1):
                     cell = wksheet.cell(row=row_idx, column=col_idx)
-                    val = cell.value
+                    raw_val = cell.value
                     data_type = cell.data_type
                     if row_idx == 1:
                         row1_types.append(data_type)
                     elif row_idx == 2:
                         row2_types.append(data_type)
-                    try:
-                        val = val.strip()
-                    except AttributeError:
-                        val = str(val)
+                    val = ExcelImporter._get_processed_val(
+                        raw_val, none_replacement='&nbsp;'*3)  ## wide enough to see cell if all cells in sample column are empty
                     new_row.append(val)
                 strdata.append(new_row)
                 if (row_idx + 1) >= importer.ROWS_TO_SHOW_USER:
@@ -119,10 +141,7 @@ class ExcelImporter(importer.FileImporter):
         n_cols = wksheet.max_column
         for col_idx in range(1, n_cols + 1):
             raw_val = wksheet.cell(row=row_idx, column=col_idx).value
-            try:
-                val = raw_val.strip()
-            except AttributeError:
-                val = str(raw_val)
+            val = ExcelImporter._get_processed_val(raw_val, none_replacement='')
             row_vals.append(val)
         rowdict = dict(zip(fldnames, row_vals))
         return rowdict
