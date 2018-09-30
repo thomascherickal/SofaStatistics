@@ -1663,11 +1663,11 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024,
             height_init=myheight)
 
-    def on_drop_val(self, event):
+    def on_drop_val(self, evt):
         debug = False
         global CUR_DATA_OPT_LBL
         ## http://www.blog.pythonlibrary.org/2011/09/20/wxpython-binding-multiple-widgets-to-the-same-handler/
-        drop = event.GetEventObject()
+        drop = evt.GetEventObject()
         try:
             idx_sel = drop.GetSelection()
             CUR_DATA_OPT_LBL = mg.DATA_SHOW_OPT_LBLS[idx_sel]
@@ -1679,21 +1679,17 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Dropdowns.setup_var_dropdowns(self)  ## e.g. if we select mean we now need an extra var and the 1st has to be numeric
         self.setup_line_extras()
 
-    def on_show(self, _event):
+    def on_show(self, _evt):
         if self.exiting:
             return
         html2show = _("<p>Waiting for a chart to be run.</p>")
         self.html.SetPage(html2show, mg.BASE_URL)
 
-    def on_btn_help(self, event):
+    def on_btn_help(self, evt):
         import webbrowser
         url = ('http://www.sofastatistics.com/wiki/doku.php?id=help:charts')
         webbrowser.open_new_tab(url)
-        event.Skip()
-
-    def on_dp_spin(self, unused_event):
-        "Set maximum decimal places to display"
-        mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
+        evt.Skip()
 
     def get_agg_dets(self):
         show_agg = CUR_DATA_OPT_LBL in mg.AGGREGATE_DATA_SHOW_OPT_LBLS
@@ -1752,28 +1748,28 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
     def add_other_var_opts(self, szr=None):
         pass
 
-    def on_database_sel(self, event):
+    def on_database_sel(self, evt):
         """
         Reset dbe, database, cursor, tables, table, tables dropdown,
         fields, has_unique, and idxs after a database selection.
         """
-        if config_ui.ConfigUI.on_database_sel(self, event):
+        if config_ui.ConfigUI.on_database_sel(self, evt):
             output.update_var_dets(dlg=self)
             Dropdowns.setup_var_dropdowns(self)
 
-    def on_table_sel(self, event):
+    def on_table_sel(self, evt):
         "Reset key data details after table selection."       
-        config_ui.ConfigUI.on_table_sel(self, event)
+        config_ui.ConfigUI.on_table_sel(self, evt)
         ## now update var dropdowns
         output.update_var_dets(dlg=self)
         Dropdowns.setup_var_dropdowns(self)
 
-    def on_btn_var_config(self, event):
+    def on_btn_var_config(self, evt):
         """
         Want to retain already selected item - even though label and even
         position may have changed.
         """
-        config_ui.ConfigUI.on_btn_var_config(self, event)
+        config_ui.ConfigUI.on_btn_var_config(self, evt)
         Dropdowns.setup_var_dropdowns(self)
         self.update_defaults()
 

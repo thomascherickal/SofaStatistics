@@ -102,7 +102,7 @@ class ExcelImporter(importer.FileImporter):
                         raw_val, none_replacement='&nbsp;'*3)  ## wide enough to see cell if all cells in sample column are empty
                     new_row.append(val)
                 strdata.append(new_row)
-                if (row_idx + 1) >= importer.ROWS_TO_SHOW_USER:
+                if row_idx >= importer.ROWS_TO_SHOW_USER:
                     break
             try:
                 prob_has_hdr = self.has_header_row(row1_types, row2_types)
@@ -191,7 +191,7 @@ class ExcelImporter(importer.FileImporter):
             fldtype = importer.assess_sample_fld(sample_data,
                 ok_fldname, ok_fldnames, faulty2missing_fld_list,
                 has_header=self.has_header, headless=self.headless)
-            fldtypes.append(fldtype)            
+            fldtypes.append(fldtype)
         fldtypes = dict(zip(ok_fldnames, fldtypes))
         if not has_rows:
             raise Exception('No data to import')

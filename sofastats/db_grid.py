@@ -119,14 +119,14 @@ def open_data_table(parent, var_labels, var_notes, var_types, val_dics, *,
             if debug: print(f'Unable to get first item from {SQL_get_count}.')
         else:
             rows_n = res[0]
-        if rows_n > 200000:  ## fast enough as long as column resizing is off
+        if rows_n > 200_000:  ## fast enough as long as column resizing is off
             if wx.MessageBox(_("This table has %s rows. "
                     "Do you wish to open it?") % rows_n, 
                     caption=_("LONG REPORT"),
                     style=wx.YES_NO) == wx.NO:
                 return
         wx.BeginBusyCursor()
-        need_colwidths_set = (rows_n < 1000)
+        need_colwidths_set = (rows_n < 1_000)
         dlg = TblEditor(parent, var_labels, var_notes, var_types, val_dics,
             read_only=read_only, need_colwidths_set=need_colwidths_set)
         lib.GuiLib.safe_end_cursor()
@@ -150,10 +150,11 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.need_colwidths_set = need_colwidths_set
         self.dd = mg.DATADETS_OBJ
         self.read_only = read_only
+        self.uses_default_max_dec_pts = False
         title = _("Data from ") + f'{self.dd.db}.{self.dd.tbl}'
         if self.read_only:
             title += _(" (Read Only)")
-        wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0), 
+        wx.Dialog.__init__(self, parent, title=title, pos=(mg.HORIZ_OFFSET, 0),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
@@ -169,7 +170,7 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         height_grid = 500
         self.grid = wx.grid.Grid(self.panel, size=(width_grid, height_grid))
         self.grid.EnableEditing(not self.read_only)
-        self.init_tbl()
+        self.init_tbl()  ## needs to run before evaluating self.uses_default_max_dec_pts
         self.grid.GetGridColLabelWindow().SetToolTip(
             _('Right click variable to view/edit details'))
         self.respond_to_select_cell = True
@@ -185,14 +186,23 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.grid.GetGridWindow().Bind(wx.EVT_MOTION, self.on_mouse_move)
         self.grid.Bind(
             wx.grid.EVT_GRID_LABEL_RIGHT_CLICK, self.on_label_rclick)
-        szr_top = wx.FlexGridSizer(rows=1, cols=4, hgap=5, vgap=5)
-        szr_top.AddGrowableCol(2, 2)  ## idx, propn
+        extra_cols = 2 if self.uses_default_max_dec_pts else 0
+        szr_top = wx.FlexGridSizer(rows=1, cols=4 + extra_cols, hgap=5, vgap=5)
+        szr_top.AddGrowableCol(2 + extra_cols, 2)  ## idx, propn
         szr_bottom = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szr_bottom.AddGrowableCol(0,2)  ## idx, propn
+        szr_bottom.AddGrowableCol(0, 2)  ## idx, propn
 
-        self.btn_size_cols = wx.Button(self.panel, -1, _('Resize column widths'))
+        self.btn_size_cols = wx.Button(
+            self.panel, -1, _('Resize column widths'))
         self.btn_size_cols.Bind(wx.EVT_BUTTON, self.on_size_cols)
         self.btn_size_cols.SetFont(mg.BTN_FONT)
+
+        if self.uses_default_max_dec_pts:
+            ## dp spinner
+            self.lbl_dp_spinner = wx.StaticText(
+                self.panel, -1, 'Default max\ndec points:')
+            self.dp_spinner = self.get_dp_spinner(
+                self.panel, dp_val=mg.DEFAULT_REPORT_DP)
 
         self.btn_filter = self.get_btn_filter(self.panel)
         tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(
@@ -212,6 +222,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         szr_top.Add(self.btn_size_cols, 0, wx.RIGHT, 10)
         szr_top.Add(self.btn_filter, 0, wx.ALIGN_RIGHT)
         szr_top.Add(self.lbl_filter, 0, wx.TOP, 7)
+        if self.uses_default_max_dec_pts:
+            szr_top.Add(self.lbl_dp_spinner, 0)
+            szr_top.Add(self.dp_spinner, 0, wx.LEFT, 10)
+
         szr_top.Add(self.btn_var_config, 0, wx.ALIGN_RIGHT)
 
         szr_bottom.Add(self.btn_export, 0, wx.LEFT, 10)
@@ -240,7 +254,8 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
             if fld_dic[mg.FLD_BOLNUMERIC]:
                 if fld_dic[mg.FLD_DECPTS] is None:  ## be liberal in case
                     width = 20
-                    precision = 1
+                    precision = mg.DEFAULT_REPORT_DP
+                    self.uses_default_max_dec_pts = True
                     self.grid.SetColFormatFloat(col_idx, width, precision)
                 elif fld_dic[mg.FLD_DECPTS] > 0:  ## float
                     width = fld_dic[mg.FLD_NUM_WIDTH]
@@ -282,6 +297,10 @@ class TblEditor(wx.Dialog, config_ui.ConfigUI):
         self.any_editor_shown = False
         if self.need_colwidths_set:
             self.set_colwidths()
+
+    def on_dp_spin(self, evt):
+        config_ui.ConfigUI.on_dp_spin(self, evt)
+        self.init_tbl()
 
     ## processing MOVEMENTS AWAY FROM CELLS e.g. saving values /////////////////
 

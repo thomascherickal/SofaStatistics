@@ -1681,7 +1681,7 @@ def fix_eols(orig):
     Prevents variable or value labels, for example, with line breaks.
     """
     try:
-        fixed = orig.replace(u'\n', u' ')
+        fixed = orig.replace('\n', ' ')
     except AttributeError:  ## e.g. None
         fixed = orig
     return fixed

@@ -472,6 +472,10 @@ class ConfigUI:
         dp_spinner.SetToolTip(_('Maximum number of decimal places to show'))
         return dp_spinner
 
+    def on_dp_spin(self, _evt):
+        "Set maximum decimal places to display"
+        mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
+
     def get_btn_var_config(self, panel):
         btn_var_config = wx.Button(panel, -1, _('Config Vars'))
         btn_var_config.SetFont(mg.BTN_FONT)

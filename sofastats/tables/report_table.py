@@ -580,25 +580,24 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         "Enable (or disable) Show Percentage Symbol option"
         self.chk_show_perc_symbol.Enable(enable)
 
-    def on_chk_totals_row(self, _event):
+    def on_chk_totals_row(self, _evt):
         "Update display as total rows checkbox changes"
         self.update_demo_display()
 
-    def on_chk_first_as_label(self, _event):
+    def on_chk_first_as_label(self, _evt):
         "Update display as first column as label checkbox changes"
         self.update_demo_display()
 
-    def on_chk_show_perc_symbol(self, _event):
+    def on_chk_show_perc_symbol(self, _evt):
         "Update display as show percentage symbol checkbox changes"
         self.update_demo_display()
 
-    def on_dp_spin(self, _event):
-        "Set maximum decimal places to display"
-        mg.DEFAULT_REPORT_DP = self.dp_spinner.GetValue()
+    def on_dp_spin(self, evt):
+        config_ui.ConfigUI.on_dp_spin(self, evt)
         self.update_demo_display()
 
     ## titles/subtitles
-    def on_title_change(self, unused_event):
+    def on_title_change(self, _evt):
         """
         Update display as titles change
 
@@ -608,7 +607,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         self.update_demo_display(titles_only=True)
         self.txt_titles.SetFocus()
 
-    def on_subtitle_change(self, _event):
+    def on_subtitle_change(self, _evt):
         """
         Update display as subtitles change.  See on_title_change comment.
         """
