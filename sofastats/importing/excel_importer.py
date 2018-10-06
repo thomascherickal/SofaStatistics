@@ -30,7 +30,6 @@ class ExcelImporter(importer.FileImporter):
             headless=headless, headless_has_header=headless_has_header)
         self.ext = 'XLSX'
         self.force_quickcheck = force_quickcheck
-        self.has_formulae = False
 
     def _get_start_row_idx(self):
         start_row_idx = 2 if self.has_header else 1  ## openpyxl is 1-based
@@ -147,8 +146,6 @@ class ExcelImporter(importer.FileImporter):
         n_cols = wksheet.max_column
         for col_idx in range(1, n_cols + 1):
             cell = wksheet.cell(row=row_idx, column=col_idx)
-            if cell.data_type in FORMULA_DATA_TYPES:
-                self.has_formulae = True
             raw_val = cell.value
             val = ExcelImporter._get_processed_val(raw_val, none_replacement='')
             row_vals.append(val)
@@ -272,9 +269,16 @@ class ExcelImporter(importer.FileImporter):
                 faulty2missing_fld_list, data,
                 progbar, n_datarows, steps_per_item, gauge_start,
                 has_header=self.has_header, headless=self.headless)
+            extra_msg = ("If your spreadsheet has formulae, and SOFA was unable"
+                " to successfully import all values, make a new spreadsheet "
+                "where you copy data from the original and paste as values "
+                "only. Import again from the values-only version of your "
+                "spreadsheet.\n\nNormally, SOFA will be able to cope with "
+                "formulae because your spreadsheet will have stored the "
+                "calculated values.")
             importer.tmp_to_named_tbl(default_dd.con, default_dd.cur,
                 self.tblname, progbar, feedback[mg.NULLED_DOTS_KEY],
-                headless=self.headless)
+                extra_msg=extra_msg, headless=self.headless)
         except Exception as e:
             importer.post_fail_tidy(progbar, default_dd.con, default_dd.cur)
             raise

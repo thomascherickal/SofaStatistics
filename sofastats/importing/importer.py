@@ -822,12 +822,15 @@ def add_to_tmp_tbl(
             break
 
 def tmp_to_named_tbl(con, cur, tblname, progbar, nulled_dots, *,
-        headless=False):
+        extra_msg='', headless=False):
     """
     Rename table to final name.
 
     This part is only called once at the end and is so fast there is no need to
     report progress till completion.
+
+    :param str extra_msg: Any extra message to display e.g. for Excel need to
+     warn about need to paste as values only if formulae in spreadsheet.
     """
     debug = False
     try:
@@ -853,6 +856,8 @@ def tmp_to_named_tbl(con, cur, tblname, progbar, nulled_dots, *,
     msg += _("\n\nYou can check your imported data by clicking the "
         "'Enter/Edit Data' button on the main form. You'll find your "
         "data in the '%s' database.") % mg.SOFA_DB
+    if extra_msg:
+        msg += f"\n\n{extra_msg}"
     if not headless:
         wx.MessageBox(msg % {'tbl': tblname})
 

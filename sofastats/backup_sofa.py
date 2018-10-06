@@ -40,7 +40,7 @@ def run_backup(inc_reports=True):
     for folder in folders2backup:
         folder_path = os.path.join(mg.LOCAL_PATH, folder)
         for root, unused, files in os.walk(folder_path):
-            if debug: 
+            if debug:
                 print(root)
                 if report2gui:
                     wx.MessageBox(f'Current root is: {root}')
@@ -50,7 +50,7 @@ def run_backup(inc_reports=True):
                 fpath = os.path.join(folder_path, root, filname)
                 files2backup.append(fpath)
     for fpath in files2backup:
-        if debug: 
+        if debug:
             print(f'Adding {fpath} ...')
             if report2gui:
                 wx.MessageBox(f"File path is: {fpath}")
