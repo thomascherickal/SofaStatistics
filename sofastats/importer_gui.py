@@ -28,10 +28,10 @@ class DlgImportFileSelect(wx.Dialog):
         Make selection based on file extension and possibly inspection of sample
         of rows (e.g. csv dialect).
         """
-        title = (_('Select file to import') + ' (csv/tsv/tab/xlsx/ods)')
-        wx.Dialog.__init__(self, parent=parent, title=title, size=(550, 300),
+        title = (_('Select Source File to import') + ' (csv/tsv/tab/xlsx/ods)')
+        wx.Dialog.__init__(self, parent=parent, title=title, size=(800, 300),
             style=wx.CAPTION|wx.CLOSE_BOX|wx.SYSTEM_MENU,
-            pos=(mg.HORIZ_OFFSET+100, -1))
+            pos=(mg.HORIZ_OFFSET + 30, -1))
         self.CentreOnScreen(wx.VERTICAL)
         self.parent = parent
         self.panel = wx.Panel(self)
@@ -43,7 +43,7 @@ class DlgImportFileSelect(wx.Dialog):
         ## file path
         lbl_fpath = wx.StaticText(self.panel, -1, _('Source File:'))
         lbl_fpath.SetFont(mg.LABEL_FONT)
-        self.txt_file = wx.TextCtrl(self.panel, -1, '', size=(400,-1))
+        self.txt_file = wx.TextCtrl(self.panel, -1, '', size=(650, -1))
         self.txt_file.Bind(wx.EVT_CHAR, self.on_file_char)
         self.txt_file.SetFocus()
         btn_fpath = wx.Button(self.panel, -1, _('Browse ...'))
@@ -51,13 +51,13 @@ class DlgImportFileSelect(wx.Dialog):
         btn_fpath.SetDefault()
         btn_fpath.SetToolTip(_('Browse for file locally'))
         ## comment
-        lbl_comment = wx.StaticText(self.panel, -1, 
-            _('The Source File will be imported into SOFA with the SOFA Table '
-              'Name entered below:'))
+        lbl_comment = wx.StaticText(self.panel, -1,
+            _('The Source File will be imported into SOFA and given the '
+              'SOFA Table Name'))
         ## internal SOFA name
         lbl_int_name = wx.StaticText(self.panel, -1, _('SOFA Table Name:'))
         lbl_int_name.SetFont(mg.LABEL_FONT)
-        self.txt_int_name = wx.TextCtrl(self.panel, -1, '', size=(280, -1))
+        self.txt_int_name = wx.TextCtrl(self.panel, -1, '', size=(320, -1))
         self.txt_int_name.Bind(wx.EVT_CHAR, self.on_int_name_char)
         ## feedback
         self.lbl_feedback = wx.StaticText(self.panel)
@@ -80,24 +80,21 @@ class DlgImportFileSelect(wx.Dialog):
         szr_fpath.Add(btn_help, 0, wx.LEFT, 10)
         szr_fpath.Add(lbl_fpath, 0, wx.LEFT, 10)
         szr_fpath.Add(self.txt_file, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
-        szr_get_file = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
-        szr_get_file.AddGrowableCol(0,1)  ## idx, propn
-        szr_get_file.Add(btn_fpath, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
+        szr_fpath.Add(btn_fpath, 0, wx.ALIGN_RIGHT|wx.RIGHT, 10)
         szr_int_name = wx.FlexGridSizer(rows=1, cols=2, hgap=0, vgap=0)
-        szr_int_name.AddGrowableCol(0,1)  ## idx, propn
+        szr_int_name.AddGrowableCol(0, 1)  ## idx, propn
         szr_int_name.Add(lbl_int_name, 0, wx.ALIGN_RIGHT|wx.RIGHT, 5)
         szr_int_name.Add(self.txt_int_name, 1, wx.ALIGN_RIGHT)
-        szr_btns = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
-        szr_btns.AddGrowableCol(1,2)  ## idx, propn
+        szr_btns = wx.FlexGridSizer(rows=1, cols=3, hgap=5, vgap=5)
+        szr_btns.AddGrowableCol(1, 2)  ## idx, propn
         szr_btns.Add(self.btn_cancel, 0)
+        szr_btns.Add(lbl_comment, 0, wx.ALIGN_RIGHT)
         szr_btns.Add(self.btn_import, 0, wx.ALIGN_RIGHT)
         szr_close = wx.FlexGridSizer(rows=1, cols=2, hgap=5, vgap=5)
         szr_close.AddGrowableCol(0,2)  ## idx, propn
         szr_close.Add(self.lbl_feedback)        
         szr_close.Add(self.btn_close, 0, wx.ALIGN_RIGHT)
         szr_main.Add(szr_fpath, 0, wx.GROW|wx.TOP, 20)
-        szr_main.Add(szr_get_file, 0, wx.GROW|wx.TOP, 10)
-        szr_main.Add(lbl_comment, 0, wx.GROW|wx.TOP|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_int_name, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(szr_btns, 0, wx.GROW|wx.ALL, 10)
         szr_main.Add(self.progbar, 0, wx.GROW|wx.ALL, 10)

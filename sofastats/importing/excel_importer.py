@@ -9,6 +9,10 @@ from sofastats import getdata  #@UnresolvedImport
 from sofastats.importing import importer  #@UnresolvedImport
 
 ROWS_TO_SAMPLE = 500  ## fast enough to sample quite a few
+DATA_ONLY = True  ## If True will import data not formulae (openpyxl cannot evaluate formulae). Will still be able to use last cached value if one present.
+FORMULA_DATA_TYPES = (
+    openpyxl.cell.cell.Cell.TYPE_FORMULA,  #@UndefinedVariable
+    openpyxl.cell.cell.Cell.TYPE_FORMULA_CACHE_STRING)  #@UndefinedVariable
 
 
 class ExcelImporter(importer.FileImporter):
@@ -24,8 +28,9 @@ class ExcelImporter(importer.FileImporter):
             headless, headless_has_header, force_quickcheck=False):
         importer.FileImporter.__init__(self, parent, fpath, tblname,
             headless=headless, headless_has_header=headless_has_header)
-        self.ext = 'XLS/XLSX'
+        self.ext = 'XLSX'
         self.force_quickcheck = force_quickcheck
+        self.has_formulae = False
 
     def _get_start_row_idx(self):
         start_row_idx = 2 if self.has_header else 1  ## openpyxl is 1-based
@@ -33,8 +38,9 @@ class ExcelImporter(importer.FileImporter):
 
     def has_header_row(self, row1_types, row2_types):
         """
-        Will return True if nothing but strings or in first row and anything in
-        other rows that is not e.g. a number or a date. Empty is OK.
+        Will return True if nothing but strings, or in then first row and there
+        is something in other rows that is not e.g. a number or a date. Empty is
+        OK.
         """
         debug = False
         if debug: print(row1_types, row2_types)
@@ -81,7 +87,7 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            wkbook = openpyxl.load_workbook(self.fpath)
+            wkbook = openpyxl.load_workbook(self.fpath, data_only=DATA_ONLY)
             wksheet = wkbook.worksheets[0]
             n_cols = wksheet.max_column
             n_rows = wksheet.max_row
@@ -140,7 +146,10 @@ class ExcelImporter(importer.FileImporter):
         row_vals = []
         n_cols = wksheet.max_column
         for col_idx in range(1, n_cols + 1):
-            raw_val = wksheet.cell(row=row_idx, column=col_idx).value
+            cell = wksheet.cell(row=row_idx, column=col_idx)
+            if cell.data_type in FORMULA_DATA_TYPES:
+                self.has_formulae = True
+            raw_val = cell.value
             val = ExcelImporter._get_processed_val(raw_val, none_replacement='')
             row_vals.append(val)
         rowdict = dict(zip(fldnames, row_vals))
@@ -215,7 +224,7 @@ class ExcelImporter(importer.FileImporter):
         if not self.headless:
             wx.BeginBusyCursor()
         try:
-            wkbook = openpyxl.load_workbook(self.fpath)
+            wkbook = openpyxl.load_workbook(self.fpath, data_only=DATA_ONLY)
             wksheet = wkbook.worksheets[0]
             n_rows = wksheet.max_row
             n_datarows = n_rows - 1 if self.has_header else n_rows
