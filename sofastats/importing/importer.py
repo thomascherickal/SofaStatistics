@@ -888,8 +888,8 @@ def get_content_dets(strdata):
 class DlgHasHeader(wx.Dialog):
     def __init__(self, parent, ext):
         wx.Dialog.__init__(self, parent=parent, title=_('Header row?'),
-            size=(550, 300), style=wx.CAPTION|wx.SYSTEM_MENU,
-            pos=(mg.HORIZ_OFFSET + 200, 120))
+            size=(650, 300), style=wx.CAPTION|wx.SYSTEM_MENU,
+            pos=(mg.HORIZ_OFFSET + 100, 120))
         self.parent = parent
         self.panel = wx.Panel(self)
         szr_main = wx.BoxSizer(wx.VERTICAL)
@@ -954,7 +954,7 @@ class DlgHasHeaderGivenData(wx.Dialog):
     def __init__(self, parent, ext, strdata, prob_has_hdr=True):
         debug = False
         wx.Dialog.__init__(self, parent=parent, title=_('Header row?'),
-            size=(850, 250), style=wx.CAPTION|wx.SYSTEM_MENU,
+            size=(950, 250), style=wx.CAPTION|wx.SYSTEM_MENU,
             pos=(mg.HORIZ_OFFSET + 200, 120))
         self.parent = parent
         self.panel = wx.Panel(self)
@@ -965,7 +965,7 @@ class DlgHasHeaderGivenData(wx.Dialog):
         lbl_explan = wx.StaticText(self.panel, -1, explan)
         content, unused = get_content_dets(strdata)
         if debug: print(content)
-        html_content = wx.html2.WebView.New(self.panel, -1, size=(820, 240))
+        html_content = wx.html2.WebView.New(self.panel, -1, size=(920, 240))
         html_content.SetPage(content, mg.BASE_URL)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER,
             _('Has Header Row'))
