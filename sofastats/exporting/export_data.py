@@ -15,7 +15,7 @@ from sofastats import my_exceptions
 from sofastats import getdata
 from sofastats import output
 
-dd = mg.DATADETS_OBJ
+ColDet = namedtuple('ColDet', 'col_name, numeric, is_date, valdic')
 
 
 class Writer(ABC):
@@ -25,23 +25,31 @@ class Writer(ABC):
     fields at end.
     """
 
-    def __init__(self, colnames2use, *, inc_lbls):
+    def __init__(self, cols_dets, *, inc_lbls):
         """
-        :param list colnames2use: list of column names to use
+        :param list cols_dets: list of column details to use
         :param bool inc_lbls: if True, include label versions of fields at end
          as extra columns.
         """
+        self.dd = mg.DATADETS_OBJ
+        self.col_names = []
+        for col_dets in cols_dets:
+            col_name = col_dets.col_name
+            if col_name == mg.SOFA_ID:
+                col_name = mg.WAS_SOFA_ID
+            self.col_names.append(col_name)
+            if col_dets.valdic:
+                self.col_names.append(f'{col_name}_Label')
         self.extra_lbl = '_with_labels' if inc_lbls else ''
         self.desktop = Path(mg.HOME_PATH) / 'Desktop'
 
     @abstractmethod
-    def process_row(self, row, row_n, orig_and_lbl_col_dets, orig_col_has_lbl):
+    def process_row(self, row, row_n, cols_dets):
         """
-        Iterate through items in row. If item has a label variant to display (i.e. its
-        status in col_lbl_statuses is True
+        Iterate through items in row. If item has a label variant to display
+        then also add that item to the output.
         """
-        orig_col_has_lbl
-        self.row_idx2all_cols_next_idx = {}
+        pass
 
     @abstractmethod
     def save(self):
@@ -50,29 +58,18 @@ class Writer(ABC):
 
 class CsvWriter(Writer):
 
-    def __init__(self, colnames2use, *, inc_lbls):
-        super().__init__(inc_lbls=inc_lbls)
-        fname_csv = f'{dd.tbl}{self.extra_lbl}.csv'
+    def __init__(self, cols_dets, *, inc_lbls):
+        super().__init__(cols_dets, inc_lbls=inc_lbls)
+        fname_csv = f'{self.dd.tbl}{self.extra_lbl}.csv'
         fpath_csv = str(self.desktop / fname_csv)
-        self.f = open(fpath_csv, 'wb')
+        self.f = open(fpath_csv, 'w')
         self.csv_writer = csv.writer(
             self.f, delimiter=',', quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        self.csv_writer.writerow(colnames2use)  ## write header row
+        self.csv_writer.writerow(self.col_names)  ## write header row
 
-    def process_row(self, row, row_n, orig_and_lbl_col_dets, orig_col_has_lbl):
+    def process_row(self, row, row_n, cols_dets):
         try:
-            if row_n == 1:  ## header
-                header_row = []
-                for item in row:
-                    if item == mg.SOFA_ID:
-                        item = mg.WAS_SOFA_ID
-                    header_row.append(item)
-                row2write = header_row
-            else:
-                
-                row2write = row
-            self.csv_writer.writerow(row2write)
-        
+            self.csv_writer.writerow(row)
         except Exception as e:
             raise Exception(f'Unable to write row {row_n} to csv file. '
                 f'Orig error: {e}')
@@ -83,46 +80,47 @@ class CsvWriter(Writer):
 
 class SpreadsheetWriter(Writer):
 
-    def __init__(self, colnames2use, *, inc_lbls):
-        super().__init__(inc_lbls=inc_lbls)
-        self.wb = openpyxl.Workbook(write_only=True)  ## requires lxml
-        safe_sheetname = lib.get_safer_name(f'{dd.tbl[:20]} output')
+    def __init__(self, cols_dets, *, inc_lbls):
+        super().__init__(cols_dets, inc_lbls=inc_lbls)
+        self.wb = openpyxl.Workbook(write_only=False)  ## write_only faster but can't add rows cell-by-cell, only by appending entire row
+        safe_sheetname = lib.get_safer_name(f'{self.dd.tbl[:20]} output')
         self.sheet = self.wb.create_sheet(safe_sheetname, 0)
-        self.style_bold_12pt = Font(name='Arial', size=12, bold=True)
+        style_bold_12pt = Font(name='Arial', size=12, bold=True)
+        for col_n, col_name in enumerate(self.col_names, 1):
+            header_cell = self.sheet.cell(row=1, column=col_n)
+            header_cell.value = col_name
+            header_cell.font = style_bold_12pt
 
-    def process_row(self, row, row_n, orig_and_lbl_col_dets, orig_col_has_lbl):
-        """
-        The number of columns in row is less than the total number of columns
-        being written if we are including labels and there are labels available. 
-
-        So as we iterate through columns in the row we need to see if there is a
-        label column to display as well. If so, the index for the next column in
-        the row will be higher by one because of the presence of a label column
-        before it. We need that index to access the correct dets in
-        orig_and_lbl_col_dets.
-        """
-        idx_orig_and_lbl_cols = 0  ## tracker for where we are in orig_and_lbl_col_dets
-
-#         if all_col_dets[idx_final_col].isdate:
-#             if isinstance(val, datetime.datetime):
-#                 val2use = val
-#             else:
-#                 try:
-#                     val2use = lib.DateLib.get_datetime_from_str(
-#                         val)
-#                 except Exception:
-#                     val2use = ''
-#              
-#              
-#             self.sheet.write(
-#                 idx_row, idx_final_col, val2use, date_style)
-#              
-#              
-#         else:
-#             self.sheet.write(idx_row, idx_final_col, val)
+    def process_row(self, row, row_n, cols_dets):
+        try:
+            col2fill = 1
+            for val, col_dets in zip(row, cols_dets):
+                cell = self.sheet.cell(row=row_n, column=col2fill)
+                if col_dets.is_date:
+                    if isinstance(val, datetime.datetime):
+                        val2use = val
+                    else:
+                        try:
+                            val2use = lib.DateLib.get_datetime_from_str(val)
+                        except Exception:
+                            val2use = ''
+                    cell.value = val2use
+                    cell.number_format = 'YYYY MMM DD'
+                else:
+                    if col_dets.numeric:
+                        cell.alignment = Alignment(horizontal='right')
+                    cell.value = val
+                col2fill += 1
+                if col_dets.valdic:
+                    val2show = col_dets.valdic.get(val, val)
+                    self.sheet.cell(row=row_n, column=col2fill).value = val2show
+                col2fill += 1
+        except Exception as e:
+            raise Exception(f'Unable to write row {row_n} to spreadsheet. '
+                f'Orig error: {e}')
 
     def save(self):
-        fname_xlsx = f'{dd.tbl}{self.extra_lbl}.xls'
+        fname_xlsx = f'{self.dd.tbl}{self.extra_lbl}.xlsx'
         fpath_xlsx = str(self.desktop / fname_xlsx)
         self.wb.save(fpath_xlsx)
 
@@ -136,7 +134,8 @@ class DlgExportData(wx.Dialog):
 
         Works with SQLite, PostgreSQL, MySQL, CUBRID, MS Access and SQL Server.
         """
-        title = f'Export {dd.tbl} to spreadsheet'
+        self.dd = mg.DATADETS_OBJ
+        title = f'Export {self.dd.tbl} to spreadsheet'
         wx.Dialog.__init__(self, parent=None, id=-1, title=title,
             pos=(mg.HORIZ_OFFSET+200, 300),
             style=(wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
@@ -168,69 +167,52 @@ class DlgExportData(wx.Dialog):
         szr.SetSizeHints(self)
         szr.Layout()
 
-    def extract_col_dets(self, orig_col_names, *, val_dics, inc_lbls):
+    def get_cols_dets(self, orig_col_names, *, val_dics, inc_lbls):
         """
         Get details for each column e.g. whether numeric, and whether it has a
-        label to be displayed as well as then original value. If showing lbl
-        fields may be more than one set of col dets per col (if labels available
-        for particular columns).
+        label to be displayed as well as then original value
 
-        :return: a two-tuple with:
-         orig_col_has_lbl - True or False for every original field.
-         orig_and_lbl_col_dets - all fields in order. Label fields appear immediately
-         after original version if we are including labels and there are labels
-         for that field.
-        :rtype: tuple
+        :return: list of ColDet named tuples: col_name, numeric, is_date, valdic
+        :rtype: list
         """
         debug = False
-        orig_col_has_lbl = []
-        orig_and_lbl_col_dets = []
-        ColDet = namedtuple('ColDet', 'col_name, numeric, isdate, valdic')
+        cols_dets = []
         for orig_colname in orig_col_names:
-            numericfld = dd.flds[orig_colname][mg.FLD_BOLNUMERIC]
-            datefld = dd.flds[orig_colname][mg.FLD_BOLDATETIME]
+            numericfld = self.dd.flds[orig_colname][mg.FLD_BOLNUMERIC]
+            datefld = self.dd.flds[orig_colname][mg.FLD_BOLDATETIME]
             if debug and datefld: print(f'{orig_colname} is a datetime field')
-            orig_and_lbl_col_dets.append(
-                ColDet(orig_colname, numericfld, datefld, None))  ## always raw first so no valdic
             has_lbls = val_dics.get(orig_colname)
-            if inc_lbls and has_lbls:
-                orig_col_has_lbl.append(True)
-                valdic = val_dics.get(orig_colname)
-                orig_and_lbl_col_dets.append(
-                    ColDet(f'{orig_colname}_Label', False, False, valdic))  ## labels are not dates or numeric
-            else:
-                orig_col_has_lbl.append(False)
-        return orig_col_has_lbl, orig_and_lbl_col_dets
+            use_lbls = (inc_lbls and has_lbls)
+            lbl_dic = val_dics.get(orig_colname) if use_lbls else None
+            cols_dets.append(ColDet(orig_colname, numericfld, datefld, lbl_dic))
+        return cols_dets
 
-    @staticmethod
-    def _get_sql(orig_col_names):
+    def _get_sql(self, orig_col_names):
         debug = False
-        objqtr = getdata.get_obj_quoter_func(dd.dbe)
+        objqtr = getdata.get_obj_quoter_func(self.dd.dbe)
         colnames_clause = ', '.join([objqtr(x) for x in orig_col_names])
-        dbe_tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
+        dbe_tblname = getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
         sql_get_data = f'SELECT {colnames_clause} FROM {dbe_tblname}'
         if debug: print(sql_get_data)
         return sql_get_data
 
-    def write_out(self, orig_col_has_lbl, orig_and_lbl_col_dets, orig_col_names,
-            *, inc_lbls, do_spreadsheet):
+    def write_out(self, cols_dets, *, inc_lbls, do_spreadsheet):
         """
         For each writer (CSV and, optionally, spreadsheet) write out content.
         """
-        colnames2use = [det.col_name for det in orig_and_lbl_col_dets]
-        writers = [CsvWriter(colnames2use, inc_lbls=inc_lbls), ]
+        writers = [CsvWriter(cols_dets, inc_lbls=inc_lbls), ]
         if do_spreadsheet:
-            writers.append(SpreadsheetWriter(colnames2use, inc_lbls=inc_lbls))
-        sql_get_data = DlgExportData._get_sql(orig_col_names)
-        dd.cur.execute(sql_get_data)  ## must be dd.cur
-        row_n = 1
+            writers.append(SpreadsheetWriter(cols_dets, inc_lbls=inc_lbls))
+        orig_col_names = [col_dets.col_name for col_dets in cols_dets]
+        sql_get_data = self._get_sql(orig_col_names)
+        self.dd.cur.execute(sql_get_data)  ## must be dd.cur
+        row_n = 2  ## one-based and already added header row
         while True:
-            row = dd.cur.fetchone()  ## Note - won't have the extra columns, just the original columns
+            row = self.dd.cur.fetchone()  ## Note - won't have the extra columns, just the original columns
             if row is None:
                 break
             for writer in writers:
-                writer.process_row(
-                    row, row_n, orig_and_lbl_col_dets, orig_col_has_lbl)
+                writer.process_row(row, row_n, cols_dets)
             gauge2set = min(
                 (row_n/self.n_rows)*mg.EXPORT_DATA_GAUGE_STEPS,
                 mg.EXPORT_DATA_GAUGE_STEPS)
@@ -249,24 +231,37 @@ class DlgExportData(wx.Dialog):
         Start with original list of columns and column names. If including
         labels, with insert additional fields as required.
         """
+        debug = False
         self.progbar.SetValue(0)
         wx.BeginBusyCursor()
         inc_lbls = self.chk_inc_lbls.IsChecked()
-        orig_col_names = getdata.fldsdic_to_fldnames_lst(fldsdic=dd.flds)
+        orig_col_names = getdata.fldsdic_to_fldnames_lst(fldsdic=self.dd.flds)
         cc = output.get_cc()
         (_var_labels, _var_notes,
          _var_types, val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
-        orig_col_has_lbl, orig_and_lbl_col_dets = self.extract_col_dets(
-            orig_col_names, val_dics, inc_lbls=inc_lbls)
-        n_cols = len(orig_and_lbl_col_dets)
+        cols_dets = self.get_cols_dets(
+            orig_col_names, val_dics=val_dics, inc_lbls=inc_lbls)
+        n_used_lbls = len(
+            [col_dets for col_dets in cols_dets if col_dets.valdic])
+        n_cols = len(cols_dets) + n_used_lbls
         do_spreadsheet = (n_cols <= 256)
         if not do_spreadsheet:
-            wx.MessageBox(f'Too many columns ({n_cols}) for an xls spreadsheet.'
-                ' Only making the csv')
-
-        self.write_out(orig_col_has_lbl, orig_and_lbl_col_dets, orig_col_names,
-            inc_lbls=inc_lbls, do_spreadsheet=do_spreadsheet)
-
+            wx.MessageBox(f'Too many columns ({n_cols}) for an '
+                'xlsx spreadsheet. Only making the csv')
+        try:
+            self.write_out(
+                cols_dets, inc_lbls=inc_lbls, do_spreadsheet=do_spreadsheet)
+        except my_exceptions.ExportCancel:
+            wx.MessageBox('Export Cancelled')
+        except Exception as e:
+            msg = (f'Problem exporting output. Orig error: {b.ue(e)}')
+            if debug: print(msg)
+            wx.MessageBox(msg)
+            self.progbar.SetValue(0)
+            lib.GuiLib.safe_end_cursor()
+            self.align_btns_to_exporting(exporting=False)
+            self.export_status[mg.CANCEL_EXPORT] = False
+            return
         self.progbar.SetValue(mg.EXPORT_DATA_GAUGE_STEPS)
         lib.GuiLib.safe_end_cursor()
         self.align_btns_to_exporting(exporting=False)
