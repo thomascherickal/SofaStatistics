@@ -558,14 +558,14 @@ class UniLib:
         print(f"Finished making '{fpath}'")
 
     @staticmethod
-    def make_gremlin_xlsx():
+    def make_gremlin_xls():
         """
         Make something we can test importing with.
         
         Run in standalone python2 script so can make one without having to pass
         into unicode first.
         """
-        print("Run in Python 2 only - look for make_gremlin_xlsx.py (storage?)")
+        print("Run in Python 2 only - look for make_gremlin_xls.py (storage?)")
 
     @staticmethod
     def _fix_cp1252(m):
@@ -2096,4 +2096,4 @@ def if_none(val, default):
         return val
 
 #UniLib.make_gremlin_csv()
-UniLib.make_gremlin_xlsx()
+#UniLib.make_gremlin_xls()

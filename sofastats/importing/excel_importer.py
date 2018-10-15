@@ -86,7 +86,8 @@ class ExcelImporter(importer.FileImporter):
             self.has_header = self.headless_has_header
             return True
         else:
-            wkbook = openpyxl.load_workbook(self.fpath, data_only=DATA_ONLY)
+            wkbook = openpyxl.load_workbook(
+                self.fpath, read_only=True, data_only=DATA_ONLY)
             wksheet = wkbook.worksheets[0]
             n_cols = wksheet.max_column
             n_rows = wksheet.max_row
@@ -221,7 +222,8 @@ class ExcelImporter(importer.FileImporter):
         if not self.headless:
             wx.BeginBusyCursor()
         try:
-            wkbook = openpyxl.load_workbook(self.fpath, data_only=DATA_ONLY)
+            wkbook = openpyxl.load_workbook(
+                self.fpath, read_only=True, data_only=DATA_ONLY)
             wksheet = wkbook.worksheets[0]
             n_rows = wksheet.max_row
             n_datarows = n_rows - 1 if self.has_header else n_rows
