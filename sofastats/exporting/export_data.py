@@ -80,16 +80,38 @@ class CsvWriter(Writer):
 
 class SpreadsheetWriter(Writer):
 
+    @staticmethod
+    def _get_date_col_nums(cols_dets):
+        date_col_nums = []
+        n = 1
+        for col_dets in cols_dets:
+            if col_dets.is_date:
+                date_col_nums.append(n)
+            if col_dets.valdic:
+                n += 1  ## need to increment by one because there will be a lbl col before the next orig col (if any)
+            n += 1  ## the next orig col
+        return date_col_nums
+
     def __init__(self, cols_dets, *, inc_lbls):
         super().__init__(cols_dets, inc_lbls=inc_lbls)
         self.wb = openpyxl.Workbook(write_only=False)  ## write_only faster but can't add rows cell-by-cell, only by appending entire row
         safe_sheetname = lib.get_safer_name(f'{self.dd.tbl[:20]} output')
         self.sheet = self.wb.create_sheet(safe_sheetname, 0)
+        date_col_nums = SpreadsheetWriter._get_date_col_nums(cols_dets)
         style_bold_12pt = Font(name='Arial', size=12, bold=True)
-        for col_n, col_name in enumerate(self.col_names, 1):
-            header_cell = self.sheet.cell(row=1, column=col_n)
+        for col_num, col_name in enumerate(self.col_names, 1):
+            header_cell = self.sheet.cell(row=1, column=col_num)
             header_cell.value = col_name
             header_cell.font = style_bold_12pt
+        ## Have to wait till columns are filled with something before accessing sheet.columns reliably
+        for col_num, _unused in enumerate(self.col_names, 1):
+            if col_num in date_col_nums:
+                ## https://stackoverflow.com/questions/13197574/openpyxl-adjust-column-width-size
+                cols = list(self.sheet.columns)
+                col_idx = col_num - 1
+                col = cols[col_idx]
+                column_name = col[0].column
+                self.sheet.column_dimensions[column_name].width = 13
 
     def process_row(self, row, row_n, cols_dets):
         try:
@@ -110,8 +132,8 @@ class SpreadsheetWriter(Writer):
                     if col_dets.numeric:
                         cell.alignment = Alignment(horizontal='right')
                     cell.value = val
-                col2fill += 1
                 if col_dets.valdic:
+                    col2fill += 1
                     val2show = col_dets.valdic.get(val, val)
                     self.sheet.cell(row=row_n, column=col2fill).value = val2show
                 col2fill += 1
