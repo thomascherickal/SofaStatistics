@@ -1973,10 +1973,10 @@ def get_unique_fldnames(existing_fldnames):
     """
     fldnames = []
     prev_fldnames_and_counters = {}
-    for i, name in enumerate(existing_fldnames, 1):
+    for n, name in enumerate(existing_fldnames, 1):
         name = name.replace('\n', '_')
-        if name == '':
-            newname = mg.NEXT_FLDNAME_TEMPLATE % (i+1,)
+        if name in ('', 'None'):
+            newname = mg.NEXT_FLDNAME_TEMPLATE % (n + 1, )
         else:
             if existing_fldnames.count(name) > 1:
                 while True:

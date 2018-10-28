@@ -1121,9 +1121,11 @@ def run_headless_import(fpath=None, tblname=None,
         from sofastats.importing import ods_importer #@UnresolvedImport
         file_importer = ods_importer.OdsImporter(dummy_importer, fpath,
             final_tblname, headless, headless_has_header, force_quickcheck)
-    proceed = file_importer.get_params()
-    if proceed:
-        file_importer.import_content()
+    try:
+        file_importer.set_params()
+    except my_exceptions.ImportCancel:
+        return
+    file_importer.import_content()
 
 
 class FileImporter():
@@ -1137,23 +1139,21 @@ class FileImporter():
         self.supplied_encoding = supplied_encoding
         self.has_header = True
 
-    def get_params(self):
+    def set_params(self):
         """
-        Get any user choices required.
+        Set any user choices required (as object attributes).
         """
         debug = False
         if self.headless:
             self.has_header = True
-            return True
         else:
             dlg = DlgHasHeader(self.parent, self.ext)
             ret = dlg.ShowModal()
             if debug: print(str(ret))
             if ret == wx.ID_CANCEL:
-                return False
+                raise my_exceptions.ImportCancel
             else:
                 self.has_header = (ret == mg.HAS_HEADER)
-                return True
 
 
 if __name__ == '__main__':

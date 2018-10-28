@@ -69,8 +69,8 @@ VALUE = 'value'
 DATE_VAL = 'date-value'
 FORMULA = 'formula'
 
-def get_ods_xml_size(filename):
-    myzip = zipfile.ZipFile(filename)
+def get_ods_xml_size(fpath):
+    myzip = zipfile.ZipFile(fpath)
     size = myzip.getinfo('content.xml').file_size
     return size
 

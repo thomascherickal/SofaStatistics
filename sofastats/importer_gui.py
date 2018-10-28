@@ -323,9 +323,11 @@ def run_import(self, force_quickcheck=False):
         file_importer = ods_importer.OdsImporter(self, fpath, final_tblname,
             headless=headless, headless_has_header=headless_has_header,
             force_quickcheck=force_quickcheck)
-    proceed = False
+    proceed = True
     try:
-        proceed = file_importer.get_params()
+        file_importer.set_params()
+    except my_exceptions.ImportCancel:
+        proceed = False
     except Exception as e:
         wx.MessageBox(
             _('Unable to import data after getting parameters\n\nError')

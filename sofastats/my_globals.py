@@ -36,6 +36,7 @@ PYTHON_ENCODING_DECLARATION = ('#! /usr/bin/env python' + os.linesep
     + '# -*- coding: utf-8 -*-' + os.linesep)
 DROP_SELECT = _('Nothing selected')
 ODS_GETTING_LARGE = 10_000_000
+XLSX_GETTING_LARGE = 10_000_000
 MAX_WIDTH = None  ## set later
 MAX_HEIGHT = None
 DEFAULT_LEVEL = None

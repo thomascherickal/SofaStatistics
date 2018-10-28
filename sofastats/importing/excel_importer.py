@@ -1,5 +1,7 @@
-import wx
 import openpyxl
+import os
+import wx
+import zipfile
 
 from sofastats import basic_lib as b  #@UnresolvedImport
 from sofastats import my_globals as mg  #@UnresolvedImport
@@ -13,6 +15,11 @@ DATA_ONLY = True  ## If True will import data not formulae (openpyxl cannot eval
 FORMULA_DATA_TYPES = (
     openpyxl.cell.cell.Cell.TYPE_FORMULA,  #@UndefinedVariable
     openpyxl.cell.cell.Cell.TYPE_FORMULA_CACHE_STRING)  #@UndefinedVariable
+
+def get_xlsx_xml_size(fpath):
+    myzip = zipfile.ZipFile(fpath)
+    size = myzip.getinfo('xl/worksheets/sheet1.xml').file_size
+    return size
 
 
 class ExcelImporter(importer.FileImporter):
@@ -76,53 +83,72 @@ class ExcelImporter(importer.FileImporter):
                 val = str(raw_val)
         return val
 
-    def get_params(self):
+    def _set_params_based_on_sample(self):
+        debug = False
+        wkbook = openpyxl.load_workbook(
+            self.fpath, read_only=False, data_only=DATA_ONLY)
+        wksheet = wkbook.worksheets[0]
+        n_cols = wksheet.max_column
+        n_rows = wksheet.max_row
+        strdata = []
+        row1_types = []
+        row2_types = []
+        for row_idx in range(1, n_rows + 1):
+            new_row = []
+            for col_idx in range(1, n_cols + 1):
+                cell = wksheet.cell(row=row_idx, column=col_idx)
+                raw_val = cell.value
+                data_type = cell.data_type
+                if row_idx == 1:
+                    row1_types.append(data_type)
+                elif row_idx == 2:
+                    row2_types.append(data_type)
+                val = ExcelImporter._get_processed_val(
+                    raw_val, none_replacement='&nbsp;'*3)  ## wide enough to see cell if all cells in sample column are empty
+                new_row.append(val)
+            strdata.append(new_row)
+            if row_idx >= importer.ROWS_TO_SHOW_USER:
+                break
+        try:
+            prob_has_hdr = self.has_header_row(row1_types, row2_types)
+        except Exception:
+            prob_has_hdr = False
+        dlg = importer.DlgHasHeaderGivenData(
+            self.parent, self.ext, strdata, prob_has_hdr)
+        ret = dlg.ShowModal()
+        if debug: print(str(ret))
+        if ret == wx.ID_CANCEL:
+            raise my_exceptions.ImportCancel
+        else:
+            self.has_header = (ret == mg.HAS_HEADER)
+        
+    def set_params(self):
         """
         Display each cell based on cell characteristics only - no attempt to
         collapse down to one data type e.g. dates only or numbers only.
         """
-        debug = False
         if self.headless:
             self.has_header = self.headless_has_header
-            return True
         else:
-            wkbook = openpyxl.load_workbook(
-                self.fpath, read_only=False, data_only=DATA_ONLY)
-            wksheet = wkbook.worksheets[0]
-            n_cols = wksheet.max_column
-            n_rows = wksheet.max_row
-            strdata = []
-            row1_types = []
-            row2_types = []
-            for row_idx in range(1, n_rows + 1):
-                new_row = []
-                for col_idx in range(1, n_cols + 1):
-                    cell = wksheet.cell(row=row_idx, column=col_idx)
-                    raw_val = cell.value
-                    data_type = cell.data_type
-                    if row_idx == 1:
-                        row1_types.append(data_type)
-                    elif row_idx == 2:
-                        row2_types.append(data_type)
-                    val = ExcelImporter._get_processed_val(
-                        raw_val, none_replacement='&nbsp;'*3)  ## wide enough to see cell if all cells in sample column are empty
-                    new_row.append(val)
-                strdata.append(new_row)
-                if row_idx >= importer.ROWS_TO_SHOW_USER:
-                    break
-            try:
-                prob_has_hdr = self.has_header_row(row1_types, row2_types)
-            except Exception:
-                prob_has_hdr = False
-            dlg = importer.DlgHasHeaderGivenData(
-                self.parent, self.ext, strdata, prob_has_hdr)
-            ret = dlg.ShowModal()
-            if debug: print(str(ret))
-            if ret == wx.ID_CANCEL:
-                return False
+            if not os.path.exists(self.fpath):
+                raise Exception(f'Unable to find file "{self.fpath}" for '
+                    'importing. Please check that file exists.')
+            size = get_xlsx_xml_size(self.fpath)
+            if size > mg.ODS_GETTING_LARGE:
+                ret = wx.MessageBox(_('This spreadsheet may take a while to '
+                    'import.\n\nInstead of importing, it could be faster to '
+                    'save as csv and import the csv version.' 
+                    '\n\nImport now anyway?'), 
+                    _('SLOW IMPORT'), wx.YES_NO|wx.ICON_INFORMATION)
+                if ret == wx.NO:
+                    raise my_exceptions.ImportCancel
+                else:
+                    ## Don't parse the data (too big) so you can display a
+                    ## sample and get a decision on having a header - just ask
+                    ## the user to tell us whether there is a header or not.
+                    importer.FileImporter.set_params(self)
             else:
-                self.has_header = (ret == mg.HAS_HEADER)
-            return True
+                self._set_params_based_on_sample()
 
     def get_ok_fldnames(self, wksheet):
         n_cols = wksheet.max_column

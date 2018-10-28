@@ -3,6 +3,7 @@ import wx
 
 from sofastats import my_globals as mg  #@UnresolvedImport
 from sofastats import lib  #@UnresolvedImport
+from sofastats import my_exceptions  #@UnresolvedImport
 from sofastats.importing import ods_reader  #@UnresolvedImport
 from sofastats import getdata  #@UnresolvedImport
 from sofastats.importing import importer  #@UnresolvedImport
@@ -51,14 +52,48 @@ class OdsImporter(importer.FileImporter):
         return importer.has_header_row(
             row1_types, row2_types, str_type, empty_type, non_str_types)
 
-    def get_params(self):
+    def _set_params_based_on_sample(self):
+        wx.BeginBusyCursor()
+        tree = ods_reader.get_contents_xml_tree(self.fpath)
+        tbl = ods_reader.get_tbl(tree)
+        ## much less efficient if no header supplied
+        ok_fldnames = ods_reader.get_ok_fldnames(tbl,
+            rows_to_sample=ROWS_TO_SAMPLE,
+            has_header=False, headless=self.headless,
+            force_quickcheck=self.force_quickcheck)
+        if not ok_fldnames:
+            raise Exception(
+                _('Unable to extract or generate field names'))
+        rows = ods_reader.get_rows(
+            tbl, inc_empty=False, n=importer.ROWS_TO_SHOW_USER)
+        lib.GuiLib.safe_end_cursor()
+        strdata = []
+        for i, row in enumerate(rows, 1):
+            strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
+            if debug: print(strrow)
+            strdata.append(strrow)
+            if i >= importer.ROWS_TO_SHOW_USER:
+                break
+        try:
+            prob_has_hdr = self.has_header_row(strdata)
+        except Exception:
+            prob_has_hdr = False
+        dlg = importer.DlgHasHeaderGivenData(
+            self.parent, self.ext, strdata, prob_has_hdr)
+        ret = dlg.ShowModal()
+        if debug: print(str(ret))
+        if ret == wx.ID_CANCEL:
+            raise my_exceptions.ImportCancel
+        else:
+            self.has_header = (ret == mg.HAS_HEADER)
+
+    def set_params(self):
         """
         Get any user choices required.
         """
         debug = False
         if self.headless:
             self.has_header = self.headless_has_header
-            return True
         else:
             if not os.path.exists(self.fpath):
                 raise Exception(f'Unable to find file "{self.fpath}" for '
@@ -71,43 +106,14 @@ class OdsImporter(importer.FileImporter):
                     '\n\nImport now anyway?'), 
                     _('SLOW IMPORT'), wx.YES_NO|wx.ICON_INFORMATION)
                 if ret == wx.NO:
-                    return False
-                return importer.FileImporter.get_params(self) # check for header
-            else:
-                wx.BeginBusyCursor()
-                tree = ods_reader.get_contents_xml_tree(self.fpath)
-                tbl = ods_reader.get_tbl(tree)
-                # much less efficient if no header supplied
-                ok_fldnames = ods_reader.get_ok_fldnames(tbl,
-                    rows_to_sample=ROWS_TO_SAMPLE,
-                    has_header=False, headless=self.headless,
-                    force_quickcheck=self.force_quickcheck)
-                if not ok_fldnames:
-                    raise Exception(
-                        _('Unable to extract or generate field names'))
-                rows = ods_reader.get_rows(
-                    tbl, inc_empty=False, n=importer.ROWS_TO_SHOW_USER)
-                lib.GuiLib.safe_end_cursor()
-                strdata = []
-                for i, row in enumerate(rows, 1):
-                    strrow = ods_reader.get_vals_from_row(row, len(ok_fldnames))
-                    if debug: print(strrow)
-                    strdata.append(strrow)
-                    if i >= importer.ROWS_TO_SHOW_USER:
-                        break
-                try:
-                    prob_has_hdr = self.has_header_row(strdata)
-                except Exception:
-                    prob_has_hdr = False
-                dlg = importer.DlgHasHeaderGivenData(
-                    self.parent, self.ext, strdata, prob_has_hdr)
-                ret = dlg.ShowModal()
-                if debug: print(str(ret))
-                if ret == wx.ID_CANCEL:
-                    return False
+                    raise my_exceptions.ImportCancel
                 else:
-                    self.has_header = (ret == mg.HAS_HEADER)
-                    return True
+                    ## Don't parse the data (too big) so you can display a
+                    ## sample and get a decision on having a header - just ask
+                    ## the user to tell us whether there is a header or not.
+                    importer.FileImporter.set_params(self)
+            else:
+                self._set_params_based_on_sample()
 
     def import_content(self,
             lbl_feedback=None, import_status=None, progbar=None):

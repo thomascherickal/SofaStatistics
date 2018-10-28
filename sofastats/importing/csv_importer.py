@@ -461,8 +461,8 @@ class CsvImporter(importer.FileImporter):
         self.ext = 'CSV'
         self.force_quickcheck = force_quickcheck
 
-    def get_params(self):
-        return True  ## cover all this in more complex fashion handling encoding and delimiters
+    def set_params(self):
+        pass  ## cover all this in more complex fashion handling encoding and delimiters
 
     @staticmethod
     def consolidate_line_seps(mystr):
