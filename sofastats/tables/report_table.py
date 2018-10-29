@@ -1,4 +1,5 @@
 import locale
+from pprint import pformat as pf
 import wx #@UnusedImport
 import wx.lib.agw.hypertreelist as HTL
 import wx.html2
@@ -704,17 +705,15 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                         child=child, child_fldname=child_fldname)
             script_lst.append('# Misc' + 60*'*')
         elif self.tab_type == mg.DATA_LIST:
-            (col_names, col_labels, 
-             col_sorting) = lib.GuiLib.get_col_dets(self.coltree, self.colroot, 
-                                                    self.var_labels)
-            ## pprint.pformat() fails on non-ascii - a shame
+            col_names, col_labels, col_sorting = lib.GuiLib.get_col_dets(
+                 self.coltree, self.colroot, self.var_labels)
             script_lst.append(f'col_names = {col_names}')
             script_lst.append(f'col_labels = {col_labels}')
             script_lst.append(f'col_sorting = {col_sorting}')
-            script_lst.append(f'flds = {lib.UniLib.dic2unicode(dd.flds)}')
-            var_labels = lib.UniLib.dic2unicode(self.var_labels)
+            script_lst.append(f'flds = {pf(dd.flds)}')
+            var_labels = pf(self.var_labels)
             script_lst.append(f'var_labels = {var_labels}')
-            val_dics = lib.UniLib.dic2unicode(self.val_dics)
+            val_dics = pf(self.val_dics)
             script_lst.append(f'val_dics = {val_dics}')
         ## process title dets
         titles, subtitles = self.get_titles()

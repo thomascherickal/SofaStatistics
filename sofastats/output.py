@@ -63,6 +63,7 @@ random data (when too many records to just use real data).
 """
 
 import os
+from pprint import pformat as pf
 import time
 import traceback
 import urllib
@@ -1078,11 +1079,11 @@ def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, *,
     f.write(full_datestamp)
     if inc_divider:
         add_divider_code(f, tbl_filt_label, tbl_filt)
-    con_dets_str = lib.UniLib.dic2unicode(dd.con_dets).replace('\\', '\\\\')
+    con_dets_str = pf(dd.con_dets).replace('\\', '\\\\')
     f.write(f'\ncon_dets = {con_dets_str}')
-    default_dbs_str = lib.UniLib.dic2unicode(dd.default_dbs)
+    default_dbs_str = pf(dd.default_dbs)
     f.write(f'\ndefault_dbs = {default_dbs_str}')
-    default_tbls_str = lib.UniLib.dic2unicode(dd.default_tbls)
+    default_tbls_str = pf(dd.default_tbls)
     f.write(f'\ndefault_tbls = {default_tbls_str}')
     f.write(f'\ndbe ="{dd.dbe}"')
     f.write('\ndbe_resources = getdata.get_dbe_resources(dbe,')

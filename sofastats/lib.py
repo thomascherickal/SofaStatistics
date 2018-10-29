@@ -12,7 +12,6 @@ import textwrap
 import time
 import urllib
 
-import xlwt
 import wx
 
 # only import my_globals from local modules
@@ -493,129 +492,6 @@ class OutputLib:
 
 class UniLib:        
 
-    EURO_SIGN = b'\x80'
-    EN_DASH_1BYTE = b'\x96'
-    EM_DASH_1BYTE = b'\x97'
-    EN_DASH_3BYTE = b'\xe2\x80\x96'
-    EM_DASH_3BYTE = b'\xe2\x80\x97'
-    LEFT_DOUBLE_QUOTATION_MARK_1BYTE = b'\x93'
-    RIGHT_DOUBLE_QUOTATION_MARK_1BYTE = b'\x94'
-    LEFT_DOUBLE_QUOTATION_MARK_3BYTE = b'\xe2\x80\x9c'
-    RIGHT_DOUBLE_QUOTATION_MARK_3BYTE = b'\xe2\x80\x9d'
-
-    cp1252 = {
-        # from http://www.microsoft.com/typography/unicode/1252.htm
-        EURO_SIGN: '\u20AC',
-        b'\x82': '\u201A',  ## SINGLE LOW-9 QUOTATION MARK
-        b'\x83': '\u0192',  ## LATIN SMALL LETTER F WITH HOOK
-        b'\x84': '\u201E',  ## DOUBLE LOW-9 QUOTATION MARK
-        b'\x85': '\u2026',  ## HORIZONTAL ELLIPSIS
-        b'\x86': '\u2020',  ## DAGGER
-        b'\x87': '\u2021',  ## DOUBLE DAGGER
-        b'\x88': '\u02C6',  ## MODIFIER LETTER CIRCUMFLEX ACCENT
-        b'\x89': '\u2030',  ## PER MILLE SIGN
-        b'\x8A': '\u0160',  ## LATIN CAPITAL LETTER S WITH CARON
-        b'\x8B': '\u2039',  ## SINGLE LEFT-POINTING ANGLE QUOTATION MARK
-        b'\x8C': '\u0152',  ## LATIN CAPITAL LIGATURE OE
-        b'\x8E': '\u017D',  ## LATIN CAPITAL LETTER Z WITH CARON
-        b'\x91': '\u2018',  ## LEFT SINGLE QUOTATION MARK
-        b'\x92': '\u2019',  ## RIGHT SINGLE QUOTATION MARK
-        LEFT_DOUBLE_QUOTATION_MARK_1BYTE: '\u201C',
-        RIGHT_DOUBLE_QUOTATION_MARK_1BYTE: '\u201D',
-        b'\x95': '\u2022',  ## BULLET
-        EN_DASH_1BYTE: '\u2013',
-        EM_DASH_1BYTE: '\u2014',
-        b'\x98': '\u02DC',  ## SMALL TILDE
-        b'\x99': '\u2122',  ## TRADE MARK SIGN
-        b'\x9A': '\u0161',  ## LATIN SMALL LETTER S WITH CARON
-        b'\x9B': '\u203A',  ## SINGLE RIGHT-POINTING ANGLE QUOTATION MARK
-        b'\x9C': '\u0153',  ## LATIN SMALL LIGATURE OE
-        b'\x9E': '\u017E',  ## LATIN SMALL LETTER Z WITH CARON
-        b'\x9F': '\u0178',  ## LATIN CAPITAL LETTER Y WITH DIAERESIS
-    }
-
-    oth_ms_gremlins = {
-        LEFT_DOUBLE_QUOTATION_MARK_3BYTE: '\u201C',
-        RIGHT_DOUBLE_QUOTATION_MARK_3BYTE: '\u201D',
-        EN_DASH_3BYTE: '\u2013',
-        EM_DASH_3BYTE: '\u2014',
-        b'\xe2\x80\xa6': '\u2026',  ## HORIZONTAL ELLIPSIS
-    }
-
-    @staticmethod
-    def make_gremlin_csv():
-        """
-        Make something we can test importing with
-        """
-        fpath = Path(mg.INT_PATH) / 'gremlin.csv'
-        with open(fpath, 'wb') as f:
-            f.write(b'fld1, fld2')
-            fname = (UniLib.LEFT_DOUBLE_QUOTATION_MARK_1BYTE + b'Grant'
-                + UniLib.RIGHT_DOUBLE_QUOTATION_MARK_1BYTE)
-            lname = (UniLib.LEFT_DOUBLE_QUOTATION_MARK_1BYTE + b'Paton-Simpson'
-                + UniLib.RIGHT_DOUBLE_QUOTATION_MARK_1BYTE)
-            f.write(b'\n' + fname + b',' + lname)
-        print(f"Finished making '{fpath}'")
-
-    @staticmethod
-    def make_gremlin_xls():
-        """
-        Make something we can test importing with.
-        
-        Run in standalone python2 script so can make one without having to pass
-        into unicode first.
-        """
-        print("Run in Python 2 only - look for make_gremlin_xls.py (storage?)")
-
-    @staticmethod
-    def _fix_cp1252(m):
-        s = m.group(0)
-        return UniLib.cp1252.get(s, s)
-
-    @staticmethod
-    def _fix_gremlins(m):
-        s = m.group(0)
-        return UniLib.oth_ms_gremlins.get(s, s)
-
-    @staticmethod
-    def _str2unicode(raw):
-        """
-        If not a string, raise Exception.  Otherwise ...
-
-        Convert byte strings to unicode.
-
-        Convert any cp1252 text to unicode e.g. smart quotes.
-
-        Return safe unicode string (pure unicode and no unescaped backslashes).
-        """
-        if not isinstance(raw, (str, bytes)): # isinstance includes descendants
-            raise Exception('UniLib._str2unicode() requires strings as inputs.')
-        if type(raw) == bytes:
-            try:
-                safe = raw.decode(locale.getpreferredencoding())
-            except UnicodeDecodeError:
-                try:
-                    safe = raw.decode('utf-8')
-                except Exception:
-                    try:
-                        safe = UniLib._ms2unicode(raw)
-                    except Exception:
-                        safe = raw.decode('utf8', 'replace')  ## final fallback
-        else:
-            try:
-                safe = UniLib._ms2unicode(raw)
-            except Exception:
-                safe = raw  ## final fallback
-        return safe
-
-    @staticmethod
-    def handle_ms_data(data):
-        return data
-#         if not isinstance(data, str):
-#             return data
-#         else:
-#             return UniLib._ms2unicode(data)
-
     @staticmethod
     def any2unicode(raw):
         """
@@ -631,49 +507,8 @@ class UniLib:
                 return str(repr(raw))  ## 1000000000000.4 rather than 1e+12
             else:
                 return str(raw)
-        elif isinstance(raw, (str, bytes)):  ## isinstance includes descendants
-            return UniLib._str2unicode(raw)
         else:
             return str(raw)
-
-    @staticmethod
-    def _get_unicode_repr(item):
-        if isinstance(item, str):
-            return '"{}"'.format(str(item).replace('"', '""'))
-        elif isinstance(item, str):
-            return '"{}"'.format(str(item).replace('"', '""'))
-        elif item is None:
-            return 'None'
-        else:
-            return str(item).replace('"', '""')
-
-    @staticmethod
-    def dic2unicode(mydic, indent=1):
-        """
-        Needed because pprint.pformat() can't cope with strings like
-        'João Rosário'.
-
-        Pity so will have to wait till Python 3 version to handle more
-        elegantly.
-
-        Goal is to make files that Python can run.
-
-        Note -- recursive so can cope with nested dictionaries.
-        """
-        try:
-            keyvals = sorted(mydic.items())
-        except Exception:  ## not a dict, just a value
-            return UniLib._get_unicode_repr(mydic)
-        ustr = '{'
-        rows = []
-        for key, val in keyvals:
-            keystr = UniLib._get_unicode_repr(key) + ': '
-            rows.append(
-                keystr + UniLib.dic2unicode(val, indent + len('{' + keystr)))
-        joiner = ',\n%s' % (indent*' ',)
-        ustr += (joiner.join(rows))
-        ustr += '}'
-        return ustr
 
 
 class DateLib:
@@ -2094,6 +1929,3 @@ def if_none(val, default):
         return default
     else:
         return val
-
-#UniLib.make_gremlin_csv()
-#UniLib.make_gremlin_xls()

@@ -75,7 +75,7 @@ def get_con(con_dets, db, *, add_checks=False):
         raise my_exceptions.MissingConDets(mg.DBE_SQLITE)
     ## able to extract con dets in a form usable for scripts?
     try:
-        sqlite_con_dets_str = lib.UniLib.dic2unicode(con_dets_sqlite)
+        sqlite_con_dets_str = pprint.pformat(con_dets_sqlite)
     except Exception as e:
         raise Exception("Unable to extract connection details from "
             f"{con_dets_sqlite}.\nCaused by error: {b.ue(e)}")

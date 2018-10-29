@@ -1,4 +1,5 @@
 import os
+from pprint import pformat as pf
 import wx
 
 from . import my_globals as mg
@@ -79,10 +80,10 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
     cc = output.get_cc()
     with open(cc[mg.CURRENT_VDTS_PATH], 'w', encoding='utf-8') as f:
-        f.write(f'var_labels={lib.UniLib.dic2unicode(var_labels)}')
-        f.write(f'\n\nvar_notes={lib.UniLib.dic2unicode(var_notes)}')
-        f.write(f'\n\nvar_types={lib.UniLib.dic2unicode(var_types)}')
-        f.write(f'\n\n\nval_dics={lib.UniLib.dic2unicode(val_dics)}')
+        f.write(f'var_labels={pf(var_labels)}')
+        f.write(f'\n\nvar_notes={pf(var_notes)}')
+        f.write(f'\n\nvar_types={pf(var_types)}')
+        f.write(f'\n\n\nval_dics={pf(val_dics)}')
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
 def sensible_sort_keys(input_list):
