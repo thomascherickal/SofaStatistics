@@ -730,6 +730,10 @@ class ConfigUI:
         css_fils, css_idx = output.get_css_dets()
         try:
             script = self.get_script(css_idx, **get_script_args)
+        except TypeError as e:
+            raise Exception('Unable to get script - probably because of '
+                'misconfigured get_script_args in on_btn_run. '
+                f'Orig error: {b.ue(e)}')
         except Exception as e:
             raise Exception(f'Problem getting script. Orig error: {b.ue(e)}')
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT

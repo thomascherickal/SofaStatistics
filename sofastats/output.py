@@ -69,11 +69,11 @@ import traceback
 import urllib
 import wx
 
-from . import basic_lib as b
-from . import my_globals as mg
-from . import config_globals
-from . import lib
-from . import my_exceptions
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import config_globals
+from sofastats import lib
+from sofastats import my_exceptions
 
 ## Do not use os.linesep for anything going to be read and exec'd
 ## in Windows the \r\n makes it fail.
@@ -577,10 +577,11 @@ def _get_chart_title_dets_html(titles, subtitles, css_idx):
     (CSS_TBL_TITLE, 
      CSS_TBL_SUBTITLE, CSS_TBL_TITLE_CELL) = get_title_css(css_idx)
     title_dets_html_lst = []
-    ## titles
-    if titles:
+    if titles or subtitles:
         title_dets_html_lst.append("<table cellspacing='0'><thead><tr>"
             f"<th class='{CSS_TBL_TITLE_CELL}'>")
+    ## titles
+    if titles:
         title_dets_html_lst.append(f"<span class='{CSS_TBL_TITLE}'>")
         title_dets_html_lst.append(get_titles_inner_html(titles))
         title_dets_html_lst.append('</span>')
@@ -591,6 +592,7 @@ def _get_chart_title_dets_html(titles, subtitles, css_idx):
         title_dets_html_lst.append(f"<span class='{CSS_TBL_SUBTITLE}'>")
         title_dets_html_lst.append(get_subtitles_inner_html(subtitles))
         title_dets_html_lst.append('</span>')
+    if titles or subtitles:
         title_dets_html_lst.append('</th></tr></thead></table>')
     ## combine
     title_dets_html = '\n'.join(title_dets_html_lst)
@@ -929,7 +931,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html, *,
             new_no_hdr = new_no_hdr.replace(
                 f'Renumber{i_zero_padded}', replacement)
     hdr_title = _('SOFA Statistics Report') + time.strftime(' %Y-%m-%d_%H:%M:%S')
-    hdr = get_html_hdr(hdr_title, css_fils, has_dojo, new_js_n_charts)
+    hdr = get_html_hdr(hdr_title, css_fils, new_js_n_charts, has_dojo=has_dojo)
     try:
         f = open(cc[mg.CURRENT_REPORT_PATH], 'w', encoding='utf-8')
     except IOError:
@@ -945,7 +947,8 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html, *,
         f.write(existing_no_ends)
     pagebreak = existing_report
     f.write('\n'*4)  ## Won't change output but make it easier to shift infdividual outputs around or delete them manually
-    f.write(get_divider(source, tbl_filt_label, tbl_filt, pagebreak))
+    f.write(get_divider(
+        source, tbl_filt_label, tbl_filt, page_break_before=pagebreak))
     f.write(new_no_hdr)
     f.write('\n'*4)
     f.write(get_html_ftr())

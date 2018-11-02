@@ -4,12 +4,12 @@ import pprint
 import sys
 import wx
 
-from . import basic_lib as b
-from . import my_globals as mg
-from . import my_exceptions
-from . import config_globals
-from . import lib
-from .dbe_plugins import dbe_sqlite
+from sofastats import basic_lib as b
+from sofastats import my_globals as mg
+from sofastats import my_exceptions
+from sofastats import config_globals
+from sofastats import lib
+from sofastats.dbe_plugins import dbe_sqlite
 
 debug = False
 

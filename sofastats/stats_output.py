@@ -143,9 +143,11 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         results = (dic[mg.STATS_DIC_LBL],
             lib.formatnum(dic[mg.STATS_DIC_N]),
             round(dic[mg.STATS_DIC_MEAN], dp),
-            '{} - {}'.format(tpl % round(dic[mg.STATS_DIC_CI][0], dp),
-            tpl.format(round(dic[mg.STATS_DIC_CI][1], dp))),
-            tpl.format(round(dic[mg.STATS_DIC_SD], dp)),
+            '{} - {}'.format(
+                tpl % round(dic[mg.STATS_DIC_CI][0], dp),
+                tpl % round(dic[mg.STATS_DIC_CI][1], dp)
+            ),
+            tpl % round(dic[mg.STATS_DIC_SD], dp),
             dic[mg.STATS_DIC_MIN],
             dic[mg.STATS_DIC_MAX])
         try:

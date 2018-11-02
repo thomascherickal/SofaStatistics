@@ -4,6 +4,7 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats.stats import paired2var
+from pyatspi.interface import interface
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
@@ -18,8 +19,12 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _('Or have house values changed since the recession began?')
         return eg1, eg2, eg3
 
-    def get_script(self, css_idx, details):
-        "Build script from inputs"
+    def get_script(self, css_idx, css_fil, report_name, details):
+        """
+        Build script from inputs
+
+        css_fil and report_name needed to comply with standard interface
+        """
         dd = mg.DATADETS_OBJ
         script_lst = []
         try:

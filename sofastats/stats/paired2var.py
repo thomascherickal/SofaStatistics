@@ -337,7 +337,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         run_ok = self.test_config_ok()
         if run_ok:
             ## css_idx is supplied at the time
-            get_script_args={
+            get_script_args = {
                 'css_fil': cc[mg.CURRENT_CSS_PATH],
                 'report_name': cc[mg.CURRENT_REPORT_PATH],
                 'details': mg.DEFAULT_DETAILS}

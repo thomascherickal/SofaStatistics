@@ -1,5 +1,3 @@
-import locale
-
 import wx  #@UnusedImport
 import wx.html2
 
@@ -287,10 +285,10 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def setup_group_dropdown(self):
         var_gp, unused = self.get_vars()
         var_names = projects.get_approp_var_names()
-        dic_labels = self.var_labels
-        (var_gp_by_items, 
+        (var_gp_by_items,
          self.sorted_var_names_by) = lib.GuiLib.get_sorted_choice_items(
-             dic_labels, vals=var_names, inc_drop_select=self.inc_gp_by_select)
+                                     dic_labels=self.var_labels, vals=var_names,
+                                     inc_drop_select=self.inc_gp_by_select)
         idx_gp_by = projects.get_idx_to_select(
             var_gp_by_items, var_gp, self.var_labels, mg.GROUP_BY_DEFAULT)
         self.drop_group_by = self.get_fresh_drop_group_by(
@@ -533,18 +531,9 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             var_choice_items, var_name, self.var_labels, default)
         return var_choice_items, idx_var
 
-    def get_items_and_idxs_for_a_and_b(self,
-            var_gp, val_a, val_b, where_filt, and_filt):
-        """
-        If under 250,000 records in source table (when filtered, if applicable),
-        use entire table as source for group by query to get unique values. If
-        250,000 upwards, use first 250,000 records as source. If more than 20
-        unique values, only show first 20 and inform user.
-        """
+    def _set_raw_group_val_items(self, var_gp, *, where_filt, and_filt, n_high):
         debug = False
         dd = mg.DATADETS_OBJ
-        msg = None
-        n_high = 250_000
         objqtr = getdata.get_obj_quoter_func(dd.dbe)
         quoted_tblname = getdata.tblname_qtr(dd.dbe, dd.tbl)
         SQL_get_count = f'SELECT COUNT(*) FROM {quoted_tblname} {where_filt}'
@@ -569,22 +558,14 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             ORDER BY {var_gp_str}"""
         if debug: print(SQL_get_sorted_vals)
         dd.cur.execute(SQL_get_sorted_vals)
-        val_dic = self.val_dics.get(var_gp, {})
         ## cope if variable has massive spread of values
         self.gp_vals_sorted = []
-        ## http://code.activestate.com/recipes/...
-        ## ...498181-add-thousands-separator-commas-to-formatted-number/
-        ## locale.setlocale(locale.LC_ALL, '')
-        ## http://docs.python.org/library/locale.html...
-        ## ...#background-details-hints-tips-and-caveats
-        strn = locale.format('%d', n_high, True)
         excess_length_cat = False
-        n_vals = 0
         while True:
-            try:
-                val2list = dd.cur.fetchone()[0]
-            except Exception:
+            row = dd.cur.fetchone()
+            if not row:
                 break
+            val2list = row[0]
             try:
                 len_val2list = len(val2list)
                 if len_val2list > mg.MAX_VAL_LEN_IN_SQL_CLAUSE:
@@ -596,19 +577,35 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             n_vals = len(self.gp_vals_sorted)
             if n_vals == mg.MAX_GROUPS4DROPDOWN:
                 break
+        return excess_length_cat, high_n_recs
+
+    def get_items_and_idxs_for_a_and_b(self,
+            var_gp, val_a, val_b, where_filt, and_filt):
+        """
+        If under 250,000 records in source table (when filtered, if applicable),
+        use entire table as source for group by query to get unique values. If
+        250,000 upwards, use first 250,000 records as source. If more than 20
+        unique values, only show first 20 and inform user.
+        """
+        msg = None
+        n_high = 250_000
+        val_dic = self.val_dics.get(var_gp, {})
+        excess_length_cat, high_n_recs = self._set_raw_group_val_items(
+            var_gp, where_filt=where_filt, and_filt=and_filt, n_high=n_high)
+        n_vals = len(self.gp_vals_sorted)
         if n_vals == mg.MAX_GROUPS4DROPDOWN:
             if high_n_recs:
-                chop_warning = (_(
-                    'Showing first %s groups in\n in first %s rows')
-                     % (mg.MAX_GROUPS4DROPDOWN, strn))
+                chop_warning = (
+                    f'Showing first {mg.MAX_GROUPS4DROPDOWN} groups'
+                    f'\nin first {n_high:,} rows')
             else:
-                chop_warning =_('Showing first %s unique groups'
-                    % mg.MAX_GROUPS4DROPDOWN)
+                chop_warning = (
+                    f'Showing first {mg.MAX_GROUPS4DROPDOWN} unique groups')
         elif n_vals == 0:
             chop_warning = ''
         else:
-            chop_warning = (_('Showing groups from\n first %s rows') % strn
-                if high_n_recs else u'')
+            chop_warning = (f'Showing groups from\nfirst {n_high:,} rows'
+                if high_n_recs else '')
         if excess_length_cat:
             msg = (f'Values longer than {mg.MAX_VAL_LEN_IN_SQL_CLAUSE} from '
                 f'"{var_gp}" were not included')
@@ -619,8 +616,13 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 wx.MessageBox(
                     f'No suitable values to group by in "{var_gp}"')
         self.lbl_chop_warning.SetLabel(chop_warning)
+        dp2use = lib.OutputLib.get_best_dp(self.gp_vals_sorted)
+        try:
+            gp_vals2use = [round(x, dp2use) for x in self.gp_vals_sorted]
+        except Exception:
+            gp_vals2use = self.gp_vals_sorted
         self.gp_choice_items_sorted = [
-            lib.GuiLib.get_choice_item(val_dic, x) for x in self.gp_vals_sorted]
+            lib.GuiLib.get_choice_item(val_dic, x) for x in gp_vals2use]
         items_a = self.gp_choice_items_sorted
         items_b = self.gp_choice_items_sorted
         ## set selections
@@ -696,7 +698,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         file, and finally, display html output.
         """
         cc = output.get_cc()
-        run_ok = self.test_config_ok()
+        run_ok = self.check_config_ok()
         if run_ok:
             ## css_idx is supplied at the time
             get_script_args = {'css_fil': cc[mg.CURRENT_CSS_PATH],
@@ -704,7 +706,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
                 'details': mg.DEFAULT_DETAILS}
             config_ui.ConfigUI.on_btn_run(self, event, get_script_args)
 
-    def test_config_ok(self):
+    def check_config_ok(self):
         """
         Are the appropriate selections made to enable an analysis to be run?
         """

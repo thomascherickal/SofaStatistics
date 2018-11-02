@@ -190,6 +190,11 @@ class OutputLib:
         digits. Also honour the MAX_DISPLAY_DP setting (set in the GUI). If set
         low then so be it. Has to be a MAX_DISPLAY_DP constraint otherwise could
         theoretically have to display thousands of decimal points.
+
+        If not numeric, just returns 0.
+
+        :return: best dp
+        :rtype: int
         """
         test_val = list(xs_maybe_used_as_lbls)[0]
         if not TypeLib.is_basic_num(test_val):
@@ -1223,7 +1228,7 @@ class GuiLib:
         e.g. if has a label, turn agegrp into Age Group
         """
         item_val_u = UniLib.any2unicode(item_val)
-        return item_labels.get(item_val, item_val_u.title())  ##.replace(u'\n', u' ') # leave as is
+        return item_labels.get(item_val, item_val_u.title())
 
     @staticmethod
     def get_choice_item(item_labels, item_val):
@@ -1236,17 +1241,12 @@ class GuiLib:
     @staticmethod
     def get_sorted_choice_items(dic_labels, vals, *, inc_drop_select=False):
         """
-        Sorted by label, not name.
+        Sorted by label, not name. If DROP_SELECT in list, always appears first.
 
-        dic_labels - could be for either variables of values.
-
-        vals - either variables or values.
-
-        If DROP_SELECT in list, always appears first.
-
-        Returns choice_items_sorted, orig_items_sorted.
-
-        http://www.python.org/doc/faq/programming/#i-want-to-do-a-complicated-sort-can-you-do-a-schwartzian-transform-in-python
+        :param list dic_labels: could be for either variables or values
+        :param list vals: either variables or values
+        :return: two-tuple of choice_items_sorted, orig_items_sorted
+        :rtype: tuple
         """
         sorted_vals = vals
         sorted_vals.sort(

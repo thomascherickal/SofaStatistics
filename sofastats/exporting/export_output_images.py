@@ -176,7 +176,7 @@ class ExportImage:
         else:
             foldername = os.path.split(alternative_path)[1]
             img_saved_msg = ('Images have been saved to your desktop in the '
-                '\'%s\' folder.' % foldername)
+                f'"{foldername}" folder.')
         if img_creation_problem:
             img_saved_msg += (('\n\nThere may have been a problem making some '
                 'of the images - please contact the developer at %s for '

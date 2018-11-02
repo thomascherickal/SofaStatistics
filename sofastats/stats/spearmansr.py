@@ -66,7 +66,7 @@ sample_x, sample_y, data_tups = core_stats.get_paired_data(
                 'sample_x, sample_y, headless=False)')
         else:
             script_lst.append('details = {}')
-            css_fil_esc = lib.escape_pre_write(css_fil)
+        css_fil_esc = lib.escape_pre_write(css_fil)
         script_lst.append(f"""
 spearmansr_output = stats_output.spearmansr_output(sample_x, sample_y, r, p, df,
     label_x, label_y, report_name,
