@@ -276,7 +276,11 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
                 event, get_script_args, new_has_dojo=True)
 
     def get_script(self, css_idx, css_fil, report_name):
-        "Build script from inputs"
+        """
+        Build script from inputs
+
+        css_idx needed because of standard interface.
+        """
         dd = mg.DATADETS_OBJ
         script_lst = []
         script_lst.append(lib.FiltLib.get_tbl_filt_clause(dd.dbe, dd.db,
@@ -297,7 +301,7 @@ data_label, vals = normal.get_inputs(
 normal_output = normal.get_normal_output(
     vals, data_label, add_to_report,
     report_name, paired={paired},
-    css_fil="{escaped_css_fil}", css_idx={css_idx}, page_break=False)""")
+    css_fil="{escaped_css_fil}")""")
         script_lst.append('fil.write(normal_output)')
         return '\n'.join(script_lst)
 

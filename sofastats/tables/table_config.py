@@ -539,9 +539,10 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 '\npage of www.sofastatistics.com/userguide.php'
                 '\n\nNote - the sofa_id is required and cannot be edited.'))
             szr_design_left.Add(lbl_guidance, 0)
-        self.tabentry = ConfigTableEntry(self, self.panel, self.read_only, 
+        self.tabentry = ConfigTableEntry(self, self.panel,
             grid_size, col_dets, init_fld_settings, fld_settings,
-            insert_data_func, cell_invalidation_func, cell_response_func)
+            insert_data_func, cell_invalidation_func, cell_response_func,
+            read_only=self.read_only)
         szr_design_left.Add(self.tabentry.grid, 1, wx.GROW|wx.ALL, 5)
         szr_design_right.Add(lbl_see_result, 0)
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
