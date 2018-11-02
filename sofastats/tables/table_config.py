@@ -548,7 +548,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         szr_design_right.Add(self.html, 1, wx.GROW|wx.ALL, 10)
         szr_design.Add(szr_design_left, 0, wx.GROW)
         szr_design.Add(szr_design_right, 1, wx.GROW)
-        self.setup_btns(self.read_only)
+        self.setup_btns(read_only=self.read_only)
         self.szr_main.Add(self.szr_tbl_label, 0, wx.GROW|wx.ALL, 10)
         self.szr_main.Add(szr_design, 1, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         self.szr_main.Add(self.szr_btns, 0, wx.GROW|wx.ALL, 10)
@@ -1081,7 +1081,7 @@ class ConfigTableEntry(settings_grid.SettingsEntry):
          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
         ## disable first row (id in demo tbl; SOFA_ID otherwise)
         attr = wx.grid.GridCellAttr()
-        attr.Setread_only(True)
+        attr.SetReadOnly(True)
         attr.SetBackgroundColour(mg.READ_ONLY_COLOUR)
         self.grid.SetRowAttr(0, attr)
         ## allow right click on variable names
