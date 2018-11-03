@@ -794,12 +794,13 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         only SOFA will be able to open the SQLite database.
         """
         debug = False
-        dd = mg.DATADETS_OBJ
+        default_dd = getdata.get_default_db_dets()
+        con, cur = default_dd.con, default_dd.cur
         oth_name_types = getdata.get_oth_name_types(self.settings_data)
         tblname = self.tblname_lst[0]
-        if debug: print(f'DBE in make_new_tbl is: {dd.dbe}')
+        if debug: print(f'DBE in make_new_tbl is: {default_dd.dbe}')
         getdata.make_sofa_tbl(
-            dd.con, dd.cur, tblname, oth_name_types, headless=False)
+            con, cur, tblname, oth_name_types, headless=False)
         wx.MessageBox(
             _('Your new table has been added to the default SOFA database'))
 
