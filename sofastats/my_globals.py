@@ -743,6 +743,10 @@ AREA_CHART = 'Area Chart'
 HISTOGRAM = 'Histogram'
 SCATTERPLOT = 'Scatterplot'
 BOXPLOT = 'Box and Whisker Plot'
+
+BOX_DIC = 'box_dic'
+BOX_N_VALS = 'box_n_vals'
+
 """
 For each chart type, we need config for avg (if available) and non-avg.
 The config must list drop-down configs in order.

@@ -1404,6 +1404,350 @@ class BarChart:
         return "".join(html)
 
 
+class BoxPlotDets:
+
+    """
+    Lots of shared state as different categories and series change the overall
+    attributes of the chart e.g. max y axis. So using object rather than static
+    methods.
+    """
+
+    def __init__(self, *, dbe, cur, tbl, tbl_filt, flds, var_role_dic,
+            sort_opt, rotate, boxplot_opt):
+        self.first_chart_by = True
+        self.y_display_min = None
+        self.y_display_max = 0
+        self.xaxis_dets = []  ## (0, "''", "''")]
+        self.max_x_lbl_len = 0
+        self.max_lbl_lines = 0
+        self.any_missing_boxes = False
+        self.any_displayed_boxes = False
+        self.n_chart = 0  ## Note -- only ever one boxplot chart (no matter how many series)
+        self.dbe = dbe
+        self.cur = cur
+        self.tbl = tbl
+        self.tbl_filt = tbl_filt
+        self.flds = flds
+        self.var_role_dic = var_role_dic
+        self.sort_opt = sort_opt
+        self.rotate = rotate
+        self.boxplot_opt = boxplot_opt
+        objqtr = getdata.get_obj_quoter_func(self.dbe)
+        where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
+        self.sql_dic = {
+            'var_role_cat': objqtr(var_role_dic['cat']),
+            'var_role_series': objqtr(var_role_dic['series']),
+            'var_role_desc': objqtr(var_role_dic['desc']),
+            'where_tbl_filt': where_tbl_filt,
+            'and_tbl_filt': and_tbl_filt,
+            'tbl': getdata.tblname_qtr(self.dbe, self.tbl)}
+
+    def _get_series_vals(self):
+        debug = False
+        if self.var_role_dic['series']:
+            SQL_series_vals = """SELECT {var_role_series}
+                FROM {tbl}
+                WHERE {var_role_series} IS NOT NULL
+                AND {var_role_cat} IS NOT NULL
+                AND {var_role_desc} IS NOT NULL
+                {and_tbl_filt}
+                GROUP BY {var_role_series}""".format(**self.sql_dic)
+            if debug: print(SQL_series_vals)
+            self.cur.execute(SQL_series_vals)
+            series_vals = [x[0] for x in self.cur.fetchall()]
+            if debug: print(series_vals)
+            n_boxplot_series = len(series_vals)
+            if n_boxplot_series > mg.MAX_SERIES_IN_BOXPLOT:
+                if wx.MessageBox(
+                        _("This chart will have %(n_boxplot_series)s "
+                        "%(var_role_cat)s series and may not display properly. "
+                        "Do you wish to make it anyway?") % {
+                            "n_boxplot_series": n_boxplot_series,
+                            "var_role_cat": self.var_role_dic['cat']
+                        },
+                        caption=_('HIGH NUMBER OF SERIES'),
+                        style=wx.YES_NO) == wx.NO:
+                    raise my_exceptions.TooManySeriesInChart(
+                        mg.MAX_SERIES_IN_BOXPLOT)
+        else:
+            series_vals = [None, ]  ## Got to have something to loop through ;-)
+        return series_vals
+
+    def _get_sorted_cat_vals(self):
+        """
+        Get category values (sorted if requested) with raw values and display
+        values. Where categories are unlabeled numeric values the display value
+        will honour the max display decimal place selected by the user. E.g. if
+        the raw value is 1.1234 then the display value will be 1.1.
+        """
+        debug = False
+        if self.var_role_dic['cat']: # might just be a single box e.g. a box for age overall
+            and_series_filt = ('' if not self.var_role_dic['series']
+                else " AND {var_role_series} IS NOT NULL ".format(**self.sql_dic))
+            self.sql_dic['and_series_filt'] = and_series_filt
+            SQL_cat_vals = """SELECT {var_role_cat}
+                FROM {tbl}
+                WHERE {var_role_cat} IS NOT NULL
+                AND {var_role_desc} IS NOT NULL
+                {and_series_filt}
+                {and_tbl_filt}
+                GROUP BY {var_role_cat}""".format(**self.sql_dic)
+            if debug: print(SQL_cat_vals)
+            try:
+                self.cur.execute(SQL_cat_vals)
+            except Exception:
+                print(SQL_cat_vals)
+                raise
+            cat_vals = [x[0] for x in self.cur.fetchall()]
+            ## sort appropriately
+            cat_vals_and_lbls = [(x, self.var_role_dic['cat_lbls'].get(x, x))
+                for x in cat_vals]
+            if self.sort_opt == mg.SORT_LBL_KEY:
+                cat_vals_and_lbls.sort(key=itemgetter(1))
+            sorted_cat_raw_vals = [x[0] for x in cat_vals_and_lbls]
+            sorted_cat_display_vals = lib.OutputLib.get_best_x_lbls(
+                xs_maybe_used_as_lbls=sorted_cat_raw_vals)
+            if debug: print(sorted_cat_display_vals)
+            n_boxplots = len(sorted_cat_raw_vals)
+            if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
+                msg = _("This chart will have %(n_boxplots)s series by "
+                    "%(var_role_cat)s and may not display properly. Do you wish"
+                    " to make it anyway?") % {"n_boxplots": n_boxplots,
+                    "var_role_cat": self.var_role_dic['cat']}
+                if wx.MessageBox(msg, caption=_("HIGH NUMBER OF SERIES"),
+                        style=wx.YES_NO) == wx.NO:
+                    raise my_exceptions.TooManyBoxplotsInSeries(
+                        self.var_role_dic['cat_name'],
+                        max_items=mg.MAX_BOXPLOTS_IN_SERIES)
+            sorted_cat_vals = zip(sorted_cat_raw_vals, sorted_cat_display_vals)
+        else:
+            sorted_cat_vals = [(1, 1), ]  ## the first boxplot is always 1 on the x-axis
+        return sorted_cat_vals
+
+    def _get_box_dets(self, i, *, raw_cat_val, display_cat_val, legend_lbl):
+        """
+        Get details for specific box for category e.g. Japan. Also get details
+        for boxes as a whole e.g. max y display value.
+        """
+        debug = False
+        boxplot_width = 0.25
+        if self.var_role_dic['cat']:
+            x_val_lbl = self.var_role_dic['cat_lbls'].get(
+                raw_cat_val, str(display_cat_val))
+            if self.first_chart_by:  ## build xaxis_dets once
+                (x_val_split_lbl,
+                 actual_lbl_width,
+                 n_lines) = lib.OutputLib.get_lbls_in_lines(
+                     orig_txt=x_val_lbl, max_width=17, dojo=True, rotate=self.rotate)
+                if actual_lbl_width > self.max_x_lbl_len:
+                    self.max_x_lbl_len = actual_lbl_width
+                if n_lines > self.max_lbl_lines:
+                    self.max_lbl_lines = n_lines
+                self.xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
+            ## Now see if any desc values for particular series_val and cat_val
+            val_clause = getdata.make_fld_val_clause(
+                self.dbe, self.flds, fldname=self.var_role_dic['cat'], val=raw_cat_val)
+            and_cat_val_filt = f' AND {val_clause}'
+        else:
+            self.xaxis_dets.append((i, "''", "''"))
+            and_cat_val_filt = ''
+        self.sql_dic['and_cat_val_filt'] = and_cat_val_filt
+        SQL_vals2desc = """SELECT {var_role_desc}
+        FROM {tbl}
+        WHERE {var_role_desc} IS NOT NULL
+        {and_cat_val_filt}
+        {and_series_val_filt}
+        {and_tbl_filt}""".format(**self.sql_dic)
+        self.cur.execute(SQL_vals2desc)
+        vals2desc = [x[0] for x in self.cur.fetchall()]
+        n_vals = len(vals2desc)
+        has_vals = (n_vals > 0)
+        if has_vals:
+            median = np.median(vals2desc)
+            lq, uq = core_stats.get_quartiles(vals2desc)
+            lbox = lq
+            ubox = uq
+            if debug: print(f'{lbox} {median} {ubox}')
+        boxplot_display = has_vals
+        if not boxplot_display:
+            self.any_missing_boxes = True
+            box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
+                mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                mg.CHART_BOXPLOT_LWHISKER: None,
+                mg.CHART_BOXPLOT_LWHISKER_ROUNDED: None,
+                mg.CHART_BOXPLOT_LBOX: None,
+                mg.CHART_BOXPLOT_MEDIAN: None,
+                mg.CHART_BOXPLOT_UBOX: None,
+                mg.CHART_BOXPLOT_UWHISKER: None,
+                mg.CHART_BOXPLOT_OUTLIERS: None,
+                mg.CHART_BOXPLOT_INDIV_LBL: None}
+        else:
+            self.any_displayed_boxes = True
+            min_measure = min(vals2desc)
+            max_measure = max(vals2desc)
+            ## whiskers
+            if self.boxplot_opt == mg.CHART_BOXPLOT_MIN_MAX_WHISKERS:
+                lwhisker = min_measure
+                uwhisker = max_measure
+            elif self.boxplot_opt in (mg.CHART_BOXPLOT_HIDE_OUTLIERS,
+                    mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
+                iqr = ubox - lbox
+                raw_lwhisker = lbox - (1.5*iqr)
+                lwhisker = BoxPlot._get_lwhisker(
+                    raw_lwhisker, lbox, vals2desc)
+                raw_uwhisker = ubox + (1.5*iqr)
+                uwhisker = BoxPlot._get_uwhisker(
+                    raw_uwhisker, ubox, vals2desc)
+            ## outliers
+            if self.boxplot_opt == mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE:
+                outliers = [x for x in vals2desc
+                    if x < lwhisker or x > uwhisker]
+                outliers_rounded = [
+                    round(x, mg.DEFAULT_REPORT_DP) for x in vals2desc
+                    if x < lwhisker or x > uwhisker]
+            else:
+                outliers = []  ## hidden or inside whiskers
+                outliers_rounded = []
+            ## setting y-axis
+            if self.boxplot_opt == mg.CHART_BOXPLOT_HIDE_OUTLIERS:
+                min2display = lwhisker
+                max2display = uwhisker
+            else:
+                min2display = min_measure
+                max2display = max_measure
+            if self.y_display_min is None:
+                self.y_display_min = min2display
+            elif min2display < self.y_display_min:
+                self.y_display_min = min2display
+            if max2display > self.y_display_max:
+                self.y_display_max = max2display
+            ## labels
+            lblbits = []
+            if self.var_role_dic['cat']:
+                lblbits.append(x_val_lbl)
+            if legend_lbl:
+                lblbits.append(legend_lbl)
+            ## assemble
+            box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
+                mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
+                mg.CHART_BOXPLOT_LWHISKER: lwhisker,
+                mg.CHART_BOXPLOT_LWHISKER_ROUNDED: round(lwhisker,
+                    mg.DEFAULT_REPORT_DP),
+                mg.CHART_BOXPLOT_LBOX: lbox,
+                mg.CHART_BOXPLOT_LBOX_ROUNDED: round(lbox,
+                    mg.DEFAULT_REPORT_DP),
+                mg.CHART_BOXPLOT_MEDIAN: median,
+                mg.CHART_BOXPLOT_MEDIAN_ROUNDED: round(median,
+                    mg.DEFAULT_REPORT_DP),
+                mg.CHART_BOXPLOT_UBOX: ubox,
+                mg.CHART_BOXPLOT_UBOX_ROUNDED: round(ubox,
+                    mg.DEFAULT_REPORT_DP),
+                mg.CHART_BOXPLOT_UWHISKER: uwhisker,
+                mg.CHART_BOXPLOT_UWHISKER_ROUNDED: round(uwhisker,
+                    mg.DEFAULT_REPORT_DP),
+                mg.CHART_BOXPLOT_OUTLIERS: outliers,
+                mg.CHART_BOXPLOT_OUTLIERS_ROUNDED: outliers_rounded,
+                mg.CHART_BOXPLOT_INDIV_LBL: ', '.join(lblbits)}
+        return {mg.BOX_DIC: box_dic, mg.BOX_N_VALS: n_vals}
+
+    def _get_boxdet_series_dets(self, sorted_cat_vals, legend_lbl):
+        boxdet_series = []
+        for i, (raw_cat_val, display_cat_val) in enumerate(sorted_cat_vals, 1):  ## e.g. "Mt Albert Grammar", 
+                ## "Epsom Girls Grammar", "Hebron Christian College", ...
+            box_dets = self._get_box_dets(i,
+                raw_cat_val=raw_cat_val, display_cat_val=display_cat_val,
+                legend_lbl=legend_lbl)
+            self.n_chart += box_dets[mg.BOX_N_VALS]
+            boxdet_series.append(box_dets[mg.BOX_DIC])
+        return boxdet_series
+
+    def get_boxplot_dets(self):
+        """
+        Desc, Category, Series correspond to dropdown 1-3 respectively. E.g. if
+        the averaged variable is age, the split within the series is gender, and
+        the different series (each with own colour) is country, we have var desc
+        = age, var cat = gender, and var series = country.
+
+        NB can't just use group by SQL to get results - need upper and lower
+        quartiles etc and we have to work on the raw values to achieve this. We
+        have to do more work outside of SQL to get the values we need.
+
+        xaxis_dets -- [(0, "", ""), (1, "Under 20", ...] NB blanks either end
+
+        series_dets -- [{mg.CHART_SERIES_LBL: "Girls",
+            mg.CHART_BOXDETS: [{mg.CHART_BOXPLOT_DISPLAY: True,
+                                    mg.CHART_BOXPLOT_LWHISKER: 1.7,
+                                    mg.CHART_BOXPLOT_LBOX: 3.2, ...},
+                               {mg.CHART_BOXPLOT_DISPLAY: True, etc}, ...]}, ...]
+
+        NB supply a boxdet even for an empty box. Put marker that it should be
+        skipped in terms of output to js. mg.CHART_BOXPLOT_DISPLAY
+
+        # list of subseries dicts each of which has a label and a list of dicts
+        (one per box).
+
+        http://en.wikipedia.org/wiki/Box_plot: the default,
+        CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE, is one of several options: the
+        lowest datum still within 1.5 IQR of the lower quartile, and the highest
+        datum still within 1.5 IQR of the upper quartile.
+        """
+        debug = True
+        chart_dets = []
+        ## 1) What are our series to display? If there is no data for an entire
+        ## series, we want to leave it out. E.g. if country = Palau has no skiing
+        ## data it won't appear as a series. So get all series vals appearing in
+        ## any rows where all fields are non-missing. If a series even has one
+        ## value, we show the series and a box plot for every category that has a
+        ## value to be averaged, even if only one value (resulting in a single
+        ## line rather than a box as such).
+        series_vals = self._get_series_vals()
+        ## 2) Get all cat vals needed for x-axis i.e. all those appearing in any
+        ## rows where all fields are non-missing.
+        sorted_cat_vals = self._get_sorted_cat_vals()
+        for series_val in series_vals:  ## e.g. "Boys" and "Girls"
+            if series_val is not None:
+                legend_lbl = self.var_role_dic['series_lbls'].get(series_val,
+                    str(series_val))
+                series_val_filt = getdata.make_fld_val_clause(
+                    self.dbe, self.flds,
+                    fldname=self.var_role_dic['series'], val=series_val)
+                and_series_val_filt = f' AND {series_val_filt}'
+            else:
+                legend_lbl = None
+                and_series_val_filt = ' '
+            self.sql_dic['and_series_val_filt'] = and_series_val_filt
+            ## time to get the boxplot information for the series
+            boxdet_series_dets = self._get_boxdet_series_dets(
+                sorted_cat_vals, legend_lbl)
+            title_bits = []
+            title_bits.append(self.var_role_dic['desc_name'])
+            cat_name = self.var_role_dic['cat_name']
+            title_bits.append(f'By {cat_name}')
+            if self.var_role_dic['series_name']:
+                series_name = self.var_role_dic['series_name']
+                title_bits.append(f'By {series_name}')
+            overall_title = ' '.join(title_bits)
+            series_dic = {
+                mg.CHART_SERIES_LBL: legend_lbl,
+                mg.CHART_BOXDETS: boxdet_series_dets}
+            chart_dets.append(series_dic)
+            self.first_chart_by = False
+        if not self.any_displayed_boxes:
+            raise my_exceptions.TooFewBoxplotsInSeries
+        xmin = 0.5
+        xmax = self.n_chart - 1 + 0.5
+        y_display_min, y_display_max = _get_optimal_min_max(
+            self.y_display_min, self.y_display_max)
+        #xaxis_dets.append((xmax, "''", "''"))
+        if debug: print(self.xaxis_dets)
+        n_chart = lib.formatnum(self.n_chart)
+        return (n_chart, self.xaxis_dets,
+            xmin, xmax,
+            y_display_min, y_display_max,
+            self.max_x_lbl_len, self.max_lbl_lines,
+            overall_title, chart_dets, self.any_missing_boxes)
+
+
 class BoxPlot:
 
     @staticmethod
@@ -1459,9 +1803,9 @@ class BoxPlot:
         </div>""".format(**chart_settings_dic))
 
     @staticmethod
-    def get_boxplot_dets(dbe, cur, tbl, tbl_filt, flds, var_role_dic, sort_opt,
-            *, rotate=False,
-            boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
+    def get_boxplot_dets(
+            dbe, cur, tbl, tbl_filt, flds, var_role_dic, sort_opt, *,
+            rotate=False, boxplot_opt=mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
         """
         Desc, Category, Series correspond to dropdown 1-3 respectively. E.g. if
         the averaged variable is age, the split within the series is gender, and
@@ -1491,266 +1835,11 @@ class BoxPlot:
         lowest datum still within 1.5 IQR of the lower quartile, and the highest
         datum still within 1.5 IQR of the upper quartile.
         """
-        debug = False
-        objqtr = getdata.get_obj_quoter_func(dbe)
-        where_tbl_filt, and_tbl_filt = lib.FiltLib.get_tbl_filts(tbl_filt)
-        boxplot_width = 0.25
-        chart_dets = []
-        xaxis_dets = []  ## (0, "''", "''")]
-        max_x_lbl_len = 0
-        max_lbl_lines = 0
-        sql_dic = {
-            'var_role_cat': objqtr(var_role_dic['cat']),
-            'var_role_series': objqtr(var_role_dic['series']),
-            'var_role_desc': objqtr(var_role_dic['desc']),
-            'where_tbl_filt': where_tbl_filt,
-            'and_tbl_filt': and_tbl_filt,
-            'tbl': getdata.tblname_qtr(dbe, tbl)}
-        ## 1) What are our series to display? If there is no data for an entire
-        ## series, we want to leave it out. E.g. if country = Palau has no skiing
-        ## data it won't appear as a series. So get all series vals appearing in
-        ## any rows where all fields are non-missing. If a series even has one
-        ## value, we show the series and a box plot for every category that has a
-        ## value to be averaged, even if only one value (resulting in a single
-        ## line rather than a box as such).
-        if var_role_dic['series']:
-            SQL_series_vals = """SELECT {var_role_series}
-                FROM {tbl}
-                WHERE {var_role_series} IS NOT NULL
-                AND {var_role_cat} IS NOT NULL
-                AND {var_role_desc} IS NOT NULL
-                {and_tbl_filt}
-                GROUP BY {var_role_series}""".format(**sql_dic)
-            if debug: print(SQL_series_vals)
-            cur.execute(SQL_series_vals)
-            series_vals = [x[0] for x in cur.fetchall()]
-            if debug: print(series_vals)
-            n_boxplot_series = len(series_vals)
-            if n_boxplot_series > mg.MAX_SERIES_IN_BOXPLOT:
-                if wx.MessageBox(
-                        _("This chart will have %(n_boxplot_series)s "
-                        "%(var_role_cat)s series and may not display properly. "
-                        "Do you wish to make it anyway?") % {
-                            "n_boxplot_series": n_boxplot_series,
-                            "var_role_cat": var_role_dic['cat']
-                        },
-                        caption=_('HIGH NUMBER OF SERIES'),
-                        style=wx.YES_NO) == wx.NO:
-                    raise my_exceptions.TooManySeriesInChart(
-                        mg.MAX_SERIES_IN_BOXPLOT)
-        else:
-            series_vals = [None, ]  ## Got to have something to loop through ;-)
-        ## 2) Get all cat vals needed for x-axis i.e. all those appearing in any
-        ## rows where all fields are non-missing.
-        if var_role_dic['cat']: # might just be a single box e.g. a box for age overall
-            and_series_filt = ('' if not var_role_dic['series']
-                else " AND {var_role_series} IS NOT NULL ".format(**sql_dic))
-            sql_dic['and_series_filt'] = and_series_filt
-            SQL_cat_vals = """SELECT {var_role_cat}
-                FROM {tbl}
-                WHERE {var_role_cat} IS NOT NULL
-                AND {var_role_desc} IS NOT NULL
-                {and_series_filt}
-                {and_tbl_filt}
-                GROUP BY {var_role_cat}""".format(**sql_dic)
-            if debug: print(SQL_cat_vals)
-            try:
-                cur.execute(SQL_cat_vals)
-            except Exception:
-                print(SQL_cat_vals)
-                raise
-            cat_vals = [x[0] for x in cur.fetchall()]
-            ## sort appropriately
-            cat_vals_and_lbls = [(x, var_role_dic['cat_lbls'].get(x, x))
-                for x in cat_vals]
-            if sort_opt == mg.SORT_LBL_KEY:
-                cat_vals_and_lbls.sort(key=itemgetter(1))
-            xs_maybe_used_as_lbls = [x[0] for x in cat_vals_and_lbls]
-            sorted_cat_vals = lib.OutputLib.get_best_x_lbls(
-                xs_maybe_used_as_lbls)
-            if debug: print(sorted_cat_vals)
-            n_boxplots = len(sorted_cat_vals)
-            if n_boxplots > mg.MAX_BOXPLOTS_IN_SERIES:
-                if wx.MessageBox(_("This chart will have %(n_boxplots)s series"
-                        " by %(var_role_cat)s and may not display properly. Do"
-                        " you wish to make it anyway?")
-                        % {"n_boxplots": n_boxplots,
-                           "var_role_cat": var_role_dic['cat']},
-                        caption=_("HIGH NUMBER OF SERIES"),
-                        style=wx.YES_NO) == wx.NO:
-                    raise my_exceptions.TooManyBoxplotsInSeries(
-                        var_role_dic['cat_name'],
-                        max_items=mg.MAX_BOXPLOTS_IN_SERIES)
-        else:
-            sorted_cat_vals = [1,]  ## the first boxplot is always 1 on the x-axis
-        y_display_min = None  ## init
-        y_display_max = 0
-        first_chart_by = True
-        any_missing_boxes = False
-        any_displayed_boxes = False
-        n_chart = 0  ## init. Note -- only ever one boxplot
-        for series_val in series_vals:  ## e.g. "Boys" and "Girls"
-            if series_val is not None:
-                legend_lbl = var_role_dic['series_lbls'].get(series_val,
-                    str(series_val))
-                series_val_filt = getdata.make_fld_val_clause(dbe, flds,
-                    fldname=var_role_dic['series'], val=series_val)
-                and_series_val_filt = f' AND {series_val_filt}'
-            else:
-                legend_lbl = None
-                and_series_val_filt = ' '
-            sql_dic['and_series_val_filt'] = and_series_val_filt
-            ## time to get the boxplot information for the series
-            boxdet_series = []
-            for i, cat_val in enumerate(sorted_cat_vals, 1):  ## e.g. "Mt Albert Grammar", 
-                    ## "Epsom Girls Grammar", "Hebron Christian College", ...
-                if var_role_dic['cat']:
-                    x_val_lbl = var_role_dic['cat_lbls'].get(
-                        cat_val, str(cat_val))
-                    if first_chart_by:  ## build xaxis_dets once
-                        (x_val_split_lbl,
-                         actual_lbl_width,
-                         n_lines) = lib.OutputLib.get_lbls_in_lines(
-                             orig_txt=x_val_lbl, max_width=17, dojo=True,
-                             rotate=rotate)
-                        if actual_lbl_width > max_x_lbl_len:
-                            max_x_lbl_len = actual_lbl_width
-                        if n_lines > max_lbl_lines:
-                            max_lbl_lines = n_lines
-                        xaxis_dets.append((i, x_val_lbl, x_val_split_lbl))
-                    ## Now see if any desc values for particular series_val and cat_val
-                    val_clause = getdata.make_fld_val_clause(
-                        dbe, flds, fldname=var_role_dic['cat'], val=cat_val)
-                    and_cat_val_filt = f' AND {val_clause}'
-                else:
-                    xaxis_dets.append((i, "''", "''"))
-                    and_cat_val_filt = ''
-                sql_dic['and_cat_val_filt'] = and_cat_val_filt
-                SQL_vals2desc = """SELECT {var_role_desc}
-                FROM {tbl}
-                WHERE {var_role_desc} IS NOT NULL
-                {and_cat_val_filt}
-                {and_series_val_filt}
-                {and_tbl_filt}""".format(**sql_dic)
-                cur.execute(SQL_vals2desc)
-                vals2desc = [x[0] for x in cur.fetchall()]
-                n_vals = len(vals2desc)
-                n_chart += n_vals
-                has_vals = (n_vals > 0)
-                if has_vals:
-                    median = np.median(vals2desc)
-                    lq, uq = core_stats.get_quartiles(vals2desc)
-                    lbox = lq
-                    ubox = uq
-                    if debug: print(f'{lbox} {median} {ubox}')
-                boxplot_display = has_vals
-                if not boxplot_display:
-                    any_missing_boxes = True
-                    box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
-                        mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                        mg.CHART_BOXPLOT_LWHISKER: None,
-                        mg.CHART_BOXPLOT_LWHISKER_ROUNDED: None,
-                        mg.CHART_BOXPLOT_LBOX: None,
-                        mg.CHART_BOXPLOT_MEDIAN: None,
-                        mg.CHART_BOXPLOT_UBOX: None,
-                        mg.CHART_BOXPLOT_UWHISKER: None,
-                        mg.CHART_BOXPLOT_OUTLIERS: None,
-                        mg.CHART_BOXPLOT_INDIV_LBL: None}
-                else:
-                    any_displayed_boxes = True
-                    min_measure = min(vals2desc)
-                    max_measure = max(vals2desc)
-                    ## whiskers
-                    if boxplot_opt == mg.CHART_BOXPLOT_MIN_MAX_WHISKERS:
-                        lwhisker = min_measure
-                        uwhisker = max_measure
-                    elif boxplot_opt in (mg.CHART_BOXPLOT_HIDE_OUTLIERS,
-                            mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE):
-                        iqr = ubox - lbox
-                        raw_lwhisker = lbox - (1.5*iqr)
-                        lwhisker = BoxPlot._get_lwhisker(
-                            raw_lwhisker, lbox, vals2desc)
-                        raw_uwhisker = ubox + (1.5*iqr)
-                        uwhisker = BoxPlot._get_uwhisker(
-                            raw_uwhisker, ubox, vals2desc)
-                    ## outliers
-                    if boxplot_opt == mg.CHART_BOXPLOT_1_POINT_5_IQR_OR_INSIDE:
-                        outliers = [x for x in vals2desc
-                            if x < lwhisker or x > uwhisker]
-                        outliers_rounded = [
-                            round(x, mg.DEFAULT_REPORT_DP) for x in vals2desc
-                            if x < lwhisker or x > uwhisker]
-                    else:
-                        outliers = []  ## hidden or inside whiskers
-                        outliers_rounded = []
-                    ## setting y-axis
-                    if boxplot_opt == mg.CHART_BOXPLOT_HIDE_OUTLIERS:
-                        min2display = lwhisker
-                        max2display = uwhisker
-                    else:
-                        min2display = min_measure
-                        max2display = max_measure
-                    if y_display_min is None:
-                        y_display_min = min2display
-                    elif min2display < y_display_min:
-                        y_display_min = min2display
-                    if max2display > y_display_max:
-                        y_display_max = max2display
-                    ## labels
-                    lblbits = []
-                    if var_role_dic['cat']:
-                        lblbits.append(x_val_lbl)
-                    if legend_lbl:
-                        lblbits.append(legend_lbl)
-                    ## assemble
-                    box_dic = {mg.CHART_BOXPLOT_WIDTH: boxplot_width,
-                        mg.CHART_BOXPLOT_DISPLAY: boxplot_display,
-                        mg.CHART_BOXPLOT_LWHISKER: lwhisker,
-                        mg.CHART_BOXPLOT_LWHISKER_ROUNDED: round(lwhisker,
-                            mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_LBOX: lbox,
-                        mg.CHART_BOXPLOT_LBOX_ROUNDED: round(lbox,
-                            mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_MEDIAN: median,
-                        mg.CHART_BOXPLOT_MEDIAN_ROUNDED: round(median,
-                            mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_UBOX: ubox,
-                        mg.CHART_BOXPLOT_UBOX_ROUNDED: round(ubox,
-                            mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_UWHISKER: uwhisker,
-                        mg.CHART_BOXPLOT_UWHISKER_ROUNDED: round(uwhisker,
-                            mg.DEFAULT_REPORT_DP),
-                        mg.CHART_BOXPLOT_OUTLIERS: outliers,
-                        mg.CHART_BOXPLOT_OUTLIERS_ROUNDED: outliers_rounded,
-                        mg.CHART_BOXPLOT_INDIV_LBL: ', '.join(lblbits)}
-                boxdet_series.append(box_dic)
-            title_bits = []
-            title_bits.append(var_role_dic['desc_name'])
-            cat_name = var_role_dic['cat_name']
-            title_bits.append(f'By {cat_name}')
-            if var_role_dic['series_name']:
-                series_name = var_role_dic['series_name']
-                title_bits.append(f'By {series_name}')
-            overall_title = ' '.join(title_bits)
-            series_dic = {
-                mg.CHART_SERIES_LBL: legend_lbl,
-                mg.CHART_BOXDETS: boxdet_series}
-            chart_dets.append(series_dic)
-            first_chart_by = False
-        if not any_displayed_boxes:
-            raise my_exceptions.TooFewBoxplotsInSeries
-        xmin = 0.5
-        xmax = i + 0.5
-        y_display_min, y_display_max = _get_optimal_min_max(
-            y_display_min, y_display_max)
-        #xaxis_dets.append((xmax, "''", "''"))
-        if debug: print(xaxis_dets)
-        n_chart = lib.formatnum(n_chart)
-        return (n_chart, xaxis_dets,
-            xmin, xmax,
-            y_display_min, y_display_max,
-            max_x_lbl_len, max_lbl_lines,
-            overall_title, chart_dets, any_missing_boxes)
+        boxplot_dets = BoxPlotDets(
+            dbe=dbe, cur=cur, tbl=tbl, tbl_filt=tbl_filt, flds=flds,
+            var_role_dic=var_role_dic,
+            sort_opt=sort_opt, rotate=rotate, boxplot_opt=boxplot_opt)
+        return boxplot_dets.get_boxplot_dets()
 
     @staticmethod
     def _get_lwhisker(raw_lwhisker, lbox, measure_vals):
@@ -1915,7 +2004,7 @@ class BoxPlot:
         gap = 0.4/shrinkage
         pre_series = []
         bar_width = mg.CHART_BOXPLOT_WIDTH/shrinkage
-        pre_series.append("    var width = %s;" % bar_width)
+        pre_series.append(f'    var width = {bar_width};')
         pre_series.append("    var seriesconf = new Array();")
         pre_series.append("    var seriesdummy = [];")
         pre_series_str = "\n".join(pre_series)
