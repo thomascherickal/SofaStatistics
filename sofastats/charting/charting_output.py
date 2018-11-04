@@ -1519,7 +1519,8 @@ class BoxPlotDets:
                     raise my_exceptions.TooManyBoxplotsInSeries(
                         self.var_role_dic['cat_name'],
                         max_items=mg.MAX_BOXPLOTS_IN_SERIES)
-            sorted_cat_vals = zip(sorted_cat_raw_vals, sorted_cat_display_vals)
+            sorted_cat_vals = list(
+                zip(sorted_cat_raw_vals, sorted_cat_display_vals))
         else:
             sorted_cat_vals = [(1, 1), ]  ## the first boxplot is always 1 on the x-axis
         return sorted_cat_vals
@@ -1691,7 +1692,7 @@ class BoxPlotDets:
         lowest datum still within 1.5 IQR of the lower quartile, and the highest
         datum still within 1.5 IQR of the upper quartile.
         """
-        debug = True
+        debug = False
         chart_dets = []
         ## 1) What are our series to display? If there is no data for an entire
         ## series, we want to leave it out. E.g. if country = Palau has no skiing
@@ -1735,13 +1736,11 @@ class BoxPlotDets:
         if not self.any_displayed_boxes:
             raise my_exceptions.TooFewBoxplotsInSeries
         xmin = 0.5
-        xmax = self.n_chart - 1 + 0.5
+        xmax = len(sorted_cat_vals) + 0.5
         y_display_min, y_display_max = _get_optimal_min_max(
             self.y_display_min, self.y_display_max)
-        #xaxis_dets.append((xmax, "''", "''"))
         if debug: print(self.xaxis_dets)
-        n_chart = lib.formatnum(self.n_chart)
-        return (n_chart, self.xaxis_dets,
+        return (self.n_chart, self.xaxis_dets,
             xmin, xmax,
             y_display_min, y_display_max,
             self.max_x_lbl_len, self.max_lbl_lines,
@@ -1927,7 +1926,7 @@ class BoxPlot:
         css_idx -- css index so can apply
         """
         debug = False
-        n_chart = ("N = " + lib.formatnum(n_chart) if show_n else "")
+        n_chart = f'N = {n_chart:,}' if show_n else ''
         display_dets = mg.CHART_BOXPLOT_OPTIONS2LABELS.get(boxplot_opt, "")
         axis_lbl_rotate = -90 if rotate else 0
         CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
