@@ -384,6 +384,7 @@ class Checkboxes:
             wx.EVT_CHECKBOX, partial(Checkboxes.on_chk_show_n, self))
         chk_show_n.SetToolTip(_('Show chart N'))
         chk_show_n.SetValue(SHOW_N)
+        chk_show_n.SetFont(mg.GEN_FONT)
         return chk_show_n
 
     @staticmethod
@@ -838,8 +839,6 @@ class Dropdowns:
 
 class Setup:
 
-    custom_font = True
-    
     flags_prop_zero = wx.SizerFlags(proportion=0)
     ## Always aligned to the left and top
     ## standard top and right border is 5
@@ -850,20 +849,18 @@ class Setup:
     def setup_simple_bar(self):
         self.szr_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_bar_chart = wx.Panel(self.panel_mid)
-        lbl_val = wx.StaticText(self.panel_bar_chart, -1, _('Data reported:'))
-        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
+        lbl_val = wx.StaticText(self.panel_bar_chart, -1, _('Data\nreported:'))
         self.drop_bar_val = Dropdowns.get_drop_val_opts(
             self, self.panel_bar_chart)
         lbl_sort_str = _('Sort order\nof %s:') % BARS_SORTED_LBL
         lbl_sort = wx.StaticText(self.panel_bar_chart, -1, lbl_sort_str)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_bar_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_bar_chart)
         self.chk_simple_bar_rotate = Checkboxes.get_chk_rotate(
             self, self.panel_bar_chart)
         self.chk_bar_borders = wx.CheckBox(
             self.panel_bar_chart, -1, _('Bar borders?'))
-        if Setup.custom_font: self.chk_bar_borders.SetFont(mg.GEN_FONT)
+        self.chk_bar_borders.SetFont(mg.GEN_FONT)
         self.chk_bar_borders.SetValue(False)
         self.chk_bar_borders.SetToolTip(_('Show borders around bars?'))
         self.szr_bar_chart.Add(lbl_val, Setup.flags_std)
@@ -892,12 +889,10 @@ class Setup:
         self.szr_clust_bar_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_clust_bar = wx.Panel(self.panel_mid)
         lbl_val = wx.StaticText(self.panel_clust_bar, -1, _('Data\nreported:'))
-        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_clust_val = Dropdowns.get_drop_val_opts(
             self, self.panel_clust_bar)
         lbl_sort_str = _('Sort order\nof %s:') % CLUSTERS_SORTED_LBL
         lbl_sort = wx.StaticText(self.panel_clust_bar, -1, lbl_sort_str)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_clust_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_clust_bar,
             choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
@@ -905,7 +900,7 @@ class Setup:
             self, self.panel_clust_bar)
         self.chk_clust_borders = wx.CheckBox(
             self.panel_clust_bar, -1, _('Bar borders?'))
-        if Setup.custom_font: self.chk_clust_borders.SetFont(mg.GEN_FONT)
+        self.chk_clust_borders.SetFont(mg.GEN_FONT)
         self.chk_clust_borders.SetValue(False)
         self.chk_clust_borders.SetToolTip(_('Show borders around bars?'))
         self.szr_clust_bar_chart.Add(lbl_val, Setup.flags_std)
@@ -935,21 +930,21 @@ class Setup:
         self.panel_pie_chart = wx.Panel(self.panel_mid)
         lbl_sort = wx.StaticText(self.panel_pie_chart, -1,
             _('Sort order\nof %s:') % SLICES_SORTED_LBL)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_pie_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_pie_chart)
         ## count
         self.chk_show_count = wx.CheckBox(
             self.panel_pie_chart, -1, _('Show Count?'))
-        if Setup.custom_font: self.chk_show_count.SetFont(mg.GEN_FONT)
+        self.chk_show_count.SetFont(mg.GEN_FONT)
         self.chk_show_count.SetValue(False)
         self.chk_show_count.SetToolTip(_('Show Count?'))
         ## percentage
         self.chk_show_pct = wx.CheckBox(self.panel_pie_chart, -1, _('Show %?'))
-        if Setup.custom_font: self.chk_show_pct.SetFont(mg.GEN_FONT)
+        self.chk_show_pct.SetFont(mg.GEN_FONT)
         self.chk_show_pct.SetValue(False)
         self.chk_show_pct.SetToolTip(_('Show %?'))
         self.szr_pie_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_pie_chart.AddSpacer(5)
         self.szr_pie_chart.Add(self.drop_pie_sort, Setup.flags_std)
         self.szr_pie_chart.AddSpacer(10)
         self.szr_pie_chart.Add(self.chk_show_count,
@@ -968,12 +963,10 @@ class Setup:
         self.szr_line_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_line_chart = wx.Panel(self.panel_mid)
         lbl_val = wx.StaticText(self.panel_line_chart, -1, _('Data\nreported:'))
-        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_line_val = Dropdowns.get_drop_val_opts(
             self, self.panel_line_chart)
         lbl_sort = wx.StaticText(self.panel_line_chart, -1,
             _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_line_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_line_chart, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         self.chk_line_time_series = Checkboxes.get_chk_time_series(
@@ -990,18 +983,20 @@ class Setup:
             self, self.panel_line_chart)
         self.chk_line_trend = self.checkbox2use(
             self.panel_line_chart, -1, trend2use)
-        if Setup.custom_font: self.chk_line_trend.SetFont(mg.GEN_FONT)
+        self.chk_line_trend.SetFont(mg.GEN_FONT)
         self.chk_line_trend.SetToolTip(_('Show trend line?'))
         self.chk_line_smooth = self.checkbox2use(
             self.panel_line_chart, -1, smooth2use)
-        if Setup.custom_font: self.chk_line_smooth.SetFont(mg.GEN_FONT)
+        self.chk_line_smooth.SetFont(mg.GEN_FONT)
         self.chk_line_smooth.SetToolTip(_('Show smoothed data line?'))
         self.chk_line_major_ticks = Checkboxes.get_chk_major_ticks(
             self, self.panel_line_chart)
         self.szr_line_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_line_chart.AddSpacer(5)
         self.szr_line_chart.Add(self.drop_line_val, Setup.flags_std)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_line_chart.AddSpacer(5)
         self.szr_line_chart.Add(self.drop_line_sort, Setup.flags_std)
         self.szr_line_chart.AddSpacer(10)
         self.szr_line_chart.Add(self.chk_line_time_series,
@@ -1034,12 +1029,10 @@ class Setup:
         self.szr_area_chart = wx.BoxSizer(wx.HORIZONTAL)
         self.panel_area_chart = wx.Panel(self.panel_mid)
         lbl_val = wx.StaticText(self.panel_area_chart, -1, _('Data\nreported:'))
-        if Setup.custom_font: lbl_val.SetFont(mg.LABEL_FONT)
         self.drop_area_val = Dropdowns.get_drop_val_opts(
             self, self.panel_area_chart)
         lbl_sort = wx.StaticText(self.panel_area_chart, -1,
             _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_area_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_area_chart)
         self.chk_area_time_series = Checkboxes.get_chk_time_series(
@@ -1051,9 +1044,11 @@ class Setup:
         self.chk_area_major_ticks = Checkboxes.get_chk_major_ticks(
             self, self.panel_area_chart)
         self.szr_area_chart.Add(lbl_val, Setup.flags_std)
+        self.szr_area_chart.AddSpacer(5)
         self.szr_area_chart.Add(self.drop_area_val, Setup.flags_std)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(lbl_sort, Setup.flags_std)
+        self.szr_line_chart.AddSpacer(5)
         self.szr_area_chart.Add(self.drop_area_sort, Setup.flags_std)
         self.szr_area_chart.AddSpacer(10)
         self.szr_area_chart.Add(self.chk_area_time_series,
@@ -1080,12 +1075,12 @@ class Setup:
         self.panel_histogram = wx.Panel(self.panel_mid)
         self.chk_show_normal = wx.CheckBox(
             self.panel_histogram, -1, _('Show normal curve?'))
-        if Setup.custom_font: self.chk_show_normal.SetFont(mg.GEN_FONT)
+        self.chk_show_normal.SetFont(mg.GEN_FONT)
         self.chk_show_normal.SetValue(False)
         self.chk_show_normal.SetToolTip(_('Show normal curve?'))
         self.chk_hist_borders = wx.CheckBox(
             self.panel_histogram, -1, _('Bar borders?'))
-        if Setup.custom_font: self.chk_hist_borders.SetFont(mg.GEN_FONT)
+        self.chk_hist_borders.SetFont(mg.GEN_FONT)
         self.chk_hist_borders.SetValue(True)
         self.chk_hist_borders.SetToolTip(_('Show borders around bars?'))
         self.szr_histogram.Add(self.chk_show_normal,
@@ -1106,13 +1101,13 @@ class Setup:
         self.panel_scatterplot = wx.Panel(self.panel_mid)
         self.chk_dot_borders = wx.CheckBox(
             self.panel_scatterplot, -1, _('Dot borders?'))
-        if Setup.custom_font: self.chk_dot_borders.SetFont(mg.GEN_FONT)
+        self.chk_dot_borders.SetFont(mg.GEN_FONT)
         self.chk_dot_borders.SetValue(True)
         self.chk_dot_borders.SetToolTip(
             _('Show borders around scatterplot dots?'))
         self.chk_regression = wx.CheckBox(
             self.panel_scatterplot, -1, _('Show regression line?'))
-        if Setup.custom_font: self.chk_regression.SetFont(mg.GEN_FONT)
+        self.chk_regression.SetFont(mg.GEN_FONT)
         self.chk_regression.SetValue(False)
         self.chk_regression.SetToolTip(_('Show regression line?'))
         self.szr_scatterplot.Add(self.chk_dot_borders,
@@ -1133,15 +1128,13 @@ class Setup:
         ## sort order
         lbl_sort = wx.StaticText(
             self.panel_boxplot, -1, _('Sort order\nof %s:') % GROUPS_SORTED_LBL)
-        if Setup.custom_font: lbl_sort.SetFont(mg.LABEL_FONT)
         self.drop_box_sort = Dropdowns.get_drop_sort_opts(
             self, self.panel_boxplot, choices=mg.SORT_VAL_AND_LABEL_OPT_LBLS)
         ## boxplot options
         lbl_box_opts = wx.StaticText(self.panel_boxplot, -1, _('Display:'))
-        if Setup.custom_font: lbl_box_opts.SetFont(mg.LABEL_FONT)
         self.drop_box_opts = wx.Choice(self.panel_boxplot, -1,
             choices=mg.CHART_BOXPLOT_OPTIONS, size=(200,-1))
-        if Setup.custom_font: self.drop_box_opts.SetFont(mg.GEN_FONT)
+        self.drop_box_opts.SetFont(mg.GEN_FONT)
         self.drop_box_opts.SetToolTip(
             _('Display options for whiskers and outliers'))
         self.drop_box_opts.SetSelection(0)
@@ -1150,9 +1143,11 @@ class Setup:
             self, self.panel_boxplot)
         ## assemble
         self.szr_boxplot.Add(lbl_sort, Setup.flags_std)
+        self.szr_boxplot.AddSpacer(5)
         self.szr_boxplot.Add(self.drop_box_sort, Setup.flags_std)
         self.szr_boxplot.AddSpacer(10)
         self.szr_boxplot.Add(lbl_box_opts, Setup.flags_std)
+        self.szr_boxplot.AddSpacer(5)
         self.szr_boxplot.Add(self.drop_box_opts, Setup.flags_std)
         self.szr_boxplot.AddSpacer(10)
         self.szr_boxplot.Add(self.chk_boxplot_rotate,
@@ -1464,6 +1459,14 @@ chart_output = charting_output.BoxPlot.boxplot_output(
 
 class DlgCharting(indep2var.DlgIndep2VarConfig):
 
+    """
+    Handling fonts: unlike wxPython 2.8 on Ubuntu font sizing messes up spacing
+    when you try to increase font size e.g. making a heading bold. Delaying the
+    text of a text object until after it has been resized doesn't help. It seems
+    the only answer is to make the parent object's default font the largest
+    needed and then shrink from there.
+    """
+
     inc_gp_by_select = True
     range_gps = False
 
@@ -1483,17 +1486,21 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True,
             multi_page_items=False)
+        self.SetFont(mg.LABEL_FONT)  ## set to the largest font needed and reset smaller fonts to their smaller size. Seems to resize smaller successfully but not larger.
         if mg.PLATFORM == mg.WINDOWS:
             self.checkbox2use = lib.MultilineCheckBox
         else:
             self.checkbox2use = lib.StdCheckBox
         self.exiting = False
         self.title = title
-        self.SetFont(mg.GEN_FONT)
         cc = output.get_cc()
-        self.output_modules = [(None, 'my_globals as mg'),
-            ('stats', 'core_stats'), ('charting', 'charting_output'),
-            (None, 'output'), (None, 'getdata')]
+        self.output_modules = [
+            (None, 'my_globals as mg'),
+            ('stats', 'core_stats'),
+            ('charting', 'charting_output'),
+            (None, 'output'),
+            (None, 'getdata'),
+        ]
         global CUR_DATA_OPT_LBL
         CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
         self.min_data_type = None  ## not used in charting_dlg unlike most other dlgs - need fine-grained control of up to 4 drop downs
@@ -1578,21 +1585,20 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         Setup.setup_boxplot(self)
         ## Hide all panels. Display and layout then hide.
         ## Prevents flicker on change later.
-        ## Start with widest one because the sizer seems to trim to the width of the first.
-        widest_panel = self.panel_line_chart
-        oth_panels = [
-             self.panel_bar_chart,
-             self.panel_clust_bar,
-             self.panel_pie_chart,
-             #self.panel_line_chart,  ## used instead as widest panel
-             self.panel_area_chart,
-             self.panel_histogram,
-             self.panel_scatterplot,
-             self.panel_boxplot,
+        panels = [
+            self.panel_bar_chart,
+            self.panel_clust_bar,
+            self.panel_pie_chart,
+            self.panel_line_chart,
+            self.panel_area_chart,
+            self.panel_histogram,
+            self.panel_scatterplot,
+            self.panel_boxplot,
         ]
-        for panel in [widest_panel, ] + oth_panels:
+        first_panel = panels[0]
+        for i, panel in enumerate(panels):
             self.szr_mid.Add(panel, 0, wx.GROW)
-            if panel == widest_panel:
+            if i == 0:
                 self.panel_mid.SetSizer(self.szr_mid)
                 self.szr_mid.SetSizeHints(self.panel_mid)
             panel.Show(True)
@@ -1600,8 +1606,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             panel.Show(False)
             self.szr_mid.Detach(panel)
         ## Unhide default chart type (bar chart)
-        self.panel_displayed = self.panel_bar_chart
-        self.panel_bar_chart.Show(True)
+        self.panel_displayed = first_panel
+        first_panel.Show(True)
         ## bottom panel
         self.panel_bottom = wx.Panel(self)
         self.szr_bottom = wx.BoxSizer(wx.VERTICAL)

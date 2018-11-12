@@ -76,7 +76,7 @@ def replace_titles_subtitles(orig, titles, subtitles):
         print('\n\n' + '*'*50 + '\n\n')
     return demo_tbl_html  
 
-def get_missing_dets_msg(tab_type, has_rows, has_cols):
+def get_missing_dets_msg(tab_type, *, has_rows, has_cols):
     """
     No css - just directly fed into web renderer as is.
     29221c -- dark brown
@@ -424,7 +424,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         szr_main.Add(self.szr_output_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
         szr_main.Add(szr_bottom, 2, wx.GROW|wx.TOP|wx.BOTTOM, 5)
         self.panel.SetSizer(szr_main)
-        szr_lst = [szr_top, szr_tab_type, szr_trees, szr_titles, 
+        szr_lst = [
+            szr_top, szr_tab_type, szr_trees, szr_titles,
             self.szr_output_config, szr_bottom]
         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
 
@@ -432,8 +433,8 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         if self.exiting:
             return
         has_rows, has_cols = self.get_row_col_status()
-        waiting_msg = get_missing_dets_msg(self.tab_type, has_rows,
-            has_cols)
+        waiting_msg = get_missing_dets_msg(
+            self.tab_type, has_rows=has_rows, has_cols=has_cols)
         self.html.SetPage(waiting_msg, mg.BASE_URL)
 
     def update_css(self):
@@ -907,7 +908,7 @@ tab_test = rawtables.RawTable(titles={titles},
             else:
                 has_rows, has_cols = self.get_row_col_status()
                 waiting_msg = get_missing_dets_msg(
-                    self.tab_type, has_rows, has_cols)
+                    self.tab_type, has_rows=has_rows, has_cols=has_cols)
                 demo_tbl_html = waiting_msg
         else:
             try:  ## need to reset here otherwise stays as was set when instantiated
@@ -936,7 +937,7 @@ tab_test = rawtables.RawTable(titles={titles},
             if demo_html == '':
                 has_rows, has_cols = self.get_row_col_status()
                 waiting_msg = get_missing_dets_msg(
-                    self.tab_type, has_rows, has_cols)
+                    self.tab_type, has_rows=has_rows, has_cols=has_cols)
                 demo_tbl_html = waiting_msg
                 self.prev_demo = None
             else:

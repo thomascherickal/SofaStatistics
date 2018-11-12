@@ -1010,7 +1010,7 @@ class GuiLib:
         return x, y
 
     @staticmethod
-    def set_size(window, szr_lst, width_init=None, height_init=None, 
+    def set_size(window, szr_lst, width_init=None, height_init=None, *,
             horiz_padding=10):
         """
         Provide ability to display a larger initial size yet set an explicit
