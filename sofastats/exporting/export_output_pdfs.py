@@ -3,6 +3,7 @@ export2pdf() does the real work and can be scripted outside the GUI. Set
 headless = True when calling.
 """
 import os
+import shutil
 import sys
 
 import PyPDF2 as pypdf
@@ -12,9 +13,9 @@ from .. import my_globals as mg  #@UnresolvedImport
 from . import export_output  #@UnresolvedImport
 from .. import output  #@UnresolvedImport
 
-RAWPDF_FILE = u'raw.pdf'
+RAWPDF_FILE = 'raw.pdf'
 RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)
-PDF_SIDE_MM = u'420' # any larger and they won't be able to display anywhere in one go anyway
+PDF_SIDE_MM = '420'  ## any larger and they won't be able to display anywhere in one go anyway
 
 def pdf_tasks(report_path, alternative_path,
         gauge_start_pdf, steps_per_pdf, msgs, progbar, *,
@@ -104,43 +105,6 @@ def get_raw_pdf(html_path, pdf_path, width='', height=''):
             f'get_raw_pdf command failed: {cmd_make_pdf}. Orig error: {b.ue(e)}')
     return pdf_path
 
-def fix_pdf(raw_pdf, final_pdf):
-    """
-    Needed to avoid: http://code.google.com/p/wkhtmltopdf/issues/detail?id=488
-    """
-    debug = False
-    if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
-    cmd_fix_pdf = 'cmd_fix_pdf not successfully built'
-    try:
-        if mg.PLATFORM == mg.WINDOWS:  ## using Pyinstaller
-            import win32api  #@UnresolvedImport
-            ## http://www.velocityreviews.com/forums/t337521-python-utility-convert-windows-long-file-name-into-8-3-dos-format.html
-            raw_pdf = win32api.GetShortPathName(raw_pdf)
-            final_pdf_root, final_pdf_file = os.path.split(final_pdf)
-            cmd_fix_pdf = (
-                f'cd "{final_pdf_root}" && '
-                f'"{export_output.EXE_TMP}\\pdftk.exe" '
-                f'"{raw_pdf}" output "{final_pdf_file}"')
-        elif mg.PLATFORM == mg.MAC:
-            cmd_fix_pdf = (
-                f'"{mg.MAC_FRAMEWORK_PATH}/pdftk" '
-                f'"{raw_pdf}" output "{final_pdf}"')
-        elif mg.PLATFORM == mg.LINUX:
-            cmd_fix_pdf = f'pdftk "{raw_pdf}" output "{final_pdf}"'
-        else:
-            raise Exception('Encountered an unexpected platform!')
-        if debug: print(f'cmd_fix_pdf: {cmd_fix_pdf}')
-        export_output.shellit(cmd_fix_pdf)
-        if not os.path.exists(final_pdf):
-            raise Exception(
-                f"pdftk didn't generate error but {final_pdf} not made "
-                f'nonetheless. cmd_fix_pdf: {cmd_fix_pdf}')
-        if debug: print(f'Fixed "{final_pdf}"')
-    except Exception as e:
-        raise Exception(
-            f'fix_pdf command for "{raw_pdf}" failed: {cmd_fix_pdf}. '
-            f'Orig error: {b.ue(e)}')
-
 def get_pdf_page_count(pdf_path):
     try:
         encoding2use = sys.getfilesystemencoding()  ## on win, mbcs
@@ -152,18 +116,10 @@ def get_pdf_page_count(pdf_path):
     return n_pages
 
 def html2pdf(html_path, pdf_path, *, as_pre_img=False):
-    """
-    PDFs made by wkhtmltopdf might be systematically malformed from a strict
-    point of view (ghostscript and Adobe might complain) so running it through
-    pdftk will fix it.
-    """
     width = f'--page-width {PDF_SIDE_MM}' if as_pre_img else ''
     height = f'--page-height {PDF_SIDE_MM}' if as_pre_img else ''
     try:
         raw_pdf = get_raw_pdf(html_path, RAWPDF_PATH, width, height)
     except Exception as e:
         raise Exception(f'Unable to make raw PDF: Orig error: {b.ue(e)}')
-    try:
-        fix_pdf(raw_pdf, pdf_path)
-    except Exception as e:
-        raise Exception(f'Unable to fix raw PDF: Orig error: {b.ue(e)}')
+    shutil.copy(raw_pdf, pdf_path)

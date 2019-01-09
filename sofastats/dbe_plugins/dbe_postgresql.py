@@ -212,11 +212,11 @@ def get_min_max(fldtype, num_prec, dec_pts, autonum):
     point. So the number 23.5141 has a precision of 6 and a scale of 4. Integers
     can be considered to have a scale of zero.
     http://www.postgresql.org/docs/8.4/static/datatype-numeric.html
-    
+
     NB even though a floating point type will not store values closer to zero
     than a certain level, such values will be accepted here. The database will
     store these as zero.
-    
+
     TODO - confirm with PostgreSQL.
     """
     if fldtype == SMALLINT:

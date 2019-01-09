@@ -1006,7 +1006,7 @@ class StartFrame(wx.Frame):
         event.Skip()
 
     def on_import_click(self, event):
-        from sofastats import importer_gui  #@UnresolvedImport
+        from sofastats.importing import importer_gui  #@UnresolvedImport
         dlg = importer_gui.DlgImportFileSelect(self)
         dlg.ShowModal()
         event.Skip()

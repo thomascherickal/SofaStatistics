@@ -1101,9 +1101,7 @@ DRAFT_DPI = 72
 SCREEN_DPI = 150
 PRINT_DPI = 300
 HIGH_QUAL_DPI = 600
-TOP_DPI = 1_000 if PLATFORM == WINDOWS else 1_200  ## Windows XP crashes with a
-## message about PostscriptDelegateFailed '...\_internal\pdf2img.pdf'. No such
-## file or directory
+TOP_DPI = 1_200
 
 IMPORT_EXTENTIONS = {
     'csv': '.csv',

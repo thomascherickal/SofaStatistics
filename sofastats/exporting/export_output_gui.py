@@ -157,7 +157,7 @@ class DlgExportOutput(wx.Dialog):
             return
         msgs = []
         hdr, img_items, tbl_items = export_output.get_hdr_and_items(
-            self.report_path, mg.EXPORT_IMAGES_DIAGNOSTIC)
+            self.report_path, diagnostic=mg.EXPORT_IMAGES_DIAGNOSTIC)
         n_imgs = len(img_items)
         n_tbls = len(tbl_items)
         if not (do_pdf or (do_imgs and n_imgs) or (do_tbls and n_tbls)):

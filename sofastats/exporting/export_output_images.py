@@ -257,7 +257,7 @@ def copy_output():
         delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
         os.remove(delme)
     hdr, img_items, unused = export_output.get_hdr_and_items(
-        mg.INT_REPORT_PATH, mg.EXPORT_IMAGES_DIAGNOSTIC)
+        mg.INT_REPORT_PATH, diagnostic=mg.EXPORT_IMAGES_DIAGNOSTIC)
     msgs = []  ## not used in this case
     ExportImage.export2imgs(hdr, img_items=img_items,
         report_path=mg.INT_REPORT_PATH, alternative_path=mg.INT_COPY_IMGS_PATH,
@@ -293,12 +293,6 @@ class Pdf2Img:
         if not img_made:
             img_creation_problem = True
         return img_made
-
-    @staticmethod
-    def _u2utf8(unicode_txt):
-        ## http://stackoverflow.com/questions/1815427/...
-        ##     ...how-to-pass-an-unicode-char-argument-to-imagemagick
-        return unicode_txt.encode('utf-8')
 
     @staticmethod
     def trim(img_path):
@@ -385,18 +379,20 @@ class Pdf2Img:
             ## no matter what you subsequently do with -density
             convert = Pdf2Img._get_convert(mg.PLATFORM)
             cmd = (f'{convert} -density {output_dpi} '
-                   f'-borderColor "{Pdf2Img._u2utf8(bgcolour)}" -border 1x1 '
-                   f'-trim "{Pdf2Img._u2utf8(orig_pdf)}" "{img_name}"')
+                   f'-borderColor "{bgcolour}" -border 1x1 '
+                   f'-trim "{orig_pdf}" "{img_name}"')
             if debug: print(cmd)
             p = Popen(cmd, stdin=PIPE, stdout=PIPE, stderr=PIPE, shell=True)
             output, err = p.communicate()
             if err:
+                err = str(err, encoding='utf-8')
                 if ('cache resources exhausted' in err
-                        or 'Image width exceeds user limit' in err):
+                        or 'Image width exceeds user limit' in err
+                        or 'no images defined' in err):
                     wx.MessageBox('Unable to make these images at this '
                         f'resolution ({output_dpi} dpi) by converting from PDF '
                         'version. Please try again at a lower resolution.'
-                        '\n\nOrig error: {err}')
+                        f'\n\nOrig error: {err}')
                 else:
                     wx.MessageBox('Unable to make these images successfully.'
                         f'\n\nOrig error: {err}')
