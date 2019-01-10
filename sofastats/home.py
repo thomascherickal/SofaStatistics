@@ -34,6 +34,7 @@ show_more_steps = True
 test_lang = False
 ## look in output for dojo_debug
 
+from pathlib import Path
 import sys
 import platform
 
@@ -136,7 +137,7 @@ class SofaApp(wx.App):
             filename = None
         else:
             redirect = True
-            filename = os.path.join(mg.INT_PATH, 'output.txt')
+            filename = Path(mg.INT_PATH) / 'output.txt'
         wx.App.__init__(self, redirect=redirect, filename=filename)
 
     @lang_etc
@@ -174,8 +175,7 @@ class SofaApp(wx.App):
 
 
 def store_screen_dims():
-    mg.MAX_WIDTH = wx.Display().GetGeometry()[2]
-    mg.MAX_HEIGHT = wx.Display().GetGeometry()[3]
+    unused, unused, mg.MAX_WIDTH, mg.MAX_HEIGHT = wx.Display().GetGeometry()
     mg.HORIZ_OFFSET = 0 if mg.MAX_WIDTH < 1224 else 200
 
 def setup_i18n():
@@ -416,9 +416,8 @@ class StartFrame(wx.Frame):
         self.Bind(wx.EVT_SHOW, self.on_show)  ## doesn't run on Mac
         self.Bind(wx.EVT_CLOSE, self.on_exit_click)
         self.active_proj = mg.DEFAULT_PROJ
-        print('Run on %s'
-            % datetime.datetime.today().isoformat(' ').split('.')[0]
-            + ' ' + 20*(u'*'))
+        date_str = datetime.datetime.today().isoformat(' ').split('.')[0]
+        print(f"Run on {date_str + ' ' + 20*('*')}")
         try:
             ## trying to actually connect to a database on start up
             mg.DATADETS_OBJ = getdata.DataDets(proj_dic)
