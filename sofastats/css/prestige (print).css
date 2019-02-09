@@ -1,37 +1,37 @@
 /*
 dojo_style_start
-chart_bg = u"white"
-chart_font_colour = u"#333435"
-plot_bg = u"#f2f1f0"
-plot_font_colour = u"#333435"
-plot_bg_filled = u"#f2f1f0"
-plot_font_colour_filled = u"#000033"
-axis_font_colour = u"#000033"
-major_gridline_colour = u"#333435"
+chart_bg = "white"
+chart_font_colour = "#333435"
+plot_bg = "#f2f1f0"
+plot_font_colour = "#333435"
+plot_bg_filled = "#f2f1f0"
+plot_font_colour_filled = "#000033"
+axis_font_colour = "#000033"
+major_gridline_colour = "#333435"
 gridline_width = 1
 stroke_width = 3
-tooltip_border_colour = u"#5a5a79"
-normal_curve_colour = u"#272829"
+tooltip_border_colour = "#5a5a79"
+normal_curve_colour = "#272829"
 colour_mappings = [
-    (u"#ae0000", u"#630000"),
-    (u"#b89430", u"#634900"),
-    (u"#333435", u"#081e35"),
-    (u"#630000", u"#ae0000"),
-    (u"#8d6800", u"#634900"),
-    (u"#636567", u"#081e35"),
-    (u"#b23131", u"#630000"),
-    (u"#634900", u"#b89430"),
-    (u"#081e35", u"#333435"),
-    (u"#e50000", u"#630000"),
-    (u"#debc60", u"#634900"),
-    (u"#a2a4a6", u"#081e35"),
-    (u"#824a4a", u"#630000"),
-    (u"#e1cc92", u"#634900"),
-    (u"#000000", u"#081e35"),
-    (u"#831818", u"#630000"),
-    (u"#bca874", u"#634900"),
+    ("#ae0000", "#630000"),
+    ("#b89430", "#634900"),
+    ("#333435", "#081e35"),
+    ("#630000", "#ae0000"),
+    ("#8d6800", "#634900"),
+    ("#636567", "#081e35"),
+    ("#b23131", "#630000"),
+    ("#634900", "#b89430"),
+    ("#081e35", "#333435"),
+    ("#e50000", "#630000"),
+    ("#debc60", "#634900"),
+    ("#a2a4a6", "#081e35"),
+    ("#824a4a", "#630000"),
+    ("#e1cc92", "#634900"),
+    ("#000000", "#081e35"),
+    ("#831818", "#630000"),
+    ("#bca874", "#634900"),
     ]
-connector_style = u"defbrown"
+connector_style = "defbrown"
 dojo_style_end
 */
     body{

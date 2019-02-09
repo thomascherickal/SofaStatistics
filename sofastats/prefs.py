@@ -58,10 +58,10 @@ class DlgPrefs(wx.Dialog):
         bol_details = self.chk_details.GetValue()
         prefs_dic_out[mg.PREFS_KEY][mg.PREFS_DEFAULT_DETAILS_KEY] = bol_details
         ## create updated prefs file
-        prefs_path = os.path.join(mg.INT_PATH, mg.INT_PREFS_FILE)
+        prefs_path = mg.INT_PATH / mg.INT_PREFS_FILE
         with open(prefs_path, 'w', encoding='utf-8') as f:
             prefs_str = pprint.pformat(prefs_dic_out[mg.PREFS_KEY])
-            f.write(f"{mg.PREFS_KEY} = {prefs_str}")
+            f.write(f'{mg.PREFS_KEY} = {prefs_str}')
         ## misc
         config_globals.set_DEFAULT_DETAILS()  ## run after prefs file updated.
         self.Destroy()

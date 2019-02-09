@@ -91,7 +91,7 @@ def get_con(con_dets, db, *, add_checks=False):
         ## failure because still pointing to dev path?
         if "/home/g/Documents/sofastats" in sqlite_con_dets_str:
             raise Exception("Problem with default project file. "
-                f"Delete {os.path.join(mg.INT_PATH, mg.PROJ_CUSTOMISED_FILE)} "
+                f"Delete {mg.INT_PATH / mg.PROJ_CUSTOMISED_FILE} "
                 f"and restart SOFA.\nCaused by error {b.ue(e)}.")
         else:
             raise Exception(f"Unable to make connection with db '{db}' "
@@ -463,7 +463,7 @@ def valid_fldnames(fldnames, block_sz=50):
 
 def valid_fldnames_block(block):
     debug = False
-    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, "sofa_tmp")
+    default_db = mg.LOCAL_PATH / mg.INT_FOLDER / 'sofa_tmp'
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()
@@ -509,7 +509,7 @@ def valid_name(name, is_tblname=True):
     debug = False
     if name == '':
         return False
-    default_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, 'sofa_tmp')
+    default_db = mg.LOCAL_PATH / mg.INT_FOLDER / 'sofa_tmp'
     con = sqlite.connect(default_db) #@UndefinedVariable
     add_funcs_to_con(con)
     cur = con.cursor()

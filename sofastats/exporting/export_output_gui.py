@@ -172,13 +172,10 @@ class DlgExportOutput(wx.Dialog):
             ## save to folder on desktop
             ts = datetime.datetime.now().strftime('%b %d %I-%M %p').strip()
             foldername = f'SOFA export {ts}'
-            desktop = os.path.join(mg.HOME_PATH, 'Desktop')
-            temp_desktop_path = os.path.join(desktop, foldername)
+            desktop = mg.HOME_PATH / 'Desktop'
+            temp_desktop_path = desktop / foldername
             if debug: print(temp_desktop_path)
-            try:
-                os.mkdir(temp_desktop_path)
-            except OSError:
-                pass  ## already there
+            temp_desktop_path.mkdir(exist_ok=True)
         idx_sel = self.drop_dpi.GetSelection()
         idx_dpi = 1
         self.output_dpi = self.choice_dpis[idx_sel][idx_dpi]

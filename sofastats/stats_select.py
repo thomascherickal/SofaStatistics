@@ -287,9 +287,8 @@ class DlgStatsSelect(wx.Dialog):
             stats_sel_img = 'stats_select.gif'
         else:
             stats_sel_img = 'stats_select_tight.gif'
-        img_stats_select = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', stats_sel_img),
-            wx.BITMAP_TYPE_GIF)
+        img_stats_select = lib.GuiLib.get_bmp(
+            mg.SCRIPT_PATH / 'images' / stats_sel_img, wx.BITMAP_TYPE_GIF)
         self.bmp_stats_select = wx.Bitmap(img_stats_select)
         ## direct or assisted
         self.rad_direct = wx.RadioButton(self.panel, -1, 
@@ -424,8 +423,8 @@ class DlgStatsSelect(wx.Dialog):
         self.idx_blank = 1
         tick = 'tickwin' if mg.PLATFORM == mg.WINDOWS else 'tick'
         for img in [tick, 'blank']:  ## only visible when using wizard for selections
-            bmp_pth = os.path.join(mg.SCRIPT_PATH, 'images', f'{img}.png')
-            bmp = wx.Bitmap(bmp_pth, wx.BITMAP_TYPE_PNG)
+            bmp_pth = mg.SCRIPT_PATH / 'images' / f'{img}.png'
+            bmp = lib.GuiLib.get_bmp(bmp_pth, wx.BITMAP_TYPE_PNG) 
             il.Add(bmp)
         self.lst_tests.InsertColumn(0, '')
         self.lst_tests.SetColumnWidth(0, self.lst_width - 25)

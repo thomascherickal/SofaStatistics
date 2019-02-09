@@ -28,9 +28,9 @@ def export2spreadsheet(hdr, tbl_items,
         progbar = progbar if progbar else export_output.Prog2console()
         if mg.OVERRIDE_FOLDER:
             spreadsheet_root = mg.OVERRIDE_FOLDER
-        spreadsheet_path = os.path.join(spreadsheet_root, spreadsheet_name)
+        spreadsheet_path = spreadsheet_root / spreadsheet_name
     else:
-        spreadsheet_path = os.path.join(alternative_path, 'SOFA output.xls')
+        spreadsheet_path = alternative_path / 'SOFA output.xls'
     n_tbls = len(tbl_items)
     html = [hdr,] + [output.extract_tbl_only(tbl_item.content)
         for tbl_item in tbl_items]

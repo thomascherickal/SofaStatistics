@@ -1,25 +1,25 @@
 /*
 dojo_style_start
-chart_bg = u"white"
-chart_font_colour = u"#4c547c"
-plot_bg = u"#e8f4ff"
-plot_font_colour = u"#4c547c"
-plot_bg_filled = u"#e8f4ff"
-plot_font_colour_filled = u"#4c547c"
-axis_font_colour = u"#4c547c"
-major_gridline_colour = u"#6ecadf"
+chart_bg = "white"
+chart_font_colour = "#4c547c"
+plot_bg = "#e8f4ff"
+plot_font_colour = "#4c547c"
+plot_bg_filled = "#e8f4ff"
+plot_font_colour_filled = "#4c547c"
+axis_font_colour = "#4c547c"
+major_gridline_colour = "#6ecadf"
 gridline_width = 1
 stroke_width = 3
-tooltip_border_colour = u"#6ecadf"
-normal_curve_colour = u"#4c547c"
+tooltip_border_colour = "#6ecadf"
+normal_curve_colour = "#4c547c"
 colour_mappings = [
-    (u"#359cb3", u"#6ecadf"),
-    (u"#333435", u"#74787c"),
-    (u"#ccd9d7", u"#9db6b2"),
-    (u"#094457", u"#5d8997"),
-    (u"#56948a", u"#637572"),
+    ("#359cb3", "#6ecadf"),
+    ("#333435", "#74787c"),
+    ("#ccd9d7", "#9db6b2"),
+    ("#094457", "#5d8997"),
+    ("#56948a", "#637572"),
     ]
-connector_style = u"paleblue"
+connector_style = "paleblue"
 dojo_style_end
 */
     body{

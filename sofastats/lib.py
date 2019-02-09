@@ -264,9 +264,9 @@ class OutputLib:
             if debug: print(f'not use_as_url img_path:\n{img_path}')
         ## strip off 'file:///' (or file:// as appropriate for os)
         if mg.PLATFORM == mg.WINDOWS and mg.FILE_URL_START_WIN in img_path:
-            img_path = os.path.join('', img_path.split(mg.FILE_URL_START_WIN)[1])
+            img_path = img_path.split(mg.FILE_URL_START_WIN)[1]
         elif mg.FILE_URL_START_GEN in img_path:
-            img_path = os.path.join('', img_path.split(mg.FILE_URL_START_GEN)[1])
+            img_path = img_path.split(mg.FILE_URL_START_GEN)[1]
         if debug: print(f'Final img_path:\n{img_path}')
         return img_path
 
@@ -291,27 +291,27 @@ class OutputLib:
         if debug:
             print(f'get_src_dst_pre-existing_img\nimg_path:\n{img_path}\n')
         if export_report:  ## trim off trailing divider, then split and get first part
-            src = os.path.join(os.path.split(imgs_path[:-1])[0], img_path)
+            src = Path(os.path.split(str(imgs_path)[:-1])[0]) / img_path
         else:
             src = img_path  ## the run_report process leaves an abs version. How nice!
         if debug: print(f'src:\n{src}\n')
-        img_name = os.path.split(img_path)[1]
+        img_name = img_path.name
         if debug: print(f'img_path:\n{img_path}\n')
-        dst = os.path.join(imgs_path, img_name)
+        dst = imgs_path / img_name
         if debug: print(f'dst:\n{dst}\n')
         return src, dst
 
     @staticmethod
     def style2path(style):
         "Get full path of css file from style name alone"
-        return os.path.join(mg.CSS_PATH, f'{style}.css')
+        return mg.CSS_PATH / f'{style}.css'
 
     @staticmethod
     def path2style(path):
         "Strip style out of full css path"
         debug = False
         if debug: print(f'path: {path}')
-        style = path[len(mg.CSS_PATH)+1:-len('.css')]  ## +1 to miss trailing slash
+        style = Path(path).stem
         if style == '':
             raise Exception(f'Problem stripping style out of path ({path})')
         return style
@@ -1115,12 +1115,12 @@ class GuiLib:
 
     @staticmethod
     def get_blank_btn_bmp(xpm='blankbutton.xpm'):
-        blank_btn_path = os.path.join(mg.SCRIPT_PATH, 'images', xpm)
+        blank_btn_path = mg.SCRIPT_PATH / 'images' / xpm
         if not os.path.exists(blank_btn_path):
             raise Exception('Problem finding background button image. '
                 f'Missing path: {blank_btn_path}')
         try:
-            blank_btn_bmp = wx.Image(blank_btn_path,
+            blank_btn_bmp = wx.Image(str(blank_btn_path),
                 wx.BITMAP_TYPE_XPM).ConvertToBitmap()
         except Exception:
             raise Exception(
@@ -1133,7 +1133,7 @@ class GuiLib:
         Makes image with path details, mirrors if required, then converts to a
         bitmap and returns it.
         """
-        img = wx.Image(src_img_path, bmp_type)
+        img = wx.Image(str(src_img_path), bmp_type)
         if reverse:
             img = img.Mirror()
         bmp = img.ConvertToBitmap()
@@ -1490,7 +1490,7 @@ def get_gettext_setup_txt():
     bits = []
     bits.append('try:')
     bits.append("    mytrans = gettext.translation('sofastats', "
-        f'"{escape_pre_write(mg.LANGDIR)}",')
+        f'"{escape_pre_write(str(mg.LANGDIR))}",')
     bits.append(f"        languages=['{mg.CANON_NAME}',], fallback=True)")
     bits.append('    mytrans.install()')
     bits.append('except Exception as e:')

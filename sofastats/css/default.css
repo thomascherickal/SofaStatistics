@@ -1,25 +1,25 @@
 /*
 dojo_style_start
-chart_bg = u"white"
-chart_font_colour = u"#423126"
-plot_bg = u"#f2f1f0"
-plot_font_colour = u"#423126"
-plot_bg_filled = u"#f2f1f0"
-plot_font_colour_filled = u"#423126"
-axis_font_colour = u"#423126"
-major_gridline_colour = u"#b8a49e"
+chart_bg = "white"
+chart_font_colour = "#423126"
+plot_bg = "#f2f1f0"
+plot_font_colour = "#423126"
+plot_bg_filled = "#f2f1f0"
+plot_font_colour_filled = "#423126"
+axis_font_colour = "#423126"
+major_gridline_colour = "#b8a49e"
 gridline_width = 1
 stroke_width = 3
-tooltip_border_colour = u"#736354"
-normal_curve_colour = u"#423126"
+tooltip_border_colour = "#736354"
+normal_curve_colour = "#423126"
 colour_mappings = [
-    (u"#e95f29", u"#ef7d44"),
-    (u"#f4cb3a", u"#f7d858"),
-    (u"#4495c3", u"#62add2"),
-    (u"#44953a", u"#62ad58"),
-    (u"#f43a3a", u"#f75858"),
+    ("#e95f29", "#ef7d44"),
+    ("#f4cb3a", "#f7d858"),
+    ("#4495c3", "#62add2"),
+    ("#44953a", "#62ad58"),
+    ("#f43a3a", "#f75858"),
     ]
-connector_style = u"defbrown"
+connector_style = "defbrown"
 dojo_style_end
 */
     body{

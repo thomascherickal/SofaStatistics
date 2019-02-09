@@ -1,4 +1,3 @@
-import os
 from pprint import pformat as pf
 import wx
 
@@ -12,7 +11,7 @@ BROKEN_VDT_MSG = _('This field is numeric, so any non-numeric keys in the '
     " edit it or generate your own vdt? Remember 1 or 1.0 is not equal to '1'") 
 
 def valid_proj(subfolder, proj_filname):
-    settings_path = os.path.join(mg.LOCAL_PATH, subfolder, proj_filname)
+    settings_path = mg.LOCAL_PATH / subfolder / proj_filname
     try:
         with open(settings_path, 'U', encoding='utf-8') as f:
             f.close()
@@ -36,8 +35,8 @@ def get_projs():
 
     May need unicode results so always provide a unicode path.
     """
-    proj_fils = os.listdir(os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER))
-    proj_fils = [x for x in proj_fils if x.endswith(mg.PROJ_EXT)]
+    proj_dir = mg.LOCAL_PATH / mg.PROJS_FOLDER
+    proj_fils = [str(x) for x in proj_dir.iterdir() if str(x).endswith(mg.PROJ_EXT)]
     proj_fils.sort()
     return proj_fils
 

@@ -35,12 +35,12 @@ def save_report_img(add_to_report, report_name,
         if debug: print('imgs_path: %s' % imgs_path)
         n_imgs = len(os.listdir(imgs_path))
         file_name = f'{n_imgs:03}.png'
-        img_path = os.path.join(imgs_path, file_name)  ## absolute
+        img_path = imgs_path / file_name  ## absolute
         args = [img_path]
         save_func(*args, **kwargs)
         if debug: print(f'Just saved {img_path}')
-        subfolder = os.path.split(imgs_path[:-1])[1]
-        img_src = os.path.join(subfolder, file_name)  ##relative so can shift html
+        subfolder = imgs_path.parts[-1]
+        img_src = subfolder / file_name  ## relative so can shift html
         img_src = output.percent_encode(img_src)
         if debug: print(f'add_to_report img_src: {img_src}')
     else:

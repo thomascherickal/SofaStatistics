@@ -438,9 +438,10 @@ class CsvSampler:
 
         NB file may be broken csv so may need manual correction.
         """
-        pathstart, filename = os.path.split(path)
-        filestart, extension = os.path.splitext(filename)
-        new_file = os.path.join(pathstart, filestart + '_tidied' + extension)
+        pathstart = path.parent
+        filestart = path.stem
+        extension = path.suffix 
+        new_file = pathstart / f'{filestart}_tidied{extension}'
         with open(path) as f:
             raw = f.read()
         newstr = CsvImporter.consolidate_line_seps(raw)

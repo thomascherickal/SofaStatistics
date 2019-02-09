@@ -40,12 +40,15 @@ time with the new list as the initial value.
 class Btns:
 
     @staticmethod
+    def _get_xpm_bmp(xpm_fpath):
+        return lib.GuiLib.get_bmp(xpm_fpath, wx.BITMAP_TYPE_XPM)
+
+    @staticmethod
     def _setup_bar_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_bar_chart = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            'images', 'bar_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_bar_chart_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'bar_chart_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_bar_chart = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'bar_chart.xpm') 
+        self.bmp_btn_bar_chart_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'bar_chart_sel.xpm')
         self.btn_bar_chart = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_bar_chart_sel, style=wx.NO_BORDER)
         self.btn_bar_chart.Bind(
@@ -57,12 +60,10 @@ class Btns:
 
     @staticmethod
     def _setup_clust_bar_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_clust_bar = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', 'clustered_bar_chart.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_clust_bar_sel = wx.Image(os.path.join(
-            mg.SCRIPT_PATH, 'images', 'clustered_bar_chart_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_clust_bar = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'clustered_bar_chart.xpm')
+        self.bmp_btn_clust_bar_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'clustered_bar_chart_sel.xpm')
         self.btn_clust_bar = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_clust_bar, style=wx.NO_BORDER)
         self.btn_clust_bar.Bind(wx.EVT_BUTTON,
@@ -72,11 +73,10 @@ class Btns:
 
     @staticmethod
     def _setup_pie_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_pie_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'pie_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_pie_chart_sel = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', 'pie_chart_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap() 
+        self.bmp_btn_pie_chart = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'pie_chart.xpm')
+        self.bmp_btn_pie_chart_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'pie_chart_sel.xpm') 
         self.btn_pie_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_pie_chart, style=wx.NO_BORDER)
         self.btn_pie_chart.Bind(
@@ -86,11 +86,10 @@ class Btns:
 
     @staticmethod
     def _setup_line_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_line_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'line_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_line_chart_sel = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', 'line_chart_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_line_chart = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'line_chart.xpm')
+        self.bmp_btn_line_chart_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'line_chart_sel.xpm')
         self.btn_line_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_line_chart, style=wx.NO_BORDER)
         self.btn_line_chart.Bind(
@@ -100,11 +99,10 @@ class Btns:
 
     @staticmethod
     def _setup_area_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_area_chart = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'area_chart.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_area_chart_sel = wx.Image(os.path.join(
-            mg.SCRIPT_PATH, 'images', 'area_chart_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_area_chart = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'area_chart.xpm')
+        self.bmp_btn_area_chart_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'area_chart_sel.xpm')
         self.btn_area_chart = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_area_chart, style=wx.NO_BORDER)
         self.btn_area_chart.Bind(
@@ -114,11 +112,10 @@ class Btns:
 
     @staticmethod
     def _setup_histo_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_histogram = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            'images', 'histogram.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_histogram_sel = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', 'histogram_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_histogram = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'histogram.xpm')
+        self.bmp_btn_histogram_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'histogram_sel.xpm')
         self.btn_histogram = wx.BitmapButton(
             self.panel_mid, -1, self.bmp_btn_histogram, style=wx.NO_BORDER)
         self.btn_histogram.Bind(
@@ -128,12 +125,10 @@ class Btns:
 
     @staticmethod
     def _setup_scatter_chart_btns(self, szr_chart_btns, btn_gap):
-        self.bmp_btn_scatterplot = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            'images', 'scatterplot.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_scatterplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH, 
-            'images', 'scatterplot_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_scatterplot = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'scatterplot.xpm')
+        self.bmp_btn_scatterplot_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'scatterplot_sel.xpm')
         self.btn_scatterplot = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_scatterplot, style=wx.NO_BORDER)
         self.btn_scatterplot.Bind(
@@ -143,11 +138,10 @@ class Btns:
 
     @staticmethod
     def _setup_box_chart_btns(self, szr_chart_btns):
-        self.bmp_btn_boxplot = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'boxplot.xpm'), wx.BITMAP_TYPE_XPM).ConvertToBitmap()
-        self.bmp_btn_boxplot_sel = wx.Image(os.path.join(mg.SCRIPT_PATH,
-            'images', 'boxplot_sel.xpm'),
-            wx.BITMAP_TYPE_XPM).ConvertToBitmap()
+        self.bmp_btn_boxplot = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'boxplot.xpm')
+        self.bmp_btn_boxplot_sel = Btns._get_xpm_bmp(
+            mg.SCRIPT_PATH / 'images' / 'boxplot_sel.xpm')
         self.btn_boxplot = wx.BitmapButton(self.panel_mid, -1,
             self.bmp_btn_boxplot, style=wx.NO_BORDER)
         self.btn_boxplot.Bind(
@@ -1730,8 +1724,8 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if run_ok:
             ## css_idx is supplied at the time
             get_script_args={
-                'css_fil': cc[mg.CURRENT_CSS_PATH],
-                'report_name': cc[mg.CURRENT_REPORT_PATH]}
+                'css_fil': str(cc[mg.CURRENT_CSS_PATH]),
+                'report_name': str(cc[mg.CURRENT_REPORT_PATH])}
             config_ui.ConfigUI.on_btn_run(
                 self, event, get_script_args, new_has_dojo=True)
 

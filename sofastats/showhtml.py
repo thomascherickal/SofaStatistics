@@ -1,3 +1,4 @@
+from pathlib import Path
 import wx  #@UnusedImport
 import wx.html2
 import os
@@ -6,14 +7,14 @@ from . import my_globals as mg
 from . import lib
 
 def display_report(parent, str_content, url_load=False):
-    # display results
+    ## display results
     wx.BeginBusyCursor()
     dlg = DlgHTML(parent=parent, title=_("Report"), url=None, 
         content=str_content, url_load=url_load)
     dlg.ShowModal()
     lib.GuiLib.safe_end_cursor() # again to be sure
 
-def get_html(title, content, template, root="", file_name="", print_folder=""):
+def get_html(title, content, template, root='', file_name='', print_folder=''):
     """
     Returns HTML with embedded CSS.
     %title% is replaced with title
@@ -22,13 +23,13 @@ def get_html(title, content, template, root="", file_name="", print_folder=""):
     ## get html content
     with open(template, "r") as f:
         html = f.read()
-    html = html.replace("%title%", title)
-    html = html.replace("%content%", content)
-    html = html.replace("%root%", mg.FILE_URL_START_GEN + root)
+    html = html.replace('%title%', title)
+    html = html.replace('%content%', content)
+    html = html.replace('%root%', mg.FILE_URL_START_GEN + root)
     ## save copy of html content (for printing)
     if print_folder:
-        fpath = os.path.join(print_folder, file_name)
-        with open(fpath, "w", encoding="utf-8") as f:
+        fpath = print_folder / file_name
+        with open(fpath, 'w', encoding='utf-8') as f:
             f.write(html)
     return html
 
@@ -36,7 +37,7 @@ def get_html_header(title, header_template):
     "Get the HTML down as far as (and including) <body>"
     with open(header_template, "r") as f:
         hdr = f.read()
-    hdr = hdr.replace("%title%", title)
+    hdr = hdr.replace('%title%', title)
     return hdr
 
 
@@ -111,8 +112,7 @@ class DlgHTML(wx.Dialog):
         "Print page"
         #printer = wx.html.HtmlEasyPrinting("Printing output", None)
         #printer.PrintFile(self.file_name) #horrible printing - large H1s, no CSS etc
-        
-        full_file = os.path.join(os.getcwd(), self.print_folder, self.file_name)
+        full_file = Path.cwd() / self.print_folder / self.file_name
         os.system(f'rundll32.exe MSHTML.DLL,PrintHTML "{full_file}"')
 
     def on_close(self, _event):

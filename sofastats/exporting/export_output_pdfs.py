@@ -14,7 +14,7 @@ from . import export_output  #@UnresolvedImport
 from .. import output  #@UnresolvedImport
 
 RAWPDF_FILE = 'raw.pdf'
-RAWPDF_PATH = os.path.join(mg.INT_PATH, RAWPDF_FILE)
+RAWPDF_PATH = mg.INT_PATH / RAWPDF_FILE
 PDF_SIDE_MM = '420'  ## any larger and they won't be able to display anywhere in one go anyway
 
 def pdf_tasks(report_path, alternative_path,
@@ -49,7 +49,7 @@ def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0,
         progbar = export_output.Prog2console()
     if mg.OVERRIDE_FOLDER:
         pdf_root = mg.OVERRIDE_FOLDER
-    pdf_path = os.path.join(pdf_root, pdf_name)
+    pdf_path = pdf_root / pdf_name
     html2pdf(html_path=report_path, pdf_path=pdf_path, as_pre_img=False)
     gauge2show = min(gauge_start_pdf + steps_per_pdf, mg.EXPORT_IMG_GAUGE_STEPS)
     progbar.SetValue(gauge2show)

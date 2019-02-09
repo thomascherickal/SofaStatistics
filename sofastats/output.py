@@ -89,12 +89,9 @@ def update_var_dets(dlg):
 
 def ensure_imgs_path(report_path, ext=mg.RPT_SUBFOLDER_SUFFIX):
     debug = False
-    imgs_path = os.path.join(os.path.splitext(report_path)[0] + ext, '')
+    imgs_path = report_path.parent / f'{report_path.stem}{ext}/'  
     if debug: print(f'imgs_path: {imgs_path}')
-    try:
-        os.mkdir(imgs_path)
-    except OSError:
-        pass  ## already there
+    imgs_path.mkdir(exist_ok=True)
     return imgs_path
 
 def append_divider(html, title, indiv_title='', item_type=''):
@@ -532,14 +529,14 @@ def get_css_dets():
                 exec(css_fils_str, css_dets_dic)
                 css_fils = css_dets_dic['css_fils']
             except Exception:
-                pass  ## Don't let css failuer stop report production.
+                pass  ## Don't let css failure stop report production.
     if not css_fils:
         css_fils = [cc[mg.CURRENT_CSS_PATH]]
     else:
         if cc[mg.CURRENT_CSS_PATH] not in css_fils:
-            css_fils.append(cc[mg.CURRENT_CSS_PATH])
+            css_fils.append(str(cc[mg.CURRENT_CSS_PATH]))
     #mg.OUTPUT_CSS_DIC[cc[mg.CURRENT_REPORT_PATH]] = css_fils
-    css_idx = css_fils.index(cc[mg.CURRENT_CSS_PATH])
+    css_idx = css_fils.index(str(cc[mg.CURRENT_CSS_PATH]))
     return css_fils, css_idx
 
 def _get_report_table_title_dets_html(titles, subtitles, css_idx):
@@ -724,7 +721,7 @@ def rel2abs_rpt_img_links(str_html):
     verbose = False
     cc = get_cc()
     report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
-    report_path = os.path.join(report_path, u'')
+    report_path = f'{report_path}/'
     report_path = percent_encode(report_path)
     if mg.PLATFORM == mg.WINDOWS:
         report_path = fix_perc_encodings_for_win(report_path)
@@ -1003,7 +1000,7 @@ def export_script(script, css_fils, *, new_has_dojo=False):
         f.write(_strip_script(existing_script))
     else:
         insert_prelim_code(
-            modules, f, cc[mg.CURRENT_REPORT_PATH], css_fils,
+            modules, f, str(cc[mg.CURRENT_REPORT_PATH]), css_fils,
             new_has_dojo=new_has_dojo)
     tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
@@ -1043,7 +1040,7 @@ def insert_prelim_code(modules, f, fil_report, css_fils, *, new_has_dojo):
     f.write('\ngettext.install(domain="sofastats", '
             f'localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")')
     f.write('\n' + lib.get_gettext_setup_txt())
-    f.write(f"\nsys.path.append('{lib.escape_pre_write(mg.SCRIPT_PATH)}')")
+    f.write(f"\nsys.path.append('{lib.escape_pre_write(str(mg.SCRIPT_PATH))}')")
     for subpackage, module in modules:
         if subpackage:
             f.write(f'\nfrom sofastats.{subpackage} import {module}')
@@ -1121,7 +1118,7 @@ def generate_script(modules, css_fils, inner_script, tbl_filt_label, tbl_filt,
         with open(mg.INT_SCRIPT_PATH, 'w', encoding='utf-8') as f:
             if debug and verbose: print(css_fils)
             insert_prelim_code(
-                modules, f, mg.INT_REPORT_PATH, css_fils,
+                modules, f, str(mg.INT_REPORT_PATH), css_fils,
                 new_has_dojo=new_has_dojo)
             append_exported_script(
                 f, inner_script, tbl_filt_label, tbl_filt, inc_divider=False)
@@ -1274,7 +1271,7 @@ def run_report(modules, css_fils, inner_script, *, add_to_report, new_has_dojo):
                 raise Exception('Problems getting content to display on screen.'
                     f'\nOrig error: {b.ue(e)}')
         if add_to_report:
-            esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
+            esc_rpt_path = lib.escape_pre_write(str(cc[mg.CURRENT_REPORT_PATH]))
             gui_display_content = (
                 abs_above_inner_body
                 + mg.BODY_START

@@ -1,25 +1,25 @@
 /*
 dojo_style_start
-chart_bg = u"white"
-chart_font_colour = u"#423126"
-plot_bg = u"#e7eef6"
-plot_font_colour = u"#423126"
-plot_bg_filled = u"#e7eef6"
-plot_font_colour_filled = u"#000033"
-axis_font_colour = u"#000033"
-major_gridline_colour = u"#b8a49e"
+chart_bg = "white"
+chart_font_colour = "#423126"
+plot_bg = "#e7eef6"
+plot_font_colour = "#423126"
+plot_bg_filled = "#e7eef6"
+plot_font_colour_filled = "#000033"
+axis_font_colour = "#000033"
+major_gridline_colour = "#b8a49e"
 gridline_width = 1
 stroke_width = 3
-tooltip_border_colour = u"#5a5a79"
-normal_curve_colour = u"#414141"
+tooltip_border_colour = "#5a5a79"
+normal_curve_colour = "#414141"
 colour_mappings = [
-    (u"#6098f0", u"#a8c4f0"),
-    (u"#2d4770", u"#7f94b6"),
-    (u"#a8c4f0", u"#6098f0"),
-    (u"#7f94b6", u"#afb1b6"),
-    (u"#4167a3", u"#273d61"),
+    ("#6098f0", "#a8c4f0"),
+    ("#2d4770", "#7f94b6"),
+    ("#a8c4f0", "#6098f0"),
+    ("#7f94b6", "#afb1b6"),
+    ("#4167a3", "#273d61"),
     ]
-connector_style = u"greypurp"
+connector_style = "greypurp"
 dojo_style_end
 */
     body{

@@ -36,7 +36,7 @@ ADD2_RPT_LBL = _("Also add%sto report") % label_divider
 RUN_LBL = _('Show Results')
 NO_OUTPUT_YET_MSG = (_("No output yet. Click \"%(run)s\" (with "
     "\"%(add2rpt_lbl)s\" ticked) to add output to this report.") % 
-    {"run": RUN_LBL, "add2rpt_lbl": ADD2_RPT_LBL}).replace("\n", " ")
+    {"run": RUN_LBL, "add2rpt_lbl": ADD2_RPT_LBL}).replace('\n', ' ')
 ADD_EXPECTED_SUBFOLDER_MSG = _("You need to add the "
     "\"%(report_extras_folder)s\" subfolder into the \"%(rpt_root)s\" folder "
     "so your charts and themes can display properly.\n\nCopy the "
@@ -178,7 +178,7 @@ class DlgVarConfig(wx.Dialog):
         "Open dialog and takes the variable details file selected (if any)"
         dlg_get_file = wx.FileDialog(
             self, _('Choose an existing variable config file:'),
-            defaultDir=os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER),
+            defaultDir=mg.LOCAL_PATH / mg.VDTS_FOLDER,
             defaultFile='', wildcard=_('Config files (*.vdts)|*.vdts'))
             ## MUST have a parent to enforce modal in Windows
         if dlg_get_file.ShowModal() == wx.ID_OK:
@@ -189,7 +189,7 @@ class DlgVarConfig(wx.Dialog):
         "Open dialog and takes the script file selected (if any)"
         dlg_get_file = wx.FileDialog(self, 
             _('Choose or create a file to export scripts to:'),
-            defaultDir=os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER),
+            defaultDir=mg.LOCAL_PATH / mg.SCRIPTS_FOLDER,
             defaultFile='', wildcard=_('Scripts (*.py)|*.py'),
             style=wx.FD_SAVE)
             ## MUST have a parent to enforce modal in Windows
@@ -457,7 +457,7 @@ class ConfigUI:
             style_selector.Bind(wx.EVT_CHOICE, self.on_style_sel)
         style_selector.SetFont(mg.GEN_FONT)
         style = (lib.OutputLib.path2style(css_file) if css_file 
-            else lib.OutputLib.path2style(cc[mg.CURRENT_CSS_PATH]))
+            else lib.OutputLib.path2style(str(cc[mg.CURRENT_CSS_PATH])))
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
         style_selector.Enable(not self.read_only)
@@ -615,7 +615,7 @@ class ConfigUI:
 
     def has_expected_subfolder(self, rpt_root):
         ## see if has js support etc in subfolder
-        expected_subfolder = os.path.join(rpt_root, mg.REPORT_EXTRAS_FOLDER)
+        expected_subfolder = rpt_root / mg.REPORT_EXTRAS_FOLDER
         return os.path.exists(expected_subfolder)
 
     ## report output

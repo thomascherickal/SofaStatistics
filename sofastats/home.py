@@ -184,7 +184,7 @@ def setup_i18n():
 
     See also http://wiki.wxpython.org/RecipesI18n
     """
-    mg.LANGDIR = os.path.join(mg.SCRIPT_PATH, 'locale')
+    mg.LANGDIR = mg.SCRIPT_PATH / 'locale'
     try:
         canon_name = get_canon_name(mg.LANGDIR)
         mg.CANON_NAME = canon_name
@@ -343,7 +343,7 @@ def warn_about_canon_probs(mylocale, langid, orig_langname):
     f'\nGetLocale: {getlocale}'
     f'\nGetName: {localename}')
     msg += extra_diagnostics
-    prob = os.path.join(mg.INT_PATH, 'translation problem.txt')
+    prob = mg.INT_PATH / 'translation problem.txt'
     with open(prob, 'w', encoding='utf8') as f:
         f.write(msg)
     #mg.DEFERRED_WARNING_MSGS.append(msg)
@@ -488,7 +488,7 @@ class StartFrame(wx.Frame):
             return
         ## database check
         if mg.DBE_PROBLEM:
-            prob = os.path.join(mg.INT_PATH, 'database connection problem.txt')
+            prob = mg.INT_PATH / 'database connection problem.txt'
             with open(prob, 'w', encoding='utf8') as f:
                 f.write('\n\n'.join(mg.DBE_PROBLEM))
         if show_more_steps: print('Passed check for database problems')
@@ -606,12 +606,11 @@ class StartFrame(wx.Frame):
             demo_chart_img = 'demo_chart_tight.gif'
             proj_img = 'projects_tight.gif'
             data_img = 'data_tight.gif'
-        sofabg = os.path.join(mg.SCRIPT_PATH, 'images', sofabg_img)
-        self.top_sofa = os.path.join(mg.SCRIPT_PATH, 'images', 'top_sofa.gif')
-        self.demo_chart_sized = os.path.join(
-            mg.SCRIPT_PATH, 'images', demo_chart_img)
-        self.proj_sized = os.path.join(mg.SCRIPT_PATH, 'images', proj_img)
-        self.data_sized = os.path.join(mg.SCRIPT_PATH, 'images', data_img)
+        sofabg = mg.SCRIPT_PATH / 'images' / sofabg_img
+        self.top_sofa = mg.SCRIPT_PATH / 'images' / 'top_sofa.gif'
+        self.demo_chart_sized = mg.SCRIPT_PATH / 'images' / demo_chart_img
+        self.proj_sized = mg.SCRIPT_PATH / 'images' / proj_img
+        self.data_sized = mg.SCRIPT_PATH / 'images' / data_img
         if not os.path.exists(sofabg):
             raise Exception('Problem finding background button image.  '
                 'Missing path: %s' % sofabg)
@@ -623,42 +622,39 @@ class StartFrame(wx.Frame):
 
     def set_help_imgs(self):
         # help images
-        help_img = os.path.join(mg.SCRIPT_PATH, 'images', 'help.gif')
+        help_img = mg.SCRIPT_PATH / 'images' / 'help.gif'
         self.bmp_help = get_bmp(src_img_path=help_img, reverse=REVERSE)
-        get_started = os.path.join(
-            mg.SCRIPT_PATH, 'images', 'step_by_step.gif')
+        get_started = mg.SCRIPT_PATH / 'images' / 'step_by_step.gif'
         self.bmp_get_started = get_bmp(src_img_path=get_started,
             reverse=REVERSE)
         self.bmp_data = get_bmp(src_img_path=self.data_sized, reverse=REVERSE)
-        imprt = os.path.join(mg.SCRIPT_PATH, 'images', 'import.gif')
+        imprt = mg.SCRIPT_PATH / 'images' / 'import.gif'
         self.bmp_import = get_bmp(src_img_path=imprt, reverse=REVERSE)
-        tabs = os.path.join(mg.SCRIPT_PATH, 'images', 'table.gif')
+        tabs = mg.SCRIPT_PATH /  'images' / 'table.gif'
         self.bmp_tabs = get_bmp(src_img_path=tabs, reverse=REVERSE)
         self.bmp_chart = get_bmp(
             src_img_path=self.demo_chart_sized, reverse=REVERSE)
-        stats = os.path.join(mg.SCRIPT_PATH, 'images', 'stats.gif')
+        stats = mg.SCRIPT_PATH /  'images' / 'stats.gif'
         self.bmp_stats = get_bmp(src_img_path=stats, reverse=REVERSE)
         self.bmp_proj = get_bmp(src_img_path=self.proj_sized, reverse=REVERSE)
-        prefs = os.path.join(mg.SCRIPT_PATH, 'images', 'prefs.gif')
+        prefs = mg.SCRIPT_PATH /  'images' / 'prefs.gif'
         self.bmp_prefs = get_bmp(src_img_path=prefs, reverse=REVERSE)
-        backup = os.path.join(mg.SCRIPT_PATH, 'images', 'backup.gif')
+        backup = mg.SCRIPT_PATH /  'images' / 'backup.gif'
         self.bmp_backup = get_bmp(src_img_path=backup, reverse=REVERSE)
-        exit_img = os.path.join(mg.SCRIPT_PATH, 'images', 'exit.gif')
+        exit_img = mg.SCRIPT_PATH /  'images' / 'exit.gif'
         self.bmp_exit = get_bmp(src_img_path=exit_img, reverse=REVERSE)
-        agpl3 = os.path.join(mg.SCRIPT_PATH, 'images', 'agpl3.xpm')
+        agpl3 = mg.SCRIPT_PATH /  'images' / 'agpl3.xpm'
         self.bmp_agpl3 = get_bmp(src_img_path=agpl3,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
 
     def setup_stable_imgs(self):
-        upgrade = os.path.join(mg.SCRIPT_PATH, 'images', 'upgrade.xpm')
+        upgrade = mg.SCRIPT_PATH /  'images' / 'upgrade.xpm'
         self.bmp_upgrade = get_bmp(src_img_path=upgrade,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-        quote_left = os.path.join(
-            mg.SCRIPT_PATH, 'images', 'speech_mark_large.xpm')
+        quote_left = mg.SCRIPT_PATH / 'images' / 'speech_mark_large.xpm'
         self.bmp_quote_left = get_bmp(src_img_path=quote_left,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
-        quote_right = os.path.join(
-            mg.SCRIPT_PATH, 'images', 'speech_mark_small.xpm')
+        quote_right = mg.SCRIPT_PATH / 'images' / 'speech_mark_small.xpm'
         self.bmp_quote_right = get_bmp(src_img_path=quote_right,
             bmp_type=wx.BITMAP_TYPE_XPM, reverse=REVERSE)
         self.bmp_top_sofa = get_bmp(src_img_path=self.top_sofa)  ## ok if reversed
@@ -833,7 +829,7 @@ class StartFrame(wx.Frame):
         url2open = f'http://www.sofastatistics.com/{mg.SOFASTATS_VERSION_CHECK}'
         try:
             url_reply = requests.get(url2open, timeout=4)  ## timeout affects time waiting for server. If can't get to server at all, dies instantly which is good.
-            new_version = url_reply.read().strip()
+            new_version = url_reply.text.strip()
             url_reply.close()
             if debug: print(f'Checked new version: {new_version}')
         except Exception as e:
@@ -916,8 +912,8 @@ class StartFrame(wx.Frame):
             panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115,
                 self.form_height-58, True)
             ## make default db if not already there
-            def_db = os.path.join(mg.LOCAL_PATH, mg.INT_FOLDER, mg.SOFA_DB)
-            con = sqlite.connect(def_db)  #@UndefinedVariable
+            def_db = mg.LOCAL_PATH / mg.INT_FOLDER / mg.SOFA_DB
+            con = sqlite.connect(str(def_db))  #@UndefinedVariable
             con.close()
             panel_dc.DrawBitmap(
                 self.blank_proj_strip, self.main_left, 218, False)
@@ -1243,7 +1239,7 @@ class StartFrame(wx.Frame):
         debug = False
         wx.BeginBusyCursor()
         ## wipe any internal images
-        int_img_pattern = os.path.join(mg.INT_IMG_PATH, '*.png')
+        int_img_pattern = str(mg.INT_IMG_PATH / '*.png')
         if debug: print(int_img_pattern)
         for delme in glob.glob(int_img_pattern):
             if debug: print(delme)

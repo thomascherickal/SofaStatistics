@@ -174,8 +174,8 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             self.fil_var_dets
         except AttributeError:
             ## make empty labels file if necessary
-            fil_default_var_dets = os.path.join(mg.LOCAL_PATH, mg.VDTS_FOLDER, 
-                mg.DEFAULT_VDTS)
+            fil_default_var_dets = (
+                mg.LOCAL_PATH / mg.VDTS_FOLDER / mg.DEFAULT_VDTS)
             if not os.path.exists(fil_default_var_dets):
                 with open(fil_default_var_dets, 'w', encoding='utf-8') as f:
                     f.write('# add variable details here')
@@ -183,27 +183,26 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         try:            
             self.fil_css
         except AttributeError:
-            self.fil_css = os.path.join(
-                mg.LOCAL_PATH, mg.CSS_FOLDER, mg.DEFAULT_STYLE)
+            self.fil_css = mg.LOCAL_PATH / mg.CSS_FOLDER / mg.DEFAULT_STYLE
         try:            
             self.fil_report
         except AttributeError:
-            self.fil_report = os.path.join(mg.REPORTS_PATH, mg.DEFAULT_REPORT)
+            self.fil_report = mg.REPORTS_PATH / mg.DEFAULT_REPORT
         try:            
             self.fil_script
         except AttributeError:
-            self.fil_script = os.path.join(mg.LOCAL_PATH, mg.SCRIPTS_FOLDER, 
-                mg.DEFAULT_SCRIPT)
+            self.fil_script = (
+                mg.LOCAL_PATH / mg.SCRIPTS_FOLDER / mg.DEFAULT_SCRIPT)
         try:
             self.default_dbe
         except AttributeError:
-            self.default_dbe = os.path.join(mg.DBE_SQLITE)
+            self.default_dbe = mg.DBE_SQLITE
 
     def get_proj_settings(self, fil_proj):
         """
         NB get any paths in form ready to display
         """
-        proj_path = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER, fil_proj)
+        proj_path = mg.LOCAL_PATH / mg.PROJS_FOLDER / fil_proj
         proj_txt = b.get_unicode_from_file(fpath=proj_path)
         proj_cont = b.get_exec_ready_text(text=proj_txt)
         proj_dic = {}
@@ -312,9 +311,9 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             wx.ICON_EXCLAMATION|wx.NO_DEFAULT) == wx.NO:
             return
         try:
-            fil_to_delete = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER,
-                f'{self.txt_name.GetValue()}{mg.PROJ_EXT}')
-            os.remove(fil_to_delete)
+            filname2del = f'{self.txt_name.GetValue()}{mg.PROJ_EXT}'
+            fil2del = mg.LOCAL_PATH / mg.PROJS_FOLDER / filname2del
+            os.remove(fil2del)
         except Exception:
             raise Exception('Unable to delete selected project.')
         self.Destroy()
@@ -349,8 +348,8 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             except Exception:
                 print(f'Failed to change to {proj_name}{mg.PROJ_EXT}')
                 pass  ## Only needed if returning to projselect form so OK to fail otherwise.
-            fil_name = os.path.join(mg.LOCAL_PATH, mg.PROJS_FOLDER,
-                f'{proj_name}{mg.PROJ_EXT}')
+            fname = f'{proj_name}{mg.PROJ_EXT}'
+            fpath = mg.LOCAL_PATH / mg.PROJS_FOLDER / fname
             proj_notes = self.txt_proj_notes.GetValue()
             fil_var_dets = self.vdt_file
             fil_script = self.script_file if self.script_file else ''
@@ -382,7 +381,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                 default_tbls, con_dets)
             ## write the data
             if (self.new
-                and (os.path.exists(fil_name)
+                and (os.path.exists(fpath)
                 and wx.MessageBox(_('A project file of this name already exists'
                     '. Do you wish to override it?'),
                     caption=_('PROJECT ALREADY EXISTS'),
@@ -392,14 +391,14 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             ## system - if already a file with same name, delete it first
             ## otherwise will write to mysql.proj when saving MySQL.proj.
             ## And MySQL won't appear in list on return to projselect.
-            if mg.PLATFORM == mg.WINDOWS and os.path.exists(fil_name):
-                os.remove(fil_name)
+            if mg.PLATFORM == mg.WINDOWS and os.path.exists(fpath):
+                os.remove(fpath)
             try:
-                f = open(fil_name, 'w', encoding='utf-8')
+                f = open(fpath, 'w', encoding='utf-8')
             except OSError as e:
                 wx.MessageBox(_('Unable to save project file. Please check '
                     "\"%(fil_name)s\" is a valid file name."
-                    "\n\nCaused by error: %(err)s") % {'fil_name': fil_name,
+                    "\n\nCaused by error: %(err)s") % {'fil_name': fpath,
                     'err': b.ue(e)})
                 return
             f.write(proj_content)

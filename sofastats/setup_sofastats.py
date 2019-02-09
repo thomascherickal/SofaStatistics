@@ -6,6 +6,7 @@ Shows any initial errors even if no GUI to display them.
 Creates any user folders and files needed and carries out any initial 
 configuration inside files e.g. paths.
 """
+from pathlib import Path
 
 ## 1) importing, and anything required to enable importing e.g. sys.path changes
 
@@ -54,7 +55,7 @@ except NameError as e:
     for path in sys.path:
         if 'sofastats' in path.lower():  ## if user hasn't used sofastats, 
             ## use default
-            localedir = os.path.join(path, 'locale')
+            localedir = Path(path) / 'locale'
             break
 if show_early_steps:
     print('Just identified locale folder')
@@ -130,7 +131,7 @@ class ErrMsgFrame(wx.Frame):
                 f'("{err_msg_fname}") in your email.'
                 f'\n{mybreak}\nCaused by error: {error_msg}')
         wx.MessageBox(error_msg)
-        fpath = os.path.join(mg.HOME_PATH, 'Desktop', err_msg_fname)
+        fpath = mg.HOME_PATH / 'Desktop' / err_msg_fname
         with open(fpath, 'w', encoding='utf-8') as f:
             f.write(error_msg)
             f.write(mybreak)
@@ -178,8 +179,7 @@ def check_python_version():
     pyversion = sys.version[:3]
     if debug: pyversion = None
     if (mg.PLATFORM == mg.LINUX and pyversion < '3.6'):
-        fixit_file = os.path.join(
-            mg.HOME_PATH, 'Desktop', 'how to get SOFA working.txt')
+        fixit_file = mg.HOME_PATH / 'Desktop' / 'how to get SOFA working.txt'
         f = open(fixit_file, 'w', encoding='utf-8')
         div = '*'*80
         os_msg = """
@@ -213,7 +213,7 @@ def init_com_types(parent, panel):
     (comtypes).
     """
     COMTYPES_HANDLED = 'comtypes_handled.txt'
-    comtypes_tag = os.path.join(mg.LOCAL_PATH, COMTYPES_HANDLED)
+    comtypes_tag = mg.LOCAL_PATH / COMTYPES_HANDLED
     if (mg.PLATFORM == mg.WINDOWS and not os.path.exists(comtypes_tag)):
         ## init com types
         wx.MessageBox(_('Click OK to prepare for first use of SOFA '
@@ -232,11 +232,10 @@ def get_installed_version(local_path):
     if installed version is too old to work with this (latest) version. Perhaps
     we can migrate the old proj file if we know its version.
     """
-    version_path = os.path.join(local_path, mg.VERSION_FILE)
+    version_path = local_path / mg.VERSION_FILE
     if os.path.exists(version_path):
-        f = open(version_path, 'r', encoding='utf-8')
-        installed_version = f.read().strip()
-        f.close()
+        with open(version_path, 'r', encoding='utf-8') as f:
+            installed_version = f.read().strip()
     else:
         installed_version = None
     return installed_version
@@ -246,14 +245,14 @@ def make_local_subfolders(local_path, local_subfolders):
     Create user home folder and required subfolders if not already done.
     """
     try:
-        os.mkdir(local_path)
+        local_path.mkdir(exist_ok=True)
         if show_early_steps: print('Made local folder successfully.')
     except Exception as e:
         raise Exception(f'Unable to make local SOFA path "{local_path}".'
             + f'\nCaused by error: {b.ue(e)}')
     for local_subfolder in local_subfolders:  ## create required subfolders
         try:
-            os.mkdir(os.path.join(local_path, local_subfolder))
+            (local_path / local_subfolder).mkdir(exist_ok=True)
             if show_early_steps: 
                 print(f'Added {local_subfolder} successfully.')
         except Exception as e:
@@ -267,7 +266,7 @@ def run_test_code(script):
     Look for file called TEST_SCRIPT_EARLIEST or TEST_SCRIPT_POST_CONFIG in
     internal folder. If there, run it.
     """
-    test_path = os.path.join(mg.INT_PATH, script)
+    test_path = mg.INT_PATH / script
     if not os.path.exists(test_path):
         return
     test_code = b.get_unicode_from_file(fpath=test_path)
@@ -296,8 +295,8 @@ def populate_css_path(prog_path, local_path):
         'prestige (screen).css', 'sky.css', ]
     for style in styles:
         try:
-            src_style = os.path.join(prog_path, mg.CSS_FOLDER, style)
-            dest_style = os.path.join(local_path, mg.CSS_FOLDER, style)
+            src_style = prog_path / mg.CSS_FOLDER / style
+            dest_style = local_path / mg.CSS_FOLDER / style
             shutil.copy(src_style, dest_style)
             if show_early_steps: print(f'Just copied {style}')
         except Exception as e:  ## more diagnostic info to explain why it failed
@@ -356,9 +355,10 @@ def populate_extras_path(prog_path, local_path):
         'tundra.css', 'vml.xd.js']
     for extra in extras:
         try:
-            shutil.copy(os.path.join(prog_path, mg.REPORTS_FOLDER,
-                mg.REPORT_EXTRAS_FOLDER, extra), os.path.join(local_path,
-                mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER, extra))
+            shutil.copy(
+                prog_path / mg.REPORTS_FOLDER / mg.REPORT_EXTRAS_FOLDER / extra,
+                local_path / mg.REPORTS_FOLDER / mg.REPORT_EXTRAS_FOLDER / extra
+            )
             if show_early_steps: print(f'Just copied {extra}')
         except Exception as e:
             raise Exception('Problem populating report extras path.'
@@ -371,14 +371,17 @@ def populate_local_paths(prog_path, local_path, default_proj):
     """
     ## copy across css, sofa_db, default proj, vdts, and report extras
     populate_css_path(prog_path, local_path)
-    shutil.copy(os.path.join(prog_path, mg.INT_FOLDER, mg.SOFA_DB),
-        os.path.join(local_path, mg.INT_FOLDER, mg.SOFA_DB))
+    shutil.copy(
+        prog_path / mg.INT_FOLDER / mg.SOFA_DB,
+        local_path / mg.INT_FOLDER / mg.SOFA_DB)
     if show_early_steps: print(f'Just copied {mg.SOFA_DB}')
-    shutil.copy(os.path.join(prog_path, mg.PROJS_FOLDER, mg.DEFAULT_PROJ),
+    shutil.copy(
+        prog_path / mg.PROJS_FOLDER / mg.DEFAULT_PROJ,
         default_proj)
     if show_early_steps: print(f'Just copied {default_proj}')
-    shutil.copy(os.path.join(prog_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS),
-        os.path.join(local_path, mg.VDTS_FOLDER, mg.DEFAULT_VDTS))
+    shutil.copy(
+        prog_path / mg.VDTS_FOLDER / mg.DEFAULT_VDTS,
+        local_path / mg.VDTS_FOLDER / mg.DEFAULT_VDTS)
     if show_early_steps: print(f'Just copied {mg.DEFAULT_VDTS}')
     populate_extras_path(prog_path, local_path)
     print(f'Populated local paths under {local_path}')
@@ -400,9 +403,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         if show_early_steps: print('Just read default project')
         for path in settings_subfolders:
             old_path = f'/home/g/Documents/sofastats/{path}/'
-            new_path = lib.escape_pre_write(
-                os.path.join(mg.LOCAL_PATH, path, ''))
-            #new_path = new_path.replace('"', '""')
+            new_path = lib.escape_pre_write(str(mg.LOCAL_PATH / f'{path}/'))
             proj_str = proj_str.replace(old_path, new_path)
             if show_early_steps:
                 print(f"Just modified {old_path} to {new_path}")
@@ -423,8 +424,8 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         if show_early_steps: 
             print(f'Just wrote to default project {default_proj}')
         ## create file as tag we have done the changes to the proj file
-        with open(os.path.join(local_path, mg.PROJ_CUSTOMISED_FILE), 'w', 
-                encoding='utf-8') as f:
+        fpath = local_path / mg.PROJ_CUSTOMISED_FILE
+        with open(fpath, 'w', encoding='utf-8') as f:
             f.write('Local project file customised successfully :-)')
         print('Configured default project file for user')
     except Exception as e:
@@ -435,7 +436,7 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
             f'\nCaused by error: {b.ue(e)}')
 
 def store_version(local_path):
-    fpath = os.path.join(local_path, mg.VERSION_FILE)
+    fpath = local_path / mg.VERSION_FILE
     with open(fpath, 'w', encoding='utf-8') as f:
         f.write(mg.VERSION)
     print(f'Stored version as {mg.VERSION}')
@@ -451,11 +452,11 @@ def get_installer_version_status(local_path):
     return installer_is_newer, installer_newer_status_known
 
 def archive_older_default_report():
-    def_rpt_pth = os.path.join(mg.REPORTS_PATH, mg.DEFAULT_REPORT)
+    def_rpt_pth = mg.REPORTS_PATH / mg.DEFAULT_REPORT
     if os.path.exists(def_rpt_pth):
         try:
             new_filename = f'default_report_pre_{mg.VERSION}.htm'
-            new_version = os.path.join(mg.REPORTS_PATH, new_filename)
+            new_version = mg.REPORTS_PATH / new_filename
             os.rename(def_rpt_pth, new_version)
             if show_early_steps: 
                 print(f'Just renamed {def_rpt_pth} to new version')
@@ -502,8 +503,7 @@ def freshen_recovery(prog_path, local_subfolders, subfolders_in_proj):
         except OSError:
             pass  ## OK to fail removing recovery path if not there.
         make_local_subfolders(mg.RECOVERY_PATH, local_subfolders)
-        default_proj = os.path.join(
-            mg.RECOVERY_PATH, mg.PROJS_FOLDER, mg.DEFAULT_PROJ)
+        default_proj = mg.RECOVERY_PATH / mg.PROJS_FOLDER / mg.DEFAULT_PROJ
         populate_local_paths(prog_path, mg.RECOVERY_PATH, default_proj)
         config_local_proj(mg.RECOVERY_PATH, default_proj, subfolders_in_proj)
         store_version(mg.RECOVERY_PATH)
@@ -516,7 +516,7 @@ def setup_folders():
     """
     subfolders_in_proj = [mg.CSS_FOLDER, mg.INT_FOLDER, mg.PROJS_FOLDER,
         mg.REPORTS_FOLDER, mg.SCRIPTS_FOLDER, mg.VDTS_FOLDER]
-    oth_subfolders = [os.path.join(mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)]
+    oth_subfolders = [mg.REPORTS_FOLDER / mg.REPORT_EXTRAS_FOLDER, ]
     local_subfolders = subfolders_in_proj + oth_subfolders
     prog_path = mg.SCRIPT_PATH
     if show_early_steps: print('Just set prog_path')
@@ -529,8 +529,7 @@ def setup_folders():
             run_test_code(mg.TEST_SCRIPT_EARLIEST)
             if local_path_setup_needed:
                 ## need mg but must run pre code calling dd
-                default_proj = os.path.join(
-                    mg.LOCAL_PATH, mg.PROJS_FOLDER, mg.DEFAULT_PROJ)
+                default_proj = mg.LOCAL_PATH / mg.PROJS_FOLDER / mg.DEFAULT_PROJ
                 populate_local_paths(prog_path, mg.LOCAL_PATH, default_proj)
                 config_local_proj(
                     mg.LOCAL_PATH, default_proj, subfolders_in_proj)
@@ -553,14 +552,13 @@ def setup_folders():
                     ## update css files - url(images...) -> url('images...')
                     populate_css_path(prog_path, mg.LOCAL_PATH)
                     ## ensure sofastats_report_extras folder and freshly populate it
-                    REPORT_EXTRAS_PATH = os.path.join(mg.LOCAL_PATH,
-                        mg.REPORTS_FOLDER, mg.REPORT_EXTRAS_FOLDER)
+                    REPORT_EXTRAS_PATH = (
+                        mg.LOCAL_PATH / mg.REPORTS_FOLDER
+                        / mg.REPORT_EXTRAS_FOLDER)
                     try:
-                        os.mkdir(REPORT_EXTRAS_PATH)  ## under reports
+                        REPORT_EXTRAS_PATH.mkdir(exist_ok=True)  ## under reports
                         if show_early_steps: 
                             print(f'Just made {REPORT_EXTRAS_PATH}')
-                    except OSError as e:
-                        pass  ## Already there.
                     except Exception as e:
                         raise Exception('Unable to make report extras '
                             f'path "{REPORT_EXTRAS_PATH}".'
@@ -580,10 +578,7 @@ def setup_folders():
                 f'Problem freshening your recovery folder "{prog_path}".'
                 f'\nCaused by error: {b.ue(e)}')
         ## 4) ensure the internal copy images path exists
-        try:
-            os.mkdir(mg.INT_COPY_IMGS_PATH)
-        except OSError:
-            pass  ## already there
+        mg.INT_COPY_IMGS_PATH.mkdir(exist_ok=True)
     except Exception as e:
         if show_early_steps: 
             print('Problem running initial setup - about to make msg.')

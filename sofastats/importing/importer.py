@@ -901,7 +901,7 @@ class DlgHasHeader(wx.Dialog):
         lbl_with_header.SetFont(mg.LABEL_FONT)
         img_ctrl_with_header = wx.StaticBitmap(self.panel)
         img_with_header = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', f'{ext}_with_header.xpm'),
+            mg.SCRIPT_PATH / 'images' / f'{ext}_with_header.xpm',
             wx.BITMAP_TYPE_XPM)
         bmp_with_header = wx.BitmapFromImage(img_with_header)
         img_ctrl_with_header.SetBitmap(bmp_with_header)
@@ -909,7 +909,7 @@ class DlgHasHeader(wx.Dialog):
         lbl_without_header.SetFont(mg.LABEL_FONT)
         img_ctrl_without_header = wx.StaticBitmap(self.panel)
         img_without_header = wx.Image(
-            os.path.join(mg.SCRIPT_PATH, 'images', f'{ext}_without_header.xpm'),
+            mg.SCRIPT_PATH / 'images' / f'{ext}_without_header.xpm',
             wx.BITMAP_TYPE_XPM)
         bmp_without_header = wx.BitmapFromImage(img_without_header)
         img_ctrl_without_header.SetBitmap(bmp_without_header)

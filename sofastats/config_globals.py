@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import subprocess
 import wx
 
@@ -24,7 +25,7 @@ def set_SCRIPT_PATH():
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
     rawpth = os.path.dirname(mg.__file__)
-    mg.SCRIPT_PATH = rawpth
+    mg.SCRIPT_PATH = Path(rawpth)
     if mg.SCRIPT_PATH == mg.LOCAL_PATH:
         raise Exception(_("Oops - it looks like you've installed SOFA to your "
             "user directory rather than a program directory. Please uninstall "
@@ -69,8 +70,7 @@ def import_dbe_plugins():
     for dbe_plugin, dbe_mod_name in mg.DBE_PLUGINS:
         wrong_os = (dbe_plugin in [mg.DBE_MS_ACCESS, mg.DBE_MS_SQL] 
             and mg.PLATFORM != mg.WINDOWS)
-        dbe_plugin_mod = os.path.join(
-            mg.SCRIPT_PATH, 'dbe_plugins', f'{dbe_mod_name}.py')
+        dbe_plugin_mod = mg.SCRIPT_PATH / 'dbe_plugins' / f'{dbe_mod_name}.py'
         if os.path.exists(dbe_plugin_mod):
             if wrong_os:
                 print(f"Not adding dbe plug-in '{dbe_plugin}'. Wrong OS")
@@ -200,7 +200,7 @@ def get_settings_dic(subfolder, fil_name):
     Returns settings_dic with keys for each setting.
     Used for project dics, preferences dics etc.
     """
-    settings_path = os.path.join(mg.LOCAL_PATH, subfolder, fil_name)
+    settings_path = mg.LOCAL_PATH / subfolder / fil_name
     settings_cont = b.get_unicode_from_file(fpath=settings_path)
     settings_dic = {}
     try:

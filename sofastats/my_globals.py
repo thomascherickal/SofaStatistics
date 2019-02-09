@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import platform
 from subprocess import Popen, PIPE
 import sys
@@ -32,8 +33,6 @@ CANON_NAME = None  ## overridden in start.py
 MAIN_SCRIPT_START = '#sofa_main_script_start'
 SCRIPT_END = '#sofa_script_end'
 ADD2RPT = False
-PYTHON_ENCODING_DECLARATION = ('#! /usr/bin/env python' + os.linesep
-    + '# -*- coding: utf-8 -*-' + os.linesep)
 DROP_SELECT = _('Nothing selected')
 ODS_GETTING_LARGE = 10_000_000
 XLSX_GETTING_LARGE = 10_000_000
@@ -439,47 +438,42 @@ platforms = {'Linux': LINUX, 'Windows': WINDOWS, 'Darwin': MAC}
 PLATFORM = platforms.get(platform.system())
 INT_FOLDER = '_internal'
 local_encoding = sys.getfilesystemencoding()
-HOME_PATH = os.path.expanduser('~')
+HOME_PATH = Path(os.path.expanduser('~'))
 OLD_SOFASTATS_FOLDER = False
 if PLATFORM == LINUX:  ## see https://bugs.launchpad.net/sofastatistics/+bug/952077
     try:
-        USER_PATH = str(Popen(['xdg-user-dir', 'DOCUMENTS'],
-            stdout=PIPE).communicate()[0], encoding='utf-8').strip()  ## get output i.e. [0]. err is 2nd.
+        USER_PATH = Path(str(Popen(['xdg-user-dir', 'DOCUMENTS'],
+            stdout=PIPE).communicate()[0], encoding='utf-8').strip())  ## get output i.e. [0]. err is 2nd.
     except OSError:
-        USER_PATH = ''
-    USER_PATH = USER_PATH or os.path.expanduser('~')
+        USER_PATH = None
+    USER_PATH = USER_PATH or HOME_PATH
 else:
     USER_PATH = HOME_PATH
 ## USER_PATH = '/path/to/new/root/for/sofastats/and/sofastats_recovery/folders' # can override but make sure the new folder doesn't exist yet - let SOFA make and populate it. Only then override anything you want to override.
-LOCAL_PATH = os.path.join(USER_PATH, 'sofastats')
-RECOVERY_PATH = os.path.join(USER_PATH, 'sofastats_recovery')
-REPORTS_FOLDER = 'reports'
-PROJS_FOLDER = 'projs'
-VDTS_FOLDER = 'vdts'
-SCRIPTS_FOLDER = 'scripts'
-CSS_FOLDER = 'css'
-REPORTS_PATH = os.path.join(LOCAL_PATH, REPORTS_FOLDER)
-BASE_URL = f'file://{REPORTS_PATH}'
+LOCAL_PATH = USER_PATH / 'sofastats'
+RECOVERY_PATH = USER_PATH / 'sofastats_recovery'
+REPORTS_FOLDER = Path('reports')
+PROJS_FOLDER = Path('projs')
+VDTS_FOLDER = Path('vdts')
+SCRIPTS_FOLDER = Path('scripts')
+CSS_FOLDER = Path('css')
+REPORTS_PATH = LOCAL_PATH / REPORTS_FOLDER
+if PLATFORM == WINDOWS:
+    BASE_URL = f'file://{REPORTS_PATH}'
+else:
+    BASE_URL = f'file://{REPORTS_PATH}'
 REPORT_EXTRAS_FOLDER = 'sofastats_report_extras'
-REPORT_EXTRAS_PATH = os.path.join(REPORTS_PATH, REPORT_EXTRAS_FOLDER)
+REPORT_EXTRAS_PATH = REPORTS_PATH / REPORT_EXTRAS_FOLDER
 SCRIPT_PATH = None  ## set in config_globals
 DEFERRED_ERRORS = []  ## show to user immediately a GUI is available
 DEFERRED_WARNING_MSGS = []  ## show to user once start screen visible
-INT_PATH = os.path.join(LOCAL_PATH, INT_FOLDER)
-REG_REC = 'registration_records'
-REG_PATH = os.path.join(INT_PATH, REG_REC)
-PURCHASE_REC = 'purchase_records'
-PURCHASED_PATH = os.path.join(INT_PATH, PURCHASE_REC)
-USERDETS = 'user_dets'
-USERDETS_PATH = os.path.join(INT_PATH, USERDETS)
-CONTROL = 'control'
-CONTROL_PATH = os.path.join(INT_PATH, CONTROL)
-INT_SCRIPT_PATH = os.path.join(INT_PATH, 'script.py')
+INT_PATH = LOCAL_PATH / INT_FOLDER
+INT_SCRIPT_PATH = INT_PATH / 'script.py'
 INT_PREFS_FILE = 'prefs.txt'
 INT_REPORT_FILE = 'sofa_use_only_report.htm'
-INT_REPORT_PATH = os.path.join(REPORTS_PATH, INT_REPORT_FILE)
-CSS_PATH = os.path.join(LOCAL_PATH, CSS_FOLDER)
-DEFAULT_CSS_PATH = os.path.join(CSS_PATH, DEFAULT_STYLE)
+INT_REPORT_PATH = REPORTS_PATH / INT_REPORT_FILE
+CSS_PATH = LOCAL_PATH / CSS_FOLDER
+DEFAULT_CSS_PATH = CSS_PATH / DEFAULT_STYLE
 CURRENT_CONFIG = None
 CURRENT_REPORT_PATH = 'current_report_path'
 CURRENT_CSS_PATH = 'current_css_path'
@@ -692,11 +686,11 @@ MPL_EDGECOLOR = 'white'
 MPL_BGCOLOR = '#f2f1f0'
 MPL_NORM_LINE_COLOR = '#736354'
 RPT_SUBFOLDER_SUFFIX = '_images'
-rpt_subfolder_prefix = os.path.splitext(INT_REPORT_FILE)[0]  ## e.g. /home/g/Documents/sofastats/reports/sofastats_use_only
-INT_IMG_PREFIX_PATH = os.path.join(REPORTS_PATH, rpt_subfolder_prefix)  ## e.g. /home/g/Documents/sofastats/reports/sofastats_use_only_images/
-INT_IMG_PATH = INT_IMG_PREFIX_PATH + RPT_SUBFOLDER_SUFFIX
-INT_IMG_ROOT = os.path.join(INT_IMG_PATH, '_img')
-INT_COPY_IMGS_PATH = os.path.join(INT_PATH, 'delete_after_copy')
+rpt_subfolder_prefix = Path(INT_REPORT_FILE).stem  ## e.g. /home/g/Documents/sofastats/reports/sofastats_use_only
+INT_IMG_PREFIX_PATH = REPORTS_PATH / rpt_subfolder_prefix  ## e.g. /home/g/Documents/sofastats/reports/sofastats_use_only_images/
+INT_IMG_PATH = REPORTS_PATH / f'{rpt_subfolder_prefix}{RPT_SUBFOLDER_SUFFIX}'
+INT_IMG_ROOT = REPORTS_PATH / f'{rpt_subfolder_prefix}{RPT_SUBFOLDER_SUFFIX}_img'
+INT_COPY_IMGS_PATH = INT_PATH / 'delete_after_copy'
 ## date formats
 MDY = 'month_day_year'
 DMY = 'day_month_year'

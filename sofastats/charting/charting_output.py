@@ -2355,9 +2355,9 @@ class Histo:
                 bin_ranges.append((bin_start, bin_end))
             bin_lbls = [_("%(lower)s to < %(upper)s") % 
                 {"lower": x[0], "upper": x[1]} for x in bin_ranges]
-            bin_lbls[-1] = bin_lbls[-1].replace("<", "<=")
+            bin_lbls[-1] = bin_lbls[-1].replace('<', '<=')
             maxval = bin_end
-            xaxis_dets = [(x+1, "") for x in range(n_bins)]
+            xaxis_dets = [(x+1, '') for x in range(n_bins)]
             sum_yval = sum(y_vals)
             if inc_normal: # some things are done in code above that aren't needed if not generating norm curve but easier to leave in
                 norm_ys = list(core_stats.get_normal_ys(vals4norm,
@@ -3696,7 +3696,7 @@ class PieChart:
                 if y_val == 0: # no slice will be shown so leave it out
                     continue
                 colours_for_this_chart.append(cat_colours_by_lbl[val_lbl])
-                tiplbl = val_lbl.replace("\n", " ") # line breaks mean no display
+                tiplbl = val_lbl.replace('\n', ' ')  ## line breaks mean no display
                 slice_pct = round((100.0*y_val)/tot_y_vals,
                     mg.DEFAULT_REPORT_DP)
                 if mg.DEFAULT_REPORT_DP == 0:
@@ -3708,7 +3708,7 @@ class PieChart:
                 else:
                     val2show = split_lbl
                 if mg.PLATFORM == mg.WINDOWS:
-                    val2show = val2show.replace("<br>", ": ")
+                    val2show = val2show.replace('<br>', ': ')
                 tooltip = lib.OutputLib.get_count_pct_dets(inc_count=True,
                     inc_pct=True, lbl=tiplbl, count=y_val, pct=slice_pct)
                 slices_js_lst.append("{\"y\": %(y)s, \"text\": %(text)s, " 

@@ -77,7 +77,7 @@ from .. import output
 
 HTML4PDF_FILE = 'html4pdf.html'
 PDF2IMG_FILE = 'pdf2img.pdf'
-PDF2IMG_PATH = os.path.join(mg.INT_PATH, PDF2IMG_FILE)
+PDF2IMG_PATH = mg.INT_PATH / PDF2IMG_FILE
 
 img_creation_problem = False
 
@@ -148,8 +148,8 @@ class ExportImage:
         if mg.OVERRIDE_FOLDER:
             imgs_path = mg.OVERRIDE_FOLDER
         if debug: print(imgs_path)
-        rpt_root = os.path.split(report_path)[0]
-        html4pdf_path = os.path.join(rpt_root, HTML4PDF_FILE)  ## must be in reports path so JS etc all available
+        rpt_root = report_path.parent
+        html4pdf_path = rpt_root / HTML4PDF_FILE  ## must be in reports path so JS etc all available
         n_imgs = len(img_items)
         long_time = ((n_imgs > 30 and output_dpi == mg.SCREEN_DPI) 
             or (n_imgs > 10 and output_dpi == mg.PRINT_DPI) 
@@ -237,7 +237,7 @@ class ExportImage:
             raise my_exceptions.ExportCancel
         title = lib.get_safer_name(item.title)
         img_name_no_ext = f'{i:04}_{title}'
-        img_pth_no_ext = os.path.join(imgs_path, img_name_no_ext)
+        img_pth_no_ext = imgs_path / img_name_no_ext
         if mg.IMG_SRC_START in item.content:
             ExportImage._copy_existing_img(item, report_path, imgs_path,
                 progbar, headless=headless)
@@ -254,7 +254,7 @@ def copy_output():
     sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
     sorted_names.sort()
     for filename in sorted_names:
-        delme = os.path.join(mg.INT_COPY_IMGS_PATH, filename)
+        delme = mg.INT_COPY_IMGS_PATH / filename
         os.remove(delme)
     hdr, img_items, unused = export_output.get_hdr_and_items(
         mg.INT_REPORT_PATH, diagnostic=mg.EXPORT_IMAGES_DIAGNOSTIC)
@@ -271,7 +271,7 @@ def copy_output():
     do = wx.FileDataObject()
     for filname in sorted_names:
         if filname.endswith('.png'):
-            imgname = os.path.join(mg.INT_COPY_IMGS_PATH, filname)
+            imgname = mg.INT_COPY_IMGS_PATH / filname
             do.AddFile(imgname)
     wx.TheClipboard.AddData(do)
     wx.TheClipboard.Close()
