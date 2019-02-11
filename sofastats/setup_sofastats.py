@@ -398,14 +398,13 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
     """
     ## change home username
     try:
-        f = open(default_proj, 'r', encoding='utf-8')
-        proj_str = f.read()  ## provided by me - no BOM or non-ascii
-        f.close()
+        with open(default_proj, 'r', encoding='utf-8') as f:
+            proj_str = f.read()  ## provided by me - no BOM or non-ascii
         if show_early_steps: print('Just read default project')
         for path in settings_subfolders:
             old_path = f'/home/g/Documents/sofastats/{path}/'
-            new_path = lib.escape_pre_write(str(mg.LOCAL_PATH / f'{path}{os.sep}'))
-            new_path = new_path + '\\'
+            new_path = lib.escape_pre_write(
+                str(mg.LOCAL_PATH / f'{path}{os.sep}'))  ## https://stackoverflow.com/questions/47572165/whats-the-best-way-to-add-a-trailing-slash-to-a-pathlib-directory
             proj_str = proj_str.replace(old_path, new_path)
             if show_early_steps:
                 print(f"Just modified {old_path} to {new_path}")
