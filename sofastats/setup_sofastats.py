@@ -6,6 +6,7 @@ Shows any initial errors even if no GUI to display them.
 Creates any user folders and files needed and carries out any initial 
 configuration inside files e.g. paths.
 """
+import os
 from pathlib import Path
 
 ## 1) importing, and anything required to enable importing e.g. sys.path changes
@@ -403,7 +404,8 @@ def config_local_proj(local_path, default_proj, settings_subfolders):
         if show_early_steps: print('Just read default project')
         for path in settings_subfolders:
             old_path = f'/home/g/Documents/sofastats/{path}/'
-            new_path = lib.escape_pre_write(str(mg.LOCAL_PATH / f'{path}/'))
+            new_path = lib.escape_pre_write(str(mg.LOCAL_PATH / f'{path}{os.sep}'))
+            new_path = new_path + '\\'
             proj_str = proj_str.replace(old_path, new_path)
             if show_early_steps:
                 print(f"Just modified {old_path} to {new_path}")

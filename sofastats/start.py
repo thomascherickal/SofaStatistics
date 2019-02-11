@@ -17,9 +17,8 @@ start.py.
 
 ## modify sys.path to avoid using dist-package version if installed as well
 import sys
-print(sys.path)
 from pathlib import Path
-sys.path.insert(0, Path.cwd().parent)
+sys.path.insert(0, str(Path.cwd().parent))
 from sofastats import setup_sofastats
 from sofastats import home  #@UnresolvedImport
 
