@@ -53,8 +53,8 @@ def get_inputs(paired, var_a, var_label_a, var_b, var_label_b):
     return data_label, vals
 
 def get_normal_output(vals, data_label,
-        add_to_report, report_name,
-        paired, css_fil):
+        add_to_report, report_fpath,
+        paired, css_fpath):
     html = []
     ## normality test (includes both kurtosis and skew)
     n_vals = len(vals)
@@ -110,7 +110,7 @@ def get_normal_output(vals, data_label,
     charting_pylab.gen_config()
     fig = pylab.figure()
     fig.set_size_inches((8.0, 4.5))  ## see dpi to get image size in pixels
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     line_colour = css_dojo_dic['major_gridline_colour']
@@ -126,7 +126,7 @@ def get_normal_output(vals, data_label,
     output.ensure_imgs_path(
         report_path=mg.INT_IMG_PREFIX_PATH, ext=mg.RPT_SUBFOLDER_SUFFIX)
     img_src = charting_pylab.save_report_img(
-        add_to_report, report_name, save_func=pylab.savefig, dpi=100)
+        add_to_report, report_fpath, save_func=pylab.savefig, dpi=100)
     html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
     output.append_divider(
         html, title='Histogram', indiv_title='Normality check histogram')
@@ -270,12 +270,12 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
                 self.var_label_b = ''
             ## css_idx is supplied at the time
             get_script_args={
-                'css_fil': str(cc[mg.CURRENT_CSS_PATH]),
-                'report_name': str(cc[mg.CURRENT_REPORT_PATH]), }
+                'css_fpath': cc[mg.CURRENT_CSS_PATH],
+                'report_fpath': cc[mg.CURRENT_REPORT_PATH], }
             config_ui.ConfigUI.on_btn_run(self,
                 event, get_script_args, new_has_dojo=True)
 
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fpath, report_fpath):
         """
         Build script from inputs
 
@@ -287,8 +287,8 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             dd.tbl))
         add2report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add2report}')
-        escaped_report_name = lib.escape_pre_write(report_name)
-        script_lst.append(f'report_name = "{escaped_report_name}"')
+        escaped_report_fpath = lib.escape_pre_write(str(report_fpath))
+        script_lst.append(f'report_fpath_str = "{escaped_report_fpath}"')
         paired = 'True' if self.paired else 'False'
         var_b = '"%s"' % self.var_b if self.var_b else "None"
         script_lst.append(f"""\
@@ -296,12 +296,11 @@ data_label, vals = normal.get_inputs(
     paired={paired},
     var_a="{self.var_a}", var_label_a="{self.var_label_a}",
     var_b={var_b}, var_label_b="{self.var_label_b}")""")
-        escaped_css_fil = lib.escape_pre_write(css_fil)
         script_lst.append(f"""\
 normal_output = normal.get_normal_output(
     vals, data_label, add_to_report,
-    report_name, paired={paired},
-    css_fil="{escaped_css_fil}")""")
+    Path(report_fpath_str), paired={paired},
+    css_fpath=css_fpath)""")
         script_lst.append('fil.write(normal_output)')
         return '\n'.join(script_lst)
 

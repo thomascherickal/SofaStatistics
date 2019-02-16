@@ -20,7 +20,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "morning and mid afternoon?")
         return eg1, eg2, eg3
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -43,15 +43,17 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         add_to_report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add_to_report}')
         script_lst.append(
-            f'report_name = "{lib.escape_pre_write(report_name)}"')
+            f'css_fpath_str = "{lib.escape_pre_write(css_fpath)}"')
+        script_lst.append(
+            f'report_fpath_str = "{lib.escape_pre_write(report_fpath)}"')
         script_lst.append('t, p, dic_a, dic_b, df, diffs = '
             'core_stats.ttest_rel(sample_a, sample_b, label_a, label_b)')
         script_lst.append("details = True" if details else 'details = {}')
         script_lst.append(dedent(f"""
         ttest_paired_output = stats_output.ttest_paired_output(
             sample_a, sample_b, t, p,
-            dic_a, dic_b, df, diffs, report_name,
-            css_fil="{lib.escape_pre_write(css_fil)}",
+            dic_a, dic_b, df, diffs, Path(report_fpath_str),
+            css_fpath=Path("{lib.escape_pre_write(str(css_fpath))}"),
             css_idx={css_idx}, label_avg='', dp=dp,
             details=details, add_to_report=add_to_report,
             page_break_after=False)"""))

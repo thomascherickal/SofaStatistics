@@ -342,7 +342,7 @@ class ConfigUI:
         self.read_only = read_only
         browse = _('Browse')
         if not report_file:
-            report_file = cc[mg.CURRENT_REPORT_PATH]
+            report_file = str(cc[mg.CURRENT_REPORT_PATH])
         szr_html_report = wx.BoxSizer(wx.HORIZONTAL)
         szr_html_report_left = wx.BoxSizer(wx.VERTICAL)
         self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
@@ -440,7 +440,7 @@ class ConfigUI:
         szr_output_display.Add(self.btn_close, 0, wx.GROW|wx.ALIGN_RIGHT)
         return szr_output_display
 
-    def get_style_selector(self, panel, css_file=None, *, as_list=True):
+    def get_style_selector(self, panel, css_fpath=None, *, as_list=True):
         debug = False
         cc = output.get_cc()
         ## style config details
@@ -456,8 +456,8 @@ class ConfigUI:
             style_selector = wx.Choice(panel, -1, choices=style_choices)
             style_selector.Bind(wx.EVT_CHOICE, self.on_style_sel)
         style_selector.SetFont(mg.GEN_FONT)
-        style = (lib.OutputLib.path2style(css_file) if css_file 
-            else lib.OutputLib.path2style(str(cc[mg.CURRENT_CSS_PATH])))
+        style = (lib.OutputLib.path2style(css_fpath) if css_fpath 
+            else lib.OutputLib.path2style(cc[mg.CURRENT_CSS_PATH]))
         idx_fil_css = style_choices.index(style)
         style_selector.SetSelection(idx_fil_css)
         style_selector.Enable(not self.read_only)
@@ -727,7 +727,7 @@ class ConfigUI:
         debug = False
         cc = output.get_cc()
         if debug: print(cc[mg.CURRENT_CSS_PATH])
-        css_fils, css_idx = output.get_css_dets()
+        css_fpaths, css_idx = output.get_css_dets()
         try:
             script = self.get_script(css_idx, **get_script_args)
         except TypeError as e:
@@ -739,7 +739,7 @@ class ConfigUI:
         add_to_report = False if not allow_add2rpt else mg.ADD2RPT
         (bolran_report, 
          str_content) = output.run_report(self.output_modules,
-            css_fils, script,
+            css_fpaths, script,
             add_to_report=add_to_report, new_has_dojo=new_has_dojo)
         if debug: print(str_content)
         return bolran_report, str_content

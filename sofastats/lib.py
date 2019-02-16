@@ -317,13 +317,12 @@ class OutputLib:
         return style
 
     @staticmethod
-    def extract_dojo_style(css_fil):
+    def extract_dojo_style(css_fpath):
         try:
-            f = open(css_fil, 'r', encoding='utf-8')
+            with open(css_fpath, encoding='utf-8') as f:
+                css = f.read()
         except OSError as e:
-            raise my_exceptions.MissingCss(css_fil)
-        css = f.read()
-        f.close()
+            raise my_exceptions.MissingCss(css_fpath)
         try:
             css_dojo_start_idx = css.index(mg.DOJO_STYLE_START)
             css_dojo_end_idx = css.index(mg.DOJO_STYLE_END)
@@ -336,13 +335,18 @@ class OutputLib:
             exec(css_dojo, css_dojo_dic)
         except SyntaxError as e:
             wx.MessageBox(_('Syntax error in dojo settings in css file'
-                " \"%(css_fil)s\"."
-                "\n\nDetails: %(css_dojo)s %(err)s") % {'css_fil': css_fil,
-                'css_dojo': css_dojo, u'err': b.ue(e)})
+                " \"%(css_fpath)s\"."
+                "\n\nDetails: %(css_dojo)s %(err)s") % {
+                    'css_fpath': str(css_fpath),
+                    'css_dojo': css_dojo, 'err': b.ue(e),
+            })
             raise
         except Exception as e:
-            wx.MessageBox(_("Error processing css dojo file \"%(css_fil)s\"."
-                "\n\nDetails: %(err)s") % {'css_fil': css_fil, 'err': b.ue(e)})
+            wx.MessageBox(
+                _("Error processing css dojo file \"%(css_fpath)s\"."
+                "\n\nDetails: %(err)s") % {
+                    'css_fpath': str(css_fpath), 'err': b.ue(e),
+            })
             raise
         return css_dojo_dic
 

@@ -30,7 +30,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel('')
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -48,7 +48,8 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.{dbe_str},
     fld_b="{var_b}")""")
         script_lst.append(
             'add_to_report = %s' % ('True' if mg.ADD2RPT else 'False'))
-        script_lst.append(f'report_name = "{lib.escape_pre_write(report_name)}"')
+        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
         script_lst.append('dp = 3')
         script_lst.append(f'label_a = "{label_a}"')
         script_lst.append(f'label_b = "{label_b}"')
@@ -56,9 +57,10 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.{dbe_str},
         script_lst.append('details = True' if details else 'details = {}')
         script_lst.append(f"""
 pearsonsr_output = stats_output.pearsonsr_output(sample_a, sample_b, r, p, df,
-    label_a, label_b, report_name,
-    css_fil="{lib.escape_pre_write(css_fil)}", css_idx={css_idx}, dp=dp,
-    details=details, add_to_report=add_to_report, page_break_after=False)""")
+    label_a, label_b,
+    report_fpath, css_fpath=css_fpath, css_idx={css_idx},
+    dp=dp, details=details,
+    add_to_report=add_to_report, page_break_after=False)""")
         script_lst.append('fil.write(pearsonsr_output)')
         return '\n'.join(script_lst)
 

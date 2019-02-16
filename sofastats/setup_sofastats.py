@@ -6,7 +6,6 @@ Shows any initial errors even if no GUI to display them.
 Creates any user folders and files needed and carries out any initial 
 configuration inside files e.g. paths.
 """
-import os
 from pathlib import Path
 
 ## 1) importing, and anything required to enable importing e.g. sys.path changes
@@ -580,7 +579,7 @@ def setup_folders():
                 f'Problem freshening your recovery folder "{prog_path}".'
                 f'\nCaused by error: {b.ue(e)}')
         ## 4) ensure the internal copy images path exists
-        mg.INT_COPY_IMGS_PATH.mkdir(exist_ok=True)
+        mg.INT_COPY_IMGS_PATH.mkdir(exist_ok=True)  #@UndefinedVariable
     except Exception as e:
         if show_early_steps: 
             print('Problem running initial setup - about to make msg.')

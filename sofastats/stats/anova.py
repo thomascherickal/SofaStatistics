@@ -55,7 +55,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         szr_algorithm.Add(self.rad_speed, 0, wx.LEFT, 10)
         szr.Add(szr_algorithm, 0, wx.TOP, 5)
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:
@@ -108,7 +108,8 @@ if len(samples) < 2:
         script_lst.append(f'label_avg = """{label_avg}"""')
         add2report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add2report}')
-        script_lst.append(f'report_name = "{lib.escape_pre_write(report_name)}"')
+        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
         high = self.rad_precision.GetValue()
         script_lst.append(f"""
 (p, F, dics, sswn, dfwn, mean_squ_wn, 
@@ -117,7 +118,8 @@ if len(samples) < 2:
         script_lst.append(f"""
 anova_output = stats_output.anova_output(samples, F, p, dics, sswn, dfwn,
     mean_squ_wn, ssbn, dfbn, mean_squ_bn, label_gp, label_a, label_b,
-    label_avg, report_name, css_fil="{lib.escape_pre_write(css_fil)}",
+    label_avg,
+    report_fpath, css_fpath=css_fpath,
     css_idx={css_idx}, dp=dp, details=details,
     add_to_report=add_to_report, page_break_after=False)""")
         script_lst.append('fil.write(anova_output)')

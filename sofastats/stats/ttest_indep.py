@@ -33,7 +33,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel(u'')
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -65,15 +65,19 @@ if len(sample_a) < 2 or len(sample_b) < 2:
         script_lst.append(f'label_avg = "{label_avg}"')
         add2report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add2report}')
-        script_lst.append(f'report_name = "{lib.escape_pre_write(report_name)}"')
+        script_lst.append(
+            f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+        script_lst.append(
+            f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
         script_lst.append('t, p, dic_a, dic_b, df = '
             'core_stats.ttest_ind(sample_a, sample_b, label_a, label_b)')
         script_lst.append('details = True' if details else 'details = {}')
         script_lst.append(f"""
 ttest_indep_output = stats_output.ttest_indep_output(sample_a, sample_b, t, p,
-    label_gp, dic_a, dic_b, df, label_avg, report_name,
-    css_fil="{lib.escape_pre_write(css_fil)}", css_idx={css_idx}, dp=dp,
-    details=details, add_to_report=add_to_report, page_break_after=False)""")
+    label_gp, dic_a, dic_b, df, label_avg,
+    report_fpath, css_fpath=css_fpath, css_idx={css_idx},
+    dp=dp, details=details, add_to_report=add_to_report,
+    page_break_after=False)""")
         script_lst.append('fil.write(ttest_indep_output)')
         return '\n'.join(script_lst)
 

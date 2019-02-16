@@ -64,7 +64,7 @@ def get_start_and_steps(n_pdfs, n_imgs, output_dpi, n_tbls):
 
 class DlgExportOutput(wx.Dialog):
     
-    def __init__(self, title, report_path, *,
+    def __init__(self, title, report_fpath, *,
             save2report_path=True, multi_page_items=True):
         """
         save2report_path -- output goes into the report folder. If False,
@@ -78,11 +78,11 @@ class DlgExportOutput(wx.Dialog):
         self.multi_page_items = multi_page_items
         if mg.OVERRIDE_FOLDER:
             self.save2report_path = True
-        self.report_path = report_path
+        self.report_fpath = report_fpath
         szr = wx.BoxSizer(wx.VERTICAL)
         self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
         if self.save2report_path:
-            report_name = os.path.split(report_path)[1]
+            report_name = report_fpath.stem()
             msg = f'Export "{report_name}"'
         else:
             msg = 'Export content currently displayed in SOFA'

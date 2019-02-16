@@ -660,7 +660,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         export_ok, has_cols = self.table_config_ok()
         if export_ok:
             try:
-                css_fils, css_idx = output.get_css_dets()
+                css_fpaths, css_idx = output.get_css_dets()
             except my_exceptions.MissingCss as e:
                 lib.OutputLib.update_local_display(self.html,
                     _('Please check the CSS file exists or set another.'
@@ -669,7 +669,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                 event.Skip()
                 return
             script = self.get_script(css_idx, has_cols, dp=mg.DEFAULT_REPORT_DP)
-            output.export_script(script, css_fils)
+            output.export_script(script, css_fpaths)
 
     def get_script(self, css_idx, has_cols, dp):
         """

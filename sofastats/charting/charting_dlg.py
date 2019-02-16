@@ -1158,9 +1158,9 @@ class Setup:
 class Scripts:
 
     @staticmethod
-    def get_simple_barchart_script(ytitle2use, css_fil, css_idx, *,
+    def get_simple_barchart_script(ytitle2use, css_fpath, css_idx, *,
             rotate, show_n, show_borders):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1172,15 +1172,15 @@ y_title = {ytitle2use}
 chart_output = charting_output.BarChart.simple_barchart_output(
     titles, subtitles,
     x_title, y_title,
-    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    chart_output_dets, css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     rotate={rotate}, show_n={show_n},
     show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_clustered_barchart_script(ytitle2use, css_fil, css_idx, *,
+    def get_clustered_barchart_script(ytitle2use, css_fpath, css_idx, *,
             rotate, show_n, show_borders):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1192,30 +1192,30 @@ y_title = {ytitle2use}
 chart_output = charting_output.BarChart.clustered_barchart_output(
     titles, subtitles,
     x_title, y_title,
-    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    chart_output_dets, css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     rotate={rotate}, show_n={show_n},
     show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_pie_chart_script(css_fil, css_idx, *, inc_count, inc_pct, show_n):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+    def get_pie_chart_script(css_fpath, css_idx, *, inc_count, inc_pct, show_n):
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
     dbe, cur, tbl, tbl_filt, var_role_dic,
     sort_opt=mg.{sort_opt})
 chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
-    chart_output_dets, css_fil="{esc_css_fil}", css_idx={css_idx},
+    chart_output_dets, css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     inc_count={inc_count}, inc_pct={inc_pct}, show_n={show_n},
     page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_line_chart_script(ytitle2use, css_fil, css_idx, *,
+    def get_line_chart_script(ytitle2use, css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks,
             inc_trend, inc_smooth, hide_markers):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         xy_titles = (f"""\
@@ -1230,7 +1230,7 @@ chart_output_dets = charting_output.get_gen_chart_output_dets(mg.LINE_CHART,
 {xy_titles}
 chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
     x_title, y_title, chart_output_dets,
-    css_fil="{esc_css_fil}", css_idx={css_idx},
+    css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     time_series={time_series}, rotate={rotate},
     show_n={show_n}, major_ticks={major_ticks},
     inc_trend={inc_trend}, inc_smooth={inc_smooth},
@@ -1238,9 +1238,9 @@ chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
         return script
 
     @staticmethod
-    def get_area_chart_script(ytitle2use, css_fil, css_idx, *,
+    def get_area_chart_script(ytitle2use, css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks, hide_markers):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1253,31 +1253,31 @@ x_title = var_role_dic['cat_name']
 y_title = {ytitle2use}
 chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles,
     x_title, y_title, chart_output_dets,
-    css_fil="{esc_css_fil}", css_idx={css_idx},
+    css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     time_series={time_series}, rotate={rotate}, show_n={show_n},
     major_ticks={major_ticks}, hide_markers={hide_markers},
     page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_histogram_script(css_fil, css_idx, *,
+    def get_histogram_script(css_fpath, css_idx, *,
             inc_normal, show_n, show_borders):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         script = (f"""\
 (overall_title, 
 chart_dets) = charting_output.Histo.get_histo_dets(dbe, cur, tbl, tbl_filt,
     flds, var_role_dic, inc_normal={inc_normal})
 chart_output = charting_output.Histo.histogram_output(titles, subtitles,
     var_role_dic['bin_name'], overall_title, chart_dets,
-    css_fil="{esc_css_fil}", css_idx={css_idx}, 
+    css_fpath=Path("{css_fpath_str}"), css_idx={css_idx}, 
     inc_normal={inc_normal}, show_n={show_n},
     show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_scatterplot_script(css_fil, css_idx, *,
+    def get_scatterplot_script(css_fpath, css_idx, *,
             show_n, show_borders, inc_regression):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         regression = 'True' if inc_regression else 'False'
         script = (f"""\
 (overall_title,
@@ -1287,14 +1287,14 @@ chart_output = charting_output.Histo.histogram_output(titles, subtitles,
 chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
     overall_title, var_role_dic['x_axis_name'], var_role_dic['y_axis_name'],
     scatterplot_dets,
-    css_fil="{esc_css_fil}", css_idx={css_idx},
-    report_name=report_name, add_to_report=add_to_report,
+    css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
+    report_fpath=Path(report_fpath_str), add_to_report=add_to_report,
     show_n={show_n}, show_borders={show_borders}, page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_boxplot_script(boxplot_opt, css_fil, css_idx, *, rotate, show_n):
-        esc_css_fil = lib.escape_pre_write(css_fil)
+    def get_boxplot_script(boxplot_opt, css_fpath, css_idx, *, rotate, show_n):
+        css_fpath_str = lib.escape_pre_write(str(css_fpath))
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         script = (f"""\
 (n_chart, xaxis_dets, xmin, xmax, ymin, ymax,
@@ -1312,14 +1312,14 @@ chart_output = charting_output.BoxPlot.boxplot_output(
     var_role_dic['series_name'], n_chart,
     xaxis_dets, max_label_len, max_lbl_lines,
     chart_dets, boxplot_opt="{boxplot_opt}",
-    css_fil="{esc_css_fil}", css_idx={css_idx},
+    css_fpath=Path("{css_fpath_str}"), css_idx={css_idx},
     xmin=xmin, xmax=xmax, ymin=ymin, ymax=ymax,
     any_missing_boxes=any_missing_boxes, rotate={rotate}, show_n={show_n},
     page_break_after=False)""")
         return script
 
     @staticmethod
-    def get_script(self, css_idx, css_fil, report_name):
+    def get_script(self, css_idx, css_fpath, report_fpath):
         """
         Build script from inputs.
 
@@ -1348,8 +1348,8 @@ chart_output = charting_output.BoxPlot.boxplot_output(
         ## other variables to set up
         add2report = "True" if mg.ADD2RPT else "False"
         script_lst.append(f"add_to_report = {add2report}")
-        rptname = lib.escape_pre_write(report_name)
-        script_lst.append(f'report_name = "{rptname}"')
+        report_fpath_str = lib.escape_pre_write(str(report_fpath))
+        script_lst.append(f'report_fpath_str = "{report_fpath_str}"')
         agg_fldlbl = None
         category_fldname = None
         chart_subtype_key = self.get_chart_subtype_key()
@@ -1403,17 +1403,17 @@ chart_output = charting_output.BoxPlot.boxplot_output(
                     else f'"Sum of {agg_fldlbl}"')
         if self.chart_type == mg.SIMPLE_BARCHART:
             script_lst.append(Scripts.get_simple_barchart_script(
-                ytitle2use, css_fil=css_fil, css_idx=css_idx, rotate=rotate,
+                ytitle2use, css_fpath=css_fpath, css_idx=css_idx, rotate=rotate,
                 show_n=show_n, show_borders=self.chk_bar_borders.IsChecked()))
         elif self.chart_type == mg.CLUSTERED_BARCHART:
             script_lst.append(Scripts.get_clustered_barchart_script(
-                ytitle2use, css_fil=css_fil, css_idx=css_idx, rotate=rotate,
+                ytitle2use, css_fpath=css_fpath, css_idx=css_idx, rotate=rotate,
                 show_n=show_n, show_borders=self.chk_clust_borders.IsChecked()))
         elif self.chart_type == mg.PIE_CHART:
             inc_count = ('True' if self.chk_show_count.IsChecked() else 'False')
             inc_pct = ('True' if self.chk_show_pct.IsChecked() else 'False')
             script_lst.append(Scripts.get_pie_chart_script(
-                css_fil, css_idx,
+                css_fpath, css_idx,
                 inc_count=inc_count, inc_pct=inc_pct, show_n=show_n))
         elif self.chart_type == mg.LINE_CHART:
             inc_trend = ('True' if self.chk_line_trend.IsChecked()
@@ -1421,30 +1421,30 @@ chart_output = charting_output.BoxPlot.boxplot_output(
             inc_smooth = ('True' if self.chk_line_smooth.IsChecked()
                 and self.chk_line_smooth.Enabled else 'False')
             script_lst.append(Scripts.get_line_chart_script(
-                ytitle2use, css_fil, css_idx,
+                ytitle2use, css_fpath, css_idx,
                 time_series=line_time_series, rotate=rotate, show_n=show_n,
                 major_ticks=major_ticks, inc_trend=inc_trend, inc_smooth=inc_smooth,
                 hide_markers=hide_markers))
         elif self.chart_type == mg.AREA_CHART:
             script_lst.append(Scripts.get_area_chart_script(
-                ytitle2use, css_fil, css_idx,
+                ytitle2use, css_fpath, css_idx,
                 time_series=area_time_series, rotate=rotate, show_n=show_n,
                 major_ticks=major_ticks, hide_markers=hide_markers))
         elif self.chart_type == mg.HISTOGRAM:
             inc_normal = (
                 'True' if self.chk_show_normal.IsChecked() else 'False')
-            script_lst.append(Scripts.get_histogram_script(css_fil=css_fil,
+            script_lst.append(Scripts.get_histogram_script(css_fpath=css_fpath,
                 css_idx=css_idx, inc_normal=inc_normal, show_n=show_n,
                 show_borders=self.chk_hist_borders.IsChecked()))
         elif self.chart_type == mg.SCATTERPLOT:
             script_lst.append(Scripts.get_scatterplot_script(
-                css_fil, css_idx,
+                css_fpath, css_idx,
                 show_n=show_n, show_borders=self.chk_dot_borders.IsChecked(),
                 inc_regression=self.chk_regression.IsChecked()))
         elif self.chart_type == mg.BOXPLOT:
             boxplot_opt = mg.CHART_BOXPLOT_OPTIONS[self.drop_box_opts.GetSelection()]
             script_lst.append(Scripts.get_boxplot_script(boxplot_opt,
-                css_fil, css_idx, rotate=rotate, show_n=show_n))
+                css_fpath, css_idx, rotate=rotate, show_n=show_n))
         script_lst.append('fil.write(chart_output)')
         script = '\n'.join(script_lst)
         if debug: print(script)
@@ -1724,8 +1724,9 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if run_ok:
             ## css_idx is supplied at the time
             get_script_args={
-                'css_fil': str(cc[mg.CURRENT_CSS_PATH]),
-                'report_name': str(cc[mg.CURRENT_REPORT_PATH])}
+                'css_fpath': cc[mg.CURRENT_CSS_PATH],
+                'report_fpath': cc[mg.CURRENT_REPORT_PATH],
+            }
             config_ui.ConfigUI.on_btn_run(
                 self, event, get_script_args, new_has_dojo=True)
 
@@ -1914,5 +1915,5 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
                 return False
         return True
 
-    def get_script(self, css_idx, css_fil, report_name):
-        return Scripts.get_script(self, css_idx, css_fil, report_name)
+    def get_script(self, css_idx, css_fpath, report_fpath):
+        return Scripts.get_script(self, css_idx, css_fpath, report_fpath)

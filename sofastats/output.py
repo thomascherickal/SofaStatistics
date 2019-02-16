@@ -63,6 +63,7 @@ random data (when too many records to just use real data).
 """
 
 import os
+from pathlib import Path
 from pprint import pformat as pf
 import time
 import traceback
@@ -260,7 +261,7 @@ def get_fallback_css():
         mg.CSS_ALIGN_RIGHT
     return default_css
 
-def get_html_hdr(hdr_title, css_fils, new_js_n_charts=None, *,
+def get_html_hdr(hdr_title, css_fpaths, new_js_n_charts=None, *,
         has_dojo=False, default_if_prob=False, grey=False, abs_pth=False):
     """
     Get HTML header.
@@ -284,18 +285,19 @@ def get_html_hdr(hdr_title, css_fils, new_js_n_charts=None, *,
     abs_pth -- absolute paths to background images in css.
     """
     debug = False
-    if debug: print(css_fils[0])
-    if css_fils:
+    if debug: print(css_fpaths[0])
+    if css_fpaths:
         css_lst = []
-        for i, css_fil in enumerate(css_fils):
+        for i, css_fpath in enumerate(css_fpaths):
             try:
-                f = open(css_fil, 'r', encoding='utf-8')
+                with open(css_fpath, encoding='utf-8') as f:
+                    css_txt = f.read()
             except IOError:
                 if default_if_prob:
-                    f = open(mg.DEFAULT_CSS_PATH, 'r', encoding='utf-8')
+                    with open(mg.DEFAULT_CSS_PATH, 'r', encoding='utf-8') as f:
+                        css_txt = f.read()
                 else:
-                    raise my_exceptions.MissingCss(css_fil)
-            css_txt = f.read()
+                    raise my_exceptions.MissingCss(css_fpath)
             for css_class in mg.CSS_ELEMENTS:
                 ## suffix all report-relevant css entities so distinct
                 old_class = '.' + css_class
@@ -492,9 +494,9 @@ def get_makechartRenumbers_n(html):
 
 def get_css_dets():
     """
-    Returns css_fils, css_idx.
+    Returns css_fpaths, css_idx.
 
-    css_fils - list of full paths to css files.
+    css_fpaths - list of full paths to css files.
 
     Knowing the current report and the current css what is the full list of css
     files used by the report and what is the index for the current one in that
@@ -506,18 +508,18 @@ def get_css_dets():
     one using cc[mg.CURRENT_CSS_PATH].
     """
     cc = get_cc()
-    if not os.path.exists(cc[mg.CURRENT_CSS_PATH]):
+    if not cc[mg.CURRENT_CSS_PATH].exists():
         ret = wx.MessageBox(_("The CSS style file '%s' doesn't exist. "
             'Continue using the default style instead?')
-            % cc[mg.CURRENT_CSS_PATH], _('Needs CSS Style'),
+            % str(cc[mg.CURRENT_CSS_PATH]), _('Needs CSS Style'),
             style=wx.YES_NO|wx.ICON_QUESTION)
         if ret == wx.YES:
             cc[mg.CURRENT_CSS_PATH] = mg.DEFAULT_CSS_PATH
         else:
             raise my_exceptions.MissingCss(cc[mg.CURRENT_CSS_PATH])
-    css_fils = None
+    css_fpaths = None
     ## read from report
-    if os.path.exists(cc[mg.CURRENT_REPORT_PATH]):
+    if cc[mg.CURRENT_REPORT_PATH].exists():  #@UndefinedVariable
         content = b.get_unicode_from_file(fpath=cc[mg.CURRENT_REPORT_PATH])
         if content:
             try:
@@ -527,17 +529,17 @@ def get_css_dets():
                 css_fils_str = b.get_exec_ready_text(text=css_fils_str)
                 css_dets_dic = {}
                 exec(css_fils_str, css_dets_dic)
-                css_fils = css_dets_dic['css_fils']
+                css_fpaths = css_dets_dic['css_fpaths']
             except Exception:
                 pass  ## Don't let css failure stop report production.
-    if not css_fils:
-        css_fils = [cc[mg.CURRENT_CSS_PATH]]
+    if not css_fpaths:
+        css_fpaths = [cc[mg.CURRENT_CSS_PATH], ]
     else:
-        if cc[mg.CURRENT_CSS_PATH] not in css_fils:
-            css_fils.append(str(cc[mg.CURRENT_CSS_PATH]))
+        if cc[mg.CURRENT_CSS_PATH] not in css_fpaths:
+            css_fpaths.append(cc[mg.CURRENT_CSS_PATH])
     #mg.OUTPUT_CSS_DIC[cc[mg.CURRENT_REPORT_PATH]] = css_fils
-    css_idx = css_fils.index(str(cc[mg.CURRENT_CSS_PATH]))
-    return css_fils, css_idx
+    css_idx = css_fpaths.index(cc[mg.CURRENT_CSS_PATH])
+    return css_fpaths, css_idx
 
 def _get_report_table_title_dets_html(titles, subtitles, css_idx):
     (CSS_TBL_TITLE,
@@ -742,10 +744,7 @@ def path2url(path):
     then the full path e.g. /home/g/etc
     *nix platforms start with a forward slash
     """
-    if mg.PLATFORM == mg.WINDOWS:
-        url = f'{mg.FILE_URL_START_WIN}{path}'
-    else:
-        url = f'{mg.FILE_URL_START_GEN}{path}'
+    url = path.as_uri()
     return url
 
 def rel2abs_rpt_extras(strhtml, tpl):
@@ -863,7 +862,7 @@ def extract_html_content(html, start_tag, end_tag):
         extracted = html[start_idx:]
     return extracted
 
-def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html, *,
+def save_to_report(css_fpaths, source, tbl_filt_label, tbl_filt, new_html, *,
         new_has_dojo):
     """
     If report doesn't exist, make it.
@@ -928,7 +927,7 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html, *,
             new_no_hdr = new_no_hdr.replace(
                 f'Renumber{i_zero_padded}', replacement)
     hdr_title = _('SOFA Statistics Report') + time.strftime(' %Y-%m-%d_%H:%M:%S')
-    hdr = get_html_hdr(hdr_title, css_fils, new_js_n_charts, has_dojo=has_dojo)
+    hdr = get_html_hdr(hdr_title, css_fpaths, new_js_n_charts, has_dojo=has_dojo)
     try:
         f = open(cc[mg.CURRENT_REPORT_PATH], 'w', encoding='utf-8')
     except IOError:
@@ -937,7 +936,10 @@ def save_to_report(css_fils, source, tbl_filt_label, tbl_filt, new_html, *,
                 'and correct the path to the report.')
     except Exception as e:
         raise Exception(f'Unable to save to report. Orig error: {b.ue(e)}')
-    css_fils_str = '["' + '",\n"'.join(css_fils) + '"]'
+    css_fils_str = (
+        '["'
+        + '",\n"'.join([str(css_fpath) for css_fpath in css_fpaths])
+        + '"]')
     f.write(f'{mg.CSS_FILS_START_TAG} = {css_fils_str}-->\n\n')
     f.write(hdr)
     if existing_no_ends:
@@ -968,14 +970,15 @@ def get_cc():
         proj_dic = config_globals.get_settings_dic(
             subfolder=mg.PROJS_FOLDER, fil_name=mg.DEFAULT_PROJ)
         mg.CURRENT_CONFIG = {
-            mg.CURRENT_REPORT_PATH: proj_dic[mg.PROJ_FIL_RPT],
-            mg.CURRENT_CSS_PATH: proj_dic[mg.PROJ_FIL_CSS],
-            mg.CURRENT_VDTS_PATH: proj_dic[mg.PROJ_FIL_VDTS],
-            mg.CURRENT_SCRIPT_PATH: proj_dic[mg.PROJ_FIL_SCRIPT]}
+            mg.CURRENT_REPORT_PATH: Path(proj_dic[mg.PROJ_FIL_RPT]),
+            mg.CURRENT_CSS_PATH: Path(proj_dic[mg.PROJ_FIL_CSS]),
+            mg.CURRENT_VDTS_PATH: Path(proj_dic[mg.PROJ_FIL_VDTS]),
+            mg.CURRENT_SCRIPT_PATH: Path(proj_dic[mg.PROJ_FIL_SCRIPT]),
+        }
         if debug: print('Updated mg.CURRENT_CONFIG')
     return mg.CURRENT_CONFIG
 
-def export_script(script, css_fils, *, new_has_dojo=False):
+def export_script(script, css_fpaths, *, new_has_dojo=False):
     dd = mg.DATADETS_OBJ
     cc = get_cc()
     modules = [
@@ -1000,7 +1003,7 @@ def export_script(script, css_fils, *, new_has_dojo=False):
         f.write(_strip_script(existing_script))
     else:
         insert_prelim_code(
-            modules, f, str(cc[mg.CURRENT_REPORT_PATH]), css_fils,
+            modules, f, cc[mg.CURRENT_REPORT_PATH], css_fpaths,
             new_has_dojo=new_has_dojo)
     tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     append_exported_script(f, script, tbl_filt_label, tbl_filt, 
@@ -1021,7 +1024,7 @@ def add_divider_code(f, tbl_filt_label, tbl_filt):
         f' """ {tbl_filt_label} """, """ {tbl_filt} """)')
     f.write('\nfil.write(divider)\n')
 
-def insert_prelim_code(modules, f, fil_report, css_fils, *, new_has_dojo):
+def insert_prelim_code(modules, f, report_fpath, css_fpaths, *, new_has_dojo):
     """
     Insert preliminary code at top of file. Needed for making output
 
@@ -1031,11 +1034,12 @@ def insert_prelim_code(modules, f, fil_report, css_fils, *, new_has_dojo):
     :param handle f: open file handle ready for writing.
     """
     debug = False
-    if debug: print(css_fils)
+    if debug: print(css_fpaths)
     f.write('\n' + mg.MAIN_SCRIPT_START)
     f.write('\nimport gettext')
     f.write('\nimport numpy as np')
     f.write('\nimport os')
+    f.write('\nfrom pathlib import Path')
     f.write('\nimport sys')
     f.write('\ngettext.install(domain="sofastats", '
             f'localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")')
@@ -1053,14 +1057,15 @@ def insert_prelim_code(modules, f, fil_report, css_fils, *, new_has_dojo):
     f.write('\n    config_globals.set_ok_date_formats()')
     f.write('\n    config_globals.set_DEFAULT_DETAILS()')
     f.write('\n    config_globals.import_dbe_plugins()  ## as late as possible because uses local modules e.g. my_exceptions, lib')
-    f.write(f'\n\nfil = open("{lib.escape_pre_write(fil_report)}",'
+    css_fpath_strs = [
+        lib.escape_pre_write(str(css_fpath)) for css_fpath in css_fpaths]
+    f.write(f'\ncss_fpath_strs = {css_fpath_strs}')
+    f.write('\ncss_fpaths = [Path(css_fpath_str) for css_fpath_str in css_fpath_strs]')
+    f.write(f'\n\nfil = open("{lib.escape_pre_write(str(report_fpath))}",'
         + " 'w', encoding='utf-8')")
-    css_fils_esc = [lib.escape_pre_write(x) for x in css_fils]
-    css_fils_str = '["' + '",\n"'.join(css_fils_esc) + '"]'
-    f.write(f'\ncss_fils={css_fils_str}')
     has_dojo = new_has_dojo  ## always for making single output item e.g. chart
     has_dojo_str = 'True' if has_dojo else 'False'
-    f.write('\nfil.write(output.get_html_hdr("Report(s)", css_fils, '
+    f.write('\nfil.write(output.get_html_hdr("Report(s)", css_fpaths, '
         f"new_js_n_charts=None, has_dojo={has_dojo_str}, default_if_prob=True))")
     f.write("\n\n# end of script 'header'\n\n")
 
@@ -1110,15 +1115,15 @@ def add_end_script_code(f):
     f.write('\nfil.write(output.get_html_ftr())')
     f.write('\nfil.close()')
 
-def generate_script(modules, css_fils, inner_script, tbl_filt_label, tbl_filt,
+def generate_script(modules, css_fpaths, inner_script, tbl_filt_label, tbl_filt,
         *, new_has_dojo):
     debug = False
     verbose = False
     try:
         with open(mg.INT_SCRIPT_PATH, 'w', encoding='utf-8') as f:
-            if debug and verbose: print(css_fils)
+            if debug and verbose: print(css_fpaths)
             insert_prelim_code(
-                modules, f, str(mg.INT_REPORT_PATH), css_fils,
+                modules, f, mg.INT_REPORT_PATH, css_fpaths,
                 new_has_dojo=new_has_dojo)
             append_exported_script(
                 f, inner_script, tbl_filt_label, tbl_filt, inc_divider=False)
@@ -1178,8 +1183,9 @@ def get_raw_results():
             f'\nOrig error: {b.ue(e)}')
     return raw_results
 
-def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, raw_results,
-        *, new_has_dojo):
+def append_onto_report(css_fpaths, source, tbl_filt_label, tbl_filt,
+        raw_results, *,
+        new_has_dojo):
     """
     Append into html file. 
 
@@ -1189,7 +1195,7 @@ def append_onto_report(css_fils, source, tbl_filt_label, tbl_filt, raw_results,
     Ignores snippet html header and modifies report header if required.
     """
     try:
-        save_to_report(css_fils, source,
+        save_to_report(css_fpaths, source,
             tbl_filt_label, tbl_filt,
             raw_results,
             new_has_dojo=new_has_dojo)
@@ -1233,7 +1239,8 @@ def get_abs_content(raw_display_content, add_to_report):
             print('\nimgs\n' + 100*'*' + '\n\n' + abs_content)
     return abs_content
 
-def run_report(modules, css_fils, inner_script, *, add_to_report, new_has_dojo):
+def run_report(modules, css_fpaths, inner_script, *,
+        add_to_report, new_has_dojo):
     """
     Runs report and returns bolran_report, and HTML representation of report
     (or of the error) for GUI display. Report includes HTML header.
@@ -1247,13 +1254,13 @@ def run_report(modules, css_fils, inner_script, *, add_to_report, new_has_dojo):
     tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
     filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
     try:
-        generate_script(modules, css_fils, inner_script,
+        generate_script(modules, css_fpaths, inner_script,
             tbl_filt_label, tbl_filt,
             new_has_dojo=new_has_dojo)
         run_script()
         raw_results = get_raw_results()
         if add_to_report:
-            append_onto_report(css_fils, source,
+            append_onto_report(css_fpaths, source,
                 tbl_filt_label, tbl_filt,
                 raw_results,
                 new_has_dojo=new_has_dojo)

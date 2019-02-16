@@ -1,4 +1,4 @@
-import os
+from pathlib import Path
 import wx
 
 from . import basic_lib as b
@@ -158,9 +158,9 @@ class DlgProjSelect(wx.Dialog):
             dic2restore = dd.proj_dic
             dd.set_proj_dic(proj_dic, dic2restore)
             cc = output.get_cc()
-            cc[mg.CURRENT_REPORT_PATH] = proj_dic[mg.PROJ_FIL_RPT]
-            cc[mg.CURRENT_CSS_PATH] = proj_dic[mg.PROJ_FIL_CSS]
-            cc[mg.CURRENT_VDTS_PATH] = proj_dic[mg.PROJ_FIL_VDTS]
+            cc[mg.CURRENT_REPORT_PATH] = Path(proj_dic[mg.PROJ_FIL_RPT])
+            cc[mg.CURRENT_CSS_PATH] = Path(proj_dic[mg.PROJ_FIL_CSS])
+            cc[mg.CURRENT_VDTS_PATH] = Path(proj_dic[mg.PROJ_FIL_VDTS])
             proj_name = projects.filname2projname(fil_proj)  ## might not be a sensible ...proj file
             self.parent.set_proj_lbl(proj_name)
         except Exception as e:

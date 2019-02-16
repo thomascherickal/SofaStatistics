@@ -31,7 +31,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel("")
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         script_lst = []
@@ -42,8 +42,10 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 f'Unable to get script to make output. Orig error: {b.ue(e)}') 
         script_lst.append("add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
-        script_lst.append("report_name = \"%s\"" % 
-                          lib.escape_pre_write(report_name))
+        script_lst.append(
+            f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+        script_lst.append(
+            f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
         script_lst.append("dp = 3")
         script_lst.append(f'var_label_a = "{label_a}"')
         script_lst.append(f'var_label_b = "{label_b}"')
@@ -74,12 +76,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
                 "\n    lst_obs, df)")
         else:
             script_lst.append("details = {}")
-        css_fil = lib.escape_pre_write(css_fil)
         script_lst.append(f"""
 chisquare_output = stats_output.chisquare_output(chisq, p, var_label_a,
-    var_label_b, add_to_report, report_name, val_labels_a, val_labels_b,
+    var_label_b, add_to_report, report_fpath, val_labels_a, val_labels_b,
     lst_obs, lst_exp, min_count, perc_cells_lt_5, df,
-    css_fil="{css_fil}", css_idx={css_idx}, dp=dp,
+    css_fpath=css_fpath, css_idx={css_idx}, dp=dp,
     details=details, page_break_after=False)""")
         script_lst.append('fil.write(chisquare_output)')
         return "\n".join(script_lst)

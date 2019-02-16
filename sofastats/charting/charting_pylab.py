@@ -11,7 +11,7 @@ from ..stats import core_stats
 
 int_imgs_n = 0  ## for internal images so always unique
 
-def save_report_img(add_to_report, report_name,
+def save_report_img(add_to_report, report_fpath,
         save_func=pylab.savefig, dpi=None):
     """
     If adding to report, save image to a subfolder in reports named after the
@@ -23,7 +23,7 @@ def save_report_img(add_to_report, report_name,
     image source.  Remember to alternate sets of names so always the freshest
     image showing in html (without having to reload etc).
 
-    :param str report_name: full path to report
+    :param str report_fpath: full path to report
     """
     debug = False
     kwargs = {'bbox_inches': 'tight'}  ## hardwired into boomslang by me - only applied when save_func is pylab.savefig directly
@@ -31,7 +31,7 @@ def save_report_img(add_to_report, report_name,
         kwargs['dpi'] = dpi
     if add_to_report:
         imgs_path = output.ensure_imgs_path(
-            report_path=report_name, ext=mg.RPT_SUBFOLDER_SUFFIX)
+            report_path=report_fpath, ext=mg.RPT_SUBFOLDER_SUFFIX)
         if debug: print('imgs_path: %s' % imgs_path)
         n_imgs = len(os.listdir(imgs_path))
         file_name = f'{n_imgs:03}.png'
@@ -40,7 +40,7 @@ def save_report_img(add_to_report, report_name,
         save_func(*args, **kwargs)
         if debug: print(f'Just saved {img_path}')
         subfolder = imgs_path.parts[-1]
-        img_src = subfolder / file_name  ## relative so can shift html
+        img_src = str(subfolder / file_name)  ## relative so can shift html
         img_src = output.percent_encode(img_src)
         if debug: print(f'add_to_report img_src: {img_src}')
     else:
@@ -50,7 +50,7 @@ def save_report_img(add_to_report, report_name,
             report_path=mg.INT_IMG_PREFIX_PATH, ext=mg.RPT_SUBFOLDER_SUFFIX)
         global int_imgs_n
         int_imgs_n += 1
-        img_src = mg.INT_IMG_ROOT + f'_{int_imgs_n:03}.png'
+        img_src = str(mg.INT_IMG_ROOT) + f'_{int_imgs_n:03}.png'
         if debug: print(img_src)
         args = [img_src]
         save_func(*args, **kwargs)
@@ -215,7 +215,7 @@ def config_scatterplot(inner_bg, show_borders, line_colour, fig,
 
 def add_scatterplot(inner_bg, show_borders, line_colour,
         plot_font_colour_filled, n_chart, series_dets, label_x, label_y, x_vs_y,
-        title_dets_html, add_to_report, report_name, html, width_inches=7.5,
+        title_dets_html, add_to_report, report_fpath, html, width_inches=7.5,
         height_inches=4.5, xmin=None, xmax=None, ymin=None, ymax=None,
         dot_colour=None, series_colours_by_lbl=None):
     """
@@ -232,7 +232,7 @@ def add_scatterplot(inner_bg, show_borders, line_colour,
         plot_font_colour_filled, n_chart, series_dets, label_x, label_y, x_vs_y,
         xmin, xmax, ymin, ymax, dot_colour, series_colours_by_lbl)
     save_func = pylab.savefig
-    img_src = save_report_img(add_to_report, report_name, save_func, dpi=100)
+    img_src = save_report_img(add_to_report, report_fpath, save_func, dpi=100)
     html.append(title_dets_html)
     html.append(u'\n%s%s%s' % (mg.IMG_SRC_START, img_src, mg.IMG_SRC_END))
     if debug: print('Just linked to %s' % img_src)

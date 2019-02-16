@@ -35,7 +35,7 @@ class DlgConfig(indep2var.DlgIndep2VarConfig):
         except Exception:
             self.lbl_phrase.SetLabel('')
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         "Build script from inputs"
         dd = mg.DATADETS_OBJ
         try:

@@ -116,7 +116,7 @@ class DemoTable:
         html = []
         try:
             html.append(output.get_html_hdr(hdr_title=_('Report(s)'),
-                css_fils=[cc[mg.CURRENT_CSS_PATH],],
+                css_fpaths=[cc[mg.CURRENT_CSS_PATH], ],
                 new_js_n_charts=None, has_dojo=False,
                 default_if_prob=True, grey=True, abs_pth=True))
             html.append("<table cellspacing='0'>\n")  ## IE6 no CSS borderspacing

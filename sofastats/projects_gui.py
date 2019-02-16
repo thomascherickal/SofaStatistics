@@ -1,4 +1,5 @@
 import os
+from pathlib import Path
 import wx
 
 from . import basic_lib as b
@@ -124,7 +125,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             show_export_options=False, read_only=self.read_only)
         btn_var_config = self.get_btn_var_config(self.panel_config)
         self.style_selector = self.get_style_selector(
-            self.panel_config, css_file=self.fil_css, as_list=False)
+            self.panel_config, css_fpath=self.css_fpath, as_list=False)
         self.szr_output_config.Add(btn_var_config, 0, wx.LEFT|wx.RIGHT, 5)  ## normally part of data but we need it here so
         self.szr_output_config.Add(self.style_selector, 0, wx.LEFT|wx.RIGHT, 5)  ## normally part of output szr but need it here
         self.szr_config_outer.Add(self.szr_output_config, 0, wx.GROW|wx.ALL, 10)
@@ -181,9 +182,9 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                     f.write('# add variable details here')
             self.fil_var_dets = fil_default_var_dets
         try:            
-            self.fil_css
+            self.css_fpath
         except AttributeError:
-            self.fil_css = mg.LOCAL_PATH / mg.CSS_FOLDER / mg.DEFAULT_STYLE
+            self.css_fpath = mg.LOCAL_PATH / mg.CSS_FOLDER / mg.DEFAULT_STYLE
         try:            
             self.fil_report
         except AttributeError:
@@ -233,7 +234,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
             self.fil_var_dets = proj_dic[mg.PROJ_FIL_VDTS]
-            self.fil_css = proj_dic[mg.PROJ_FIL_CSS]
+            self.css_fpath = Path(proj_dic[mg.PROJ_FIL_CSS])
             self.fil_report = proj_dic[mg.PROJ_FIL_RPT]
             self.fil_script = proj_dic[mg.PROJ_FIL_SCRIPT]
             self.default_dbe = proj_dic[mg.PROJ_DBE]

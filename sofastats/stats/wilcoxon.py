@@ -19,11 +19,11 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         eg3 = _('Or have house values changed since the recession began?')
         return eg1, eg2, eg3
 
-    def get_script(self, css_idx, css_fil, report_name, details):
+    def get_script(self, css_idx, css_fpath, report_fpath, details):
         """
         Build script from inputs
 
-        css_fil and report_name needed to comply with standard interface
+        css_fpath and report_fpath needed to comply with standard interface
         """
         dd = mg.DATADETS_OBJ
         script_lst = []

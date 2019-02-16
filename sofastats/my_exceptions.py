@@ -29,8 +29,8 @@ class MalformedCssDojo(Exception):
             f'Original text: {text}')
 
 class MissingCss(Exception):
-    def __init__(self, missing_css_fil):
-        Exception.__init__(self, f'Missing css file "{missing_css_fil}".')
+    def __init__(self, missing_css_fpath):
+        Exception.__init__(self, f'Missing css file "{str(missing_css_fpath)}".')
         
 class ExportCancel(Exception):
     def __init__(self):

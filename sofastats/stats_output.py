@@ -1,5 +1,6 @@
 import cgi
 from functools import partial
+from pathlib import Path
 
 import numpy as np
 import pylab
@@ -35,7 +36,8 @@ def _p_msg(p_sim):
 
 def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
         mean_squ_bn, label_gp, label_a, label_b, label_avg,
-        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, details=None,
+        report_fpath, css_fpath, css_idx=0,
+        dp=mg.DEFAULT_STATS_DP, details=None,
         *, add_to_report=False, page_break_after=False):
     debug = False
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -190,7 +192,7 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
             axes_labelsize=10, xtick_labelsize=8, ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5))  ## see dpi to get image size in pixels
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         try:
@@ -198,7 +200,8 @@ def anova_output(samples, F, p, dics, sswn, dfwn, mean_squ_wn, ssbn, dfbn,
                 css_dojo_dic['plot_bg'], item_colours[0],
                 css_dojo_dic['major_gridline_colour'], thumbnail=False)
             img_src = charting_pylab.save_report_img(
-                add_to_report, report_name, save_func=pylab.savefig, dpi=100)
+                add_to_report, report_fpath,
+                save_func=pylab.savefig, dpi=100)
             html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
         except Exception as e:
             html.append(f'<b>{histlbl}</b> - unable to display histogram. '
@@ -333,7 +336,7 @@ def ttest_basic_results(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
     return title
 
 def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
-        label_avg, report_name, css_fil, css_idx=0,
+        label_avg, report_fpath, css_fpath, css_idx=0,
         dp=mg.DEFAULT_STATS_DP, details=None, *,
         add_to_report=False, page_break_after=False):
     """
@@ -357,14 +360,14 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
             axes_labelsize=10, xtick_labelsize=8, ytick_labelsize=8)
         fig = pylab.figure()
         fig.set_size_inches((5.0, 3.5))  ## see dpi to get image size in pixels
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         try:
             charting_pylab.config_hist(fig, sample, label_avg, histlbl,
                 css_dojo_dic['plot_bg'], item_colours[0],
                 css_dojo_dic['major_gridline_colour'], thumbnail=False)
-            img_src = charting_pylab.save_report_img(add_to_report, report_name, 
+            img_src = charting_pylab.save_report_img(add_to_report, report_fpath, 
                 save_func=pylab.savefig, dpi=100)
             html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
         except Exception as e:
@@ -381,7 +384,7 @@ def ttest_indep_output(sample_a, sample_b, t, p, label_gp, dic_a, dic_b, df,
     return html_str
 
 def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
-        report_name, css_fil, css_idx=0, label_avg='',
+        report_fpath, css_fpath, css_idx=0, label_avg='',
         dp=mg.DEFAULT_STATS_DP, details=None, *,
         add_to_report, page_break_after=False):
     """
@@ -403,14 +406,14 @@ def ttest_paired_output(sample_a, sample_b, t, p, dic_a, dic_b, df, diffs,
         axes_labelsize=10, xtick_labelsize=8, ytick_labelsize=8)
     fig = pylab.figure()
     fig.set_size_inches((7.5, 3.5))  ## see dpi to get image size in pixels
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     try:
         charting_pylab.config_hist(fig, diffs, _('Differences'), histlbl,
             css_dojo_dic['plot_bg'], item_colours[0],
             css_dojo_dic['major_gridline_colour'], thumbnail=False)
-        img_src = charting_pylab.save_report_img(add_to_report, report_name,
+        img_src = charting_pylab.save_report_img(add_to_report, report_fpath,
             save_func=pylab.savefig, dpi=100)
         html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
     except Exception as e:
@@ -714,7 +717,7 @@ def wilcoxon_output(t, p, dic_a, dic_b, css_idx=0,
     return ''.join(html)
 
 def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
-        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP,
+        report_fpath, css_fpath, css_idx=0, dp=mg.DEFAULT_STATS_DP,
         details=None, *, add_to_report=False, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
         mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -743,7 +746,7 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
     html.append(f'<ul><li>Slope: {round(slope, dp)}</li>')
     html.append(f'<li>Intercept: {round(intercept, dp)}</li></ul>')
     output.append_divider(html, title, indiv_title='')
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     title_dets_html = ''  ## already got an appropriate title for whole section
@@ -755,7 +758,7 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
     charting_pylab.add_scatterplot(css_dojo_dic['plot_bg'], show_borders,
         css_dojo_dic['major_gridline_colour'],
         css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets, label_x,
-        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
+        label_y, x_vs_y, title_dets_html, add_to_report, report_fpath, html,
         dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
     ## details
@@ -767,7 +770,7 @@ def pearsonsr_output(list_x, list_y, pearsons_r, p, df, label_x, label_y,
     return ''.join(html)
 
 def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y, 
-        report_name, css_fil, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
+        report_fpath, css_fpath, css_idx=0, dp=mg.DEFAULT_STATS_DP, 
         details=None, *, add_to_report=False, page_break_after=False):
     CSS_PAGE_BREAK_BEFORE = mg.CSS_SUFFIX_TEMPLATE % (
         mg.CSS_PAGE_BREAK_BEFORE, css_idx)
@@ -795,7 +798,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
     html.append(f'<ul><li>Slope: {round(slope, dp)}</li>')
     html.append(f'<li>Intercept: {round(intercept, dp)}</li></ul>')
     output.append_divider(html, title, indiv_title='')
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     title_dets_html = ''  ## already got an appropriate title for whole section
@@ -807,7 +810,7 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
     charting_pylab.add_scatterplot(css_dojo_dic['plot_bg'], show_borders,
         css_dojo_dic['major_gridline_colour'],
         css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets, label_x,
-        label_y, x_vs_y, title_dets_html, add_to_report, report_name, html,
+        label_y, x_vs_y, title_dets_html, add_to_report, report_fpath, html,
         dot_colour=item_colours[0])
     add_footnotes(footnotes, html)
     ## details
@@ -939,11 +942,11 @@ def spearmansr_output(list_x, list_y, spearmans_r, p, df, label_x, label_y,
 
 def chisquare_output(chi, p,
         var_label_a, var_label_b,
-        add_to_report, report_name,
+        add_to_report, report_fpath,
         val_labels_a, val_labels_b,
         lst_obs, lst_exp,
         min_count, perc_cells_lt_5, df,
-        css_fil, css_idx=0,
+        css_fpath, css_idx=0,
         dp=mg.DEFAULT_STATS_DP, details=None, page_break_after=False):
     CSS_SPACEHOLDER = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_SPACEHOLDER, css_idx)
     CSS_FIRST_COL_VAR = mg.CSS_SUFFIX_TEMPLATE % (mg.CSS_FIRST_COL_VAR, css_idx)
@@ -1121,14 +1124,14 @@ def chisquare_output(chi, p,
         f'category the {var_label_b} values add up to 1 i.e. 100%. This is '
         'not the same way of displaying data as a clustered bar chart although '
         'the similarity can be confusing.</p>')
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     output.append_divider(html, title, indiv_title='')
     add_chi_square_clustered_barcharts(css_dojo_dic['plot_bg'], item_colours,
         css_dojo_dic['major_gridline_colour'], lst_obs, var_label_a,
         var_label_b, val_labels_a, val_labels_b, val_labels_b_n,
-        report_name, html, add_to_report=add_to_report)
+        report_fpath, html, add_to_report=add_to_report)
     return ''.join(html)
 
 def get_xaxis_fontsize(val_labels):
@@ -1145,7 +1148,7 @@ def get_xaxis_fontsize(val_labels):
 
 def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
         lst_obs, var_label_a, var_label_b, val_labels_a, val_labels_b,
-        val_labels_b_n, report_name, html, *, add_to_report):
+        val_labels_b_n, report_fpath, html, *, add_to_report):
     ## NB list_obs is bs within a and we need the other way around
     debug = False
     ## width = 7 
@@ -1208,7 +1211,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours,
         plot, var_label_a, y_label, val_labels_a_with_ref, val_labels_b,
         propns_as_in_bs_lst)
-    img_src = charting_pylab.save_report_img(add_to_report, report_name,
+    img_src = charting_pylab.save_report_img(add_to_report, report_fpath,
         save_func=plot.save, dpi=None)
     html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
     output.append_divider(html, title, indiv_title='proportion')
@@ -1226,7 +1229,7 @@ def add_chi_square_clustered_barcharts(grid_bg, bar_colours, line_colour,
     ## only need 6 because program limits to that. See core_stats.get_obs_exp().
     charting_pylab.config_clustered_barchart(grid_bg, bar_colours,
         plot, var_label_a, y_label, val_labels_a, val_labels_b, as_in_bs_lst)
-    img_src = charting_pylab.save_report_img(add_to_report, report_name,
+    img_src = charting_pylab.save_report_img(add_to_report, report_fpath,
         save_func=plot.save, dpi=None)
     html.append(f'\n{mg.IMG_SRC_START}{img_src}{mg.IMG_SRC_END}')
     output.append_divider(html, title, indiv_title='frequency')

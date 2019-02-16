@@ -22,9 +22,10 @@ zeros this can be done by applying a filter to the data and creating a standard,
 single-line line chart (possibly with extra lines for trends or smoothed data).
 """
 
-import numpy as np
 from operator import itemgetter
 import pprint
+
+import numpy as np
 import wx
 
 from .. import basic_lib as b
@@ -184,8 +185,8 @@ def get_axis_lbl_drop(multichart, rotate, max_lbl_lines):
     if debug: print(axis_lbl_drop)
     return axis_lbl_drop
 
-def get_series_colours_by_lbl(chart_output_dets, css_fil):
-    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+def get_series_colours_by_lbl(chart_output_dets, css_fpath):
+    css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
     item_colours = output.colour_mappings_to_item_colours(
         css_dojo_dic['colour_mappings'])
     ## check every series in every chart to get full list
@@ -1072,7 +1073,7 @@ class BarChart:
     def simple_barchart_output(
             titles, subtitles,
             x_title, y_title,
-            chart_output_dets, css_idx, css_fil, *,
+            chart_output_dets, css_idx, css_fpath, *,
             rotate, show_n, show_borders, page_break_after):
         """
         :param list titles: list of title lines correct styles
@@ -1107,12 +1108,13 @@ class BarChart:
 
         From dojox.charting.action2d.Highlight but with extraneous % removed.
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         fill = item_colours[0]
         single_colour = True
-        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+        override_first_highlight = (
+            css_fpath == mg.DEFAULT_CSS_PATH 
             and single_colour)
         colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
             single_colour, override_first_highlight)
@@ -1239,7 +1241,7 @@ class BarChart:
 
     @staticmethod
     def clustered_barchart_output(titles, subtitles, x_title, y_title, 
-            chart_output_dets, css_idx, css_fil, *,
+            chart_output_dets, css_idx, css_fpath, *,
             rotate, show_n, show_borders, page_break_after):
         """
         :param list titles: list of title lines correct styles
@@ -1275,7 +1277,7 @@ class BarChart:
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         chart_dets = chart_output_dets[mg.CHARTS_CHART_DETS]
         ## following details are same across all charts so look at first
         chart0_series_dets = chart_dets[0][mg.CHARTS_SERIES_DETS]
@@ -1305,7 +1307,7 @@ class BarChart:
             margin_offset_l += 15
         width += margin_offset_l
         series_colours_by_lbl = get_series_colours_by_lbl(
-            chart_output_dets, css_fil)
+            chart_output_dets, css_fpath)
         stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
         ## loop through charts
         for chart_idx, chart_det in enumerate(chart_dets):
@@ -1324,7 +1326,8 @@ class BarChart:
                 multichart, chart_det)
             single_colour = False
             override_first_highlight = (
-                css_fil == mg.DEFAULT_CSS_PATH and single_colour)
+                (css_fpath == mg.DEFAULT_CSS_PATH)
+                and single_colour)
             colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
                 single_colour, override_first_highlight)
             series_js_list = []
@@ -1905,7 +1908,7 @@ class BoxPlot:
             var_role_series_name, n_chart,
             xaxis_dets, max_x_lbl_len, max_lbl_lines,
             chart_dets, boxplot_opt,
-            css_fil, css_idx,
+            css_fpath, css_idx,
             xmin, xmax, ymin, ymax, *,
             any_missing_boxes, rotate, show_n, page_break_after):
         """
@@ -1976,7 +1979,7 @@ class BoxPlot:
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         """
         Build js for every series. colour_mappings - take first of each pair to
         use as outline of box plots, and use getfainthex() to get lighter colour
@@ -2388,7 +2391,7 @@ class Histo:
 
     @staticmethod
     def histogram_output(titles, subtitles, var_lbl, overall_title, chart_dets,
-            css_fil, css_idx, *,
+            css_fpath, css_idx, *,
             inc_normal, show_n, show_borders, page_break_after=False):
         """
         See http://trac.dojotoolkit.org/ticket/7926 - he had trouble doing this
@@ -2411,9 +2414,10 @@ class Histo:
         title_dets_html = output.get_title_dets_html(titles, subtitles, css_idx)
         html.append(title_dets_html)
         height = 300 if multichart else 350
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         single_colour = True
-        override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH 
+        override_first_highlight = (
+            (css_fpath == mg.DEFAULT_CSS_PATH)
             and single_colour)
         colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
             single_colour, override_first_highlight)
@@ -2604,7 +2608,7 @@ class ScatterPlot:
     @staticmethod
     def _make_dojo_scatterplot(chart_idx, multichart, html, indiv_chart_title,
             show_borders, legend, n_chart, series_dets, series_colours_by_lbl,
-            label_x, label_y, ymin, ymax, css_fil, pagebreak):
+            label_x, label_y, ymin, ymax, css_fpath, pagebreak):
         """
         min and max values are supplied for the y-axis because we want
         consistency on that between charts. For the x-axis, whatever is best per
@@ -2659,10 +2663,11 @@ class ScatterPlot:
             x_set = set([item[0] for item in data_tups])
             few_unique_x_vals = (len(x_set) < 4)
             minor_ticks = "false" if few_unique_x_vals else "true"
-            css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+            css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
             stroke_width = css_dojo_dic['stroke_width'] if show_borders else 0
             single_colour = True
-            override_first_highlight = (css_fil == mg.DEFAULT_CSS_PATH
+            override_first_highlight = (
+                (css_fpath == mg.DEFAULT_CSS_PATH)
                 and single_colour)
             colour_cases = setup_highlights(css_dojo_dic['colour_mappings'],
                 single_colour, override_first_highlight)
@@ -2778,13 +2783,13 @@ class ScatterPlot:
     @staticmethod      
     def _make_mpl_scatterplot(multichart, html, indiv_chart_title, show_borders, 
             n_chart, series_dets, series_colours_by_lbl, label_x,
-            label_y, ymin, ymax, x_vs_y, add_to_report, report_name, css_fil,
+            label_y, ymin, ymax, x_vs_y, add_to_report, report_fpath, css_fpath,
             pagebreak):
         """
         min and max values are supplied for the y-axis because we want consistency 
         on that between charts. For the x-axis, whatever is best per chart is OK. 
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
         if multichart:
@@ -2819,7 +2824,7 @@ class ScatterPlot:
             css_dojo_dic['major_gridline_colour'], 
             css_dojo_dic['plot_font_colour_filled'], n_chart, series_dets,
             label_x, label_y, x_vs_y, title_dets_html, add_to_report,
-            report_name, html, width_inches, height_inches, xmin=xmin,
+            report_fpath, html, width_inches, height_inches, xmin=xmin,
             xmax=xmax, ymin=ymin, ymax=ymax, dot_colour=item_colours[0],
             series_colours_by_lbl=series_colours_by_lbl)
         html.append("</div>")
@@ -2964,7 +2969,7 @@ class ScatterPlot:
 
     @staticmethod
     def scatterplot_output(titles, subtitles, overall_title, label_x, label_y,
-            scatterplot_dets, css_fil, css_idx, report_name, *,
+            scatterplot_dets, css_fpath, css_idx, report_fpath, *,
             add_to_report, show_n, show_borders, page_break_after=False):
         """
         scatterplot_dets = {
@@ -2995,8 +3000,8 @@ class ScatterPlot:
         use_mpl = ScatterPlot._use_mpl_scatterplots(scatterplot_dets)
         ymin, ymax = ScatterPlot._get_scatterplot_ymin_ymax(scatterplot_dets) # unlike x-axis we require this to be consistent across charts
         legend_lbl = scatterplot_dets[mg.CHARTS_OVERALL_LEGEND_LBL]
-        series_colours_by_lbl = get_series_colours_by_lbl(scatterplot_dets,
-            css_fil)
+        series_colours_by_lbl = get_series_colours_by_lbl(
+            scatterplot_dets, css_fpath)
         # loop through charts
         for chart_idx, chart_det in enumerate(chart_dets):
             n_chart = ("N = " + lib.formatnum(chart_det[mg.CHARTS_CHART_N])
@@ -3022,12 +3027,12 @@ class ScatterPlot:
                 ScatterPlot._make_mpl_scatterplot(multichart, html,
                     indiv_title_html, show_borders, n_chart, series_dets,
                     series_colours_by_lbl, label_x, label_y, ymin, ymax, x_vs_y,
-                    add_to_report, report_name, css_fil, pagebreak)
+                    add_to_report, report_fpath, css_fpath, pagebreak)
             else:
                 ScatterPlot._make_dojo_scatterplot(chart_idx, multichart, html,
                     indiv_title_html, show_borders, legend, n_chart,
                     series_dets, series_colours_by_lbl, label_x, label_y, ymin,
-                    ymax, css_fil, pagebreak)
+                    ymax, css_fpath, pagebreak)
             charts_append_divider(html, titles, overall_title, indiv_title,
                 "Scatterplot")
         if page_break_after:
@@ -3186,7 +3191,7 @@ class LineAreaChart:
 
     @staticmethod
     def areachart_output(titles, subtitles, x_title, y_title, chart_output_dets,
-            css_fil, css_idx, *,
+            css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks,
             hide_markers, page_break_after):
         """
@@ -3248,7 +3253,7 @@ class LineAreaChart:
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         try:
             stroke = css_dojo_dic['colour_mappings'][0][0]
             fill = css_dojo_dic['colour_mappings'][0][1]
@@ -3335,7 +3340,7 @@ class LineAreaChart:
 
     @staticmethod
     def linechart_output(titles, subtitles, x_title, y_title, chart_output_dets,
-            css_fil, css_idx, *,
+            css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks, inc_trend, inc_smooth,
             hide_markers, page_break_after):
         """
@@ -3398,11 +3403,11 @@ class LineAreaChart:
 
         From dojox.charting.action2d.Highlight but with extraneous % removed
         """
-        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojo_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         item_colours = output.colour_mappings_to_item_colours(
             css_dojo_dic['colour_mappings'])
-        series_colours_by_lbl = get_series_colours_by_lbl(chart_output_dets,
-            css_fil)
+        series_colours_by_lbl = get_series_colours_by_lbl(
+            chart_output_dets, css_fpath)
         # loop through charts
         for chart_idx, chart_det in enumerate(chart_dets):
             n_chart = ("N = " + lib.formatnum(chart_det[mg.CHARTS_CHART_N])
@@ -3645,7 +3650,8 @@ class PieChart:
         return cat_colours_by_lbl
 
     @staticmethod
-    def piechart_output(titles, subtitles, chart_output_dets, css_fil, css_idx,
+    def piechart_output(titles, subtitles, chart_output_dets,
+            css_fpath, css_idx,
             *, inc_count, inc_pct, show_n, page_break_after):
         """
         chart_output_dets -- see structure_gen_data()
@@ -3663,7 +3669,7 @@ class PieChart:
         height = 370 if multichart else 420
         radius = 120 if multichart else 140
         lbl_offset = -20 if multichart else -30
-        css_dojos_dic = lib.OutputLib.extract_dojo_style(css_fil)
+        css_dojos_dic = lib.OutputLib.extract_dojo_style(css_fpath)
         colour_cases = setup_highlights(
             css_dojos_dic['colour_mappings'], single_colour=False, 
             override_first_highlight=False)
