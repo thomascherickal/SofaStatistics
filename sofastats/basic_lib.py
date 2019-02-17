@@ -8,9 +8,9 @@ def ue(e):
     """
     Return unicode string version of error reason
 
-    unicode(e) handles "æ‰¾ä¸�åˆ°æŒ‡å®šçš„æ¨¡å�—ã€‚" & "I \u2665 unicode"
+    unicode(e) handles "找不到指定的模块。" & "I \u2665 unicode"
 
-    str(e).decode("utf8", ...) handles "æ‰¾ä¸�åˆ°æŒ‡å®šçš„æ¨¡å�—ã€‚"
+    str(e).decode("utf8", ...) handles "找不到指定的模块。"
     """
     return str(e)
 
