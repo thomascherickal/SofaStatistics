@@ -8,9 +8,9 @@ def ue(e):
     """
     Return unicode string version of error reason
 
-    unicode(e) handles "找不到指定的模块。" & "I \u2665 unicode"
+    unicode(e) handles "æ‰¾ä¸�åˆ°æŒ‡å®šçš„æ¨¡å�—ã€‚" & "I \u2665 unicode"
 
-    str(e).decode("utf8", ...) handles "找不到指定的模块。"
+    str(e).decode("utf8", ...) handles "æ‰¾ä¸�åˆ°æŒ‡å®šçš„æ¨¡å�—ã€‚"
     """
     return str(e)
 
@@ -27,7 +27,7 @@ def _clean_BOM_UTF8_from_bytestring(bytestr):
         bom_stripped = bytestr
     return bom_stripped
 
-def get_unicode_from_file(fpath):
+def get_bom_free_contents(fpath):
     """
     Particularly trying to cope with what Windows users manually do to text
     files when editing them e.g. Notepad inserting a BOM in a utf-8 encoded

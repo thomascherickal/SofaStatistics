@@ -520,7 +520,7 @@ def get_css_dets():
     css_fpaths = None
     ## read from report
     if cc[mg.CURRENT_REPORT_PATH].exists():  #@UndefinedVariable
-        content = b.get_unicode_from_file(fpath=cc[mg.CURRENT_REPORT_PATH])
+        content = b.get_bom_free_contents(fpath=cc[mg.CURRENT_REPORT_PATH])
         if content:
             try:
                 idx_start = content.index(mg.CSS_FILS_START_TAG) + len('<!--')
@@ -890,7 +890,7 @@ def save_to_report(css_fpaths, source, tbl_filt_label, tbl_filt, new_html, *,
     n_charts_in_new = get_makechartRenumbers_n(new_html)
     existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
     if existing_report:
-        existing_html = b.get_unicode_from_file(
+        existing_html = b.get_bom_free_contents(
             fpath=cc[mg.CURRENT_REPORT_PATH])
         existing_has_dojo = hdr_has_dojo(existing_html)
         has_dojo = (new_has_dojo or existing_has_dojo)
@@ -990,7 +990,8 @@ def export_script(script, css_fpaths, *, new_has_dojo=False):
         ('tables', 'rawtables'),
         (None, 'stats_output'), ]
     if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
-        existing_script = b.get_unicode_from_file(fpath=cc[mg.CURRENT_SCRIPT_PATH])
+        existing_script = b.get_bom_free_contents(
+            fpath=cc[mg.CURRENT_SCRIPT_PATH])
     else:
         existing_script = None
     try:
@@ -1135,7 +1136,7 @@ def generate_script(modules, css_fpaths, inner_script, tbl_filt_label, tbl_filt,
 
 def run_script():
     try:
-        script_txt = b.get_unicode_from_file(fpath=mg.INT_SCRIPT_PATH)
+        script_txt = b.get_bom_free_contents(fpath=mg.INT_SCRIPT_PATH)
         script = script_txt[script_txt.index(mg.MAIN_SCRIPT_START):]
     except Exception as e:
         raise Exception('Unable to read part of script for execution.'
@@ -1176,7 +1177,7 @@ def get_raw_results():
     debug = False
     verbose = False
     try:
-        raw_results = b.get_unicode_from_file(fpath=mg.INT_REPORT_PATH)
+        raw_results = b.get_bom_free_contents(fpath=mg.INT_REPORT_PATH)
         if debug and verbose: print(raw_results)
     except Exception as e:
         raise Exception('Unable to read local copy of output report.'

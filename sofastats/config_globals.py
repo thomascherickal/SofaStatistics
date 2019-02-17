@@ -201,7 +201,7 @@ def get_settings_dic(subfolder, fil_name):
     Used for project dics, preferences dics etc.
     """
     settings_path = mg.LOCAL_PATH / subfolder / fil_name
-    settings_cont = b.get_unicode_from_file(fpath=settings_path)
+    settings_cont = b.get_bom_free_contents(fpath=settings_path)
     settings_dic = {}
     try:
         exec(settings_cont, settings_dic)

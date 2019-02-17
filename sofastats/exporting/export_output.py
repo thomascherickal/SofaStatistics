@@ -64,7 +64,7 @@ def get_split_html(report_path):
     Get the report HTML text split by the standard divider
     (e.g. <!-- _SOFASTATS_ITEM_DIVIDER -->).
     """
-    raw_html = b.get_unicode_from_file(fpath=report_path)  ## should only see an exception here when running headless via a script - otherwise should be picked up by GUI-level validation.
+    raw_html = b.get_bom_free_contents(fpath=report_path)  ## should only see an exception here when running headless via a script - otherwise should be picked up by GUI-level validation.
     if not raw_html:
         raise Exception('No raw html found in report file.')
     split_html = raw_html.split(mg.OUTPUT_ITEM_DIVIDER)

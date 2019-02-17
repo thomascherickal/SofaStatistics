@@ -488,7 +488,7 @@ class OutputLib:
     def get_invalid_var_dets_msg(fil_var_dets):
         debug = False
         try:
-            var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
+            var_dets = b.get_bom_free_contents(fpath=fil_var_dets)
             var_dets = b.get_exec_ready_text(text=var_dets)
             var_dets_dic = {}
             exec(var_dets, var_dets_dic)
@@ -1751,7 +1751,7 @@ def get_var_dets(fil_var_dets):
     for them to fix the variable details/change the project settings etc.
     """
     empty_var_dets = ({},{},{},{})
-    var_dets = b.get_unicode_from_file(fpath=fil_var_dets)
+    var_dets = b.get_bom_free_contents(fpath=fil_var_dets)
     var_dets = b.get_exec_ready_text(text=var_dets)
     var_dets_dic = {}
     results = empty_var_dets  ## init

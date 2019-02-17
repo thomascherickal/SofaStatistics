@@ -269,7 +269,7 @@ def run_test_code(script):
     test_path = mg.INT_PATH / script
     if not os.path.exists(test_path):
         return
-    test_code = b.get_unicode_from_file(fpath=test_path)
+    test_code = b.get_bom_free_contents(fpath=test_path)
     test_code = b.get_exec_ready_text(text=test_code)
     test_dic = {}
     try:

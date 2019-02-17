@@ -74,7 +74,7 @@ class DlgProjSelect(wx.Dialog):
 
     def get_notes(self, fil_proj):
         proj_path = mg.LOCAL_PATH / mg.PROJS_FOLDER / fil_proj
-        proj_txt = b.get_unicode_from_file(fpath=proj_path)
+        proj_txt = b.get_bom_free_contents(fpath=proj_path)
         proj_cont = b.get_exec_ready_text(text=proj_txt)
         proj_dic = {}
         try:
