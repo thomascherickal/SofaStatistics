@@ -722,7 +722,7 @@ def rel2abs_rpt_img_links(str_html):
     debug = False
     verbose = False
     cc = get_cc()
-    report_path = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
+    report_path = cc[mg.CURRENT_REPORT_PATH].parent
     report_path = f'{report_path}/'
     report_path = percent_encode(report_path)
     if mg.PLATFORM == mg.WINDOWS:
@@ -888,7 +888,7 @@ def save_to_report(css_fpaths, source, tbl_filt_label, tbl_filt, new_html, *,
     new_no_hdr = extract_html_body(new_html)
     new_js_n_charts = None  ## init
     n_charts_in_new = get_makechartRenumbers_n(new_html)
-    existing_report = os.path.exists(cc[mg.CURRENT_REPORT_PATH])
+    existing_report = cc[mg.CURRENT_REPORT_PATH].exists()
     if existing_report:
         existing_html = b.get_bom_free_contents(
             fpath=cc[mg.CURRENT_REPORT_PATH])
@@ -931,7 +931,7 @@ def save_to_report(css_fpaths, source, tbl_filt_label, tbl_filt, new_html, *,
     try:
         f = open(cc[mg.CURRENT_REPORT_PATH], 'w', encoding='utf-8')
     except IOError:
-        if not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH]):
+        if not cc[mg.CURRENT_REPORT_PATH].exists():
             raise Exception('Unable to save to report. You might need to check '
                 'and correct the path to the report.')
     except Exception as e:

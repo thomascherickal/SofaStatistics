@@ -63,7 +63,7 @@ def get_raw_pdf(html_path, pdf_path, width='', height=''):
     debug = False
     if mg.EXPORT_IMAGES_DIAGNOSTIC: debug = True
     try:
-        url = output.path2url(html_path)
+        url = html_path.as_uri()
         cmd_make_pdf = 'cmd_make_pdf not successfully generated yet'
         """
         Unless Linux, MUST be in report directory otherwise won't carry across

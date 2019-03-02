@@ -6,6 +6,8 @@ from . import basic_lib as b
 from . import my_globals as mg
 from . import my_exceptions
 from . import lib
+from pathlib import Path
+
 from .exporting import export_output_gui
 from .exporting import export_output_images
 from . import getdata
@@ -666,7 +668,7 @@ class ConfigUI:
 
     def on_sel_export_report(self, _event):
         cc = output.get_cc()
-        report_missing = not os.path.exists(path=cc[mg.CURRENT_REPORT_PATH])
+        report_missing = not cc[mg.CURRENT_REPORT_PATH].exists()
         if report_missing:
             try:
                 self.can_run_report  ## False for Project dialog - can't make a report so no point letting them know they can make one if they want to view something
@@ -680,7 +682,7 @@ class ConfigUI:
             wx.MessageBox(msg)
             return
         ## check subfolder there
-        rpt_root = os.path.split(cc[mg.CURRENT_REPORT_PATH])[0]
+        rpt_root = cc[mg.CURRENT_REPORT_PATH].parent
         if not self.has_expected_subfolder(rpt_root):
             wx.MessageBox(ADD_EXPECTED_SUBFOLDER_MSG
                 % {'report_extras_folder': mg.REPORT_EXTRAS_FOLDER,
@@ -789,7 +791,7 @@ class ConfigUI:
                     'The output file has not been created yet. Nothing to view')  ## not in a position to make one
             wx.MessageBox(msg)
         else:
-            url = output.path2url(cc[mg.CURRENT_REPORT_PATH])
+            url = cc[mg.CURRENT_REPORT_PATH].as_uri()
             if debug: print(url)
             webbrowser.open_new_tab(url)
         event.Skip()
@@ -798,14 +800,14 @@ class ConfigUI:
         "Reset report output file"
         if self.autoupdate:
             cc = output.get_cc()
-            cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
+            cc[mg.CURRENT_REPORT_PATH] = Path(self.txt_report_file.GetValue())
         event.Skip()
 
     def on_report_file_text_change(self, event):
         "Reset report output file"
         if self.autoupdate:
             cc = output.get_cc()
-            cc[mg.CURRENT_REPORT_PATH] = self.txt_report_file.GetValue()
+            cc[mg.CURRENT_REPORT_PATH] = Path(self.txt_report_file.GetValue())
         event.Skip()
 
     ## table style
