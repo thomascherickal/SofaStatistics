@@ -355,8 +355,8 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     def on_show(self, _event):
         if self.exiting:
             return
-        html2show = _('<p>Waiting for an analysis to be run.</p>')
-        self.html.SetPage(html2show, mg.BASE_URL)
+        str_content = _('<p>Waiting for an analysis to be run.</p>')
+        lib.OutputLib.update_html_ctrl(self.html, str_content)
 
     def add_other_var_opts(self, szr=None):
         "Used by ANOVA at least"

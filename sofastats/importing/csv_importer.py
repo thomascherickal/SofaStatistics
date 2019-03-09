@@ -70,11 +70,11 @@ class DlgImportDisplay(wx.Dialog):
         szr_options.Add(self.rad_tab, 0, wx.RIGHT, 20)
         szr_options.Add(lbl_encoding, 0, wx.LEFT|wx.RIGHT, 5)
         szr_options.Add(self.drop_encodings, 0, wx.RIGHT, 10)
-        content, content_height = self.get_content()
-        if debug: print(content)
+        str_content, content_height = self.get_content()
+        if debug: print(str_content)
         self.html_content = wx.html2.WebView.New(panel, -1,
             size=(500, content_height))
-        self.html_content.SetPage(content, mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(self.html_content, str_content)
         btn_cancel = wx.Button(panel, wx.ID_CANCEL)
         btn_cancel.Bind(wx.EVT_BUTTON, self.on_btn_cancel)
         btn_ok = wx.Button(panel, wx.ID_OK)
@@ -184,8 +184,8 @@ class DlgImportDisplay(wx.Dialog):
     def set_display(self):
         if len(self.dialect.delimiter) > 0:
             try:
-                content, unused = self.get_content()
-                self.html_content.SetPage(content, mg.BASE_URL)
+                str_content, unused = self.get_content()
+                lib.OutputLib.update_html_ctrl(self.html_content, str_content)
             except Exception as e:
                 wx.MessageBox('Unable to use the delimiter character supplied.'
                     f'\nCaused by error: {b.ue(e)}')

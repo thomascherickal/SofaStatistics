@@ -300,7 +300,7 @@ data_label, vals = normal.get_inputs(
 normal_output = normal.get_normal_output(
     vals, data_label, add_to_report,
     Path(report_fpath_str), paired={paired},
-    css_fpath=css_fpath)""")
+    css_fpath=Path("{lib.escape_pre_write(str(css_fpath))}"))""")
         script_lst.append('fil.write(normal_output)')
         return '\n'.join(script_lst)
 
@@ -330,7 +330,7 @@ normal_output = normal.get_normal_output(
         else:
             msg = _('Select a variable and click Check button to see results of'
                 ' normality test')
-        self.html.SetPage(f'<p>{msg}</p>', mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(self.html, f'<p>{msg}</p>')
 
     def on_ok(self, event):
         self.exiting = True

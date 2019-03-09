@@ -351,9 +351,16 @@ class OutputLib:
         return css_dojo_dic
 
     @staticmethod
-    def update_local_display(html_ctrl, str_content, *, wrap_text=False):
+    def update_html_ctrl(html_ctrl, str_content, *, wrap_text=False):
+        """
+        :param wx.html2 html_ctrl: web widget
+        :param str str_content: HTML content to display
+        :param bool wrap_text: if True, wraps in paragraph.
+        """
         str_content = f'<p>{str_content}</p>' if wrap_text else str_content
         html_ctrl.SetPage(str_content, mg.BASE_URL)  ## allow footnotes
+        if mg.PLATFORM == mg.WINDOWS:
+            html_ctrl.Reload()  ## reload seems required to allow JS scripts to be loaded and Dojo charts to become visible
 
     @staticmethod
     def get_lbls_in_lines(orig_txt, max_width, *, dojo=False, rotate=False):

@@ -435,7 +435,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         has_rows, has_cols = self.get_row_col_status()
         waiting_msg = get_missing_dets_msg(
             self.tab_type, has_rows=has_rows, has_cols=has_cols)
-        self.html.SetPage(waiting_msg, mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(self.html, waiting_msg)
 
     def update_css(self):
         "Update css, including for demo table"
@@ -662,7 +662,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             try:
                 css_fpaths, css_idx = output.get_css_dets()
             except my_exceptions.MissingCss as e:
-                lib.OutputLib.update_local_display(self.html,
+                lib.OutputLib.update_html_ctrl(self.html,
                     _('Please check the CSS file exists or set another.'
                     '\nCaused by error: %s') % b.ue(e), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
@@ -923,13 +923,13 @@ tab_test = rawtables.RawTable(titles={titles},
                 else:
                     demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
             except my_exceptions.MissingCss as e:
-                lib.OutputLib.update_local_display(self.html,
+                lib.OutputLib.update_html_ctrl(self.html,
                     _('Please check the CSS file exists or set another. Caused '
                       'by error: %s') % b.ue(e), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
                 return demo_was_live
             except my_exceptions.TooFewValsForDisplay:
-                lib.OutputLib.update_local_display(self.html,
+                lib.OutputLib.update_html_ctrl(self.html,
                     _('Not enough data to display. Please check variables and '
                     'any filtering.'), wrap_text=True)
                 lib.GuiLib.safe_end_cursor()
@@ -958,7 +958,7 @@ tab_test = rawtables.RawTable(titles={titles},
                         demo_tbl_html = demo_html
                 self.prev_demo = demo_tbl_html
         if debug: print('\n' + demo_tbl_html + '\n')
-        self.html.SetPage(demo_tbl_html, mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(self.html, demo_tbl_html)
         return demo_was_live
 
     def get_row_col_status(self):

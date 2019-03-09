@@ -219,12 +219,11 @@ def init_com_types(parent, panel):
         wx.MessageBox(_('Click OK to prepare for first use of SOFA '
             'Statistics.\n\nPreparation may take a moment ...'))
         parent.html = wx.html2.WebView.New(panel, -1, size=wx.Size(10, 10))
-        parent.html.SetPage('', mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(parent.html, '')
         parent.html = None
         ## leave tag saying it is done
-        f = open(comtypes_tag, 'w', encoding='utf-8')
-        f.write('Comtypes handled successfully :-)')
-        f.close()
+        with open(comtypes_tag, 'w', encoding='utf-8') as f:
+            f.write('Comtypes handled successfully :-)')
 
 def get_installed_version(local_path):
     """

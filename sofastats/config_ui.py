@@ -752,7 +752,7 @@ class ConfigUI:
         wx.BeginBusyCursor()
         bolran_report, str_content = self.get_script_output(
             get_script_args, new_has_dojo=new_has_dojo)
-        lib.OutputLib.update_local_display(self.html, str_content)
+        lib.OutputLib.update_html_ctrl(self.html, str_content)
         self.content2expand = str_content
         self.align_export_btns(bolran_report)
         lib.GuiLib.safe_end_cursor()
@@ -766,7 +766,7 @@ class ConfigUI:
         try:
             self.run_report(get_script_args, new_has_dojo=new_has_dojo)
         except my_exceptions.MissingCss as e:    
-            lib.OutputLib.update_local_display(self.html,
+            lib.OutputLib.update_html_ctrl(self.html,
                 _("Please check the CSS file exists or set another. Caused by "
                   "error: %s") % b.ue(e), wrap_text=True)
             lib.GuiLib.safe_end_cursor()

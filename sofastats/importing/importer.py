@@ -963,10 +963,10 @@ class DlgHasHeaderGivenData(wx.Dialog):
         explan = _('Does your %s file have a header row? Note - SOFA cannot '
             'handle multiple header rows.') % ext
         lbl_explan = wx.StaticText(self.panel, -1, explan)
-        content, unused = get_content_dets(strdata)
-        if debug: print(content)
+        str_content, unused = get_content_dets(strdata)
+        if debug: print(str_content)
         html_content = wx.html2.WebView.New(self.panel, -1, size=(920, 240))
-        html_content.SetPage(content, mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(html_content, str_content)
         btn_has_header = wx.Button(self.panel, mg.HAS_HEADER,
             _('Has Header Row'))
         btn_has_header.Bind(wx.EVT_BUTTON, self.on_btn_has_header)

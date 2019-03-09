@@ -98,15 +98,20 @@ class DlgHTML(wx.Dialog):
         lib.GuiLib.safe_end_cursor()
 
     def on_show(self, _event):
-        self.show_content(self.url, self.content)
+        self.show(self.url, self.content)
   
-    def show_content(self, url=None, content=None):
-        if content is None and url is None:
+    def show(self, url=None, str_content=None):
+        if str_content is None and url is None:
             raise Exception("Need whether string content or a url")
-        if content:
-            self.html.SetPage(content, mg.BASE_URL)
+        if str_content:
+            lib.OutputLib.update_html_ctrl(self.html, str_content)
         else:
             self.html.LoadURL(url)
+
+    def show_str_content(self, content):
+        self.html.SetPage(content, mg.BASE_URL)
+        if mg.PLATFORM == mg.WINDOWS:
+            self.html.Reload()  ## reload seems required to allow JS scripts to be loaded and Dojo charts to become visible
 
     def on_print(self, _event):
         "Print page"

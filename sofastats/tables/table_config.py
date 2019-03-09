@@ -665,7 +665,7 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         """
         debug = False
         if not self.settings_data:
-            self.html.SetPage(WAITING_MSG, mg.BASE_URL)
+            lib.OutputLib.update_html_ctrl(self.html, WAITING_MSG)
             return
         if debug: print(self.settings_data)
         ## 1) part before the table-specific items e.g. column names and data
@@ -719,8 +719,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
                 html.append(f'<td>{raw_val}</td>')
             html.append('</tr>')
         html.append('\n</tbody>\n</table></body></html>')
-        html2show = ''.join(html)
-        self.html.SetPage(html2show, mg.BASE_URL)
+        str_content = ''.join(html)
+        lib.OutputLib.update_html_ctrl(self.html, str_content)
 
     def setup_settings_data(self, data):
         debug = False

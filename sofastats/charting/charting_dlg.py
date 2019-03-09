@@ -1,5 +1,4 @@
 from functools import partial
-import os
 import wx  #@UnusedImport
 import wx.html2
 
@@ -1683,7 +1682,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         if self.exiting:
             return
         html2show = _("<p>Waiting for a chart to be run.</p>")
-        self.html.SetPage(html2show, mg.BASE_URL)
+        lib.OutputLib.update_html_ctrl(self.html, html2show)
 
     def on_btn_help(self, evt):
         import webbrowser
