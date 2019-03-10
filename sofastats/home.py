@@ -548,9 +548,9 @@ class StartFrame(wx.Frame):
         self.btn_drop = 40
         btn_width = 170
         if mg.PLATFORM == mg.WINDOWS:
-            self.form_width = 1020
+            self.form_width = 1016
             self.form_height = 640
-            btn_width_spacer = 36
+            btn_width_spacer = 30
         else:
             self.form_width = 1000
             self.form_height = 600
