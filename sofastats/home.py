@@ -544,18 +544,23 @@ class StartFrame(wx.Frame):
         #wx.MessageBox('Change tight_layout back')
         self.tight_height_drop = 24
         self.tight_width_drop = 57
-        if not self.tight_layout:
+        self.blankwp_height = 250
+        self.btn_drop = 40
+        btn_width = 170
+        if mg.PLATFORM == mg.WINDOWS:
+            self.form_width = 1020
+            self.form_height = 640
+            btn_width_spacer = 36
+        else:
             self.form_width = 1000
             self.form_height = 600
-            self.blankwp_height = 250
-            self.btn_drop = 40
-        else:
-            self.form_width = 1000-self.tight_width_drop
-            self.form_height = 600-self.tight_height_drop
-            self.blankwp_height = 250-self.tight_height_drop
+            btn_width_spacer = 18
+        if self.tight_layout:
+            self.form_width = self.form_width - self.tight_width_drop
+            self.form_height = self.form_height - self.tight_height_drop
+            self.blankwp_height = self.blankwp_height - self.tight_height_drop
             self.btn_drop = 37
-        btn_width = 170
-        self.btn_right = self.form_width - (btn_width + 18)
+        self.btn_right = self.form_width - (btn_width + btn_width_spacer)
         self.top_top = 7
         self.btn_left = 5
         self.main_left = 200
@@ -858,8 +863,8 @@ class StartFrame(wx.Frame):
             panel_dc = wx.ClientDC(self.panel)
             panel_dc.DrawBitmap(self.bmp_sofabg, 0, 0, True)
             if self.upgrade_available:
-                panel_dc.DrawBitmap(self.bmp_upgrade, self.version_right+95, 4,
-                    True)
+                panel_dc.DrawBitmap(self.bmp_upgrade,
+                    self.version_right+95, 4, True)
             orig_left_pos = 136
             orig_right_pos = 445
             left_pos = orig_right_pos if REVERSE else orig_left_pos
@@ -869,8 +874,8 @@ class StartFrame(wx.Frame):
             panel_dc.DrawBitmap(self.bmp_top_sofa, self.main_sofa_logo_right,
                 65, True)
             panel_dc.DrawBitmap(self.bmp_chart,
-                self.help_img_left+self.chart_img_offset, self.help_img_top-20,
-                True)
+                self.help_img_left+self.chart_img_offset,
+                self.help_img_top-20, True)
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 9,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
@@ -906,11 +911,18 @@ class StartFrame(wx.Frame):
             panel_dc.SetTextForeground(wx.WHITE)
             panel_dc.SetFont(wx.Font(12 if mg.PLATFORM == mg.MAC else 8,
                 wx.SWISS, wx.NORMAL, wx.NORMAL))
+            if mg.PLATFORM == mg.WINDOWS:
+                licence_offset = 93
+                logo_offset = 98
+            else:
+                licence_offset = 53
+                logo_offset = 58
             panel_dc.DrawLabel('Fully open source and'
                 '\nreleased under the AGPL3 licence',
-                wx.Rect(self.main_left, self.form_height-53, 100, 50))
-            panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left-115,
-                self.form_height-58, True)
+                wx.Rect(self.main_left,
+                    self.form_height - licence_offset, 100, 50))
+            panel_dc.DrawBitmap(self.bmp_agpl3, self.main_left - 115,
+                self.form_height-logo_offset, True)
             ## make default db if not already there
             def_db = mg.LOCAL_PATH / mg.INT_FOLDER / mg.SOFA_DB
             con = sqlite.connect(str(def_db))  #@UndefinedVariable
