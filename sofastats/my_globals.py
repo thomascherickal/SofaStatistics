@@ -20,6 +20,13 @@ debug = False
 VERSION = '1.5.0'
 ATTRIBUTION = 'sofastatistics.com'
 CONTACT = 'grant@sofastatistics.com'
+HOME_URL = 'http://www.sofastatistics.com'
+HELP_URL = 'http://www.sofastatistics.com/help.php'
+DOWNLOADS_URL = 'http://www.sofastatistics.com/downloads.php'
+COMMUNITY_URL = 'http://groups.google.com/group/sofastatistics'
+GET_STARTED_URL = ('http://www.sofastatistics.com/wiki/doku.php'
+    '?id=help:getting_started')
+
 ## http://docs.wxwidgets.org/2.9/language_8h.html
 """
 LANGUAGE_GALICIAN, LANGUAGE_CROATIAN, LANGUAGE_RUSSIAN, LANGUAGE_HEBREW

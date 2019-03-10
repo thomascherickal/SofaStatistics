@@ -792,15 +792,13 @@ class StartFrame(wx.Frame):
         ## home link
         home_link_hpos = self.version_right if REVERSE else self.main_left
         link_home = hl.HyperLinkCtrl(self.panel, -1, 'www.sofastatistics.com',
-            pos=(home_link_hpos, self.top_top),
-            URL='http://www.sofastatistics.com')
+            pos=(home_link_hpos, self.top_top), URL=mg.HOME_URL)
         lib.GuiLib.setup_link(link=link_home,
             link_colour=wx.Colour(255,255,255), bg_colour=wx.Colour(0, 0, 0))
         ## help link
         link_help = hl.HyperLinkCtrl(self.panel, -1,
             _('Get help from community'),
-            pos=(self.main_left, self.top_top + 200),
-            URL='http://groups.google.com/group/sofastatistics')
+            pos=(self.main_left, self.top_top + 200), URL=mg.COMMUNITY_URL)
         lib.GuiLib.setup_link(link=link_help, link_colour=self.text_brown,
             bg_colour=wx.Colour(205, 217, 215))
         ## upgrade link
@@ -808,9 +806,8 @@ class StartFrame(wx.Frame):
             upgrade_link_hpos = (self.main_left if REVERSE
                 else self.version_right+125)
             link_upgrade = hl.HyperLinkCtrl(self.panel, -1,
-                _(u'Upgrade to %s here') % new_version,
-                pos=(upgrade_link_hpos, self.top_top),
-                URL='http://www.sofastatistics.com/downloads.php')
+                _('Upgrade to %s here') % new_version,
+                pos=(upgrade_link_hpos, self.top_top), URL=mg.DOWNLOADS_URL)
             lib.GuiLib.setup_link(link=link_upgrade,
                 link_colour=wx.Colour(255,255,255),
                 bg_colour=wx.Colour(0, 0, 0))
@@ -844,7 +841,7 @@ class StartFrame(wx.Frame):
             raise Exception(msg)
         return new_version
 
-    def on_show(self, _event):
+    def on_show(self, _evt):
         setup_sofastats.init_com_types(self, self.panel)  ## fortunately, not needed on Mac
 
     def on_paint_err_msg(self, e):
@@ -852,7 +849,7 @@ class StartFrame(wx.Frame):
             f'developer for help - {mg.CONTACT}'
             f'\n\nCaused by error: {b.ue(e)}')
 
-    def on_paint(self, event):
+    def on_paint(self, evt):
         """
         Cannot use static bitmaps and static text to replace. In windows doesn't
         show background wallpaper.
@@ -935,9 +932,9 @@ class StartFrame(wx.Frame):
             active_projname = projects.filname2projname(self.active_proj)
             panel_dc.DrawLabel(_("Currently using \"%s\" project settings")
                 % active_projname, wx.Rect(self.main_left, 247, 400, 30))
-            event.Skip()
+            evt.Skip()
         except Exception as e:
-            event.Skip()
+            evt.Skip()
             self.panel.Unbind(wx.EVT_PAINT)
             wx.CallAfter(self.on_paint_err_msg, e)
             self.Destroy()
@@ -954,14 +951,12 @@ class StartFrame(wx.Frame):
         self.Refresh()
         if debug: print(f'Setting proj_text to {proj_text}')
 
-    def on_get_started_click(self, event):
+    def on_get_started_click(self, evt):
         import webbrowser
-        url = ('http://www.sofastatistics.com/wiki/doku.php'
-            '?id=help:getting_started')
-        webbrowser.open_new_tab(url)
-        event.Skip()
+        webbrowser.open_new_tab(mg.GET_STARTED_URL)
+        evt.Skip()
 
-    def on_get_started_enter(self, event):
+    def on_get_started_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_get_started,
@@ -975,16 +970,16 @@ class StartFrame(wx.Frame):
         myrect = wx.Rect(
             self.main_left, self.help_text_top, self.help_text_width, 260)
         panel_dc.DrawLabel(text2draw, myrect)
-        event.Skip()
+        evt.Skip()
 
-    def on_data_click(self, event):
+    def on_data_click(self, evt):
         from sofastats import dataselect  #@UnresolvedImport
         proj_name = self.active_proj
         dlgData = dataselect.DlgDataSelect(self, proj_name)
         dlgData.ShowModal()
-        event.Skip()
+        evt.Skip()
 
-    def on_data_enter(self, event):
+    def on_data_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_data,
@@ -1010,15 +1005,15 @@ class StartFrame(wx.Frame):
         )
         panel_dc.DrawLabel(text2draw, wx.Rect(self.main_left,
             self.help_text_top, self.help_text_width, 260))
-        event.Skip()
+        evt.Skip()
 
-    def on_import_click(self, event):
+    def on_import_click(self, evt):
         from sofastats.importing import importer_gui  #@UnresolvedImport
         dlg = importer_gui.DlgImportFileSelect(self)
         dlg.ShowModal()
-        event.Skip()
+        evt.Skip()
 
-    def on_import_enter(self, event):
+    def on_import_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_import,
@@ -1033,9 +1028,9 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(t2d(txt_entry, self.max_help_text_width),
             wx.Rect(self.main_left, self.help_text_top,
                 self.help_text_width-10, 260))
-        event.Skip()
+        evt.Skip()
 
-    def on_tables_click(self, event):
+    def on_tables_click(self, evt):
         "Open make table gui with settings as per active_proj"
         wx.BeginBusyCursor()
         from sofastats.tables import report_table  #@UnresolvedImport
@@ -1050,9 +1045,9 @@ class StartFrame(wx.Frame):
             wx.MessageBox(msg)
         finally:
             lib.GuiLib.safe_end_cursor()
-            event.Skip()
+            evt.Skip()
 
-    def on_tables_enter(self, event):
+    def on_tables_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_tabs,
@@ -1068,14 +1063,14 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(txt2draw,
             wx.Rect(self.main_left, self.help_text_top,
                 self.help_text_width, 260))
-        event.Skip()
+        evt.Skip()
 
     def get_script(self, cont, script):
         cont.append(mg.JS_WRAPPER_L)
         cont.append(script)
         cont.append(mg.JS_WRAPPER_R)
 
-    def on_charts_click(self, event):
+    def on_charts_click(self, evt):
         from sofastats.charting import charting_dlg  #@UnresolvedImport
         wx.BeginBusyCursor()
         try:
@@ -1090,9 +1085,9 @@ class StartFrame(wx.Frame):
                 f'{traceback.format_exc()}')
         finally:
             lib.GuiLib.safe_end_cursor()
-            event.Skip()
+            evt.Skip()
 
-    def on_charts_enter(self, event):
+    def on_charts_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_chart,
@@ -1105,9 +1100,9 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(t2d(txt_charts, self.max_help_text_width),
             wx.Rect(self.main_left, self.help_text_top,
                 self.help_text_width, 260))
-        event.Skip()
+        evt.Skip()
 
-    def on_stats_click(self, event):
+    def on_stats_click(self, evt):
         ## open statistics selection dialog
         wx.BeginBusyCursor()
         from sofastats import stats_select  #@UnresolvedImport
@@ -1122,9 +1117,9 @@ class StartFrame(wx.Frame):
             raise Exception(f'{msg}.\nCaused by error: {traceback.format_exc()}')
         finally:
             lib.GuiLib.safe_end_cursor()
-            event.Skip()
+            evt.Skip()
 
-    def on_stats_enter(self, event):
+    def on_stats_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
         self.draw_blank_wallpaper(panel_dc)
         panel_dc.DrawBitmap(self.bmp_stats,
@@ -1145,13 +1140,12 @@ class StartFrame(wx.Frame):
         panel_dc.DrawLabel(txt2draw,
             wx.Rect(self.main_left, self.help_text_top,
                 self.help_text_width, 260))
-        event.Skip()
+        evt.Skip()
 
-    def on_help_click(self, event):
+    def on_help_click(self, evt):
         import webbrowser
-        url = 'http://www.sofastatistics.com/help.php'
-        webbrowser.open_new_tab(url)
-        event.Skip()
+        webbrowser.open_new_tab(mg.HELP_URL)
+        evt.Skip()
 
     def on_help_enter(self, event):
         panel_dc = wx.ClientDC(self.panel)
