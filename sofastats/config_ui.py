@@ -163,9 +163,8 @@ class DlgVarConfig(wx.Dialog):
             folder_exists = os.path.exists(foldername)
             if folder_exists:
                 with open(entered_vdt_path, 'w') as f:
-                    f.write(
-                        'var_labels={}\nvar_notes={}\nvar_types={}\nval_dics={}')
-                    f.close()
+                    f.write('var_labels={}\nvar_notes={}'
+                        '\nvar_types={}\nval_dics={}')
                 self.ret_dic[mg.VDT_RET] = entered_vdt_path
             else:
                 wx.MessageBox(_("Unable to make vdt file \"%(filename)s\" - "

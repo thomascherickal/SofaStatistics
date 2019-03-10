@@ -1,4 +1,3 @@
-import os
 import wx
 
 from sofastats import basic_lib as b
@@ -19,7 +18,7 @@ TEST_TTEST_INDEP = _('t-test - independent')
 TEST_TTEST_PAIRED = _('t-test - paired')
 TEST_WILCOXON = _('Wilcoxon Signed Ranks')
 STATS_TESTS = [TEST_ANOVA, TEST_CHI_SQUARE, TEST_PEARSONS_R, TEST_SPEARMANS_R,
-    TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, TEST_TTEST_PAIRED, 
+    TEST_KRUSKAL_WALLIS, TEST_MANN_WHITNEY, TEST_TTEST_INDEP, TEST_TTEST_PAIRED,
     TEST_WILCOXON]
 
 t2d = lib.GuiLib.get_text_to_draw
@@ -229,6 +228,7 @@ type_help = _('Names only data (Nominal) is just labels or names. Ordered data '
     '\n\nExample of Ordered data: ratings of restaurant service standards '
     '(1 - Very Poor, 2 - Poor, 3 - Average etc).')
 
+
 class DlgStatsSelect(wx.Dialog):
     
     def __init__(self, proj_name):
@@ -291,7 +291,7 @@ class DlgStatsSelect(wx.Dialog):
             mg.SCRIPT_PATH / 'images' / stats_sel_img, wx.BITMAP_TYPE_GIF)
         self.bmp_stats_select = wx.Bitmap(img_stats_select)
         ## direct or assisted
-        self.rad_direct = wx.RadioButton(self.panel, -1, 
+        self.rad_direct = wx.RadioButton(self.panel, -1,
             pos=(self.main_left-25, 55), style=wx.RB_GROUP)  ## groups all till next RB_GROUP
         self.rad_direct.Bind(wx.EVT_RADIOBUTTON, self.on_radio_direct_btn)
         self.rad_direct.SetValue(True)
@@ -434,7 +434,6 @@ class DlgStatsSelect(wx.Dialog):
         for i, test in enumerate(STATS_TESTS):
             self.lst_tests.InsertItem(i, test)
             self.lst_tests.SetItem(i, 1, '', self.idx_blank)
-        self.lst_tests.InsertItem(i+1, '')
         self.lst_tests.Select(0)
         self.lst_tests.Bind(
             wx.EVT_LIST_ITEM_SELECTED, self.on_list_item_selected)
@@ -517,7 +516,7 @@ class DlgStatsSelect(wx.Dialog):
         panel_dc.DrawLabel(_('Answering questions about your data'),
            wx.Rect(self.btn1_left, self.questions_top, 100, 100))
         panel_dc.SetFont(wx.Font(11, wx.SWISS, wx.NORMAL, wx.BOLD))
-        panel_dc.DrawLabel(_('Tips'), 
+        panel_dc.DrawLabel(_('Tips'),
            wx.Rect(self.lst_left, self.lst_top+self.lst_height+20, 100, 100))
         event.Skip()
 

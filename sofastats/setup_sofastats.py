@@ -180,23 +180,23 @@ def check_python_version():
     if debug: pyversion = None
     if (mg.PLATFORM == mg.LINUX and pyversion < '3.6'):
         fixit_file = mg.HOME_PATH / 'Desktop' / 'how to get SOFA working.txt'
-        f = open(fixit_file, 'w', encoding='utf-8')
-        div = '*'*80
-        os_msg = """
-If you have multiple versions of Python available you will need to ensure that
-SOFA Statistics is launched with version 3.6+ explicitly defined.
-E.g. /usr/bin/python3.6 instead of python.
-        """
-        msg = (f"""
-{div}
-HOW TO GET SOFA STATISTICS WORKING AGAIN 
-{div}
+        with open(fixit_file, 'w', encoding='utf-8') as f:
+            div = '*'*80
+            os_msg = """
+    If you have multiple versions of Python available you will need to ensure
+    that SOFA Statistics is launched with version 3.6+ explicitly defined.
+    E.g. /usr/bin/python3.6 instead of python.
+            """
+            msg = (f"""
+    {div}
+    HOW TO GET SOFA STATISTICS WORKING AGAIN
+    {div}
 
-It looks like an incorrect version of Python is being used to run SOFA Statistics.
-{os_msg}
-For help, please contact {mg.CONTACT}""")
-        f.write(msg)
-        f.close()    
+    It looks like an incorrect version of Python is being used to run
+    SOFA Statistics.
+    {os_msg}
+    For help, please contact {mg.CONTACT}""")
+            f.write(msg)
         msgapp = ErrMsgApp(msg + '\n\n' + div + '\n\nThis message has been '
             'saved to a file on your Desktop for future reference', True)
         msgapp.MainLoop()

@@ -4,7 +4,6 @@ from sofastats import basic_lib as b
 from sofastats import my_globals as mg
 from sofastats import lib
 from sofastats.stats import paired2var
-from pyatspi.interface import interface
 
 
 class DlgConfig(paired2var.DlgPaired2VarConfig):
