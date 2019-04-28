@@ -1108,7 +1108,7 @@ def run_headless_import(fpath=None, tblname=None,
     ## import file
     dummy_importer = HeadlessImporter()
     if file_type == FILE_CSV:
-        from sofastats.importing import csv_importer_new as csv_importer #@UnresolvedImport
+        from sofastats.importing import csv_importer #@UnresolvedImport
         file_importer = csv_importer.CsvImporter(dummy_importer, fpath,
             final_tblname, supplied_encoding,
             headless=headless, headless_has_header=headless_has_header,

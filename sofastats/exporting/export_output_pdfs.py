@@ -11,7 +11,6 @@ import PyPDF2 as pypdf
 from .. import basic_lib as b  #@UnresolvedImport
 from .. import my_globals as mg  #@UnresolvedImport
 from . import export_output  #@UnresolvedImport
-from .. import output  #@UnresolvedImport
 
 RAWPDF_FILE = 'raw.pdf'
 RAWPDF_PATH = mg.INT_PATH / RAWPDF_FILE

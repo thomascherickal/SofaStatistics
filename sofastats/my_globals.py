@@ -21,7 +21,7 @@ VERSION = '1.5.0'
 ATTRIBUTION = 'sofastatistics.com'
 CONTACT = 'grant@sofastatistics.com'
 HOME_URL = 'http://www.sofastatistics.com'
-HELP_URL = 'http://www.sofastatistics.com/help.php'
+HELP_URL = 'http://www.sofastatistics.com/userguide.php'
 DOWNLOADS_URL = 'http://www.sofastatistics.com/downloads.php'
 COMMUNITY_URL = 'http://groups.google.com/group/sofastatistics'
 GET_STARTED_URL = ('http://www.sofastatistics.com/wiki/doku.php'
@@ -577,14 +577,12 @@ DBE_MYSQL = 'MySQL'
 DBE_MS_ACCESS = 'MS Access'
 DBE_MS_SQL = 'MS SQL Server'
 DBE_PGSQL = 'PostgreSQL'
-DBE_CUBRID = 'CUBRID'
 DBE_KEY2KEY_AS_STR = {  ## Too late to split into keys and labels - all over users' existing proj files
     DBE_SQLITE: 'DBE_SQLITE',
     DBE_MYSQL: 'DBE_MYSQL',
     DBE_MS_ACCESS: 'DBE_MS_ACCESS',
     DBE_MS_SQL: 'DBE_MS_SQL',
     DBE_PGSQL: 'DBE_PGSQL',
-    DBE_CUBRID: 'DBE_CUBRID',
 }
 MUST_DEL_TMP = False
 DBE_PROBLEM = []
@@ -593,7 +591,6 @@ DBE_MODULES = {}
 DBE_PLUGINS = [
     (DBE_SQLITE, 'dbe_sqlite'),
     (DBE_MYSQL, 'dbe_mysql'),
-    (DBE_CUBRID, 'dbe_cubrid'),
     (DBE_MS_ACCESS, 'dbe_ms_access'),
     (DBE_MS_SQL, 'dbe_ms_sql'),
     (DBE_PGSQL, 'dbe_postgresql'),

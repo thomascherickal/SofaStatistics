@@ -154,7 +154,7 @@ class DlgExportData(wx.Dialog):
         temp_desktop_report_only -- exporting output to a temporary desktop
         folder
 
-        Works with SQLite, PostgreSQL, MySQL, CUBRID, MS Access and SQL Server.
+        Works with SQLite, PostgreSQL, MySQL, MS Access, and SQL Server.
         """
         self.dd = mg.DATADETS_OBJ
         title = f'Export {self.dd.tbl} to spreadsheet'

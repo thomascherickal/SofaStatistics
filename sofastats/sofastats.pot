@@ -744,7 +744,6 @@ msgstr ""
 msgid "Decreasing"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:399 dbe_plugins/dbe_mysql.py:403
 #: dbe_plugins/dbe_postgresql.py:394 dbe_plugins/dbe_sqlite.py:280
 msgid "Default Database (name only):"
 msgstr ""
@@ -765,14 +764,9 @@ msgstr ""
 msgid "Default Table (optional):"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:409 dbe_plugins/dbe_ms_access.py:262
 #: dbe_plugins/dbe_ms_sql.py:307 dbe_plugins/dbe_mysql.py:414
 #: dbe_plugins/dbe_postgresql.py:405
 msgid "Default Table:"
-msgstr ""
-
-#: dbe_plugins/dbe_cubrid.py:406
-msgid "Default database"
 msgstr ""
 
 #: dbe_plugins/dbe_postgresql.py:401
@@ -788,7 +782,6 @@ msgstr ""
 msgid "Default project so users can get started without having to understand projects. NB read only."
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:416 dbe_plugins/dbe_ms_access.py:270
 #: dbe_plugins/dbe_ms_sql.py:314 dbe_plugins/dbe_mysql.py:421
 #: dbe_plugins/dbe_postgresql.py:412 dbe_plugins/dbe_sqlite.py:297
 msgid "Default table (optional)"
@@ -1273,15 +1266,10 @@ msgstr ""
 msgid "Host e.g. (local), or 190.190.200.100,1433, or my-svr-01,1433"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:424
-msgid "Host e.g. localhost, or localhost:33000"
-msgstr ""
-
 #: dbe_plugins/dbe_mysql.py:428 dbe_plugins/dbe_postgresql.py:419
 msgid "Host e.g. localhost, or remote:3307"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:419 dbe_plugins/dbe_mysql.py:423
 #: dbe_plugins/dbe_postgresql.py:414
 msgid "Host:"
 msgstr ""
@@ -1798,7 +1786,6 @@ msgstr ""
 msgid "Paired Variables to Check"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:440 dbe_plugins/dbe_ms_sql.py:341
 #: dbe_plugins/dbe_mysql.py:444 dbe_plugins/dbe_postgresql.py:436
 msgid "Password"
 msgstr ""
@@ -1811,7 +1798,6 @@ msgstr ""
 msgid "Password - space if none:"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:434 dbe_plugins/dbe_mysql.py:438
 #: dbe_plugins/dbe_postgresql.py:430 gdata_downloader.py:66
 msgid "Password:"
 msgstr ""
@@ -2763,10 +2749,6 @@ msgstr ""
 msgid "The CSS style file '%s' doesn't exist. "
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:543
-msgid "The CUBRID details are incomplete"
-msgstr ""
-
 #: stats_select.py:571
 msgid "The Chi Square test is one of the most widely used tests in social science. It is good for seeing if the results for two variables are independent or related. Is there a relationship between gender and income group for example?"
 msgstr ""
@@ -3112,7 +3094,6 @@ msgstr ""
 msgid "Unable to extract or generate field names"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:123 dbe_plugins/dbe_ms_sql.py:95
 #: dbe_plugins/dbe_mysql.py:110 dbe_plugins/dbe_postgresql.py:143
 msgid "Unable to find any databases that have tables and you have permission to access."
 msgstr ""
@@ -3282,10 +3263,6 @@ msgstr ""
 msgid "User Name (opt)"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:432
-msgid "User e.g. dba"
-msgstr ""
-
 #: dbe_plugins/dbe_postgresql.py:428
 msgid "User e.g. postgres"
 msgstr ""
@@ -3294,7 +3271,6 @@ msgstr ""
 msgid "User e.g. root"
 msgstr ""
 
-#: dbe_plugins/dbe_cubrid.py:427 dbe_plugins/dbe_mysql.py:431
 #: dbe_plugins/dbe_postgresql.py:423
 msgid "User:"
 msgstr ""

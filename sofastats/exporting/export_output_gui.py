@@ -3,7 +3,6 @@ Note -- enable images saved to be in high resolution for publishing purposes.
 Warn users it will take longer (give an estimate) and show progress on a bar.
 """
 import datetime
-import os
 
 import wx
 

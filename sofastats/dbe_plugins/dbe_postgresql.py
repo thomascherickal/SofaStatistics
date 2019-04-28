@@ -9,16 +9,13 @@ from sofastats import getdata
 try:
     import psycopg2 as pg
 except ImportError as e:
-    try:
-        import pgdb as pg
-    except ImportError as e:
-        raise Exception(
-            'Not importing PostgreSQL driver. NB SOFA can only work with '
-            ' PostgreSQL if its path e.g. "C:\\Program Files\\PostgreSQL\\'
-            '10.4\\bin" is added to your Windows PATH variable. See '
-            'http://geekswithblogs.net/renso/archive/2009/10/21/'
-            'how-to-set-the-windows-path-in-windows-7.aspx'
-            f'\nReason: {b.ue(e)}')
+    raise Exception(
+        'Not importing PostgreSQL driver. NB SOFA can only work with '
+        ' PostgreSQL if its path e.g. "C:\\Program Files\\PostgreSQL\\'
+        '10.4\\bin" is added to your Windows PATH variable. See '
+        'http://geekswithblogs.net/renso/archive/2009/10/21/'
+        'how-to-set-the-windows-path-in-windows-7.aspx'
+        f'\nReason: {b.ue(e)}')
 
 ## http://www.postgresql.org/docs/8.4/static/datatype.html
 BIGINT = 'bigint'  ## "signed eight-byte integer"

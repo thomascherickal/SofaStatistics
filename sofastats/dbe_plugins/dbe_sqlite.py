@@ -1,5 +1,4 @@
 import sqlite3 as sqlite
-import os
 import pprint
 import re
 import wx #@UnusedImport

@@ -24,8 +24,7 @@ def set_SCRIPT_PATH():
     http://stackoverflow.com/questions/247770/retrieving-python-module-path
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
-    rawpth = os.path.dirname(mg.__file__)
-    mg.SCRIPT_PATH = Path(rawpth)
+    mg.SCRIPT_PATH = Path.cwd()
     if mg.SCRIPT_PATH == mg.LOCAL_PATH:
         raise Exception(_("Oops - it looks like you've installed SOFA to your "
             "user directory rather than a program directory. Please uninstall "
@@ -43,9 +42,6 @@ def import_dbe_plugin(dbe_plugin):
         elif dbe_plugin == mg.DBE_MYSQL:
             from sofastats.dbe_plugins import dbe_mysql
             mod = dbe_mysql
-        elif dbe_plugin == mg.DBE_CUBRID:
-            from sofastats.dbe_plugins import dbe_cubrid
-            mod = dbe_cubrid
         elif dbe_plugin == mg.DBE_MS_ACCESS:
             from sofastats.dbe_plugins import dbe_ms_access
             mod = dbe_ms_access
