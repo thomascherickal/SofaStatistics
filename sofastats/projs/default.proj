@@ -1,21 +1,19 @@
 # Windows file paths _must_ have double not single backslashes
-# All file paths _must_ have a u before the quote-enclosed string
-# u"C:\\Users\\demo.txt" is GOOD
-# u"C:\Users\demo.txt" is BAD
-# "C:\\Users\\demo.txt" is also BAD
+# "C:\\Users\\demo.txt" is GOOD
+# "C:\Users\demo.txt" is BAD
 
-proj_notes = u"Default project so users can get started without having to understand projects. Read only."
+proj_notes = "Default project so users can get started without having to understand projects. Read only."
 
-fil_var_dets = u"/home/g/Documents/sofastats/vdts/general_var_dets.vdts"
-fil_css = u"/home/g/Documents/sofastats/css/default.css"
-fil_report = u"/home/g/Documents/sofastats/reports/default_report.htm"
-fil_script = u"/home/g/Documents/sofastats/scripts/general_scripts.py"
+fil_var_dets = "/home/g/Documents/sofastats/vdts/general_var_dets.vdts"
+fil_css = "/home/g/Documents/sofastats/css/default.css"
+fil_report = "/home/g/Documents/sofastats/reports/default_report.htm"
+fil_script = "/home/g/Documents/sofastats/scripts/general_scripts.py"
 default_dbe = "SQLite"
 
-default_dbs = {u'MySQL': None, u'SQLite': u'sofa_db'}
+default_dbs = {'MySQL': None, 'SQLite': 'sofa_db'}
 
-default_tbls = {u'MySQL': None, u'SQLite': u'demo_tbl'}
+default_tbls = {'MySQL': None, 'SQLite': 'demo_tbl'}
 
-con_dets = {u'SQLite': {u'sofa_db': {'database': u"/home/g/Documents/sofastats/_internal/sofa_db"}}}
+con_dets = {'SQLite': {'sofa_db': {'database': "/home/g/Documents/sofastats/_internal/sofa_db"}}}
 
 open_on_start = False
