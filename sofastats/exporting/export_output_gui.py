@@ -156,7 +156,7 @@ class DlgExportOutput(wx.Dialog):
             return
         msgs = []
         hdr, img_items, tbl_items = export_output.get_hdr_and_items(
-            self.report_path, diagnostic=mg.EXPORT_IMAGES_DIAGNOSTIC)
+            self.report_fpath, diagnostic=mg.EXPORT_IMAGES_DIAGNOSTIC)
         n_imgs = len(img_items)
         n_tbls = len(tbl_items)
         if not (do_pdf or (do_imgs and n_imgs) or (do_tbls and n_tbls)):
@@ -186,7 +186,7 @@ class DlgExportOutput(wx.Dialog):
         if do_pdf:
             try:
                 export_output_pdfs.pdf_tasks(
-                    self.report_path, temp_desktop_path,
+                    self.report_fpath, temp_desktop_path,
                     gauge_start_pdf, steps_per_pdf, msgs, self.progbar,
                     save2report_path=self.save2report_path, headless=headless)
             except Exception as e:
@@ -199,7 +199,7 @@ class DlgExportOutput(wx.Dialog):
         if do_imgs:
             try:
                 export_output_images.ExportImage.export2imgs(hdr, img_items,
-                    self.report_path, temp_desktop_path,
+                    self.report_fpath, temp_desktop_path,
                     self.output_dpi, gauge_start_imgs,
                     self.export_status, steps_per_img, msgs, self.progbar,
                     save2report_path=self.save2report_path,
@@ -226,7 +226,7 @@ class DlgExportOutput(wx.Dialog):
                 try:
                     export_output_spreadsheets.export2spreadsheet(
                         hdr, tbl_items,
-                        self.report_path, temp_desktop_path,
+                        self.report_fpath, temp_desktop_path,
                         gauge_start_tbls, steps_per_tbl, msgs, self.progbar,
                         save2report_path=self.save2report_path,
                         headless=headless)

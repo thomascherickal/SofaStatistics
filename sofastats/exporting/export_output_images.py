@@ -271,11 +271,11 @@ def copy_output():
     do = wx.FileDataObject()
     for filname in sorted_names:
         if filname.endswith('.png'):
-            imgname = mg.INT_COPY_IMGS_PATH / filname
+            imgname = str(mg.INT_COPY_IMGS_PATH / filname)
             do.AddFile(imgname)
     wx.TheClipboard.AddData(do)
     wx.TheClipboard.Close()
-    bi.Destroy()
+    #bi.Destroy()  ## http://wxpython-users.1045709.n5.nabble.com/crashing-wxpython-using-BusyInfo-Destroy-td2344559.html
     lib.GuiLib.safe_end_cursor()
 
 

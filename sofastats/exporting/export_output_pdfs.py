@@ -106,8 +106,9 @@ def get_raw_pdf(html_path, pdf_path, width='', height=''):
 
 def get_pdf_page_count(pdf_path):
     try:
-        encoding2use = sys.getfilesystemencoding()  ## on win, mbcs
-        pdf_im = pypdf.PdfFileReader(open(pdf_path.encode(encoding2use), 'rb'))
+        #encoding2use = sys.getfilesystemencoding()  ## on win, mbcs
+        pdf_im = pypdf.PdfFileReader(
+            open(str(pdf_path), 'rb'))
     except Exception as e:
         raise Exception(
             f'Problem getting PDF page count. Orig error: {b.ue(e)}')

@@ -700,7 +700,7 @@ class ConfigUI:
         except AttributeError:
             pass
         dlg = export_output_gui.DlgExportOutput(title='Export Output',
-            report_path=mg.INT_REPORT_PATH, save2report_path=False,
+            report_fpath=mg.INT_REPORT_PATH, save2report_path=False,
             multi_page_items=self.multi_page_items)
         dlg.ShowModal()
 
