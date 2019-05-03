@@ -1,4 +1,5 @@
 from collections import namedtuple
+from pathlib import Path
 import subprocess
 import sys
 
@@ -7,9 +8,12 @@ import wx
 from .. import basic_lib as b
 from .. import my_globals as mg
 
-try:
-    EXE_TMP = sys._MEIPASS #@UndefinedVariable
-except AttributeError:
+if mg.PLATFORM == mg.WINDOWS:
+    try:
+        EXE_TMP = sys._MEIPASS #@UndefinedVariable
+    except AttributeError:
+        EXE_TMP = Path.cwd()
+else:
     EXE_TMP = ''
 
 output_item = namedtuple('output_item', 'title, content')
@@ -50,14 +54,14 @@ def shellit(cmd, shell=True):
                 print(cmd)
         else:
             print(cmd)
-    encoding2use = sys.getfilesystemencoding()  ## on win, mbcs
-    retcode = subprocess.call(cmd.encode(encoding2use), shell=shell)
-    if retcode < 0:
-        msg = f'{cmd} was terminated by signal {retcode}'
+    completed_process = subprocess.run(cmd, shell=shell)
+    if completed_process.returncode != 0:
+        msg = f'{cmd} was terminated by signal {completed_process.returncode}'
         if debug: print(msg)
         raise Exception(msg)
     else:
-        if debug and verbose: print(f'{cmd} returned {retcode}')
+        if debug and verbose:
+            print(f'{cmd} returned {completed_process.returncode}')
 
 def get_split_html(report_path):
     """
