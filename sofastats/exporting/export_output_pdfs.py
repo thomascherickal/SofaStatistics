@@ -4,7 +4,6 @@ headless = True when calling.
 """
 import os
 import shutil
-import sys
 
 import PyPDF2 as pypdf
 

@@ -248,7 +248,7 @@ class ExportImage:
 
 def copy_output():
     wx.BeginBusyCursor()
-    bi = wx.BusyInfo('Copying output ...')
+    wx.BusyInfo('Copying output ...')
     ## act as if user selected print dpi and export as images
     export_status = {mg.CANCEL_EXPORT: False}
     sorted_names = os.listdir(mg.INT_COPY_IMGS_PATH)
@@ -275,7 +275,7 @@ def copy_output():
             do.AddFile(imgname)
     wx.TheClipboard.AddData(do)
     wx.TheClipboard.Close()
-    #bi.Destroy()  ## http://wxpython-users.1045709.n5.nabble.com/crashing-wxpython-using-BusyInfo-Destroy-td2344559.html
+    # (bi is a wx.BusyInfo) bi.Destroy()  ## http://wxpython-users.1045709.n5.nabble.com/crashing-wxpython-using-BusyInfo-Destroy-td2344559.html
     lib.GuiLib.safe_end_cursor()
 
 

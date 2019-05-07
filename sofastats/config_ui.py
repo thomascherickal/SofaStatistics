@@ -19,14 +19,11 @@ import webbrowser
 
 ## Import hyperlink
 try:
-    from agw import hyperlink as hl
-except ImportError:  ## if it's not there locally, try the wxPython lib.
-    try:
-        import wx.lib.agw.hyperlink as hl #@UnusedImport
-    except ImportError:
-        msg = ('There seems to be a problem related to your wxPython package '
-            f"{traceback.format_exc()}")
-        raise Exception(msg)
+    import wx.lib.agw.hyperlink as hl #@UnusedImport
+except ImportError:
+    msg = ('There seems to be a problem related to your wxPython package '
+        f"{traceback.format_exc()}")
+    raise Exception(msg)
 
 debug = False
 PRETEND_IS_MAC = debug
