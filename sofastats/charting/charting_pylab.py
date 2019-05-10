@@ -32,7 +32,7 @@ def save_report_img(add_to_report, report_fpath,
     if add_to_report:
         imgs_path = output.ensure_imgs_path(
             report_path=report_fpath, ext=mg.RPT_SUBFOLDER_SUFFIX)
-        if debug: print('imgs_path: %s' % imgs_path)
+        if debug: print(f'imgs_path: {imgs_path}')
         n_imgs = len(os.listdir(imgs_path))
         file_name = f'{n_imgs:03}.png'
         img_path = imgs_path / file_name  ## absolute
@@ -40,7 +40,7 @@ def save_report_img(add_to_report, report_fpath,
         save_func(*args, **kwargs)
         if debug: print(f'Just saved {img_path}')
         subfolder = imgs_path.parts[-1]
-        img_src = str(subfolder / file_name)  ## relative so can shift html
+        img_src = f'{subfolder}{os.sep}{file_name}'  ## relative so can shift html
         img_src = output.percent_encode(img_src)
         if debug: print(f'add_to_report img_src: {img_src}')
     else:

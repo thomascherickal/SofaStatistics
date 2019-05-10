@@ -24,7 +24,10 @@ def set_SCRIPT_PATH():
     http://stackoverflow.com/questions/247770/retrieving-python-module-path
     http://www.velocityreviews.com/forums/t336564-proper-use-of-file.html
     """
-    mg.SCRIPT_PATH = Path.cwd()
+    if mg.PLATFORM == mg.LINUX:  ## different launch context
+        mg.SCRIPT_PATH = Path.cwd() / 'sofastats'  ## launching from folder above package level
+    else:
+        mg.SCRIPT_PATH = Path.cwd()  ## launching from exe in same folder
     if mg.SCRIPT_PATH == mg.LOCAL_PATH:
         raise Exception(_("Oops - it looks like you've installed SOFA to your "
             "user directory rather than a program directory. Please uninstall "
