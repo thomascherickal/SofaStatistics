@@ -58,8 +58,8 @@ def save_report_img(add_to_report, report_fpath,
         file_url_start = (mg.FILE_URL_START_WIN if mg.PLATFORM == mg.WINDOWS 
             else mg.FILE_URL_START_GEN)
         img_src = file_url_start + output.percent_encode(img_src)
-        if mg.PLATFORM == mg.WINDOWS:
-            img_src = output.fix_perc_encodings_for_win(img_src)
+    if mg.PLATFORM == mg.WINDOWS:
+        img_src = output.fix_perc_encodings_for_win(img_src)
     if debug: print('img_src: %s' % img_src)
     return img_src
 
