@@ -1099,7 +1099,7 @@ def wilcoxont(
         if diff != 0:
             d.append(diff)
     count = len(d)
-    absd = map(abs, d)
+    absd = list(map(abs, d))
     absranked = rankdata(absd, headless=headless)
     r_plus = 0.0
     r_minus = 0.0
@@ -1652,7 +1652,7 @@ def variance(vals, *, high=False):
     if not high:
         var = sum_squares(deviations) / float(n-1)
     else:
-        var = sum_squares(deviations, high) / lib.n2d(n-1)
+        var = sum_squares(deviations, high=high) / lib.n2d(n-1)
     return var
 
 def samplevar (vals, *, high=False):
@@ -1876,7 +1876,7 @@ def betacf(a, b, x, *, high=False):
         qap = a+one
         qam = a-one
         bz = one-qab*x/qap
-    for i in range(ITMAX+1):
+    for i in range(int(ITMAX)+1):
         if high:
             i = lib.n2d(i)
         em = i + one

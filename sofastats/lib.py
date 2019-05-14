@@ -87,22 +87,28 @@ class TypeLib:
 class DbLib:
 
     @staticmethod
-    def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, *, 
-            pystr_use_double_quotes=True):
+    def quote_val(raw_val, sql_str_literal_quote, sql_esc_str_literal_quote, *,
+            pystr_should_use_double_quotes=None):
         """
         Need to quote a value e.g. for inclusion in an SQL statement.
 
-        raw_val -- might be a string or a datetime but can't be a number.
-
-        sql_str_literal_quote -- e.g. ' for SQLite
-
-        sql_esc_str_literal_quote -- e.g. '' for SQLite
-
-        pystr_use_double_quotes -- Use double quotes for string declaration
-        e.g. myvar = "..." vs myvar = '...'. Best to use the opposite of the
-        literal quotes used by the database engine to minimise escaping.
+        :param misc raw_val: might be a string or a datetime but can't be a
+         number.
+        :param str sql_str_literal_quote: e.g. ' for SQLite
+        :param str sql_esc_str_literal_quote: e.g. '' for SQLite
+        :param bool pystr_should_use_double_quotes: If True, use double quotes for
+         string declaration in Python e.g. myvar = "..." vs myvar = '...'. Best
+         for the Python string to use the opposite of the literal quotes
+         (sql_str_literal_quote) used by the database engine to minimise
+         escaping.
+        :return: a Python string with db escaping of quotes. Will need Python
+         escaping as well so the string is what is needed by the db.
+        :rtype: str
         """
         debug = False
+        if pystr_should_use_double_quotes is None:
+            db_using_double_quotes = (sql_str_literal_quote == '"')
+            pystr_should_use_double_quotes = not db_using_double_quotes
         try:  ## try to process as date first
             val = raw_val.isoformat()
             quoted_val = sql_str_literal_quote + val + sql_str_literal_quote
@@ -144,7 +150,7 @@ class DbLib:
                 raise Exception(
                     'Inappropriate attempt to quote non-string value.'
                     f'\nCaused by error: {b.ue(e)}')
-            if pystr_use_double_quotes:
+            if pystr_should_use_double_quotes:
                 ## 2) do Python escaping
                 pystr_esc_val = val.replace('"', '\"')
                 ## 3) variable declaration of quoted value
@@ -268,7 +274,7 @@ class OutputLib:
         elif mg.FILE_URL_START_GEN in img_path:
             img_path = img_path.split(mg.FILE_URL_START_GEN)[1]
         if debug: print(f'Final img_path:\n{img_path}')
-        return img_path
+        return Path(img_path)
 
     @staticmethod
     def get_src_dst_preexisting_img(export_report, imgs_path, content):
@@ -290,8 +296,8 @@ class OutputLib:
         img_path = OutputLib._extract_img_path(content, use_as_url=False)
         if debug:
             print(f'get_src_dst_pre-existing_img\nimg_path:\n{img_path}\n')
-        if export_report:  ## trim off trailing divider, then split and get first part
-            src = Path(os.path.split(str(imgs_path)[:-1])[0]) / img_path
+        if export_report:
+            src = imgs_path.parent / img_path
         else:
             src = img_path  ## the run_report process leaves an abs version. How nice!
         if debug: print(f'src:\n{src}\n')

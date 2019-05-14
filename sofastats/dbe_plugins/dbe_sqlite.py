@@ -39,8 +39,8 @@ def quote_val(raw_val):
     Single quote is the literal delimiter and internal single quotes need
     escaping by repeating them.
     """
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'",
-        sql_esc_str_literal_quote="''", pystr_use_double_quotes=True)
+    return lib.DbLib.quote_val(raw_val,
+        sql_str_literal_quote="'", sql_esc_str_literal_quote="''")
 
 def get_summable(clause):
     return clause

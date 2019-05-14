@@ -18,11 +18,8 @@ def get_range_idxs(vals, val_a, val_b):
     underlying data is not.
 
     E.g. '1' and '5' in [1, 2, 3, 4, 5]
-    or '"Chrome"' and '"Safari"' in ['Chrome', 'Firefox', ...]
+    or 'Chrome' and 'Safari' in ['Chrome', 'Firefox', ...]
     or '1000000000000.2' etc in ['1000000000000.2', '1000000000000.3', ...].
-
-    val_a and val_b are deliberately wrapped in double quotes if strings by all
-    valid inputs to this function.
     """
     debug = False
     if debug:

@@ -3,6 +3,7 @@ export2pdf() does the real work and can be scripted outside the GUI. Set
 headless = True when calling.
 """
 import os
+from pathlib import Path
 import shutil
 
 import PyPDF2 as pypdf
@@ -47,7 +48,7 @@ def export2pdf(pdf_root, pdf_name, report_path, gauge_start_pdf=0,
         progbar = export_output.Prog2console()
     if mg.OVERRIDE_FOLDER:
         pdf_root = mg.OVERRIDE_FOLDER
-    pdf_path = pdf_root / pdf_name
+    pdf_path = Path(pdf_root) / pdf_name
     html2pdf(html_path=report_path, pdf_path=pdf_path, as_pre_img=False)
     gauge2show = min(gauge_start_pdf + steps_per_pdf, mg.EXPORT_IMG_GAUGE_STEPS)
     progbar.SetValue(gauge2show)

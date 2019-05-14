@@ -313,13 +313,11 @@ class DbTbl(wx.grid.PyGridTableBase):
             self.val_of_cell_to_update = raw_val_to_use
             fld_dic = self.get_fld_dic(col)     
             if self.must_quote:  ## only refers to index column
-                id_value = self.quote_val(self.row_ids_lst[row], 
-                    charset2try=fld_dic[mg.FLD_CHARSET])
+                id_value = self.quote_val(self.row_ids_lst[row])
             else:
                 id_value = self.row_ids_lst[row]
             val2use = ('NULL' if raw_val_to_use is None
-                else self.quote_val(
-                    raw_val_to_use, charset2try=fld_dic[mg.FLD_CHARSET]))
+                else self.quote_val(raw_val_to_use))
             ## TODO - think about possibilities of SQL injection by hostile party
             tblname = getdata.tblname_qtr(self.dd.dbe, self.dd.tbl)
             col_name = self.objqtr(colname)

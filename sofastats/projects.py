@@ -85,19 +85,34 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
         f.write(f'\n\n\nval_dics={pf(val_dics)}')
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
-def sensible_sort_keys(input_list):
+def sensibly_sorted_vals_and_lbls(vals_and_lbls):
     """
+    :param list vals_and_lbls: List of (val, val_lbl) tuples
+
     Sort so None, '1', 2, 3, '4', 11, '12', 'Banana', 'apple'. In practice, the
     most important bit is the "numbers" being in order like
     '1', 2, 3, '4', 11, '12'.
     """
-    nones = [None for val in input_list if val is None]
-    nums = sorted([val for val in input_list if isinstance(val, (int, float))])
-    strs = sorted([val for val in input_list if not isinstance(val, (int, float))])
+    nones = []
+    nums4sorting = []
+    strs = []
+    for val, lbl in vals_and_lbls:
+        if val is None:
+            nones.append((val, lbl))
+        else:
+            try:
+                num_val = float(val)
+            except ValueError:
+                strs.append((val, lbl))
+            else:
+                nums4sorting.append((num_val, val, lbl))
+    nums4sorting.sort(key=lambda t: t[0])
+    nums = [(val, lbl) for num_val, val, lbl in nums4sorting]
+    strs.sort(key=lambda t: t[0])
     sensibly_sorted_keys = nones + nums + strs
     return sensibly_sorted_keys
 
-def get_init_settings_data(val_dics, var_name, bolnumeric):
+def get_init_settings_data(val_dics, var_name, *, bolnumeric):
     """
     Get initial settings to display value labels appropriately.
 
@@ -138,7 +153,8 @@ def get_init_settings_data(val_dics, var_name, bolnumeric):
             else:
                 for key, value in val_dic.items():
                     init_settings_data.append((key, str(value)))
-                    sensible_sort_keys(init_settings_data)
+                init_settings_data = sensibly_sorted_vals_and_lbls(
+                    init_settings_data)
     return init_settings_data, msg
 
 def get_approp_var_names(var_types=None, min_data_type=mg.VAR_TYPE_CAT_KEY):
@@ -208,13 +224,12 @@ def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,
     content_list = []
     content_list.append(
         '# Windows file paths _must_ have double not single backslashes')
-    content_list.append(
-        '# All file paths _must_ have a u before the quote-enclosed string')
     content_list.append('# "C:\\\\Users\\\\demo.txt" is GOOD')
     content_list.append('# "C:\\Users\\demo.txt" is BAD')
-    content_list.append('# "C:\\\\Users\\\\demo.txt" is also BAD')
-    content_list.append(
-        f'\nproj_notes = """{lib.escape_pre_write(proj_notes)}"""')
+    content = lib.escape_pre_write(proj_notes)
+    content_end = content[-1]
+    outer_quotes = "'''" if content_end == '"' else '"""'
+    content_list.append(f'\nproj_notes = {outer_quotes}{content}{outer_quotes}')
     content_list.append(
         f'\nfil_var_dets = "{lib.escape_pre_write(fil_var_dets)}"')
     content_list.append(f'fil_css = "{lib.escape_pre_write(fil_css)}"')

@@ -373,8 +373,8 @@ def get_dbe_syntax_elements(dbe):
     return mg.DBE_MODULES[dbe].get_syntax_elements()
 ##########################################################################################
 
-def make_fld_val_clause_non_numeric(fldname, val, dbe_gte, flds, quote_obj, 
-        quote_val):
+def make_fld_val_clause_non_numeric(
+        fldname, val, dbe_gte, quote_obj, quote_val):
     debug = False
     quoted_obj = quote_obj(fldname)
     if debug: print(f"quoted_obj: {quoted_obj}")
@@ -396,7 +396,7 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
 
     Handle val=None. Treat as Null for clause.
 
-    If a string number is received e.g. u'56' it will be treated as a string
+    If a string number is received e.g. '56' it will be treated as a string
     if the dbe is SQLite and will be treated differently from 56 for filtering.
     """
     debug = False
@@ -437,8 +437,8 @@ def make_fld_val_clause(dbe, flds, fldname, val, gte=mg.GTE_EQUALS):
                     f"{val2use} is not a suitable value for use as a category")
             clause = f"{objqtr(fldname)} {dbe_gte} {repr(val).strip('L')}"
         else:
-            clause = make_fld_val_clause_non_numeric(fldname, val, dbe_gte,
-                flds, objqtr, valqtr)
+            clause = make_fld_val_clause_non_numeric(
+                fldname, val, dbe_gte, objqtr, valqtr)
     if debug: print(clause)
     return clause
 

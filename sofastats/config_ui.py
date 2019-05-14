@@ -686,7 +686,7 @@ class ConfigUI:
             return
         cc = output.get_cc()
         dlg = export_output_gui.DlgExportOutput(title='Export Report',
-            report_path=cc[mg.CURRENT_REPORT_PATH], save2report_path=True,
+            report_fpath=cc[mg.CURRENT_REPORT_PATH], save2report_path=True,
             multi_page_items=self.multi_page_items)
         dlg.ShowModal()
 

@@ -31,10 +31,9 @@ cartesian_joiner = ' CROSS JOIN '
 def quote_obj(raw_val):
     return f"{left_obj_quote}{raw_val}{right_obj_quote}"
 
-def quote_val(raw_val, charset2try='iso-8859-1'):
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'",
-        sql_esc_str_literal_quote="''", pystr_use_double_quotes=True,
-        charset2try=charset2try)
+def quote_val(raw_val):
+    return lib.DbLib.quote_val(raw_val,
+        sql_str_literal_quote="'", sql_esc_str_literal_quote="''")
 
 def val2float(raw_val):
     return f"cast({raw_val} as float)"

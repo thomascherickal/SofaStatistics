@@ -36,7 +36,7 @@ include in the update statement.
 
 def make_when_clause(orig_clause, new, new_fldtype):
     if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
-        new = valqtr(new, charset2try='utf-8')
+        new = valqtr(new)
     when_clause = f'            WHEN {orig_clause} THEN {new}'
     return when_clause
 
@@ -133,8 +133,8 @@ def process_orig(orig, fldname, fldtype):
             raise Exception(
                 _('Only date values can be recoded for this variable'))
         if fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
-            l_prep = valqtr(l_part, charset2try='utf-8')
-            r_prep = valqtr(r_part, charset2try='utf-8')
+            l_prep = valqtr(l_part)
+            r_prep = valqtr(r_part)
         else:
             l_prep = l_part
             r_prep = r_part
@@ -151,7 +151,7 @@ def process_orig(orig, fldname, fldtype):
     ## 3 Single value
     else:
         if fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
-            orig_clause = f"{fld} = {valqtr(orig, charset2try='utf-8')}"
+            orig_clause = f"{fld} = {valqtr(orig)}"
         elif fldtype == mg.FLDTYPE_NUMERIC_KEY:
             if not lib.TypeLib.is_numeric(orig):
                 raise Exception(_("The field being recoded is numeric but you "
@@ -171,7 +171,7 @@ def process_label(dict_labels, new_fldtype, new, label):
     if label == '':
         return
     if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
-        new = valqtr(new, charset2try='utf-8')
+        new = valqtr(new)
     elif new_fldtype in (mg.FLDTYPE_NUMERIC_KEY):
         new = float(new)
     if debug: print(new, label)
@@ -503,7 +503,7 @@ e.g. if you want all missing values to become 99 you would have a line with From
             else:  ## REMAINING
                 ## if multiple REMAINING clauses the last 'wins'
                 if new_fldtype in (mg.FLDTYPE_STRING_KEY, mg.FLDTYPE_DATE_KEY):
-                    remaining_to = valqtr(new, charset2try='utf-8')
+                    remaining_to = valqtr(new)
                 else:
                     remaining_to = new
                 remaining_new = new

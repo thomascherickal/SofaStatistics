@@ -150,7 +150,7 @@ def set_var_props(choice_item,
     boldatetime = dd.flds[var_name][mg.FLD_BOLDATETIME]
     boltext = dd.flds[var_name][mg.FLD_BOLTEXT]
     init_settings_data, msg = projects.get_init_settings_data(
-        val_dics, var_name, bolnumeric)
+        val_dics, var_name, bolnumeric=bolnumeric)
     if msg: wx.MessageBox(msg)
     if bolnumeric:
         if boldecimal or dd.dbe == mg.DBE_SQLITE:  ## could be int or float so have to allow the more inclusive.

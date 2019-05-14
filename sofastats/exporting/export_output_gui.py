@@ -81,7 +81,7 @@ class DlgExportOutput(wx.Dialog):
         szr = wx.BoxSizer(wx.VERTICAL)
         self.export_status = {mg.CANCEL_EXPORT: False} # can change and running script can check on it.
         if self.save2report_path:
-            report_name = report_fpath.stem()
+            report_name = report_fpath.stem
             msg = f'Export "{report_name}"'
         else:
             msg = 'Export content currently displayed in SOFA'

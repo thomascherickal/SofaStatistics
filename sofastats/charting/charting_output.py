@@ -121,7 +121,7 @@ def get_gen_chart_output_dets(chart_type, dbe, cur, tbl, tbl_filt,
     if debug: print(chart_ns_data)
     if not chart_ns_data:
         raise Exception('Unable to make chart if not chart values')
-    chart_ns = dict(x for x in chart_ns_data)
+    chart_ns = dict(chart_ns_data)
     ## restructure and return data
     chart_output_dets = DataPrep.structure_gen_data(chart_ns, chart_type,
         raw_data, xlblsdic, var_role_dic, sort_opt,
@@ -620,6 +620,7 @@ class DataPrep:
          ...]
         becomes
         [{CHART_VAL_KEY: 1,
+          CHART_N_KEY: 245,  <== 56 + 103 + 23 + 4 + ...
           CHART_SERIES_KEY: [{SERIES_KEY: 1,
                               XY_KEY: [(1,56), (2,103)]
                                  },
@@ -694,6 +695,7 @@ class DataPrep:
                          (1,2,1,13), (1,2,2,59), (1,2,3,200), (1,2,4,0),]
         Processes to intermediate step first e.g.
             prestructure = [{CHART_VAL_KEY: 1,
+                             CHART_N_KEY: 4,
                              CHART_SERIES_KEY: [
                   {SERIES_KEY: 1, 
                    XY_KEY: [(1,56), (2,103), (3,72), (4,40)] },

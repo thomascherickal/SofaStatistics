@@ -37,10 +37,9 @@ gte_not_equals = '<>'  ## all the others accept both
 def quote_obj(raw_val):
     return f"{left_obj_quote}{raw_val}{right_obj_quote}"
 
-def quote_val(raw_val, charset2try='iso-8859-1'):
-    return lib.DbLib.quote_val(raw_val, sql_str_literal_quote="'",
-        sql_esc_str_literal_quote="''", pystr_use_double_quotes=True,
-        charset2try=charset2try)
+def quote_val(raw_val):
+    return lib.DbLib.quote_val(raw_val,
+        sql_str_literal_quote="'", sql_esc_str_literal_quote="''")
 
 def get_summable(clause):
     return f'ABS({clause})'  ## true is -1 so we need to get sum of +1s
