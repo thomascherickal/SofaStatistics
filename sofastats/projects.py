@@ -26,17 +26,13 @@ def filname2projname(filname):
 
 def get_projs():
     """
-    NB includes .proj at end.
-    os.listdir()
-
-    Changed in version 2.3: On Windows NT/2k/XP and Unix, if path is a Unicode
-    object, the result will be a list of Unicode objects. Undecodable filenames
-    will still be returned as string objects.
-
-    May need unicode results so always provide a unicode path.
+    Get project file names (excluding paths but including .proj suffix).
     """
     proj_dir = mg.LOCAL_PATH / mg.PROJS_FOLDER
-    proj_fils = [str(x) for x in proj_dir.iterdir() if str(x).endswith(mg.PROJ_EXT)]
+    proj_fils = [
+        str(proj_fpath.name)
+        for proj_fpath in proj_dir.iterdir()
+        if proj_fpath.suffix == mg.PROJ_EXT]
     proj_fils.sort()
     return proj_fils
 
