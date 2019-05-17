@@ -53,7 +53,7 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         ttest_paired_output = stats_output.ttest_paired_output(
             sample_a, sample_b, t, p,
             dic_a, dic_b, df, diffs, Path(report_fpath_str),
-            css_fpath=Path("{lib.escape_pre_write(str(css_fpath))}"),
+            css_fpath=Path("{lib.escape_pre_write(css_fpath)}"),
             css_idx={css_idx}, label_avg='', dp=dp,
             details=details, add_to_report=add_to_report,
             page_break_after=False)"""))

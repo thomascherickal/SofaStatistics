@@ -176,7 +176,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
-            self.Bind(wx.EVT_SHOW, self.on_show)
+            self.html.Bind(wx.EVT_SHOW, self.on_show)
         szr_lower.Add(self.html, 1, wx.GROW)
         szr_lower.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
         szr_bottom.Add(self.szr_output_config, 0, wx.GROW)

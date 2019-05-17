@@ -54,9 +54,9 @@ sample_x, sample_y, data_tups = core_stats.get_paired_data(
         add_to_report = "True" if mg.ADD2RPT else "False"
         script_lst.append(f'add_to_report = {add_to_report}')
         script_lst.append(
-            f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+            f'css_fpath = Path("{lib.escape_pre_write(css_fpath)}")')
         script_lst.append(
-            f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
+            f'report_fpath = Path("{lib.escape_pre_write(report_fpath)}")')
         script_lst.append('dp = 3')
         script_lst.append(f'label_x = "{label_x}"')
         script_lst.append(f'label_y = "{label_y}"')

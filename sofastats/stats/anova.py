@@ -108,8 +108,8 @@ if len(samples) < 2:
         script_lst.append(f'label_avg = """{label_avg}"""')
         add2report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add2report}')
-        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
-        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
+        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(css_fpath)}")')
+        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(report_fpath)}")')
         high = self.rad_precision.GetValue()
         script_lst.append(f"""
 (p, F, dics, sswn, dfwn, mean_squ_wn, 

@@ -47,9 +47,9 @@ if show_early_steps: print('Just imported wx.html2')
 ## http://wiki.wxpython.org/RecipesI18n
 ## Install gettext.  Now all strings enclosed in '_()' will automatically be
 ## translated.
-localedir = './locale'  ## fall back
+localedir = Path('./locale')  ## fall back
 try:
-    localedir = os.path.join(os.path.dirname(__file__), 'locale')
+    localedir = Path(os.path.join(os.path.dirname(__file__), 'locale'))
     if debug: print(__file__)
 except NameError as e:
     for path in sys.path:

@@ -1507,7 +1507,7 @@ def get_gettext_setup_txt():
     bits = []
     bits.append('try:')
     bits.append("    mytrans = gettext.translation('sofastats', "
-        f'"{escape_pre_write(str(mg.LANGDIR))}",')
+        f'"{escape_pre_write(mg.LANGDIR)}",')
     bits.append(f"        languages=['{mg.CANON_NAME}',], fallback=True)")
     bits.append('    mytrans.install()')
     bits.append('except Exception as e:')
@@ -1923,6 +1923,8 @@ def escape_pre_write(txt):
 
     Only ever use on the contents e.g. home/fred\'s home...
     """
+    if isinstance(txt, Path):
+        txt = str(txt)
     esctxt = txt.replace('\\', '\\\\')
     esctxt = esctxt.replace('"', '\\"')
     esctxt = esctxt.replace("'", "\\'")

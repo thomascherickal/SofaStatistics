@@ -1159,7 +1159,7 @@ class Scripts:
     @staticmethod
     def get_simple_barchart_script(ytitle2use, css_fpath, css_idx, *,
             rotate, show_n, show_borders):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1179,7 +1179,7 @@ chart_output = charting_output.BarChart.simple_barchart_output(
     @staticmethod
     def get_clustered_barchart_script(ytitle2use, css_fpath, css_idx, *,
             rotate, show_n, show_borders):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1198,7 +1198,7 @@ chart_output = charting_output.BarChart.clustered_barchart_output(
 
     @staticmethod
     def get_pie_chart_script(css_fpath, css_idx, *, inc_count, inc_pct, show_n):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         script = (f"""\
 chart_output_dets = charting_output.get_gen_chart_output_dets(mg.PIE_CHART,
@@ -1214,7 +1214,7 @@ chart_output = charting_output.PieChart.piechart_output(titles, subtitles,
     def get_line_chart_script(ytitle2use, css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks,
             inc_trend, inc_smooth, hide_markers):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         xy_titles = (f"""\
@@ -1239,7 +1239,7 @@ chart_output = charting_output.LineAreaChart.linechart_output(titles, subtitles,
     @staticmethod
     def get_area_chart_script(ytitle2use, css_fpath, css_idx, *,
             time_series, rotate, show_n, major_ticks, hide_markers):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         data_show = mg.DATA_SHOW_LBL2KEY[CUR_DATA_OPT_LBL]
         script = (f"""\
@@ -1261,7 +1261,7 @@ chart_output = charting_output.LineAreaChart.areachart_output(titles, subtitles,
     @staticmethod
     def get_histogram_script(css_fpath, css_idx, *,
             inc_normal, show_n, show_borders):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         script = (f"""\
 (overall_title, 
 chart_dets) = charting_output.Histo.get_histo_dets(dbe, cur, tbl, tbl_filt,
@@ -1276,7 +1276,7 @@ chart_output = charting_output.Histo.histogram_output(titles, subtitles,
     @staticmethod
     def get_scatterplot_script(css_fpath, css_idx, *,
             show_n, show_borders, inc_regression):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         regression = 'True' if inc_regression else 'False'
         script = (f"""\
 (overall_title,
@@ -1293,7 +1293,7 @@ chart_output = charting_output.ScatterPlot.scatterplot_output(titles, subtitles,
 
     @staticmethod
     def get_boxplot_script(boxplot_opt, css_fpath, css_idx, *, rotate, show_n):
-        css_fpath_str = lib.escape_pre_write(str(css_fpath))
+        css_fpath_str = lib.escape_pre_write(css_fpath)
         sort_opt = mg.SORT_LBL2KEY[CUR_SORT_OPT_LBL]
         script = (f"""\
 (n_chart, xaxis_dets, xmin, xmax, ymin, ymax,
@@ -1347,7 +1347,7 @@ chart_output = charting_output.BoxPlot.boxplot_output(
         ## other variables to set up
         add2report = "True" if mg.ADD2RPT else "False"
         script_lst.append(f"add_to_report = {add2report}")
-        report_fpath_str = lib.escape_pre_write(str(report_fpath))
+        report_fpath_str = lib.escape_pre_write(report_fpath)
         script_lst.append(f'report_fpath_str = "{report_fpath_str}"')
         agg_fldlbl = None
         category_fldname = None

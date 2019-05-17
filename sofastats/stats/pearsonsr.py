@@ -48,8 +48,8 @@ sample_a, sample_b, data_tups = core_stats.get_paired_data(dbe=mg.{dbe_str},
     fld_b="{var_b}")""")
         script_lst.append(
             'add_to_report = %s' % ('True' if mg.ADD2RPT else 'False'))
-        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
-        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
+        script_lst.append(f'css_fpath = Path("{lib.escape_pre_write(css_fpath)}")')
+        script_lst.append(f'report_fpath = Path("{lib.escape_pre_write(report_fpath)}")')
         script_lst.append('dp = 3')
         script_lst.append(f'label_a = "{label_a}"')
         script_lst.append(f'label_b = "{label_b}"')

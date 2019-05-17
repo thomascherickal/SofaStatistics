@@ -1045,7 +1045,7 @@ def insert_prelim_code(modules, f, report_fpath, css_fpaths, *, new_has_dojo):
     f.write('\ngettext.install(domain="sofastats", '
             f'localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")')
     f.write('\n' + lib.get_gettext_setup_txt())
-    f.write(f"\nsys.path.append('{lib.escape_pre_write(str(mg.SCRIPT_PATH))}')")
+    f.write(f"\nsys.path.append('{lib.escape_pre_write(mg.SCRIPT_PATH)}')")
     for subpackage, module in modules:
         if subpackage:
             f.write(f'\nfrom sofastats.{subpackage} import {module}')
@@ -1059,10 +1059,10 @@ def insert_prelim_code(modules, f, report_fpath, css_fpaths, *, new_has_dojo):
     f.write('\n    config_globals.set_DEFAULT_DETAILS()')
     f.write('\n    config_globals.import_dbe_plugins()  ## as late as possible because uses local modules e.g. my_exceptions, lib')
     css_fpath_strs = [
-        lib.escape_pre_write(str(css_fpath)) for css_fpath in css_fpaths]
+        lib.escape_pre_write(css_fpath) for css_fpath in css_fpaths]
     f.write(f'\ncss_fpath_strs = {css_fpath_strs}')
     f.write('\ncss_fpaths = [Path(css_fpath_str) for css_fpath_str in css_fpath_strs]')
-    f.write(f'\n\nfil = open("{lib.escape_pre_write(str(report_fpath))}",'
+    f.write(f'\n\nfil = open("{lib.escape_pre_write(report_fpath)}",'
         + " 'w', encoding='utf-8')")
     has_dojo = new_has_dojo  ## always for making single output item e.g. chart
     has_dojo_str = 'True' if has_dojo else 'False'
@@ -1279,7 +1279,7 @@ def run_report(modules, css_fpaths, inner_script, *,
                 raise Exception('Problems getting content to display on screen.'
                     f'\nOrig error: {b.ue(e)}')
         if add_to_report:
-            esc_rpt_path = lib.escape_pre_write(str(cc[mg.CURRENT_REPORT_PATH]))
+            esc_rpt_path = lib.escape_pre_write(cc[mg.CURRENT_REPORT_PATH])
             gui_display_content = (
                 abs_above_inner_body
                 + mg.BODY_START

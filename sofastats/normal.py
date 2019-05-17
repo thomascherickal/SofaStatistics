@@ -287,7 +287,7 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             dd.tbl))
         add2report = 'True' if mg.ADD2RPT else 'False'
         script_lst.append(f'add_to_report = {add2report}')
-        escaped_report_fpath = lib.escape_pre_write(str(report_fpath))
+        escaped_report_fpath = lib.escape_pre_write(report_fpath)
         script_lst.append(f'report_fpath_str = "{escaped_report_fpath}"')
         paired = 'True' if self.paired else 'False'
         var_b = '"%s"' % self.var_b if self.var_b else "None"
@@ -300,7 +300,7 @@ data_label, vals = normal.get_inputs(
 normal_output = normal.get_normal_output(
     vals, data_label, add_to_report,
     Path(report_fpath_str), paired={paired},
-    css_fpath=Path("{lib.escape_pre_write(str(css_fpath))}"))""")
+    css_fpath=Path("{lib.escape_pre_write(css_fpath)}"))""")
         script_lst.append('fil.write(normal_output)')
         return '\n'.join(script_lst)
 

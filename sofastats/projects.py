@@ -227,12 +227,12 @@ def get_proj_content(proj_notes, fil_var_dets, fil_css, fil_report, fil_script,
     outer_quotes = "'''" if content_end == '"' else '"""'
     content_list.append(f'\nproj_notes = {outer_quotes}{content}{outer_quotes}')
     content_list.append(
-        f'\nfil_var_dets = "{lib.escape_pre_write(str(fil_var_dets))}"')
-    content_list.append(f'fil_css = "{lib.escape_pre_write(str(fil_css))}"')
+        f'\nfil_var_dets = "{lib.escape_pre_write(fil_var_dets)}"')
+    content_list.append(f'fil_css = "{lib.escape_pre_write(fil_css)}"')
     content_list.append(
-        f'fil_report = "{lib.escape_pre_write(str(fil_report))}"')
+        f'fil_report = "{lib.escape_pre_write(fil_report)}"')
     content_list.append(
-        f'fil_script = "{lib.escape_pre_write(str(fil_script))}"')
+        f'fil_script = "{lib.escape_pre_write(fil_script)}"')
     content_list.append(f'default_dbe = "{default_dbe}"')
     content_list.append(
         f'\ndefault_dbs = {lib.get_escaped_dict_pre_write(default_dbs)}')

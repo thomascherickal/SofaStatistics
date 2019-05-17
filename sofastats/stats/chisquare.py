@@ -43,9 +43,9 @@ class DlgConfig(paired2var.DlgPaired2VarConfig):
         script_lst.append("add_to_report = %s" % ("True" if mg.ADD2RPT
                           else "False"))
         script_lst.append(
-            f'css_fpath = Path("{lib.escape_pre_write(str(css_fpath))}")')
+            f'css_fpath = Path("{lib.escape_pre_write(css_fpath)}")')
         script_lst.append(
-            f'report_fpath = Path("{lib.escape_pre_write(str(report_fpath))}")')
+            f'report_fpath = Path("{lib.escape_pre_write(report_fpath)}")')
         script_lst.append("dp = 3")
         script_lst.append(f'var_label_a = "{label_a}"')
         script_lst.append(f'var_label_b = "{label_b}"')
