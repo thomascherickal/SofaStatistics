@@ -100,20 +100,21 @@ def get_con_resources(con_dets, default_dbs, db=None):
     if not db:
         ## use default if possible, or fall back to first
         default_db_mysql = default_dbs.get(mg.DBE_MYSQL)  ## might be None
-        db = dbs[0]  ## init
         if default_db_mysql:
             if default_db_mysql.lower() in dbs_lc:
                 db = default_db_mysql
+        else:
+            db = dbs[0]
         ## need to reset con and cur
         cur.close()
         con.close()
         con_dets_mysql['db'] = db
-        con = pymysql.connect(**con_dets_mysql)
-        cur = con.cursor()
     else:
         if db.lower() not in dbs_lc:
             raise Exception(
                 f'Database "{db}" not available from supplied connection')
+    con = pymysql.connect(**con_dets_mysql)
+    cur = con.cursor()
     con_resources = {
         mg.DBE_CON: con, mg.DBE_CUR: cur,
         mg.DBE_DBS: dbs, mg.DBE_DB: db}
@@ -387,7 +388,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_mysql= wx.StaticBox(scroll, -1, 'MySQL')
     ## default database
     parent.lbl_mysql_default_db = wx.StaticText(
-        scroll, -1, _('Default Database (name only):'))
+        scroll, -1, _('Default Database:'))
     parent.lbl_mysql_default_db.SetFont(lblfont)
     mysql_default_db = (
         parent.mysql_default_db if parent.mysql_default_db else '')

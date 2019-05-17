@@ -233,10 +233,10 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
         ## Must always be stored, even if only ''
         try:
             self.proj_notes = projects.get_proj_notes(fil_proj, proj_dic)
-            self.fil_var_dets = proj_dic[mg.PROJ_FIL_VDTS]
+            self.fil_var_dets = Path(proj_dic[mg.PROJ_FIL_VDTS])
             self.css_fpath = Path(proj_dic[mg.PROJ_FIL_CSS])
-            self.fil_report = proj_dic[mg.PROJ_FIL_RPT]
-            self.fil_script = proj_dic[mg.PROJ_FIL_SCRIPT]
+            self.fil_report = Path(proj_dic[mg.PROJ_FIL_RPT])
+            self.fil_script = Path(proj_dic[mg.PROJ_FIL_SCRIPT])
             self.default_dbe = proj_dic[mg.PROJ_DBE]
             getdata.get_proj_con_settings(self, proj_dic)
         except KeyError as e:
@@ -289,7 +289,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
     def on_btn_var_config(self, event):
         ret_dic = config_ui.ConfigUI.on_btn_var_config(self, event)
         if ret_dic:
-            self.vdt_file = ret_dic[mg.VDT_RET]
+            self.vdt_file = Path(ret_dic[mg.VDT_RET])
         else:  ## cancelled presumably
             cc = output.get_cc()
             self.vdt_file = cc[mg.CURRENT_VDTS_PATH] 
@@ -356,7 +356,7 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
             fil_script = self.script_file if self.script_file else ''
             style = self.style_selector.GetStringSelection()
             fil_css = lib.OutputLib.style2path(style)
-            fil_report = self.txt_report_file.GetValue()
+            fil_report = Path(self.txt_report_file.GetValue())
             default_dbe = mg.DBES[self.drop_default_dbe.GetSelection()]
             default_dbs = {}
             default_tbls = {}
@@ -377,8 +377,9 @@ class DlgProject(wx.Dialog, config_ui.ConfigUI):
                     'for the default database engine (%s) to save a project'
                     ' file.') % default_dbe)
                 return
-            proj_content = projects.get_proj_content(proj_notes, fil_var_dets,
-                fil_css, fil_report, fil_script, default_dbe, default_dbs,
+            proj_content = projects.get_proj_content(proj_notes,
+                fil_var_dets, fil_css, fil_report, fil_script,
+                default_dbe, default_dbs,
                 default_tbls, con_dets)
             ## write the data
             if (self.new

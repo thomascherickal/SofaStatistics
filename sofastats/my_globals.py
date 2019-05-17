@@ -15,9 +15,9 @@ of the GUI on settings only found when running in the GUI.
 ## It doesn't do any local importing at all until the last line, where it
 ## imports config (used for initial config plus re-config).
 
-debug = False
+debug = True
 
-VERSION = '1.5.0'
+VERSION = '1.5.1'
 ATTRIBUTION = 'sofastatistics.com'
 CONTACT = 'grant@sofastatistics.com'
 HOME_URL = 'http://www.sofastatistics.com'

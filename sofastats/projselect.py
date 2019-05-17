@@ -112,7 +112,7 @@ class DlgProjSelect(wx.Dialog):
         fil_proj = self.projs[self.drop_projs.GetSelection()]
         try:
             dlgProj = projects_gui.DlgProject(
-                parent=self, fil_proj=fil_proj, readonly=read_only)
+                parent=self, fil_proj=fil_proj, read_only=read_only)
         except Exception as e:
             wx.MessageBox(f'Unable to open project dialog for {fil_proj}. '
                 f'Orig error: {b.ue(e)}')

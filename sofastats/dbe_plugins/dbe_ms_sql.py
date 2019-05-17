@@ -99,13 +99,11 @@ def get_dbs(host, user, pwd, default_dbs, db=None):
     if not db:
         ## Use default if possible, or fall back to first. NB may have no tables
         default_db_mssql = default_dbs.get(mg.DBE_MS_SQL)  ## might be None
-        try:
-            db = dbs[0]  ## init
-        except IndexError:
-            raise Exception(_("No databases to choose from"))
         if default_db_mssql:
             if default_db_mssql.lower() in dbs_lc:
                 db = default_db_mssql
+        else:
+            db = dbs[0]
     else:
         if db.lower() not in dbs_lc:
             raise Exception(

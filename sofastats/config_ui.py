@@ -74,7 +74,7 @@ class DlgVarConfig(wx.Dialog):
             self.panel, -1, _('Variable config from ... '))
         self.initial_vdt = (vdt_file if vdt_file else cc[mg.CURRENT_VDTS_PATH])
         self.txt_var_dets_file = wx.TextCtrl(
-            self.panel, -1, self.initial_vdt, size=(500, -1))
+            self.panel, -1, str(self.initial_vdt), size=(500, -1))
         self.txt_var_dets_file.Enable(not read_only)
         ## Data config details
         browse = _('Browse')
@@ -148,7 +148,7 @@ class DlgVarConfig(wx.Dialog):
             invalid_msg = lib.OutputLib.get_invalid_var_dets_msg(
                 entered_vdt_path)
             if not invalid_msg:
-                self.ret_dic[mg.VDT_RET] = entered_vdt_path
+                self.ret_dic[mg.VDT_RET] = Path(entered_vdt_path)
             else:
                 wx.MessageBox(_("Unable to use vdt file \"%(entered_vdt_path)s"
                     "\" entered. Orig error: %(invalid_msg)s")
@@ -162,7 +162,7 @@ class DlgVarConfig(wx.Dialog):
                 with open(entered_vdt_path, 'w') as f:
                     f.write('var_labels={}\nvar_notes={}'
                         '\nvar_types={}\nval_dics={}')
-                self.ret_dic[mg.VDT_RET] = entered_vdt_path
+                self.ret_dic[mg.VDT_RET] = Path(entered_vdt_path)
             else:
                 wx.MessageBox(_("Unable to make vdt file \"%(filename)s\" - "
                     "the \"%(foldername)s\" directory doesn't exist.")
@@ -335,7 +335,7 @@ class ConfigUI:
             self.chk_add_to_report = wx.CheckBox(panel, -1, ADD2_RPT_LBL)
             self.chk_add_to_report.SetFont(mg.GEN_FONT)
             self.chk_add_to_report.SetValue(mg.ADD2RPT)
-            self.chk_add_to_report.Bind(wx.EVT_CHECKBOX, 
+            self.chk_add_to_report.Bind(wx.EVT_CHECKBOX,
                 self.on_chk_add_to_report)
         self.read_only = read_only
         browse = _('Browse')
@@ -343,14 +343,14 @@ class ConfigUI:
             report_file = str(cc[mg.CURRENT_REPORT_PATH])
         szr_html_report = wx.BoxSizer(wx.HORIZONTAL)
         szr_html_report_left = wx.BoxSizer(wx.VERTICAL)
-        self.txt_report_file = wx.TextCtrl(panel, -1, report_file, 
+        self.txt_report_file = wx.TextCtrl(panel, -1, str(report_file),
             size=(300,-1))
         self.txt_report_file.SetFont(mg.GEN_FONT)
         if mg.PLATFORM != mg.MAC:
             self.txt_report_file.Bind(wx.EVT_KILL_FOCUS, 
                 self.on_report_file_lost_focus)  ## doesn't work with Mac
         else:
-            self.txt_report_file.Bind(wx.EVT_TEXT, 
+            self.txt_report_file.Bind(wx.EVT_TEXT,
                 self.on_report_file_text_change)
         self.txt_report_file.Enable(not self.read_only)
         self.btn_report_path = wx.Button(panel, -1, browse)
@@ -502,7 +502,7 @@ class ConfigUI:
             read_only=self.read_only)
         ret = dlg.ShowModal()
         if ret == wx.ID_OK and self.autoupdate:
-            cc[mg.CURRENT_VDTS_PATH] = ret_dic[mg.VDT_RET]  ## main place this gets set
+            cc[mg.CURRENT_VDTS_PATH] = Path(ret_dic[mg.VDT_RET])  ## main place this gets set
             output.update_var_dets(dlg=self)
         dlg.Destroy()
         return ret_dic
@@ -833,5 +833,4 @@ class ConfigUI:
 
     def on_btn_close(self, event):
         self.Destroy()
-        event.Skip()
         event.Skip()

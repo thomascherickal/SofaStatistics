@@ -740,9 +740,6 @@ class DlgStatsSelect(wx.Dialog):
             test_type = None
         return test_type
 
-    def on_list_item_selected(self, event):
-        self.respond_to_selection(event)
-
     def respond_to_selection(self, event):
         idx = self.lst_tests.GetFirstSelected()
         try:
@@ -751,6 +748,9 @@ class DlgStatsSelect(wx.Dialog):
             event.Skip()
             return
         self.update_test_tips(test_type, assisted=False)
+
+    def on_list_item_selected(self, event):
+        self.respond_to_selection(event)
 
     def on_list_item_activated(self, event):
         self.respond_to_activation(event)

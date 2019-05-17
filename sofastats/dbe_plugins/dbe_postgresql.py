@@ -139,10 +139,6 @@ def get_con_resources(con_dets, default_dbs, db=None):
     dbs_lc = [x.lower() for x in dbs]
     ## get db (default if possible otherwise first)
     ## NB db must be accessible from connection
-    if db:
-        con_dets_pgsql['database'] = db
-    con = pg.connect(**con_dets_pgsql)
-    cur = con.cursor()
     if not db:
         ## use default if possible, or fall back to first
         default_db_pgsql = default_dbs.get(mg.DBE_PGSQL) # might be None
@@ -160,6 +156,9 @@ def get_con_resources(con_dets, default_dbs, db=None):
         if db.lower() not in dbs_lc:
             raise Exception(
                 f'Database "{db}" not available from supplied connection')
+        con_dets_pgsql['database'] = db
+        con = pg.connect(**con_dets_pgsql)
+        cur = con.cursor()
     if debug: pprint.pprint(con_dets)  
     con_resources = {mg.DBE_CON: con, mg.DBE_CUR: cur,
         mg.DBE_DBS: dbs, mg.DBE_DB: db}
@@ -397,7 +396,7 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
     bx_pgsql= wx.StaticBox(scroll, -1, 'PostgreSQL')
     ## default database
     parent.lbl_pgsql_default_db = wx.StaticText(
-        scroll, -1, _('Default Database (name only):'))
+        scroll, -1, _('Default Database:'))
     parent.lbl_pgsql_default_db.SetFont(lblfont)
     pgsql_default_db = (
         parent.pgsql_default_db if parent.pgsql_default_db else '')
@@ -408,14 +407,15 @@ def set_data_con_gui(parent, scroll, szr, lblfont, *, read_only=False):
         _('Default database (optional if user is postgres)'))
     ## default table
     parent.lbl_pgsql_default_tbl = wx.StaticText(
-        scroll, -1, _('Default Table:'))
+        scroll, -1, _('Default Table (schema.table):'))
     parent.lbl_pgsql_default_tbl.SetFont(lblfont)
     pgsql_default_tbl = (
         parent.pgsql_default_tbl if parent.pgsql_default_tbl else '')
     parent.txt_pgsql_default_tbl = wx.TextCtrl(
         scroll, -1, pgsql_default_tbl, size=(250, -1))
     parent.txt_pgsql_default_tbl.Enable(not read_only)
-    parent.txt_pgsql_default_tbl.SetToolTip(_('Default table (optional)'))
+    parent.txt_pgsql_default_tbl.SetToolTip(
+        _('Default table (optional). Schema optional if public'))
     ## host
     parent.lbl_pgsql_host = wx.StaticText(scroll, -1, _('Host:'))
     parent.lbl_pgsql_host.SetFont(lblfont)
@@ -516,6 +516,9 @@ def process_con_dets(parent, default_dbs, default_tbls, con_dets):
     default_db = parent.txt_pgsql_default_db.GetValue()
     pgsql_default_db = default_db if default_db else None
     default_tbl = parent.txt_pgsql_default_tbl.GetValue()
+    lacks_schema = '.' not in default_tbl
+    if lacks_schema:
+        default_tbl = f'public.{default_tbl}'
     pgsql_default_tbl = default_tbl if default_tbl else None    
     pgsql_host = parent.txt_pgsql_host.GetValue()
     pgsql_user = parent.txt_pgsql_user.GetValue()

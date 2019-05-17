@@ -509,7 +509,7 @@ def valid_name(name, is_tblname=True):
     if name == '':
         return False
     default_db = mg.LOCAL_PATH / mg.INT_FOLDER / 'sofa_tmp'
-    con = sqlite.connect(default_db) #@UndefinedVariable
+    con = sqlite.connect(str(default_db))  ## Note - newer versions accept pathlib Path as well as strings but Bionic doesn't :-(
     add_funcs_to_con(con)
     cur = con.cursor()
     valid = True
