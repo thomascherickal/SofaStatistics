@@ -449,11 +449,10 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
          one item, even if only a "rename me"). Empty list ok.
         :param list fld_settings: add details to it in form of a list of dicts
         """
-        self.exiting = False
+        self.exiting = False  ## usually no need to explicitly set as ConfigUI takes care of it
         self.new = new
         self.changes_made = False
         self.read_only = read_only
-        self.exiting = False
         if self.new and self.read_only:
             raise Exception('If new, should never be read only')
         self.var_labels = var_labels

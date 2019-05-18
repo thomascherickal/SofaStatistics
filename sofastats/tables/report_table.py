@@ -199,7 +199,6 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
 
     def __init__(self):
         debug = False
-        self.exiting = False
         cc = output.get_cc()
         self.title = _('Make Report Table')
         wx.Dialog.__init__(self, parent=None, id=-1, title=self.title,
@@ -216,7 +215,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
             ('tables', 'rawtables'),
             (None, 'output'),
             (None, 'getdata'), ]
-        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+        self.Bind(wx.EVT_CLOSE, self.set_exiting)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes,
          self.var_types,

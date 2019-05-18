@@ -1484,7 +1484,6 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
             self.checkbox2use = lib.MultilineCheckBox
         else:
             self.checkbox2use = lib.StdCheckBox
-        self.exiting = False
         self.title = title
         cc = output.get_cc()
         self.output_modules = [
@@ -1497,7 +1496,7 @@ class DlgCharting(indep2var.DlgIndep2VarConfig):
         global CUR_DATA_OPT_LBL
         CUR_DATA_OPT_LBL = mg.SHOW_FREQ_LBL
         self.min_data_type = None  ## not used in charting_dlg unlike most other dlgs - need fine-grained control of up to 4 drop downs
-        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+        self.Bind(wx.EVT_CLOSE, self.set_exiting)  ## not self.on_close (which does Close()) unless a fan of infinite recursion ;-)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes,
          self.var_types,

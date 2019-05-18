@@ -221,6 +221,7 @@ class ConfigUI:
         debug = False
         if debug: print('autoupdate got set')
         self.autoupdate = autoupdate
+        self.exiting = False
         ## init
         self.vdt_file = None
         self.script_file = None
@@ -831,7 +832,11 @@ class ConfigUI:
         showhtml.display_report(self, self.content2expand, self.url_load)
         event.Skip()
 
-    def on_btn_close(self, evt):
+    def set_exiting(self, evt):
         self.exiting = True
-        self.Destroy()
+        evt.Skip()
+
+    def on_btn_close(self, evt):
+        self.set_exiting(evt)
+        self.Close()
         evt.Skip()

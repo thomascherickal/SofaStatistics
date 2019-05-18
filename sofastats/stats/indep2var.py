@@ -41,7 +41,6 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
     inc_gp_by_select = False
 
     def __init__(self, title, takes_range=False):
-        self.exiting = False
         cc = output.get_cc()
         if mg.MAX_HEIGHT <= 620:
             myheight = 600
@@ -62,7 +61,7 @@ class DlgIndep2VarConfig(wx.Dialog, config_ui.ConfigUI):
             (None, 'output'),
             (None, 'stats_output'),
         ]
-        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+        self.Bind(wx.EVT_CLOSE, self.set_exiting)
         self.title = title
         self.takes_range = takes_range
         self.url_load = True  ## btn_expand

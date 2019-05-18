@@ -25,7 +25,6 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
         self.title = title
-        self.exiting = False
         self.SetFont(mg.GEN_FONT)
         self.output_modules = [
             (None, 'my_globals as mg'),
@@ -34,7 +33,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
             (None, 'output'),
             (None, 'stats_output'),
         ]
-        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+        self.Bind(wx.EVT_CLOSE, self.set_exiting)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 

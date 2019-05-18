@@ -139,7 +139,7 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
     def __init__(self, parent, var_labels, var_notes, var_types, val_dics):
         self.title = _('Normal Data?')
         wx.Dialog.__init__(self, parent=parent, title=self.title,
-            size=(1024,600),
+            size=(1_024, 600),
             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
         config_ui.ConfigUI.__init__(self, autoupdate=True)
@@ -148,9 +148,8 @@ class DlgNormality(wx.Dialog, config_ui.ConfigUI):
             (None, 'output'),
             (None, 'getdata'),
             (None, 'normal')]
-        self.exiting = False
+        self.Bind(wx.EVT_CLOSE, self.set_exiting)
         self.SetFont(mg.GEN_FONT)
-        self.Bind(wx.EVT_CLOSE, self.on_ok)
         self.url_load = True  ## btn_expand
         ## The following properties all required to utilise get_szr_data
         self.var_labels = var_labels
