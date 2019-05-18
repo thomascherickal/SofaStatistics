@@ -831,6 +831,7 @@ class ConfigUI:
         showhtml.display_report(self, self.content2expand, self.url_load)
         event.Skip()
 
-    def on_btn_close(self, event):
+    def on_btn_close(self, evt):
+        self.exiting = True
         self.Destroy()
-        event.Skip()
+        evt.Skip()

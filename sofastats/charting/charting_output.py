@@ -1009,13 +1009,6 @@ class BarChart:
             else 'false')
         if debug: print(width, xgap, xfontsize, minor_ticks,
             init_margin_offset_l)
-        """
-        dlg = wx.NumberEntryDialog(None, "Set Initial margin offset left",
-            "Go on", "Set it!", 20, -100, 100)
-        if dlg.ShowModal() == wx.ID_OK:
-            init_margin_offset_l = dlg.GetValue()
-        dlg.Destroy()
-        """
         return width, xgap, xfontsize, minor_ticks, init_margin_offset_l
 
     @staticmethod
