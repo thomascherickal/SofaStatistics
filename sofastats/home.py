@@ -27,7 +27,7 @@ When the form is shown for the first time on Windows versions, a warning is
 given and com types are initialised.
 """
 
-dev_debug = False  ## relates to errors etc once GUI application running.
+dev_debug = True  ## relates to errors etc once GUI application running.
 ## show_early_steps is about revealing any errors before the GUI even starts.
 show_early_steps = True  ## same in setup and start
 show_more_steps = True
@@ -952,9 +952,11 @@ class StartFrame(wx.Frame):
         if debug: print(f'Setting proj_text to {proj_text}')
 
     def on_get_started_click(self, evt):
-        import webbrowser
-        webbrowser.open_new_tab(mg.GET_STARTED_URL)
-        evt.Skip()
+        dlgData = DlgHtml()
+        dlgData.ShowModal()
+#         import webbrowser
+#         webbrowser.open_new_tab(mg.GET_STARTED_URL)
+#         evt.Skip()
 
     def on_get_started_enter(self, evt):
         panel_dc = wx.ClientDC(self.panel)
@@ -1265,3 +1267,217 @@ class StartFrame(wx.Frame):
             wx.Rect(self.main_left, self.help_text_top,
                 self.help_text_width, 260))
         event.Skip()
+
+
+import wx.html2
+
+BASE_URL = f'file://{Path.cwd()}'
+count = 0
+
+
+class DlgHtml(wx.Dialog):
+
+    def __init__(self):
+        self.exiting = False
+        width = 400
+        height = 200
+
+        wx.Dialog.__init__(self, parent=None, id=-1, title='Web Demo',
+            size=(width, height),
+            style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
+            |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
+
+        panel_top = wx.Panel(self)
+        panel_bottom = wx.Panel(self)
+
+        szr_main = wx.BoxSizer(wx.VERTICAL)
+        szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, 10)
+
+        szr_top = wx.BoxSizer(wx.HORIZONTAL)
+        szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
+
+        btn_close = wx.Button(panel_top, wx.ID_CLOSE)
+        btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
+
+        #self.Bind(wx.EVT_CLOSE, self.on_btn_close)  ## enable this if you love infinite recursion ;-)
+
+        lbl = wx.StaticText(panel_bottom, -1, 'HTML:')
+
+        self.html = wx.html2.WebView.New(
+            panel_bottom, -1, size=wx.Size(width, height))
+        self.Bind(wx.EVT_SHOW, self.on_show)
+
+        szr_top.Add(btn_close, 0, wx.TOP, 5)
+        panel_top.SetSizer(szr_top)
+
+        szr_bottom.Add(lbl, 1, wx.GROW|wx.LEFT, 5)
+        szr_bottom.Add(self.html, 1, wx.GROW)
+        panel_bottom.SetSizer(szr_bottom)
+
+        szr_main.Add(panel_top, 1,
+            wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+        szr_main.Add(panel_bottom, 1, 
+            wx.GROW|wx.LEFT|wx.BOTTOM|wx.RIGHT, 10)
+
+        self.SetSizer(szr_main)
+ 
+    def on_show(self, _event):
+        global count
+        if self.exiting:
+            return
+        count += 1
+        if count == 5:
+            str_content = 'Brace for impact! Crash coming'
+        else:
+            str_content = f'Opened {count} times :-)'
+        self.html.SetPage(str_content, BASE_URL)
+
+    def on_btn_close(self, _event):
+        self.exiting = True
+        self.Close()  ## vs wx.Destroy()
+        """
+        https://wxpython.org/Phoenix/docs/html/window_deletion_overview.html
+        Your application can either use wx.Window.Close event just as the framework does, or it can call wx.Window.Destroy directly. If using Close(), you can pass a True argument to this function to tell the event handler that we definitely want to delete the frame and it cannot be vetoed.
+
+        The advantage of using Close instead of Destroy is that it will call any clean-up code defined by the wx.EVT_CLOSE handler; for example it may close a document contained in a window after first asking the user whether the work should be saved. Close can be vetoed by this process (return False), whereas Destroy definitely destroys the window.
+        """
+
+
+# class DlgHtml2(wx.Dialog):
+# 
+#     def __init__(self):
+#         wx.Dialog.__init__(self, parent=None, id=-1, title=title,
+#             pos=(mg.HORIZ_OFFSET,0),
+#             style=wx.MINIMIZE_BOX|wx.MAXIMIZE_BOX|wx.RESIZE_BORDER|wx.CLOSE_BOX
+#             |wx.SYSTEM_MENU|wx.CAPTION|wx.CLIP_CHILDREN)
+#         self.title = 'Test'
+#         self.exiting = False
+# #         self.SetFont(mg.GEN_FONT)
+# #         self.output_modules = [
+# #             (None, 'my_globals as mg'),
+# #             ('stats', 'core_stats'),
+# #             (None, 'getdata'),
+# #             (None, 'output'),
+# #             (None, 'stats_output'),
+# #         ]
+#         btn_close = wx.Button(panel_top, wx.ID_CLOSE)
+#         btn_close.Bind(wx.EVT_BUTTON, self.on_btn_close)
+#         
+#         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+#         self.url_load = True  ## btn_expand
+#         (self.var_labels, self.var_notes, 
+#          self.var_types, 
+#          self.val_dics) = lib.get_var_dets(cc[mg.CURRENT_VDTS_PATH])
+#         self.variables_rc_msg = _('Right click variables to view/edit details')
+#         ## set up panel for frame
+#         self.panel = wx.Panel(self)
+#         bx_desc = wx.StaticBox(self.panel, -1, _('Purpose'))
+#         bx_vars = wx.StaticBox(self.panel, -1, _('Variables'))
+#         config_output.add_icon(frame=self)
+#         ## key settings
+#         self.drop_tbls_panel = self.panel
+#         self.drop_tbls_system_font_size = False
+#         hide_db = projects.get_hide_db()
+#         self.drop_tbls_idx_in_szr = 3 if not hide_db else 1  ## the 2 database items are missing)
+#         self.drop_tbls_sel_evt = self.on_table_sel
+#         self.drop_tbls_rmargin = 10
+#         self.drop_tbls_can_grow = False
+#         (self.szr_data,
+#          self.szr_output_config) = self.get_gen_config_szrs(self.panel,
+#                                                 hide_db=hide_db)  ## mixin
+#         self.drop_tbls_szr = self.szr_data
+#         getdata.data_dropdown_settings_correct(parent=self)
+#         self.szr_output_display = self.get_szr_output_display(
+#             self.panel, inc_clear=False, idx_style=1)
+#         szr_main = wx.BoxSizer(wx.VERTICAL)
+#         szr_top = wx.BoxSizer(wx.HORIZONTAL)
+#         szr_desc = wx.StaticBoxSizer(bx_desc, wx.VERTICAL)
+#         eg1, eg2, eg3 = self.get_examples()
+#         lbl_desc1 = wx.StaticText(self.panel, -1, eg1)
+#         lbl_desc1.SetFont(mg.GEN_FONT)
+#         lbl_desc2 = wx.StaticText(self.panel, -1, eg2)
+#         lbl_desc2.SetFont(mg.GEN_FONT)
+#         lbl_desc3 = wx.StaticText(self.panel, -1, eg3)
+#         lbl_desc3.SetFont(mg.GEN_FONT)
+#         szr_desc.Add(lbl_desc1, 1, wx.GROW|wx.LEFT, 5)
+#         szr_desc.Add(lbl_desc2, 1, wx.GROW|wx.LEFT, 5)
+#         szr_desc.Add(lbl_desc3, 1, wx.GROW|wx.LEFT, 5)
+#         self.btn_help = wx.Button(self.panel, wx.ID_HELP)
+#         self.btn_help.SetFont(mg.BTN_FONT)
+#         self.btn_help.Bind(wx.EVT_BUTTON, self.on_btn_help)
+#         if mg.PLATFORM == mg.LINUX:  ## http://trac.wxwidgets.org/ticket/9859
+#             bx_vars.SetToolTip(self.variables_rc_msg)
+#         szr_vars = wx.StaticBoxSizer(bx_vars, wx.VERTICAL)
+#         self.szr_vars_top = wx.BoxSizer(wx.HORIZONTAL)
+#         szr_vars_bottom = wx.BoxSizer(wx.HORIZONTAL)
+#         szr_vars.Add(self.szr_vars_top, 1, wx.LEFT, 5)
+#         szr_vars.Add(szr_vars_bottom, 0, wx.LEFT, 5)
+#         ## groups
+#         self.lbl_group_a = wx.StaticText(self.panel, -1, _('Group A:'))
+#         self.lbl_group_a.SetFont(mg.LABEL_FONT)
+#         self.lbl_group_b = wx.StaticText(self.panel, -1, _('Group B:'))
+#         self.lbl_group_b.SetFont(mg.LABEL_FONT)
+#         self.setup_var_dropdowns()
+#         ## phrase
+#         self.lbl_phrase = wx.StaticText(
+#             self.panel, -1, _('Start making your selections'))
+#         szr_vars_bottom.Add(self.lbl_phrase, 0, wx.GROW|wx.TOP|wx.BOTTOM, 10)
+#         szr_bottom = wx.BoxSizer(wx.HORIZONTAL)
+#         if mg.MAX_HEIGHT <= 620:
+#             myheight = 130
+#         elif mg.MAX_HEIGHT <= 820:
+#             myheight = ((350 * mg.MAX_HEIGHT) / 1024.0) - 20
+#         else:
+#             myheight = 350
+#         if mg.PLATFORM == mg.MAC:
+#             myheight = myheight*0.3
+#         self.html = wx.html2.WebView.New(
+#             self.panel, -1, size=wx.Size(200, myheight))
+#         if mg.PLATFORM == mg.MAC:
+#             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
+#         else:
+#             self.Bind(wx.EVT_SHOW, self.on_show)
+#         szr_bottom.Add(self.html, 1, wx.GROW)
+#         szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
+#         static_box_gap = 0 if mg.PLATFORM == mg.MAC else 10
+#         if static_box_gap:
+#             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+#         help_down_by = 27 if mg.PLATFORM == mg.MAC else 17
+#         szr_top.Add(self.btn_help, 0, wx.TOP, help_down_by)
+#         szr_top.Add(szr_desc, 1, wx.LEFT, 5)
+#         szr_main.Add(szr_top, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+#         if static_box_gap:
+#             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+#         szr_main.Add(self.szr_data, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+#         if static_box_gap:
+#             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+#         szr_main.Add(szr_vars, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+#         if static_box_gap:
+#             szr_main.Add(wx.BoxSizer(wx.VERTICAL), 0, wx.TOP, static_box_gap)
+#         szr_main.Add(self.szr_output_config, 0, wx.GROW|wx.LEFT|wx.RIGHT, 10)
+#         szr_main.Add(szr_bottom, 2, wx.GROW|wx.ALL, 10)
+#         self.panel.SetSizer(szr_main)
+#         szr_lst = [szr_top, self.szr_data, szr_vars, self.szr_output_config,
+#             szr_bottom]
+#         lib.GuiLib.set_size(window=self, szr_lst=szr_lst, width_init=1024)
+#  
+#     def on_show(self, _event):
+#         global count
+#         if self.exiting:
+#             return
+#         count += 1
+#         if count == 5:
+#             str_content = 'Brace for impact! Crash coming'
+#         else:
+#             str_content = f'Opened {count} times :-)'
+#         self.html.SetPage(str_content, BASE_URL)
+# 
+#     def on_btn_close(self, _event):
+#         self.exiting = True
+#         self.Close()  ## vs wx.Destroy()
+#         """
+#         https://wxpython.org/Phoenix/docs/html/window_deletion_overview.html
+#         Your application can either use wx.Window.Close event just as the framework does, or it can call wx.Window.Destroy directly. If using Close(), you can pass a True argument to this function to tell the event handler that we definitely want to delete the frame and it cannot be vetoed.
+# 
+#         The advantage of using Close instead of Destroy is that it will call any clean-up code defined by the wx.EVT_CLOSE handler; for example it may close a document contained in a window after first asking the user whether the work should be saved. Close can be vetoed by this process (return False), whereas Destroy definitely destroys the window.
+#         """

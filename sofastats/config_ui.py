@@ -833,5 +833,5 @@ class ConfigUI:
 
     def on_btn_close(self, evt):
         self.exiting = True
-        self.Destroy()
+        self.Close()
         evt.Skip()

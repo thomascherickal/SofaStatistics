@@ -34,7 +34,7 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
             (None, 'output'),
             (None, 'stats_output'),
         ]
-        self.Bind(wx.EVT_CLOSE, self.on_btn_close)
+#         self.Bind(wx.EVT_CLOSE, self.on_btn_close)
         self.url_load = True  ## btn_expand
         (self.var_labels, self.var_notes, 
          self.var_types, 
@@ -107,6 +107,8 @@ class DlgPaired2VarConfig(wx.Dialog, config_ui.ConfigUI):
         if mg.PLATFORM == mg.MAC:
             self.html.Bind(wx.EVT_WINDOW_CREATE, self.on_show)
         else:
+            ## Do NOT bind self.html to EVT_WINDOW_CREATE or problems trying to open the main Stats dialog after finishing here - window becomes a 0px wide sliver with a shadow (which is why we can see it at all)
+            ## But that means we need to handle 
             self.Bind(wx.EVT_SHOW, self.on_show)
         szr_bottom.Add(self.html, 1, wx.GROW)
         szr_bottom.Add(self.szr_output_display, 0, wx.GROW|wx.LEFT, 10)
