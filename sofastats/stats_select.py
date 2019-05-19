@@ -275,7 +275,10 @@ class DlgStatsSelect(wx.Dialog):
         self.proj_name = proj_name
         # Windows doesn't include window decorations
         #y_start = self.GetClientSize()[1] - self.GetSize()[1]
-        self.SetSize(self.GetSize())  ## SetClientSize (in this context) seemed to either cause a 0x wide window under strange circumstances on Gtk2 or truncate the bottom of the form intermittently - lol
+        if mg.PLATFORM == mg.WINDOWS:
+            self.SetClientSize(self.GetSize())
+        else:
+            self.SetSize(self.GetSize())  ## SetClientSize (in this context) seemed to either cause a 0x wide window under strange circumstances on Gtk2 or truncate the bottom of the form intermittently - lol
         # panel settings is needed by Windows
         self.panel = wx.Panel(self, size=(self.form_width,self.form_height))
         self.panel.SetBackgroundColour(wx.Colour(205, 217, 215))
