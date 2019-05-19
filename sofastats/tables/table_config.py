@@ -356,13 +356,13 @@ def validate_tblname(tblname, existing_name):
     return True, ''
 
 
-class SafeTblNameValidator(wx.PyValidator):
+class SafeTblNameValidator(wx.Validator):
     def __init__(self):
         """
         Not ok to duplicate an existing name unless it is the same table i.e. a
         name ok to reuse. None if a new table.
         """
-        wx.PyValidator.__init__(self)
+        wx.Validator.__init__(self)
         self.Bind(wx.EVT_CHAR, self.on_char)
 
     def Clone(self):
@@ -478,7 +478,8 @@ class DlgConfigTable(settings_grid.DlgSettingsEntry):
         if not cell_response_func:
             cell_response_func = cell_response
         ## col_dets - See under settings_grid.SettingsEntry
-        col_dets = [{'col_label': _('Field Name'),
+        col_dets = [
+            {'col_label': _('Field Name'),
              'coltype': settings_grid.COL_STR,
              'colwidth': 100},
             {'col_label': _('Data Type'),

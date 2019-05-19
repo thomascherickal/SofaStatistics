@@ -275,11 +275,11 @@ class DlgRecode(settings_grid.DlgSettingsEntry):
         self.txt_to.Bind(wx.EVT_CHAR, self.on_txt_to_char)
         init_recode_clauses_data = []
         self.recode_clauses_data = []
-        self.tabentry = settings_grid.SettingsEntry(self, self.panel, False, 
+        self.tabentry = settings_grid.SettingsEntry(self, self.panel,
             grid_size, col_dets, init_recode_clauses_data,
             self.recode_clauses_data,
-            cell_response_func=warn_about_existing_labels,
-            cell_invalidation_func=recode_cell_invalidation)
+            cell_invalidation_func=recode_cell_invalidation,
+            cell_response_func=warn_about_existing_labels)
         self.tabentry.grid.Enable(False)
         self.tabentry.grid.SetToolTip(
             _('Disabled until there is a variable to recode to'))
