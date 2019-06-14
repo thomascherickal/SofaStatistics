@@ -1,4 +1,5 @@
-from pprint import pformat as pf
+from textwrap import dedent
+
 import wx
 
 from . import my_globals as mg
@@ -75,10 +76,16 @@ def update_vdt(var_labels, var_notes, var_types, val_dics):
     # update lbl file
     cc = output.get_cc()
     with open(cc[mg.CURRENT_VDTS_PATH], 'w', encoding='utf-8') as f:
-        f.write(f'var_labels={pf(var_labels)}')
-        f.write(f'\n\nvar_notes={pf(var_notes)}')
-        f.write(f'\n\nvar_types={pf(var_types)}')
-        f.write(f'\n\n\nval_dics={pf(val_dics)}')
+        std_indent = 8
+        f.write(dedent(f"""\
+        var_labels = {lib.indented_pf(var_labels, extra_indent=std_indent)}
+        
+        var_notes = {lib.indented_pf(var_notes, extra_indent=std_indent)}
+        
+        var_types = {lib.indented_pf(var_types, extra_indent=std_indent)}
+        
+        val_dics = {lib.indented_pf(val_dics, extra_indent=std_indent)}
+        """))
     wx.MessageBox(_("Settings saved to \"%s\"") % cc[mg.CURRENT_VDTS_PATH])
 
 def sensibly_sorted_vals_and_lbls(vals_and_lbls):

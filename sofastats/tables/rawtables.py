@@ -27,7 +27,7 @@ def get_hdr_dets(col_labels, css_idx):
 
 def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
         flds, cur, first_col_as_label, val_dics, add_total_row, where_tbl_filt,
-        css_idx, page_break_after=False, display_n=None):
+        css_idx, *, display_n=None, page_break_after=False):
     """
     Get HTML for table.
 
@@ -40,6 +40,8 @@ def get_html(titles, subtitles, dbe, col_labels, col_names, col_sorting, tbl,
     initiated e.g. user has changed data source after selecting raw tables) AND
     by live run (which always grabs the data it needs at the moment it is called
     (current by definition) and instantiates and gets html in one go.
+
+    :param int display_n: max number of rows to display
     """
     debug = False
     verbose = False
@@ -226,7 +228,7 @@ class RawTable:
     def has_col_measures(self):
         return False
 
-    def get_html(self, css_idx, display_n=None, *, page_break_after=False):
+    def get_html(self, css_idx, *, display_n=None, page_break_after=False):
         """
         Get HTML for table.
 
@@ -242,5 +244,5 @@ class RawTable:
         return get_html(self.titles, self.subtitles, self.dbe, self.col_labels,
             self.col_names, self.col_sorting, self.tbl, self.flds, self.cur,
             self.first_col_as_label, self.val_dics, self.add_total_row,
-            self.where_tbl_filt, css_idx, display_n,
+            self.where_tbl_filt, css_idx, display_n=display_n,
             page_break_after=page_break_after)

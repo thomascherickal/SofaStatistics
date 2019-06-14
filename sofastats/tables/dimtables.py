@@ -474,7 +474,7 @@ class LiveTable(DimTable):
             raise Exception('Must run prep_table() before get_cell_n_ok().')
         return max_cells >= data_cell_n
 
-    def get_html(self, css_idx, dp, *, page_break_after=False):
+    def get_html(self, css_idx, *, dp, page_break_after=False):
         """
         Get HTML for table.
         """
@@ -491,7 +491,7 @@ class LiveTable(DimTable):
             (self.tree_col_labels,
              self.hdr_html) = self.get_hdr_dets(row_label_cols_n, css_idx)
         row_label_rows_lst = self.get_body_html_rows(self.row_label_rows_lst,
-            self.tree_row_labels, self.tree_col_labels, css_idx, dp)
+            self.tree_row_labels, self.tree_col_labels, css_idx, dp=dp)
         body_html = '\n\n<tbody>'
         for row in row_label_rows_lst:
             ## flatten row list
@@ -543,7 +543,7 @@ class LiveTable(DimTable):
         return self.process_hdr_tree(tree_col_labels, row_label_cols_n, css_idx)
 
     def get_body_html_rows(self, row_label_rows_lst,
-            tree_row_labels, tree_col_labels, css_idx, dp):
+            tree_row_labels, tree_col_labels, css_idx, *, dp):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [['<tr>', "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],

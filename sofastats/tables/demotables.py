@@ -14,7 +14,7 @@ class DemoTable:
     All demo tables, whether dim tables or raw tables, derive from this class.
     """
 
-    def get_demo_html_if_ok(self, css_idx):
+    def get_demo_html_if_ok(self, css_idx, *, dp):
         "Show demo table if sufficient data to do so"
         has_cols = lib.GuiLib.get_tree_ctrl_children(
             tree=self.coltree, item=self.colroot)
@@ -24,14 +24,14 @@ class DemoTable:
             is_ok = has_rows and has_cols
         else:
             is_ok = has_cols
-        return self.get_demo_html(css_idx) if is_ok else ''
+        return self.get_demo_html(css_idx, dp=dp) if is_ok else ''
 
-    def get_html(self, css_idx):
+    def get_html(self, css_idx, *, dp):
         "Returns html"
         raise NotImplementedError('get_html must be defined by subclass')
 
     def get_body_html_rows(self, row_label_rows_lst,
-            tree_row_labels, tree_col_labels, css_idx, dp):
+            tree_row_labels, tree_col_labels, css_idx, *, dp):
         """
         Make table body rows based on contents of row_label_rows_lst:
         e.g. [["<tr>", "<td class='firstrowvar' rowspan='8'>Gender</td>" ...],
@@ -97,7 +97,7 @@ class DemoTable:
                 i = i + 1
         return row_label_rows_lst
 
-    def get_demo_html(self, css_idx):
+    def get_demo_html(self, css_idx, *, dp):
         """
         Get demo HTML for table.
         """
@@ -120,7 +120,7 @@ class DemoTable:
                 new_js_n_charts=None, has_dojo=False,
                 default_if_prob=True, grey=True, abs_pth=True))
             html.append("<table cellspacing='0'>\n")  ## IE6 no CSS borderspacing
-            main_html = self.get_html(css_idx)
+            main_html = self.get_html(css_idx, dp=dp)
         except my_exceptions.MissingCss:
             raise
         except my_exceptions.TooFewValsForDisplay:
@@ -157,7 +157,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         self.first_col_as_label = first_col_as_label
         self.needs_rows = mg.RPT_CONFIG[mg.DATA_LIST][mg.NEEDS_ROWS_KEY]
    
-    def get_html(self, css_idx):
+    def get_html(self, css_idx, *, dp):
         """
         Returns demo_html.
         Always run off fresh data - guaranteed by using dd. Can't take db 
@@ -172,7 +172,7 @@ class DemoRawTable(rawtables.RawTable, DemoTable):
         demo_html = rawtables.get_html(self.titles, self.subtitles, dd.dbe,
             col_labels, col_names, col_sorting, dd.tbl, dd.flds, dd.cur,
             self.first_col_as_label, self.val_dics, self.add_total_row,
-            where_tbl_filt, css_idx, display_n=4, page_break_after=False)
+            where_tbl_filt, css_idx, page_break_after=False, display_n=4)
         return demo_html
 
 
@@ -209,7 +209,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         # show_perc not set here when instantiated as must be checked from UI 
         #    each time get_demo_html_if_ok() is called.
 
-    def get_html(self, css_idx, dp):
+    def get_html(self, css_idx, *, dp):
         "Returns demo_html"
         debug = False
         html = []
@@ -223,7 +223,7 @@ class DemoDimTable(dimtables.DimTable, DemoTable):
         html.append(hdr_html)
         if debug: print(row_label_rows_lst)
         row_label_rows_lst = self.get_body_html_rows(row_label_rows_lst,
-            tree_row_labels, tree_col_dets, css_idx, dp)
+            tree_row_labels, tree_col_dets, css_idx, dp=dp)
         html.append('\n\n<tbody>')
         for row in row_label_rows_lst:  ## flatten row list
             html.append('\n' + ''.join(row) + '</tr>')

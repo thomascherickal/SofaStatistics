@@ -1,5 +1,5 @@
 import locale
-from pprint import pformat as pf
+from textwrap import dedent
 import wx #@UnusedImport
 import wx.lib.agw.hypertreelist as HTL
 import wx.html2
@@ -644,33 +644,7 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
                     'has_cols': has_cols,
                     'dp': mg.DEFAULT_REPORT_DP})
 
-    ## export script
-    def on_btn_script(self, event):
-        """
-        Export script for table to file currently displayed (if enough data).
-
-        If the file doesn't exist, make one and add the preliminary code.
-
-        If a file exists, but is empty, put the preliminary code in then
-        the new exported script.
-
-        If the file exists and is not empty, append the script on the end.
-        """
-        export_ok, has_cols = self.table_config_ok()
-        if export_ok:
-            try:
-                css_fpaths, css_idx = output.get_css_dets()
-            except my_exceptions.MissingCss as e:
-                lib.OutputLib.update_html_ctrl(self.html,
-                    _('Please check the CSS file exists or set another.'
-                    '\nCaused by error: %s') % b.ue(e), wrap_text=True)
-                lib.GuiLib.safe_end_cursor()
-                event.Skip()
-                return
-            script = self.get_script(css_idx, has_cols, dp=mg.DEFAULT_REPORT_DP)
-            output.export_script(script, css_fpaths)
-
-    def get_script(self, css_idx, has_cols, dp):
+    def get_script(self, css_idx, *, has_cols, dp):
         """
         Build script from inputs.
 
@@ -707,14 +681,14 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         elif self.tab_type == mg.DATA_LIST:
             col_names, col_labels, col_sorting = lib.GuiLib.get_col_dets(
                  self.coltree, self.colroot, self.var_labels)
-            script_lst.append(f'col_names = {col_names}')
-            script_lst.append(f'col_labels = {col_labels}')
-            script_lst.append(f'col_sorting = {col_sorting}')
-            script_lst.append(f'flds = {pf(dd.flds)}')
-            var_labels = pf(self.var_labels)
-            script_lst.append(f'var_labels = {var_labels}')
-            val_dics = pf(self.val_dics)
-            script_lst.append(f'val_dics = {val_dics}')
+            std_indent = 12
+            script_lst.append(dedent(f"""\
+            col_names = {col_names}
+            col_labels = {col_labels}
+            col_sorting = {col_sorting}
+            flds = {lib.indented_pf(dd.flds, extra_indent=std_indent)}
+            var_labels = {lib.indented_pf(self.var_labels, extra_indent=std_indent)}
+            val_dics = {lib.indented_pf(self.val_dics, extra_indent=std_indent)}"""))
         ## process title dets
         titles, subtitles = self.get_titles()
         script_lst.append(lib.FiltLib.get_tbl_filt_clause(
@@ -723,48 +697,57 @@ class DlgMakeTable(wx.Dialog, config_ui.ConfigUI, dimtree.DimTree):
         if self.tab_type in (mg.FREQS, mg.CROSSTAB):
             show_perc = ('True' if self.chk_show_perc_symbol.IsChecked()
                 else 'False')
-            script_lst.append('tab_test = dimtables.GenTable('
-                f'titles={titles},'
-                f'\n    subtitles={subtitles},'
-                f'\n    tab_type={self.tab_type},'
-                f'\n    dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]}, '
-                f'tbl="{dd.tbl}", tbl_filt=tbl_filt,'
-                '\n    cur=cur, flds=flds, tree_rows=tree_rows, ' 
-                f'tree_cols=tree_cols, show_perc={show_perc})')
+            script_lst.append(dedent(f"""\
+            tab_test = dimtables.GenTable(
+                titles={titles},
+                subtitles={subtitles},
+                tab_type={self.tab_type},
+                dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]},
+            tbl="{dd.tbl}", tbl_filt=tbl_filt,
+                cur=cur, flds=flds, tree_rows=tree_rows,
+            tree_cols=tree_cols, show_perc={show_perc})"""))
         elif self.tab_type == mg.ROW_STATS:
-            script_lst.append('tab_test = dimtables.SummTable(' 
-                f'titles={titles},'
-                f'\n    subtitles={subtitles},'
-                f'\n    tab_type={self.tab_type},'
-                f'\n    dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]}, '
-                f'tbl="{dd.tbl}", tbl_filt=tbl_filt,'
-                '\n    cur=cur, flds=flds, tree_rows=tree_rows, '
-                'tree_cols=tree_cols)')
+            script_lst.append(dedent(f"""\
+            tab_test = dimtables.SummTable(
+                titles={titles},
+                subtitles={subtitles},
+                tab_type={self.tab_type},
+                dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]},
+            tbl="{dd.tbl}", tbl_filt=tbl_filt,
+                cur=cur, flds=flds, tree_rows=tree_rows,
+                tree_cols=tree_cols)"""))
         elif self.tab_type == mg.DATA_LIST:
             tot_rows = 'True' if self.chk_totals_row.IsChecked() else 'False'
             first_label = ('True' if self.chk_first_as_label.IsChecked()
                 else 'False')
-            script_lst.append(f"""
-tab_test = rawtables.RawTable(titles={titles},
-    subtitles={subtitles}, dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]},
-    col_names=col_names, col_labels=col_labels, col_sorting=col_sorting,
-    flds=flds, var_labels=var_labels, val_dics=val_dics, tbl="{dd.tbl}",
-    tbl_filt=tbl_filt, cur=cur, add_total_row={tot_rows},
-    first_col_as_label={first_label})""")
+            script_lst.append(dedent(f"""\
+            tab_test = rawtables.RawTable(titles={titles},
+                subtitles={subtitles}, dbe=mg.{mg.DBE_KEY2KEY_AS_STR[dd.dbe]},
+                col_names=col_names, col_labels=col_labels, col_sorting=col_sorting,
+                flds=flds, var_labels=var_labels, val_dics=val_dics, tbl="{dd.tbl}",
+                tbl_filt=tbl_filt, cur=cur, add_total_row={tot_rows},
+                first_col_as_label={first_label})"""))
         if self.tab_type in [mg.FREQS, mg.CROSSTAB, mg.ROW_STATS]:
-            script_lst.append(f'tab_test.prep_table({css_idx})')
-            script_lst.append(f'max_cells = {mg.MAX_CELLS_IN_REPORT_TABLE}')
-            script_lst.append('if tab_test.get_cell_n_ok(max_cells=max_cells):')
-            script_lst.append(
-                f'    fil.write(tab_test.get_html({css_idx}, {dp}, '
-                'page_break_after=False))')
-            script_lst.append('else:')
-            script_lst.append(
-                '    raise my_exceptions.ExcessReportTableCells(max_cells)')
-        else:
-            script_lst.append(
-                f'fil.write(tab_test.get_html({css_idx}, '
-                'page_break_after=False))')
+            script_lst.append(dedent(f"""\
+            tab_test.prep_table({css_idx})
+            
+            
+            """))
+            ## tab_test might be dimtables.GenTable (mg.FREQS, mg.CROSSTAB), or 
+            ## dimtables.SummTable (mg.ROW_STATS). They all conform to the same
+            ## get_html() API.
+            script_lst.append(dedent(f"""\
+            tab_test.prep_table({css_idx})
+            max_cells = {mg.MAX_CELLS_IN_REPORT_TABLE}
+            if tab_test.get_cell_n_ok(max_cells=max_cells):
+                fil.write(tab_test.get_html(
+                    {css_idx}, dp={dp}, page_break_after=False))
+            else:
+                raise my_exceptions.ExcessReportTableCells(max_cells)"""))
+        else:  ## e.g. DATA_LIST rawtables.RawTable
+            script_lst.append(dedent(f"""\
+                fil.write(tab_test.get_html({css_idx},
+                    page_break_after=False))"""))
         return "\n".join(script_lst)
 
     def get_next_node_name(self):
@@ -920,7 +903,8 @@ tab_test = rawtables.RawTable(titles={titles},
                     self.content2expand = demo_html
                     demo_was_live = bolran_report
                 else:
-                    demo_html = self.demo_tab.get_demo_html_if_ok(css_idx=0)
+                    demo_html = self.demo_tab.get_demo_html_if_ok(
+                        css_idx=0, dp=mg.DEFAULT_REPORT_DP)
             except my_exceptions.MissingCss as e:
                 lib.OutputLib.update_html_ctrl(self.html,
                     _('Please check the CSS file exists or set another. Caused '

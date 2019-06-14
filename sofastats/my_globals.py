@@ -17,7 +17,7 @@ of the GUI on settings only found when running in the GUI.
 
 debug = False
 
-VERSION = '1.5.1'
+VERSION = '1.5.2'
 ATTRIBUTION = 'sofastatistics.com'
 CONTACT = 'grant@sofastatistics.com'
 HOME_URL = 'http://www.sofastatistics.com'

@@ -64,7 +64,7 @@ random data (when too many records to just use real data).
 
 import os
 from pathlib import Path
-from pprint import pformat as pf
+from textwrap import dedent
 import time
 import traceback
 import urllib
@@ -805,7 +805,7 @@ def get_divider(source, tbl_filt_label, tbl_filt, *, page_break_before=False):
     return div
 
 def get_source(db, tblname):
-    full_datestamp = f'on {lib.DateLib.get_unicode_datestamp()}'
+    full_datestamp = f'on {lib.DateLib.get_datestamp_str()}'
     source = f'\n<p>From {db}.{tblname} {full_datestamp}</p>'
     return source
 
@@ -945,24 +945,13 @@ def save_to_report(css_fpaths, source, tbl_filt_label, tbl_filt, new_html, *,
     if existing_no_ends:
         f.write(existing_no_ends)
     pagebreak = existing_report
-    f.write('\n'*4)  ## Won't change output but make it easier to shift infdividual outputs around or delete them manually
+    f.write('\n'*4)  ## Won't change output but make it easier to shift individual outputs around or delete them manually
     f.write(get_divider(
         source, tbl_filt_label, tbl_filt, page_break_before=pagebreak))
     f.write(new_no_hdr)
     f.write('\n'*4)
     f.write(get_html_ftr())
     f.close()
-
-def _strip_script(script):
-    """
-    Get script up till #sofa_script_end ...
-    """
-    try:
-        end_idx = script.index(mg.SCRIPT_END)
-        stripped = script[:end_idx]
-    except ValueError:
-        stripped = script
-    return stripped
 
 def get_cc():
     debug = False
@@ -978,159 +967,137 @@ def get_cc():
         if debug: print('Updated mg.CURRENT_CONFIG')
     return mg.CURRENT_CONFIG
 
-def export_script(script, css_fpaths, *, new_has_dojo=False):
-    dd = mg.DATADETS_OBJ
-    cc = get_cc()
-    modules = [
-        (None, 'my_globals as mg'),
-        ('stats', 'core_stats'),
-        ('tables', 'dimtables'),
-        (None, 'getdata'),
-        (None, 'output'),
-        ('tables', 'rawtables'),
-        (None, 'stats_output'), ]
-    if os.path.exists(cc[mg.CURRENT_SCRIPT_PATH]):
-        existing_script = b.get_bom_free_contents(
-            fpath=cc[mg.CURRENT_SCRIPT_PATH])
-    else:
-        existing_script = None
-    try:
-        f = open(cc[mg.CURRENT_SCRIPT_PATH], 'w', encoding='utf-8')
-    except IOError:
-        wx.MessageBox(_("Problem making script file named \"%s\". Please try "
-            'another name.') % cc[mg.CURRENT_SCRIPT_PATH])
-        return
-    if existing_script:
-        f.write(_strip_script(existing_script))
-    else:
-        insert_prelim_code(
-            modules, f, cc[mg.CURRENT_REPORT_PATH], css_fpaths,
-            new_has_dojo=new_has_dojo)
-    tbl_filt_label, tbl_filt = lib.FiltLib.get_tbl_filt(dd.dbe, dd.db, dd.tbl)
-    append_exported_script(f, script, tbl_filt_label, tbl_filt, 
-        inc_divider=True)
-    add_end_script_code(f)
-    f.close()
-    wx.MessageBox(
-        _("Script added to end of \"%s\" ready for reuse and automation")
-        % cc[mg.CURRENT_SCRIPT_PATH])
-
-def add_divider_code(f, tbl_filt_label, tbl_filt):
-    """
-    Adds divider code to a script file.
-    """
-    dd = mg.DATADETS_OBJ
-    f.write(f'\nsource = output.get_source("{dd.db}", "{dd.tbl}")')
-    f.write('\ndivider = output.get_divider(source, '
-        f' """ {tbl_filt_label} """, """ {tbl_filt} """)')
-    f.write('\nfil.write(divider)\n')
-
-def insert_prelim_code(modules, f, report_fpath, css_fpaths, *, new_has_dojo):
+def _get_prelim_code(modules, report_fpath, css_fpaths, *, new_has_dojo):
     """
     Insert preliminary code at top of file. Needed for making output
 
     NB only one output file per script irrespective of selection as each script
     exported.
-
-    :param handle f: open file handle ready for writing.
     """
     debug = False
     if debug: print(css_fpaths)
-    f.write('\n' + mg.MAIN_SCRIPT_START)
-    f.write('\nimport gettext')
-    f.write('\nimport numpy as np')
-    f.write('\nimport os')
-    f.write('\nfrom pathlib import Path')
-    f.write('\nimport sys')
-    f.write('\ngettext.install(domain="sofastats", '
-            f'localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")')
-    f.write('\n' + lib.get_gettext_setup_txt())
-    f.write(f"\nsys.path.append('{lib.escape_pre_write(mg.SCRIPT_PATH)}')")
+    subpackage_dets = []
     for subpackage, module in modules:
         if subpackage:
-            f.write(f'\nfrom sofastats.{subpackage} import {module}')
+            subpackage_dets.append(
+                f'from sofastats.{subpackage} import {module}')
         else:
-            f.write(f'\nimport {module}')
-    f.write('\nimport my_exceptions')
-    f.write('\nrun_locally = False  ## set to True to test by running locally')
-    f.write('\nif run_locally:\n    import config_globals')
-    f.write('\n    config_globals.set_SCRIPT_PATH()')
-    f.write('\n    config_globals.set_ok_date_formats()')
-    f.write('\n    config_globals.set_DEFAULT_DETAILS()')
-    f.write('\n    config_globals.import_dbe_plugins()  ## as late as possible because uses local modules e.g. my_exceptions, lib')
+            subpackage_dets.append(f'import {module}')
+    subpackages_str = '\n'.join(subpackage_dets)
     css_fpath_strs = [
         lib.escape_pre_write(css_fpath) for css_fpath in css_fpaths]
-    f.write(f'\ncss_fpath_strs = {css_fpath_strs}')
-    f.write('\ncss_fpaths = [Path(css_fpath_str) for css_fpath_str in css_fpath_strs]')
-    f.write(f'\n\nfil = open("{lib.escape_pre_write(report_fpath)}",'
-        + " 'w', encoding='utf-8')")
     has_dojo = new_has_dojo  ## always for making single output item e.g. chart
     has_dojo_str = 'True' if has_dojo else 'False'
-    f.write('\nfil.write(output.get_html_hdr("Report(s)", css_fpaths, '
-        f"new_js_n_charts=None, has_dojo={has_dojo_str}, default_if_prob=True))")
-    f.write("\n\n# end of script 'header'\n\n")
+    std_indent = 4
+    prelim_code = (dedent(f"""\
+    
+    {mg.MAIN_SCRIPT_START}
+    import gettext
+    import numpy as np
+    import os
+    from pathlib import Path
+    import sys
+    
+    gettext.install(domain="sofastats",
+        localedir="{lib.escape_pre_write(mg.LOCALEDIR)}")
+    {lib.indented_text(
+        lib.get_gettext_setup_txt(),
+        extra_indent=std_indent,
+        skip_first_line=True)}
+    sys.path.append('{lib.escape_pre_write(mg.SCRIPT_PATH)}')
+    
+    {lib.indented_text(
+        subpackages_str, extra_indent=std_indent, skip_first_line=True)}
+    
+    import my_exceptions
+    run_locally = False  ## set to True to test by running locally
+    if run_locally:
+        import config_globals
+        config_globals.set_SCRIPT_PATH()
+        config_globals.set_ok_date_formats()
+        config_globals.set_DEFAULT_DETAILS()
+        config_globals.import_dbe_plugins()  ## as late as possible because uses local modules e.g. my_exceptions, lib
+    css_fpath_strs = {css_fpath_strs}
+    css_fpaths = [Path(css_fpath_str) for css_fpath_str in css_fpath_strs]
+    
+    fil = open("{lib.escape_pre_write(report_fpath)}", 'w', encoding='utf-8')
+    fil.write(output.get_html_hdr("Report(s)", css_fpaths,
+         new_js_n_charts=None, has_dojo={has_dojo_str}, default_if_prob=True))
+    
+    # end of script 'header'
+    
+    """))
+    return prelim_code
 
-def append_exported_script(f, inner_script, tbl_filt_label, tbl_filt, *,
-        inc_divider=False):
+def _get_exported_script(inner_script):
     """
-    Append exported script onto existing script file.
-
-    f - open file handle ready for writing
+    Get exported script code ready to append onto existing script file.
     """
     dd = mg.DATADETS_OBJ
-    u_datestamp = lib.DateLib.get_unicode_datestamp()
-    full_datestamp = (f'\n# Script exported {u_datestamp}')
+    std_indent = 4
+    start_str = '#' + '-' * 65
+    datestamp_str = lib.DateLib.get_datestamp_str()
+    full_datestamp = f'# Script exported {datestamp_str}'
     ## Fresh connection for each in case it changes in between tables
-    f.write('#%s' % ('-'*65))
-    f.write(full_datestamp)
-    if inc_divider:
-        add_divider_code(f, tbl_filt_label, tbl_filt)
-    con_dets_str = pf(dd.con_dets).replace('\\', '\\\\')
-    f.write(f'\ncon_dets = {con_dets_str}')
-    default_dbs_str = pf(dd.default_dbs)
-    f.write(f'\ndefault_dbs = {default_dbs_str}')
-    default_tbls_str = pf(dd.default_tbls)
-    f.write(f'\ndefault_tbls = {default_tbls_str}')
-    f.write(f'\ndbe ="{dd.dbe}"')
-    f.write('\ndbe_resources = getdata.get_dbe_resources(dbe,')
-    f.write('\n    con_dets=con_dets, default_dbs=default_dbs, '
-        '\n    default_tbls=default_tbls, ')
-    f.write(f'\n    db="{dd.db}", tbl="{dd.tbl}")')
-    f.write('\ncon = dbe_resources[mg.DBE_CON]')
-    f.write('\ncur = dbe_resources[mg.DBE_CUR]')
-    f.write('\ndbs = dbe_resources[mg.DBE_DBS]')
-    f.write('\ndb = dbe_resources[mg.DBE_DB]')
-    f.write('\ntbls = dbe_resources[mg.DBE_TBLS]')
-    f.write('\ntbl = dbe_resources[mg.DBE_TBL]')
-    f.write('\nflds = dbe_resources[mg.DBE_FLDS]')
-    f.write('\nidxs = dbe_resources[mg.DBE_IDXS]')
-    f.write('\nhas_unique = dbe_resources[mg.DBE_HAS_UNIQUE]')
-    f.write(f'\n{inner_script}')
-    f.write('\ncon.close()')
+    con_dets_str = (lib.indented_pf(dd.con_dets, extra_indent=std_indent)
+        .replace('\\', '\\\\'))
+    default_dbs_str = lib.indented_pf(dd.default_dbs, extra_indent=std_indent)
+    default_tbls_str = lib.indented_pf(dd.default_tbls, extra_indent=std_indent)
+    inner_script = lib.indented_text(
+        inner_script, extra_indent=std_indent, skip_first_line=True)
+    exported_script = (dedent(f"""\
+    {start_str}
 
-def add_end_script_code(f):
+    {full_datestamp}
+
+    con_dets = {con_dets_str}
+    default_dbs = {default_dbs_str}
+    
+    default_tbls = {default_tbls_str}
+    
+    dbe ="{dd.dbe}"
+    
+    dbe_resources = getdata.get_dbe_resources(
+        dbe, con_dets=con_dets, default_dbs=default_dbs,
+        default_tbls=default_tbls, db="{dd.db}", tbl="{dd.tbl}")
+    con = dbe_resources[mg.DBE_CON]
+    cur = dbe_resources[mg.DBE_CUR]
+    dbs = dbe_resources[mg.DBE_DBS]
+    db = dbe_resources[mg.DBE_DB]
+    tbls = dbe_resources[mg.DBE_TBLS]
+    tbl = dbe_resources[mg.DBE_TBL]
+    flds = dbe_resources[mg.DBE_FLDS]
+    idxs = dbe_resources[mg.DBE_IDXS]
+    has_unique = dbe_resources[mg.DBE_HAS_UNIQUE]
+    {inner_script}
+    con.close()
+    """))
+    return exported_script
+
+def _get_end_script_code():
     "Add ending code to script. NB leaves open file."
-    f.write(f'\n\n{mg.SCRIPT_END}'
-        + '-'*(65 - len(mg.SCRIPT_END))
-        + '\n')
-    f.write('\nfil.write(output.get_html_ftr())')
-    f.write('\nfil.close()')
+    end_script_code = dedent(f"""\
+    {mg.SCRIPT_END + '-'*(65 - len(mg.SCRIPT_END))}
+    fil.write(output.get_html_ftr())
+    fil.close()
+    """)
+    return end_script_code
 
-def generate_script(modules, css_fpaths, inner_script, tbl_filt_label, tbl_filt,
-        *, new_has_dojo):
+def generate_script(modules, css_fpaths, inner_script, *, new_has_dojo):
     debug = False
     verbose = False
     try:
         with open(mg.INT_SCRIPT_PATH, 'w', encoding='utf-8') as f:
             if debug and verbose: print(css_fpaths)
-            insert_prelim_code(
-                modules, f, mg.INT_REPORT_PATH, css_fpaths,
+            prelim_code = _get_prelim_code(
+                modules, mg.INT_REPORT_PATH, css_fpaths,
                 new_has_dojo=new_has_dojo)
-            append_exported_script(
-                f, inner_script, tbl_filt_label, tbl_filt, inc_divider=False)
-            add_end_script_code(f)
+            exported_script = _get_exported_script(inner_script)
+            end_script_code = _get_end_script_code()
+            f.write(prelim_code)
+            f.write(exported_script)
+            f.write(end_script_code)
     except Exception as e:
-        print(e)
         raise Exception('Unable to make the script needed to make the output.'
             f'\nOrig error: {b.ue(e)}')
 
@@ -1256,7 +1223,6 @@ def run_report(modules, css_fpaths, inner_script, *,
     filt_msg = lib.FiltLib.get_filt_msg(tbl_filt_label, tbl_filt)
     try:
         generate_script(modules, css_fpaths, inner_script,
-            tbl_filt_label, tbl_filt,
             new_has_dojo=new_has_dojo)
         run_script()
         raw_results = get_raw_results()

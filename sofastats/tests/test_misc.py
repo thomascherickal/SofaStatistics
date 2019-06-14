@@ -1845,12 +1845,6 @@ def test_extract_html_body():
     for html, expected_body in tests:
         actual_body = output.extract_html_body(html)
         assert_equal(actual_body, expected_body)
-
-def test_strip_script():
-    tests = [('\nchunky chicken%s\nxzmxnzmxnz' % mg.SCRIPT_END, 
-              '\nchunky chicken')]
-    for test in tests:
-        assert_equal(output._strip_script(test[0]), test[1])
         
 def test_sofa_default_proj_settings():
     """

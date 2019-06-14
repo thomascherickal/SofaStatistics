@@ -6,6 +6,7 @@ import math
 from operator import itemgetter
 import os
 from pathlib import Path
+from pprint import pformat as pf
 import random
 import re
 import textwrap
@@ -536,31 +537,10 @@ class UniLib:
 class DateLib:
 
     @staticmethod
-    def get_unicode_datestamp():
-        debug = False
+    def get_datestamp_str():
         now = datetime.datetime.now()
-        try:
-            raw_datestamp = now.strftime('%d/%m/%Y at %I:%M %p')
-            ## see http://groups.google.com/group/comp.lang.python/browse_thread/...
-            ## ...thread/a18a590eb5d12e5b
-            datestamp = raw_datestamp.decode(locale.getpreferredencoding())
-            if debug: print(repr(datestamp))
-            u_datestamp = '{}'.format(datestamp)
-        except Exception:
-            try:
-                raw_datestamp = now.strftime('%d/%m/%Y at %H:%M')
-                datestamp = raw_datestamp.decode(locale.getpreferredencoding())
-                if debug: print(repr(datestamp))
-                u_datestamp = '{}'.format(datestamp)
-            except Exception:
-                try:
-                    raw_datestamp = now.strftime('%d/%m/%Y at %H:%M')
-                    datestamp = raw_datestamp.decode('utf8', 'replace')
-                    if debug: print(repr(datestamp))
-                    u_datestamp = '{}'.format(datestamp)
-                except Exception:
-                    u_datestamp = 'date-time unrecorded'  ## TODO -chardet?
-        return u_datestamp
+        datestamp_str = now.strftime('%d/%m/%Y at %I:%M %p')
+        return datestamp_str
 
     @staticmethod
     def dates_1900_to_datetime(days_since_1900):
@@ -1910,6 +1890,52 @@ def get_escaped_dict_pre_write(mydict):
 
 if mg.PLATFORM == mg.WINDOWS:
     exec('import pywintypes')
+
+def indented_text(raw_text, *, extra_indent=4, skip_first_line=True):
+    """
+    Needed so we can use supplied text e.g. an inner script, within a dedented
+    f-string. If not, the lack of common whitespace will prevent dedent from
+    working as expected.
+
+    :param str raw_text: text requiring indentation
+    :param int extra_indent: how many spaces to add to indentation of lines
+    :param bool skip_first_line: leave first line unindented if True.
+    :return: indented and version of raw_text
+    :rtype: str
+    """
+    lines = raw_text.split('\n')
+    if skip_first_line:
+        new_lines = lines[:1]
+        lines2indent = lines[1:]
+    else:
+        new_lines = []
+        lines2indent = lines
+    indented_lines = [
+        ' '*extra_indent + line
+        for line in lines2indent]
+    new_lines.extend(indented_lines)
+    indented_text = '\n'.join(new_lines)
+    return indented_text
+
+def indented_pf(raw_text, *, extra_indent=4, skip_first_line=True):
+    """
+    Needed so we can use pformatted text e.g. variable definitions, within a
+    dedented f-string. If not, the lack of common whitespace will prevent dedent
+    from working as expected.
+
+    :param str raw_text: text requiring indentation once pformatted
+    :param int extra_indent: how many spaces to add to indentation of lines
+    :param bool skip_first_line: leave first line unindented if True. Useful
+     when using like var = pformatted_text
+    :return: indented and pformatted version of raw_text
+    :rtype: str
+    """
+    pf_correction_indent = 3  ## pf actually has 1 space only whereas I would like to end up with 4
+    pf_text = pf(raw_text)
+    return indented_text(
+        pf_text,
+        extra_indent=extra_indent + pf_correction_indent,
+        skip_first_line=skip_first_line)
 
 def escape_pre_write(txt):
     """
