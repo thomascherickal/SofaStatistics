@@ -1,7 +1,6 @@
 from collections import namedtuple
 import datetime
 import decimal
-import locale
 import math
 from operator import itemgetter
 import os
